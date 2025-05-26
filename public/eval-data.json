@@ -1,0 +1,37 @@
+{
+  "employees": [
+    { "id": 1, "role": "대리", "team": "팀원/PC게임개발", "name": "김피스" },
+    { "id": 2, "role": "사원", "team": "팀원/PC게임개발", "name": "이피스" },
+    { "id": 3, "role": "과장", "team": "팀원/PC게임개발", "name": "한피스" }
+  ],
+  "goals": [
+    { "id": 101, "employeeId": 1, "title": "신규 고객을 확보한다", "target": 20, "achievement": 25, "weight": 30 },
+    { "id": 102, "employeeId": 1, "title": "신규 고객 20명을 달성한다", "target": 20, "achievement": 18, "weight": 20 },
+    { "id": 201, "employeeId": 2, "title": "신규 고객 15명을 확보한다", "target": 15, "achievement": 15, "weight": 25 },
+    { "id": 301, "employeeId": 3, "title": "기존 고객 유지율 90% 달성", "target": 90, "achievement": 75, "weight": 45 }
+  ],
+  "evaluations": [
+    {
+      "employeeId": 1,
+      "grades": [
+        { "goalId": 101, "grade": "우수" },
+        { "goalId": 102, "grade": "보통" }
+      ],
+      "comment": "전체적으로 잘 해주었습니다."
+    },
+    {
+      "employeeId": 2,
+      "grades": [
+        { "goalId": 201, "grade": "탁월" }
+      ],
+      "comment": ""
+    },
+    {
+      "employeeId": 3,
+      "grades": [
+        { "goalId": 301, "grade": "미흡" }
+      ],
+      "comment": "추가 개선이 필요합니다."
+    }
+  ]
+}
