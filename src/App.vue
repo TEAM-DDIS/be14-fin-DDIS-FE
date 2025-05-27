@@ -1,87 +1,90 @@
 <template>
-  <header>
+  <div class="app">
+    <!-- 상단 헤더 -->
     <Header />
-  </header>
-  <div class="layout" ref="layoutRef">
-    <Sidebar
-      @menu-selected="selectedMenu = $event"
-      :selected="selectedMenu"
-    />
 
-    <transition name="slide-fade">
-      <SubSidebar v-if="selectedMenu" :menu="selectedMenu" @clear-menu="clearSelectedMenu"/>
-    </transition>
-  </div>
-  <div class="main-content">
-    <RouterView />
+    <!-- 사이드바 + 서브사이드바 + 메인 콘텐츠 레이아웃 -->
+    <div class="layout" ref="layoutRef">
+      <Sidebar
+        @menu-selected="selectedMenu = $event"
+        :selected="selectedMenu"
+      />
+      <SubSidebar
+        v-if="selectedMenu"
+        class="subsidebar"
+        :menu="selectedMenu"
+        @clear-menu="clearSelectedMenu"
+      />
+
+      <!-- 라우터 뷰: 메인 콘텐츠 영역 -->
+      <main class="main-content">
+        <RouterView />
+      </main>
+    </div>
   </div>
 </template>
 
 <script setup>
-  import { ref, onMounted, onBeforeUnmount } from 'vue'
-  import Header from './components/header/Header.vue'
-  import Sidebar from './components/sidebar/Sidebar.vue'
-  import SubSidebar from './components/sidebar/SubSidebar.vue'
-  import { RouterView } from 'vue-router'
+import { ref, onMounted, onBeforeUnmount } from 'vue'
+import Header from './components/header/Header.vue'
+import Sidebar from './components/sidebar/Sidebar.vue'
+import SubSidebar from './components/sidebar/SubSidebar.vue'
+import { RouterView } from 'vue-router'
 
-  const selectedMenu = ref(null)
-  const layoutRef = ref(null)
+const selectedMenu = ref(null)
+const layoutRef = ref(null)
 
-  function handleClickOutside(event) {
-    // layout 영역 바깥 클릭 시 메뉴 초기화
-    const clickedInside = layoutRef.value?.contains(event.target)
-    if (!clickedInside) {
-      selectedMenu.value = null
-    }
-  }
+function handleClickOutside(event) {
+  // 레이아웃 영역 외부 클릭 시 서브사이드바 닫기
+  const inside = layoutRef.value?.contains(event.target)
+  if (!inside) selectedMenu.value = null
+}
 
-  function clearSelectedMenu() {
-    selectedMenu.value = null
-  }
+function clearSelectedMenu() {
+  selectedMenu.value = null
+}
 
-  onMounted(() => {
-    setTimeout(() => { // ✅ 마운트 직후 자동 클릭 방지용
-      document.addEventListener('click', handleClickOutside)
-    }, 0)
-  })
+onMounted(() => {
+  // 마운트 직후 이벤트 등록 (0 딜레이)
+  setTimeout(() => {
+    document.addEventListener('click', handleClickOutside)
+  }, 0)
+})
 
-  onBeforeUnmount(() => {
-    document.removeEventListener('click', handleClickOutside)
-  })
-
+onBeforeUnmount(() => {
+  document.removeEventListener('click', handleClickOutside)
+})
 </script>
 
 <style scoped>
-  .layout {
-    display: flex;
-    position: relative;
-    z-index: 10;
-  }
+.app {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
 
-  .main-content {
-    flex: 1;
-    padding: 24px;
-    background-color: #fff;
-  }
+/* 사이드바 + 콘텐츠 레이아웃 */
+.layout {
+  display: flex;
+  flex: 1;
+  position: relative;
+  overflow: visible;
+}
 
-    .slide-fade-enter-active,
-    .slide-fade-leave-active {
-        transition: all 0.3s ease;
-    }
-    .slide-fade-enter-from {
-        opacity: 0;
-        transform: translateX(-20px);
-    }
-    .slide-fade-enter-to {
-        opacity: 1;
-        transform: translateX(0);
-    }
-    .slide-fade-leave-from {
-        opacity: 1;
-        transform: translateX(0);
-    }
-    .slide-fade-leave-to {
-        opacity: 0;
-        transform: translateX(-20px);
-    }
+/* 메인 콘텐츠 영역 */
+.main-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px;
+  background-color: #fff;
+}
+
+/* SubSidebar 절대 위치 */
+.subsidebar {
+  position: absolute;
+  top: 0;
+  left: 180px;
+  height: 100%;
+  z-index: 10;
+}
 </style>
