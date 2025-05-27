@@ -14,7 +14,16 @@
                 <el-input v-model="personalForm.title" placeholder="예: 병원 예약" />
             </el-form-item>
             <el-form-item label="시간">
-                <el-input v-model="personalForm.time" placeholder="예: 14:00" />
+                <el-time-picker v-model="personalForm.time"
+                            placeholder="시간 선택"
+                            format="HH:mm"
+                            value-format="HH:mm"
+                            :picker-options="{
+                                start: '08:00',
+                                step: '00:30',
+                                end: '20:00'
+                            }" 
+                />
             </el-form-item>
         </el-form>
         <template #footer>
