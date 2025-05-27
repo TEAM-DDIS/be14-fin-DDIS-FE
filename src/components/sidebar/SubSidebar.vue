@@ -130,12 +130,12 @@
         '평가 및 성과': {
             '평가 관리': {
                 items: [
-                    { name: '내 평가 보기', }
+                    { name: '평가', path: '/org/evaluation'}
                 ]
             },
             '성과 관리': {
                 items: [
-                    { name: '목표 설정', },
+                    { name: '목표', path: '/org/goals'},
                     { name: '성과 이력', }
                 ]
             }
