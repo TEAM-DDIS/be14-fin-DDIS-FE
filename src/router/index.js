@@ -9,7 +9,7 @@ const router = createRouter({
         },
         {
             path: '/org/structure',
-            component: () => import('@/components/org/Structure.vue')
+            component: () => import('@/components/org/structure/Structure.vue')
         },
         {
             path: '/org/introduction',
@@ -17,7 +17,11 @@ const router = createRouter({
         },
         {
             path: '/org/appointment',
-            component: () => import('@/components/org/Appointment.vue')
+            component: () => import('@/components/org/appointment/Appointment.vue')
+        },
+        {
+            path: '/org/appointment/register',
+            component: () => import('@/components/org/appointment/RegisterAppointment.vue')
         },
         {
             path: '/org/evaluation',
@@ -26,6 +30,10 @@ const router = createRouter({
         {
             path: '/org/goals',
             component: () => import('@/component/GoalListPage.vue')
+        },
+        {
+            path: '/jobdetail/:teamId',
+            component: () => import('@/components/org/introduction/JobDetail.vue')
         }
 
     ]
