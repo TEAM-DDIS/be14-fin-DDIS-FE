@@ -30,7 +30,7 @@
     import dayGridPlugin from '@fullcalendar/daygrid'
     import interactionPlugin from '@fullcalendar/interaction'
     import koLocale from '@fullcalendar/core/locales/ko'
-    import { ElDialog } from 'element-plus'
+    import { ElDialog, ElForm, ElFormItem, ElInput, ElButton, ElTimePicker } from 'element-plus'
 
     // 날짜 숫자만 보이게
     const handleDayCellContent = (arg) => {
@@ -114,7 +114,7 @@
 
     calendarOptions.dateClick = function (info) {
     clickedDate.value = info.dateStr
-    showPersonalForm.value = true
+    showTeamForm.value = true
     }
 
 
