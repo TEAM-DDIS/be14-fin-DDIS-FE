@@ -11,10 +11,11 @@
     <transition name="slide-fade">
       <SubSidebar v-if="selectedMenu" :menu="selectedMenu" @clear-menu="clearSelectedMenu"/>
     </transition>
+      <div class="main-content">
+        <RouterView />
+      </div>
   </div>
-  <div class="main-content">
-    <RouterView />
-  </div>
+
 </template>
 
 <script setup>
@@ -59,7 +60,8 @@
   }
 
   .main-content {
-    flex: 1;
+    flex-grow: 1;
+    overflow-y: auto;
     padding: 24px;
     background-color: #fff;
   }
