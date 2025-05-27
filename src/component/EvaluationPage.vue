@@ -1,7 +1,10 @@
-
 <template>
   <div class="page">
     <h1 class="page-title">평가</h1>
+    <!-- 내가 쓴 평가 보기 버튼 -->
+    <button class="btn-view" @click="viewMyReviews">
+      내가 쓴 평가보기
+    </button>
 
     <div class="eval-wrapper">
       <!-- 좌: 직원 리스트 -->
@@ -49,7 +52,7 @@
         </div>
       </div>
 
-      <!-- 우: 평가 의견 (고정, 스크롤 제외) -->
+      <!-- 우: 평가 의견 (고정) -->
       <div class="panel review">
         <h3 class="panel-title">평가의견</h3>
         <textarea
@@ -85,6 +88,7 @@ function fetchData() {
       employees.value   = data.employees
       goals.value       = data.goals
       evaluations.value = data.evaluations
+      // 초기 등급 설정
       data.goals.forEach(g => { grades.value[g.id] = '보통' })
     })
     .catch(err => {
@@ -127,6 +131,12 @@ function saveReview() {
   alert('평가가 저장되었습니다.')
 }
 
+// 내가 쓴 평가 보기 버튼 핸들러
+function viewMyReviews() {
+  // 실제 라우팅 또는 모달 로직으로 교체
+  alert('내가 쓴 평가 보기로 이동합니다.')
+}
+
 onMounted(fetchData)
 </script>
 
@@ -143,8 +153,22 @@ onMounted(fetchData)
 
 .page-title {
   font-size: 32px;
-  margin-bottom: 24px;
+  margin-bottom: 12px;
   text-align: center;
+}
+
+/* 내가 쓴 평가 보기 버튼 */
+.btn-view {
+  margin-bottom: 24px;
+  padding: 8px 16px;
+  background: #409eff;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.btn-view:hover {
+  background: #307fcc;
 }
 
 .eval-wrapper {
@@ -243,7 +267,7 @@ onMounted(fetchData)
   font-size: 14px;
 }
 
-/* 평가 의견 (고정, 스크롤 제외) */
+/* 평가 의견 (고정) */
 .review {
   display: flex;
   flex-direction: column;
@@ -273,4 +297,3 @@ textarea {
   cursor: pointer;
 }
 </style>
-
