@@ -21,11 +21,11 @@ const router = createRouter({
         },
         {
             path: '/org/evaluation',
-            component: () => import('@/component/EvaluationPage.vue')
+            component: () => import('@/components/Evaluation/EvaluationPage.vue')
         },
         {
             path: '/org/goals',
-            component: () => import('@/component/GoalListPage.vue')
+            component: () => import('@/components/Goals/GoalListPage.vue')
         }
 
     ]
