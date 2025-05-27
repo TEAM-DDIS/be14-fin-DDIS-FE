@@ -310,7 +310,7 @@
 
     /* 개인 일정 라벨 색 */
     .event-team {
-        background-color: #e19bf9 !important;
+        background-color: #c1c1c1 !important;
         color: white !important;
     }
 </style>
