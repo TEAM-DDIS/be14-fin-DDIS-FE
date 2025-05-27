@@ -30,7 +30,7 @@
     import dayGridPlugin from '@fullcalendar/daygrid'
     import interactionPlugin from '@fullcalendar/interaction'
     import koLocale from '@fullcalendar/core/locales/ko'
-    import { ElDialog } from 'element-plus'
+    import { ElDialog, ElForm, ElFormItem, ElInput, ElButton, ElTimePicker } from 'element-plus'
 
     // 날짜 숫자만 보이게
     const handleDayCellContent = (arg) => {
@@ -275,7 +275,7 @@
         cursor: pointer !important;
     }
 
-    /* 개인 일정 라벨 색색 */
+    /* 개인 일정 라벨 색 */
     .event-personal {
         background-color: #e19bf9 !important;
         color: white !important;

@@ -275,7 +275,7 @@
         cursor: pointer !important;
     }
 
-    /* 개인 일정 라벨 색색 */
+    /* 개인 일정 라벨 색 */
     .event-personal {
         background-color: #e19bf9 !important;
         color: white !important;
