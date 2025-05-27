@@ -1,6 +1,6 @@
 <template>
     <div style="padding: 20px;">
-        <div style="width: 700px; height: 700px;">
+        <div style="width: 400px; height: 400px;">
             <FullCalendar :options="calendarOptions" style="height: 100%; width: 100%;" />
         </div>
     </div>
@@ -67,9 +67,9 @@
         locale: koLocale,
         firstDay: 0,
         height: '100%',
-        contentHeight: 600,
+        contentHeight: 500,
         fixedWeekCount: true,
-        dayMaxEventRows: 3,
+        dayMaxEventRows: 2,
         moreLinkContent: function(args) {
             return {
                 html: `<span style="font-size: 8px; color: #555;">+ ${args.num}건 더 보기</span>`
@@ -150,12 +150,21 @@
 </script>
 
 <style setup>
+    /* 요일 헤더 글자 크기 */
+    .fc-col-header-cell {
+        font-size: 12px;
+    }
     /* 요일 헤더 색상 */
     .fc-col-header-cell.fc-day-sun {
         color: red;
     }
     .fc-col-header-cell.fc-day-sat {
         color: blue;
+    }
+
+    /* 날짜 셀 숫자 크기 */
+    .fc-daygrid-day-number {
+        font-size: 10px;
     }
 
     /* 날짜 셀 숫자 색상 */
@@ -201,17 +210,17 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
-        font-size: 11px;
-        padding: 0 4px;
+        font-size: 8px;
+        padding: 2 4px;
         width: 100%;
     }
     .event-status {
         font-weight: 600;
-        font-size: 10px;
+        font-size: 8px;
     }
     .event-employee {
         font-weight: normal;
-        font-size: 8px;
+        font-size: 6px;
     }
 
     /* 라벨 테두리 제거 */
@@ -219,6 +228,7 @@
         border: none !important;
         box-shadow: none !important;
         outline: none !important;
+        height: 12px !important;
     }
 
     /* 오늘 날짜 */
@@ -231,7 +241,7 @@
         display: flex;
         flex-direction: column;
         justify-content: start;
-        height: 90px !important;
+        height: 50px !important;
         overflow: hidden;
     }
 
@@ -246,9 +256,17 @@
         text-overflow: ellipsis;
     }
 
+    /* 툴바 전체 간격 조정 */
+    .fc-header-toolbar {
+        margin-bottom: 4px !important;  /* 아래 여백 줄이기 */
+        display: flex !important;
+        align-items: center !important;
+        gap: 4px !important;  /* 내부 요소 간 간격 */
+    }
+
     /* 현재 연도/월 텍스트 */
     .fc-toolbar-title {
-        font-size: 18px !important;
+        font-size: 14px !important;
         font-weight: 700 !important;
         color: #333 !important;
         font-family: 'Pretendard', sans-serif !important;
@@ -259,10 +277,13 @@
         background-color: #00A8E8 !important;
         color: white !important;
         border: none !important;
-        padding: 4px 10px !important;
+        padding: 2px 8px !important;
         border-radius: 6px !important;
-        font-size: 12px !important;
         font-weight: 500 !important;
+        font-size: 11px !important;
+        min-height: 20px !important;
+        min-width: 24px !important;
+        line-height: 1.2 !important;
     }
 
     /* 이전/다음 버튼 */
@@ -271,11 +292,14 @@
         background-color: #00A8E8 !important;
         color: white !important;
         border: none !important;
-        padding: 4px 10px !important;
+        padding: 2px 8px !important;
         border-radius: 6px !important;
-        font-size: 12px !important;
         font-weight: 500 !important;
         margin-left: 4px !important;
+        font-size: 11px !important;
+        min-height: 20px !important;
+        min-width: 24px !important;
+        line-height: 1.2 !important;
     }
 
     /* 버튼 hover 효과 */
