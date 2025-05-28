@@ -116,14 +116,14 @@
         '급여': {
             '급여 관리': {
                 items: [
-                    { name: '내 급여명세서 조회', },
-                    { name: '급여명세서 발급', }
+                    { name: '내 급여명세서 조회', path: '/salary/payroll/slip' },
+                    { name: '급여명세서 발급',   path: '/salary/payroll/issue' }
                 ]
             },
             '퇴직 관리': {
                 items: [
-                    { name: '예상 퇴직금 조회', },
-                    { name: '퇴직금 지급 현황', }
+                    { name: '예상 퇴직금 조회',   path: '/salary/retirement/estimate' },
+                    { name: '퇴직금 지급 현황',   path: '/salary/retirement/status' }
                 ]
             }
         },
@@ -193,11 +193,19 @@
         transition: color 0.2s ease;
     }
 
+    /* — 기존 .submenu-list 스타일 — */
     .submenu-list {
         list-style: none;
         padding: 0;
         margin: 0;
-        text-decoration: none;
+    }
+
+    /* — 링크만 스타일 초기화 — */
+    .submenu-link,
+    .submenu-link:link,
+    .submenu-link:visited {
+        color: inherit;        /* 부모 li의 색(#333)을 물려받음 */
+        text-decoration: none; /* 밑줄 제거 */
     }
 
     .submenu-list li {
@@ -211,5 +219,6 @@
 
     .submenu-list li:hover {
         text-decoration: underline;
+        color: #00a8e8;
     }
 </style>

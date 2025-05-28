@@ -28,6 +28,26 @@ const router = createRouter({
             component: () => import('@/components/Goals/GoalListPage.vue')
         }
 
+        // 급여 관리
+        {
+            path: '/salary/payroll/slip',
+            component: () => import('@/components/salary/payroll/PayrollSlip.vue')
+        },
+        {
+            path: '/salary/payroll/issue',
+            component: () => import('@/components/salary/payroll/PayrollSlipIssue.vue')
+        },
+
+        // 퇴직 관리
+        {
+            path: '/salary/retirement/estimate',
+            component: () => import('@/components/salary/retirement/RetirementEstimate.vue')
+        },
+        {
+            path: '/salary/retirement/status',
+            component: () => import('@/components/salary/retirement/RetirementPaymentStatus.vue')
+        }
+
     ]
 })
 
