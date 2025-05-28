@@ -18,7 +18,7 @@
     </div>
 
     <!-- 하단 출근 박스 -->
-    <AttendanceCard />
+    <AttendanceCard class="attendance-card" />
 
   </aside>
 </template>
@@ -43,16 +43,14 @@
     { name: '공지 사항'},
     { name: '용어 사전' }
   ]
-
-  function handleClick(menu) {
-    router.push(menu.path)
-  }
 </script>
 
 <style scoped>
   .sidebar {
     width: 180px;
-    height: 100vh;
+    /* height: 100vh; */
+    margin-left: -10px;
+    margin-bottom: -10px;
     background-color: #f5f5f5;
     padding: 20px 20px;
     box-sizing: border-box;
@@ -60,6 +58,13 @@
     flex-direction: column;
     justify-content: space-between;
     box-shadow: 1px 0 5px rgba(0, 0, 0, 0.05);
+    gap: 30px;
+    /* margin-top: 30px */
+  }
+
+    /* 출근 박스는 마진 없이 자동으로 하단에 배치 */
+  .attendance-card {
+      margin-top: auto;
   }
 
   .home {
@@ -78,7 +83,7 @@
     border-bottom-right-radius: 0;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     letter-spacing: 1px;
-    margin-bottom: 10px;
+    margin-bottom: 30px;
     box-sizing: border-box;
     transition: background-color 0.3s ease;
   }
@@ -94,6 +99,8 @@
   }
 
   .menu-button {
+    width: 100%;            /* 사이드바 너비에 딱 맞춤 */
+    box-sizing: border-box;
     background-color: white;
     font-weight: bold;
     border: none;
@@ -105,7 +112,6 @@
     transition: background-color 0.2s;
 
     text-align: center;
-    margin-top: 10px;
 
   }
 
