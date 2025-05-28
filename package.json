@@ -14,7 +14,13 @@
     "@fullcalendar/daygrid": "^6.1.17",
     "@fullcalendar/interaction": "^6.1.17",
     "@fullcalendar/vue3": "^6.1.17",
+
+    "ag-grid-community": "^33.3.0",
+    "ag-grid-vue3": "^33.3.0",
+    "axios": "^1.9.0",
+
     "element-plus": "^2.9.11",
+
     "express": "^4.19.2",
     "pinia": "^3.0.2",
     "primeicons": "^7.0.0",

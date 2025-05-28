@@ -1,4 +1,4 @@
-<template>
+<template class="template">
   <aside class="sidebar">
     <!-- 상단 HOME -->
      <RouterLink to="/" class="home-link">
