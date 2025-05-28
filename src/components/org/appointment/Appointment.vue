@@ -199,13 +199,13 @@ onMounted(loadData)
   background-color: #07749f;
 }
 .action-btn.secondary {
-  background-color: #F3F4F6;
+  background-color: #eeeeee;
   color: #374151;
   padding: 8px 30px;
   border: none;
 }
 .action-btn.secondary:hover {
-  background-color: #E5E7EB;
+  background-color: #cecece;
 }
 .detail-icon {
   font-size: 16px;

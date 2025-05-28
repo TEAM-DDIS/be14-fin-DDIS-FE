@@ -1,31 +1,33 @@
 <!-- 조직 및 직무 > 조직 및 직무 소개 -->
 <template>
   <div class="org-page">
-    <h1 class="page-title">조직 및 직무 소개</h1>
+    
+    <h2 class="page-title">조직 및 직무 소개</h2>
 
-    <div class="division-container">
-      <div class="division-section" v-for="division in divisionsWithDepartments" :key="division.name">
-        <h2 class="division-title">{{ division.name }}</h2>
-        <div class="department-grid">
-          <div class="department-card" v-for="dept in division.departments" :key="dept.introduction_id">
-            <h3 class="department-name">{{ dept.introduction_name }}</h3>
-            <p class="description">{{ dept.introduction_context }}</p>
-            <div class="tags">
-              <span
-                v-for="team in dept.teams"
-                :key="team.team_id"
-                class="tag"
-                @click="goToJob(team.team_id)"
-                style="cursor:pointer"
-              >
-                # {{ team.team_name }}
-              </span>
+    <div class="content-box">
+      <div class="division-container">
+        <div class="division-section" v-for="division in divisionsWithDepartments" :key="division.name">
+          <h2 class="division-title">{{ division.name }}</h2>
+          <div class="department-grid">
+            <div class="department-card" v-for="dept in division.departments" :key="dept.introduction_id">
+              <h3 class="department-name">{{ dept.introduction_name }}</h3>
+              <p class="description">{{ dept.introduction_context }}</p>
+              <div class="tags">
+                <span
+                  v-for="team in dept.teams"
+                  :key="team.team_id"
+                  class="tag"
+                  @click="goToJob(team.team_id)"
+                  style="cursor:pointer"
+                >
+                  # {{ team.team_name }}
+                </span>
+              </div>
             </div>
           </div>
         </div>
       </div>
     </div>
-
     <button class="edit-button">편집</button>
   </div>
 </template>
@@ -75,12 +77,21 @@ function goToJob(teamId) {
 
 <style scoped>
 .org-page {
+  position: relative;
   padding: 20px 40px;
 }
 
+.content-box {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 20px 32px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  margin: 24px;
+  max-width: 100%;
+  overflow-x: auto;
+}
+
 .page-title {
-  font-size: 24px;
-  font-weight: bold;
   margin-bottom: 50px;
 }
 
@@ -88,13 +99,15 @@ function goToJob(teamId) {
   display: flex;           /* 수평 정렬 */
   gap: 40px;               /* 본부 간 간격 */
   justify-content: flex-start; /* 왼쪽 정렬 */
+  flex-wrap: wrap;
 }
 
 .division-section {
-  flex: 1 1 0;
+  flex: 1 1 240px;
   display: flex;
   flex-direction: column;
   align-items: center;
+  margin-bottom: 20px;
 }
 
 .division-title {
@@ -161,11 +174,23 @@ function goToJob(teamId) {
   font-weight: bold;
   top: 24px;
   right: 24px;
-  background-color: white;
-  border: 1px solid #ccc;
+  background-color: #00a8e8;
+  color: white;
+  border: none;
   border-radius: 12px;
   padding: 10px 30px;
   cursor: pointer;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.edit-button:hover {
+  background-color: #07749f;
+}
+
+@media (max-width: 768px) {
+  .division-container {
+    flex-direction: column;
+    align-items: center;
+  }
 }
 </style>

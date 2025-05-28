@@ -82,13 +82,12 @@
     .attendance-card {
         width: 120px;
         padding: 16px;
-        background-color: #3fb1f0;
+        background-color: #00A8E8;
         border-radius: 16px;
         color: white;
         text-align: center;
-        font-family: 'Inter', sans-serif;
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        margin-top: 30px;
+        margin-top: 50px;
         margin-bottom: 50px;
     }
 

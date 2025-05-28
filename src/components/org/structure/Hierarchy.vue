@@ -1,7 +1,8 @@
 <!-- 조직 및 직무 > 조직도 구성 -->
 <template>
   <div class="org-container">
-    <h2 class="company-title">DDIS <span class="rep">({{ getCompanyRep() }})</span></h2>
+
+    <h3 class="company-title">DDIS <span class="rep">({{ getCompanyRep() }})</span></h3>
     <ul class="org-list">
       <li v-for="hq in headquarters" :key="hq.head_code">
         <div class="node head" @click="toggle(hq.head_code)">
@@ -103,16 +104,18 @@ function getTeamRep(teamCode) {
 
 <style scoped>
 .org-container { padding:20px; background:#fff; }
-.company-title { font-size:25px; margin-bottom:16px; }
+.company-title { font-size:20px; margin-bottom:16px; }
 .company-title .rep { font-size:14px; color:#666; }
 .org-list, .org-list ul { list-style:none; padding:0; margin:0; }
-.org-list li { position: relative; padding-left:20px; }
+.org-list li { position: relative; padding-left:30px; }
+
+/* 조직도 선 설정정 */
 .org-list li::before {
   content: '';
   position: absolute;
   top: 0;
   left: 10px;
-  width: 1px;
+  width: 1.5px;
   height: 100%;
   background: #ccc;
 }
@@ -121,14 +124,16 @@ function getTeamRep(teamCode) {
   position: absolute;
   top: 12px;
   left: 10px;
-  width: 10px;
-  height: 1px;
+  width: 15px;
+  height: 2px;
   background: #ccc;
 }
+
+/* 조직도 구조 설정 */
 .node { display:flex; align-items:center; cursor:pointer; }
 .node i { margin-right:6px; }
-.node.head { font-weight:600; font-size:20px; margin-bottom: 10px; }
-.node.dept { font-size:16px; margin-bottom: 8px;}
-.node.team { font-size:15px; margin-bottom: 8px;}
-.node.emp  { font-size:14px; margin-bottom: 6px; color:#555; cursor:default; }
+.node.head { font-weight:600; font-size:20px; margin-bottom: 12px; }
+.node.dept { font-size:18px; margin-bottom: 12px;}
+.node.team { font-size:16px; margin-bottom: 10px;}
+.node.emp  { font-size:14px; margin-bottom: 8px; color:#555; cursor:default; }
 </style>
