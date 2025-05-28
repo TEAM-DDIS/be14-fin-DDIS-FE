@@ -15,6 +15,7 @@
     "@fullcalendar/interaction": "^6.1.17",
     "@fullcalendar/vue3": "^6.1.17",
     "express": "^4.19.2",
+    "pinia": "^3.0.2",
     "primeicons": "^7.0.0",
     "primevue": "^4.3.4",
     "vue": "^3.5.13",

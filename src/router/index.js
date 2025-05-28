@@ -26,6 +26,11 @@ const router = createRouter({
         {
             path: '/org/goals',
             component: () => import('@/components/Goals/GoalListPage.vue')
+        },
+        {
+            path: '/org/login',
+            component: () => import('@/components/login/LoginPage.vue'),
+            meta: { hideLayout : true}
         }
 
     ]

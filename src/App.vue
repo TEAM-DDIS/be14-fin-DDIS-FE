@@ -1,56 +1,58 @@
 <template>
   <div class="app">
-    <!-- 상단 헤더 -->
-    <Header />
+    <!-- 1) 로그인 등 레이아웃 숨길 페이지 -->
+    <RouterView v-if="route.meta.hideLayout" />
 
-    <!-- 사이드바 + 서브사이드바 + 메인 콘텐츠 레이아웃 -->
-    <div class="layout" ref="layoutRef">
-      <Sidebar
-        @menu-selected="selectedMenu = $event"
-        :selected="selectedMenu"
-      />
-      <SubSidebar
-        v-if="selectedMenu"
-        class="subsidebar"
-        :menu="selectedMenu"
-        @clear-menu="clearSelectedMenu"
-      />
+    <!-- 2) 그 외 전체 레이아웃 -->
+    <template v-else>
+      <!-- 상단 헤더 -->
+      <Header />
 
-      <!-- 라우터 뷰: 메인 콘텐츠 영역 -->
-      <main class="main-content">
-        <RouterView />
-      </main>
-    </div>
+      <!-- 사이드바 + 서브사이드바 + 메인 콘텐츠 레이아웃 -->
+      <div class="layout" ref="layoutRef">
+        <Sidebar
+          @menu-selected="selectedMenu = $event"
+          :selected="selectedMenu"
+        />
+        <SubSidebar
+          v-if="selectedMenu"
+          class="subsidebar"
+          :menu="selectedMenu"
+          @clear-menu="clearSelectedMenu"
+        />
+
+        <!-- 메인 콘텐츠 -->
+        <main class="main-content">
+          <RouterView />
+        </main>
+      </div>
+    </template>
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted, onBeforeUnmount } from 'vue'
+import { useRoute } from 'vue-router'
 import Header from './components/header/Header.vue'
 import Sidebar from './components/sidebar/Sidebar.vue'
 import SubSidebar from './components/sidebar/SubSidebar.vue'
-import { RouterView } from 'vue-router'
 
+const route = useRoute()
 const selectedMenu = ref(null)
 const layoutRef = ref(null)
 
 function handleClickOutside(event) {
-  // 레이아웃 영역 외부 클릭 시 서브사이드바 닫기
-  const inside = layoutRef.value?.contains(event.target)
-  if (!inside) selectedMenu.value = null
+  if (!layoutRef.value?.contains(event.target)) {
+    selectedMenu.value = null
+  }
 }
-
 function clearSelectedMenu() {
   selectedMenu.value = null
 }
 
 onMounted(() => {
-  // 마운트 직후 이벤트 등록 (0 딜레이)
-  setTimeout(() => {
-    document.addEventListener('click', handleClickOutside)
-  }, 0)
+  setTimeout(() => document.addEventListener('click', handleClickOutside), 0)
 })
-
 onBeforeUnmount(() => {
   document.removeEventListener('click', handleClickOutside)
 })
@@ -62,24 +64,18 @@ onBeforeUnmount(() => {
   flex-direction: column;
   min-height: 100vh;
 }
-
-/* 사이드바 + 콘텐츠 레이아웃 */
 .layout {
   display: flex;
   flex: 1;
   position: relative;
   overflow: visible;
 }
-
-/* 메인 콘텐츠 영역 */
 .main-content {
   flex: 1;
   overflow-y: auto;
   padding: 24px;
-  background-color: #fff;
+  background-color: #f5f5f5;
 }
-
-/* SubSidebar 절대 위치 */
 .subsidebar {
   position: absolute;
   top: 0;

@@ -1,242 +1,256 @@
 <template>
-  <div class="goals-page">
-    <header class="page-header">
-      <h1 class="page-title">목표</h1>
-      <button class="btn-add" @click="openModal">
-        목표 등록
-      </button>
-    </header>
-
-    <table class="goals-table">
-      <thead>
-        <tr>
-          <th>목표</th>
-          <th>목표치</th>
-          <th>가중치</th>
-          <th>달성율</th>
-          <th>담당자</th>
-          <th>등록일</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr
-          v-for="goal in goals"
-          :key="goal.id"
-          class="clickable"
-          :class="{ selected: selectedGoal?.id === goal.id }"
-          @click="selectGoal(goal)"
-        >
-          <td>{{ goal.title }}</td>
-          <td>{{ goal.value }}</td>
-          <td>{{ goal.weight }}%</td>
-          <td>
-            <div class="progress-cell">
-              <div class="progress-bar-bg">
-                <div
-                  class="progress-bar-fill"
-                  :style="{ width: computeRate(goal) + '%' }"
-                ></div>
-              </div>
-              <span>{{ computeRate(goal) }}%</span>
-            </div>
-          </td>
-          <td>{{ goal.owner }}</td>
-          <td>{{ goal.createdAt }}</td>
-        </tr>
-      </tbody>
-    </table>
-
-    <!-- Detail Panel: 선택한 목표 하단에 표시 with input & self-eval -->
-    <div v-if="selectedGoal" class="detail-panel">
-      <!-- 목표 정보 -->
-      <div class="info-card">
-        <h3>목표 정보</h3>
-        <dl>
-          <dt>목표명</dt><dd>{{ selectedGoal.title }}</dd>
-          <dt>목표수치</dt><dd>{{ selectedGoal.value }}</dd>
-          <dt>목표내용</dt><dd>{{ selectedGoal.content }}</dd>
-          <dt>담당자</dt><dd>{{ selectedGoal.owner }}</dd>
-          <dt>가중치</dt><dd>{{ selectedGoal.weight }}%</dd>
-          <dt>등록일</dt><dd>{{ selectedGoal.createdAt }}</dd>
-        </dl>
-      </div>
-      <!-- 실적 입력 -->
-      <div class="input-card">
-        <h3>실적 입력</h3>
-        <div class="field">
-          <label>실적 수치</label>
-          <input
-            type="number"
-            v-model.number="temp[selectedGoal.id].achievement"
-          />
-        </div>
-        <div class="field">
-          <label>달성율</label>
-          <input
-            type="text"
-            :value="temp[selectedGoal.id].achievement != null
-              ? computeRate(selectedGoal) + '%' : '-'"
-            readonly
-          />
-        </div>
-        <div class="field">
-          <label>첨부파일</label>
-          <input
-            type="file"
-            @change="onFileChange($event, selectedGoal.id)"
-          />
-          <p v-if="temp[selectedGoal.id].fileInfo">
-            {{ temp[selectedGoal.id].fileInfo.name }} ({{ temp[selectedGoal.id].fileInfo.size }}MB)
-          </p>
-        </div>
-      </div>
-      <!-- 자기 평가 -->
-      <div class="eval-card">
-        <h3>자기 평가</h3>
-        <textarea
-          v-model="temp[selectedGoal.id].selfEval"
-          placeholder="평가 내용을 입력하세요"
-        ></textarea>
-        <button class="btn-save" @click="save(selfEvalPage)">저장</button>
-      </div>
+  <div class="goal-page">
+    <div class="labels-row">
+      <h2 class="section-title">목표 관리</h2>
+      <div class="label-spacer"></div>
+      <h2 class="section-title">실적 관리</h2>
     </div>
-
-    <!-- Modal Overlay -->
-    <div v-if="showCreate" class="modal-overlay" @click.self="closeModal">
-      <div class="modal-content">
-        <h2>목표 등록</h2>
-        <div class="form-group">
-          <label for="title">목표명</label>
-          <input id="title" v-model="newGoal.title" />
+    <div class="panels">
+      <section class="panel goals-panel">
+        <div class="goal-container">
+          <div v-if="goals.length === 0 && !showGoalForm" class="placeholder">
+            <p class="placeholder-text">목표를 등록해보세요!</p>
+          </div>
+          <form v-else-if="showGoalForm" class="goal-form" @submit.prevent="addGoal">
+            <div class="form-row">
+              <label for="title">목표명</label>
+              <input id="title" v-model="newGoal.title" placeholder="예) 신규 고객 20명 확보" required />
+            </div>
+            <div class="form-row half">
+              <div>
+                <label for="target">목표수치</label>
+                <input id="target" v-model.number="newGoal.target" type="number" placeholder="숫자로 입력" required />
+              </div>
+              <div>
+                <label for="weight">가중치(%)</label>
+                <input id="weight" v-model.number="newGoal.weight" type="number" placeholder="0~100" required />
+              </div>
+            </div>
+            <div class="form-row">
+              <label for="description">목표내용</label>
+              <textarea id="description" v-model="newGoal.description" placeholder="상세 설명을 입력하세요"></textarea>
+            </div>
+            <div class="form-actions">
+              <button class="btn-primary" type="submit">저장</button>
+              <button class="btn-secondary" type="button" @click="cancelGoal">취소</button>
+            </div>
+          </form>
+          <div v-else class="goals-list">
+            <div
+              v-for="goal in goals"
+              :key="goal.id"
+              class="goal-card"
+              :class="{ selected: selected === goal.id }"
+              @click="selectGoal(goal)"
+            >
+              <!-- 삭제 전 확인창 트리거 -->
+              <button
+                class="btn-card-delete"
+                @click.stop="confirmDelete(goal.id)"
+                title="삭제"
+              >
+                ×
+              </button>
+              <div class="card-top">
+                <span class="date">{{ goal.date }}</span>
+                <span class="author">{{ goal.owner }}</span>
+              </div>
+              <h4 class="card-title">{{ goal.title }}</h4>
+              <div class="card-bottom">
+                <div class="progress-group">
+                  <span class="label">달성률</span>
+                  <div class="progress-bar">
+                    <div class="progress-fill" :style="{ width: goal.progress + '%' }"></div>
+                  </div>
+                  <span class="progress-text">{{ goal.progress }}%</span>
+                </div>
+                <div class="pill-group">
+                  <span class="pill weight">가중치 {{ goal.weight }}%</span>
+                  <span class="pill target">목표치 {{ goal.target }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-        <div class="form-group">
-          <label for="value">목표치</label>
-          <input id="value" type="number" v-model.number="newGoal.value" />
+        <div class="actions" v-if="!showGoalForm">
+          <button class="btn-primary" @click="openGoalForm">목표등록</button>
         </div>
-        <div class="form-group">
-          <label for="weight">가중치(%)</label>
-          <input id="weight" type="number" v-model.number="newGoal.weight" />
+      </section>
+      <div class="arrow-container"><span class="arrow-icon"></span></div>
+      <section class="panel perf-panel">
+        <div class="perf-header">
+          <button v-if="selectedGoal?.performance" class="btn-delete" @click="deletePerf">삭제</button>
         </div>
-        <div class="form-group">
-          <label for="owner">담당자</label>
-          <input id="owner" v-model="newGoal.owner" />
+        <div v-if="!selectedGoal" class="empty">
+          <p class="empty-text">목표를 클릭해서 실적을 등록해보세요!</p>
         </div>
-        <div class="modal-actions">
-          <button class="btn-save" @click="createGoal">저장</button>
-          <button class="btn-cancel" @click="closeModal">취소</button>
+        <div v-else class="perf-content">
+          <div class="detail-title">
+            <span class="detail-title-label">목표명</span>
+          </div>
+          <h3 class="perf-title">{{ selectedGoal.title }}</h3>
+          <div class="detail-header">
+            <span class="detail-label">상세 내용</span>
+          </div>
+          <table class="detail-table-vertical">
+            <tbody>
+              <tr>
+                <th>담당자</th><td>{{ selectedGoal.owner }}</td>
+                <th>등록일</th><td>{{ selectedGoal.performance.date }}</td>
+              </tr>
+              <tr>
+                <th>가중치</th><td>{{ selectedGoal.weight }}%</td>
+                <th>목표수치</th><td>{{ selectedGoal.target }}</td>
+              </tr>
+              <tr><th colspan="4">목표내용</th></tr>
+              <tr><td colspan="4">{{ selectedGoal.description }}</td></tr>
+            </tbody>
+          </table>
+          <div class="perf-form">
+            <div class="attach-area">
+              <label>첨부 파일</label>
+              <div class="file-box">
+                <template v-if="form.fileName">
+                  <span class="file-name">{{ form.fileName }}</span>
+                  <span class="file-size">{{ form.fileSize }}</span>
+                </template>
+                <button class="btn-attach" @click="$refs.fileInput.click()">첨부파일 등록</button>
+                <input ref="fileInput" type="file" class="sr-only" @change="onFileChange" />
+              </div>
+            </div>
+            <div class="input-area">
+              <label>실적 수치</label>
+              <input v-model.number="form.actual" type="number" placeholder="실적 수치" />
+            </div>
+            <div class="input-area">
+              <label>자기 평가</label>
+              <textarea v-model="form.comment" placeholder="자기 평가"></textarea>
+            </div>
+            <div class="btn-save-wrap">
+              <button class="btn-save" @click="submitPerf">등록</button>
+            </div>
+          </div>
         </div>
-      </div>
+      </section>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, computed, watch } from 'vue'
 
 const goals = ref([])
-const showCreate = ref(false)
-const newGoal = ref({ id: null, title: '', value: null, weight: null, owner: '', content: '', createdAt: '' })
-const selectedGoal = ref(null)
-// 임시 객체: 실적, 파일, 자평 저장
-const temp = reactive({})
+const selected = ref(null)
+const showGoalForm = ref(false)
+const newGoal = reactive({ title: '', target: null, weight: null, description: '', date: new Date().toISOString().slice(0,10), owner: '김띠스 대리' })
+const form = reactive({ actual: null, comment: '', file: null, fileName: '', fileSize: '' })
+const selectedGoal = computed(() => goals.value.find(g => g.id === selected.value))
 
-function fetchGoals() {
-  fetch('/mockup.json')
-    .then(r => r.json())
-    .then(data => {
-      goals.value = data.goals.map(g => ({
-        id: String(g.id), title: g.title, content: g.description,
-        value: g.target, weight: g.weight, achievement: g.achievement || null,
-        owner: g.owner, createdAt: g.createdAt
-      }))
-      goals.value.forEach(g => {
-        temp[g.id] = { achievement: g.achievement, selfEval: '', fileInfo: null }
-      })
-    })
-}
+watch(() => form.actual, val => { const g = selectedGoal.value; if (!g || !g.target) return; g.progress = Math.min(100, Math.round(val / g.target * 100)) })
 
-function computeRate(goal) {
-  const a = temp[goal.id].achievement
-  return a!=null? Math.min(100, Math.round((a/goal.value)*100)): 0
-}
-
-function openModal() { showCreate.value = true }
-function closeModal() {
-  showCreate.value = false
-  newGoal.value = { id: null, title: '', value: null, weight: null, owner: '', content: '', createdAt: '' }
-}
-
-function createGoal() {
-  const id = String(goals.value.length + 1)
-  const date = new Date().toISOString().slice(0, 10)
-  const goal = {
-    id, title: newGoal.value.title, content: newGoal.value.content,
-    value: newGoal.value.value, weight: newGoal.value.weight,
-    achievement: null, owner: newGoal.value.owner, createdAt: date
+// 삭제 전 확인창을 띄우는 함수
+function confirmDelete(id) {
+  if (confirm('정말 삭제하시겠습니까?')) {
+    deleteGoal(id)
   }
-  goals.value.push(goal)
-  temp[id] = { achievement: null, selfEval: '', fileInfo: null }
-  closeModal()
 }
 
-function selectGoal(goal) {
-  selectedGoal.value = selectedGoal.value?.id===goal.id?null:goal
-}
-
-function onFileChange(e, id) {
-  const f = e.target.files[0]
-  if(!f)return
-  temp[id].fileInfo={ name: f.name, size:(f.size/1024/1024).toFixed(1) }
-}
-
-function save(id) {
-  alert(`저장 완료: ${computeRate(selectedGoal.value)}% 달성, 자평: ${temp[id].selfEval}`)
-}
-
-onMounted(fetchGoals)
+function addGoal() { if (!newGoal.title) return; goals.value.push({ id: Date.now(), ...newGoal, progress: 0, performance: { date: '', actual: 0, comment: '', attachment: null } }); cancelGoal() }
+function cancelGoal() { newGoal.title=''; newGoal.target=null; newGoal.weight=null; newGoal.description=''; showGoalForm.value=false }
+function selectGoal(goal) { selected.value=goal.id; form.actual=goal.performance.actual; form.comment=goal.performance.comment; form.fileName=goal.performance.attachment?.name||''; form.fileSize=goal.performance.attachment?.size||'' }
+function openGoalForm() { showGoalForm.value=true }
+function onFileChange(e) { const f=e.target.files[0]; if(!f) return; form.file=f; form.fileName=f.name; form.fileSize=(f.size/1024/1024).toFixed(1)+'MB' }
+function submitPerf() { const g=selectedGoal.value; if(!g)return; g.performance={ date:new Date().toISOString().slice(0,10), actual:form.actual, comment:form.comment, attachment:form.file?{ name:form.fileName, size:form.fileSize }:null } }
+function deletePerf() { const g=selectedGoal.value; if(!g)return; g.performance={ date:'', actual:0, comment:'', attachment:null}; g.progress=0; form.actual=null; form.comment=''; form.file=null; form.fileName=''; form.fileSize='' }
+function deleteGoal(id) { const idx=goals.value.findIndex(g=>g.id===id); if(idx!==-1){ goals.value.splice(idx,1); if(selected.value===id) selected.value=null }}
 </script>
 
 <style scoped>
-.goals-page{padding:24px;background:#fff}
-.page-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
-.page-title{font-size:24px;margin:0}
-.btn-add{padding:8px 16px;background:#409eff;color:#fff;border:none;border-radius:4px;cursor:pointer}
-.btn-add:hover{background:#307fcc}
-
-table.goals-table{width:100%;border-collapse:collapse;margin-bottom:24px}
-.goals-table th,.goals-table td{border:1px solid #e0e6ed;padding:12px}
-.clickable{cursor:pointer}
-.selected{background:#eef6ff}
-.progress-cell{display:flex;align-items:center}
-.progress-bar-bg{flex:1;height:8px;background:#e0e0e0;border-radius:4px;margin-right:8px;overflow:hidden}
-.progress-bar-fill{height:100%;background:#67c23a;transition:width .3s}
-
-.detail-panel {
-  display: grid;
-  /* 첫째 칸 2, 둘째 칸 3, 셋째 칸 2 비율 */
-  grid-template-columns: 2fr 3fr 2fr;
-  gap: 16px;
-  margin-top: 24px;
+.goal-page{padding:24px;display:flex;flex-direction:column;height:100vh}
+.labels-row{display:flex;gap:24px;margin-bottom:8px}
+.section-title:first-child{width:40%}.label-spacer{width:20px}.section-title:last-child{width:55%}
+.panels{flex:1;display:flex;gap:24px;overflow:hidden}
+.panel{background:#fff;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,0.05);display:flex;flex-direction:column;padding:24px}
+.goals-panel{width:40%}.goal-container, .perf-content{flex:1}
+.placeholder{flex:1;display:flex;align-items:center;justify-content:center}
+.placeholder-text{color:#1890ff;font-size:1.2rem;font-weight:600}
+.goal-form{background:#fff;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,0.05);padding:24px;display:flex;flex-direction:column;gap:16px;margin-bottom:16px}
+.form-row{display:flex;flex-direction:column;gap:4px}.form-row.half{flex-direction:row;gap:16px}.form-row.half>div{flex:1}
+.form-row label{font-weight:600;font-size:.9rem;color:#333}
+.form-row input,.form-row textarea{box-sizing:border-box;width:100%;padding:8px 12px;border:1px solid #d9d9d9;border-radius:6px;background:#fafafa;font-size:.95rem;transition:border-color .2s,background .2s}
+.form-row input{height:48px}.form-row textarea{height:96px;overflow-y:auto;resize:none}
+.form-row input:focus,.form-row textarea:focus{outline:none;border-color:#4096ff;background:#fff}
+.form-actions{display:flex;justify-content:flex-end;gap:8px}
+.btn-primary{background:#4096ff;color:#fff;border:none;padding:8px 20px;border-radius:6px;cursor:pointer}
+.btn-secondary{background:#f5f5f5;color:#333;border:none;padding:8px 20px;border-radius:6px;cursor:pointer}
+.goals-list{flex:1;overflow-y:auto;padding-right:4px;margin-bottom:16px}
+.goal-card{position:relative;background:#fff;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,0.05);padding:16px;margin-bottom:12px;cursor:pointer;transition:transform .2s}
+.goal-card:hover{transform:translateY(-2px)}
+.goal-card.selected{background:#d7d7d7;box-shadow:inset 0 2px 4px rgba(0,0,0,0.08),0 1px 2px rgba(0,0,0,0.05)}
+.btn-card-delete{position:absolute;top:2px;right:2px;background:transparent;border:none;font-size:1.2rem;color:#888;cursor:pointer;opacity:0;transition:opacity .2s}
+.goal-card:hover .btn-card-delete{opacity:1}
+.card-top{display:flex;justify-content:space-between;color:#888;font-size:.85rem;margin-bottom:8px}
+.card-title{font-size:1rem;font-weight:600;margin:4px 0 12px;line-height:1.4}
+.card-bottom{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
+.progress-group{flex:1;display:flex;align-items:center;gap:8px}
+.progress-bar{flex:1;height:12px;background:#e0e0e0;border:1px solid #ccc;border-radius:6px;overflow:hidden}
+.progress-fill{height:100%;background:#4096ff;transition:width .3s}
+.progress-text{color:#444;font-size:.85rem;min-width:28px;text-align:right}
+.pill-group{display:flex;gap:8px}
+.pill{padding:4px 12px;border-radius:8px;font-size:.75rem;font-weight:500;color:#fff}
+.pill.weight{background:#8EC48E}
+.pill.target{background:#F48E8E}
+.actions{display:flex;justify-content:center;gap:8px}
+.arrow-container{display:flex;align-items:center;justify-content:center}
+.arrow-icon{width:20px;height:20px;border-right:2px solid #ddd;border-bottom:2px solid #ddd;transform:rotate(-45deg)}
+.perf-title {
+  color: #00A8E8;
+  font-size: 1.5rem; /* 글씨 크기 확대 */
+  font-weight: 600;
+  margin: 0;
 }
-.info-card, .input-card, .eval-card{background:#f5faff;padding:16px;border-radius:8px}
-.info-card dl{display:grid;grid-template-columns:80px 1fr;row-gap:8px;column-gap:16px}
-.info-card dt{font-weight:bold}
-.input-card .field{margin-bottom:12px}
-.input-card label{display:block;margin-bottom:4px}
-.input-card input{width:100%;padding:8px;border:1px solid #ccc;border-radius:4px}
-.eval-card{display:flex;flex-direction:column}
-.eval-card textarea{flex:1;resize:none;padding:8px;border:1px solid #ccc;border-radius:4px}
-.eval-card .btn-save{align-self:flex-end;padding:6px 12px;background:#67c23a;color:#fff;border:none;border-radius:4px;cursor:pointer;margin-top:12px}
-.eval-card .btn-save:hover{background:#57a33f}
+.perf-panel{width:55%;display:flex;flex-direction:column;overflow-y:auto;padding-bottom:24px;background:#f5f5f5}
+.perf-header{display:flex;justify-content:flex-end;margin-bottom:16px;padding:16px 0}
+.perf-form {
+  display: grid;
+  /* 왼쪽은 label 크기만큼, 오른쪽은 나머지 모두 */
+  grid-template-columns: max-content 1fr;
+  row-gap: 16px;    /* 행 간격 */
+  column-gap: 24px; /* 열 간격 */
+  align-items: start;
+}
+.btn-delete{background:#c8c8c8;border:none;padding:6px 12px;border-radius:6px;color:#fff;cursor:pointer}
+.empty{display:flex;align-items:center;justify-content:center;flex:1}
+.empty-text{color:#1890ff;font-size:1.2rem;font-weight:600}
+.detail-table-vertical{width:100%;border-collapse:collapse;margin-bottom:20px}
+.detail-table-vertical th,.detail-table-vertical td{border:1px solid #e0e0e0;padding:12px;text-align:center;font-size:.9rem}
+.detail-table-vertical th{background:#fafafa;font-weight:600}
+.attach-area,
+.input-area {
+  display: contents;
+}
 
-/* Modal Styles */
-.modal-overlay{position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,.4);display:flex;justify-content:center;align-items:center;z-index:1e3}
-.modal-content{background:#fff;padding:24px;border-radius:8px;width:400px;box-shadow:0 2px 10px rgba(0,0,0,.15)}
-.form-group{margin-bottom:16px}
-.form-group label{display:block;margin-bottom:4px;font-weight:500}
-.form-group input{width:100%;padding:8px;border:1px solid #ccc;border-radius:4px}
-.modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:16px}
-.btn-save{padding:6px 12px;background:#67c23a;color:#fff;border:none;border-radius:4px;cursor:pointer}
-.btn-cancel{padding:6px 12px;background:#fff;color:#333;border:1px solid #ccc;border-radius:4px;cursor:pointer}
-.btn-cancel:hover{background:#f5f5f5}
+.input-area label{font-weight:600}
+.input-area input,.input-area textarea{width:100%;padding:8px;border:1px solid #d9d9d9;border-radius:6px;background:#fafafa;resize:none}
+.input-area textarea {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.attach-area label{width:80px;font-weight:600}
+.file-box{display:flex;align-items:center;background:#fafafa;border-radius:6px;padding:6px 12px;gap:8px}
+.btn-attach{background:#4096ff;color:#fff;border:none;padding:6px 12px;border-radius:6px;cursor:pointer}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden}
+.btn-save-wrap{text-align:center}
+.btn-save{background:#4096ff;color:#fff;border:none;padding:10px 24px;border-radius:6px;cursor:pointer}
+.detail-title { margin-bottom:12px; }
+.detail-title-label { display:block; font-size:0.9rem; color:#888; margin-bottom:4px; }
+.detail-header { display:flex; align-items:center; padding:8px 0; border-top:1px solid #e0e0e0; margin-top:16px; }
+.detail-label { font-size:1rem; font-weight:600; color:#333; }
+.detail-table-vertical tr:nth-child(odd) td {
+  background: #fafafa;
+}
+.detail-table-vertical tr:nth-child(even) td {
+  background: #fff;
+}
 </style>
