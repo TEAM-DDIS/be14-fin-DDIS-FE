@@ -47,40 +47,52 @@
 
 <style scoped>
   .sidebar {
+    overflow-x: hidden; /* ✅ 수평 스크롤 제거 */
+    margin-top: -6px;
     width: 180px;
-    /* height: 100vh; */
+    overflow-y: auto;
+  min-height: calc(100vh - 60px); /* ✅ 화면 하단까지 배경 보이게 */
+    /* position: fixed; */
     background-color: #f5f5f5;
-    padding: 20px 20px;
+    padding: 20px;
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
-    box-shadow: 1px 0 5px rgba(0, 0, 0, 0.05);
-    gap: 30px;
+    /* justify-content: space-between; */
+    box-shadow: 1px 0 5px rgba(0, 0, 0, 0.1);
+    gap: 22px;
+    /* font-size: 50px; */
+      overflow: visible;  /* ✅ 스크롤 제거 */
+
   }
 
     /* 출근 박스는 마진 없이 자동으로 하단에 배치 */
-  .attendance-card {
-      margin-top: auto;
-  }
+.attendance-card {
+  opacity: 90%;
+  margin-left: -5px;
+  position: sticky;
+  bottom: 20px;
+  margin-top: auto; /* 남은 공간 밀어내고 하단 고정 */
+}
+
 
   .home {
-    background-color: #00A8E8;
+    background-color: #00A8E8 ;
     color: white;
     font-weight: bold;
-    font-size: 16px;
-    text-align: center;
-    padding: 15px 0;
+    font-size: 18px;
+    text-align: left;
+    padding: 12px 20px;
     width: calc(100% + 20px); /* ✅ 사이드바 오른쪽 padding 무시 */
     margin-right: -20px;       /* ✅ 사이드바 padding 보정 */
-    margin-left: auto;         /* ✅ 오른쪽 정렬 */
+    /* margin-left: auto;         ✅ 오른쪽 정렬 */
     border-top-left-radius: 20px;
     border-bottom-left-radius: 20px;
     border-top-right-radius: 0;
     border-bottom-right-radius: 0;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
     letter-spacing: 1px;
-    margin-bottom: 30px;
+    /* margin-bottom: 5px; */
     box-sizing: border-box;
     transition: background-color 0.3s ease;
   }
@@ -88,6 +100,8 @@
   .home:hover {
     background-color: #007db3; /* 약간 어두운 파랑 */
     cursor: pointer;
+        box-shadow: 0px 0px 10px 10px rgba(0, 0, 0, 0.03) inset;
+
   }
 
   .home-link {
@@ -96,24 +110,25 @@
   }
 
   .menu-button {
-    width: 100%;            /* 사이드바 너비에 딱 맞춤 */
-    box-sizing: border-box;
+    width: 95%;            /* 사이드바 너비에 딱 맞춤 */
+    /* box-sizing: border-box; */
     background-color: white;
+    margin-left: 7px;
     font-weight: bold;
     border: none;
-    border-radius: 20px;
+    border-radius: 23px;
     padding: 15px 0px;
-    font-size: 14px;
+    font-size: 16px;
     cursor: pointer;
-    box-shadow: 0px 1px 5px rgba(0, 0, 0, 0.1);
-    transition: background-color 0.2s;
-
+    box-shadow: 0px 0px 5px 4px rgba(0, 0, 0, 0.03);
+    transition: background-color 0.3s, box-shadow 0.3s;
     text-align: center;
 
   }
 
   .menu-button:hover {
-    background-color: #bcbcbc;
+    background-color: #d6d6d6;
+    box-shadow: inset 0px 0px 10px, 10px rgba(0, 0, 0, 0.1);
   }
 
 </style>

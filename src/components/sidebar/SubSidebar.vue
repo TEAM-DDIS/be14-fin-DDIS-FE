@@ -147,6 +147,9 @@
 
 <style scoped>
     .sub-sidebar {
+        margin-top: -6px;
+  box-shadow: 2px 0 5px rgba(0,0,0,0.05);
+
         width: 180px;
         padding: 20px 12px;
         background-color: #f5f5f5;
@@ -157,7 +160,7 @@
     }
 
     .main-title {
-        border: 5px solid #00a8e8;
+        border: 3px solid #00a8e8;
         border-top-right-radius: 20px;
         border-bottom-right-radius: 20px;
         border-top-left-radius: 0;
@@ -187,7 +190,7 @@
         margin-bottom: 6px;
         border-bottom: 1px solid #ccc;
         color: #222;
-        margin-top: 20px;
+        margin-top: 15px;
 
         cursor: pointer; /* ✅ 추가: 제목에도 손가락 커서 */
         transition: color 0.2s ease;
@@ -198,6 +201,7 @@
         list-style: none;
         padding: 0;
         margin: 0;
+        
     }
 
     /* — 링크만 스타일 초기화 — */
