@@ -41,30 +41,67 @@ const router = createRouter({
             component: () => import('@/components/org/introduction/JobDetail.vue')
 
         },
+        
+        // 급여 관리
+        // {
+        //     path: '/salary/payroll/slip',
+        //     component: () => import('@/components/salary/payroll/PayrollSlip.vue')
+        // },
+        // {
+        //     path: '/salary/payroll/issue',
+        //     component: () => import('@/components/salary/payroll/PayrollSlipIssue.vue')
+        // },
+
+        // 퇴직 관리
+        // {
+        //     path: '/salary/retirement/estimate',
+        //     component: () => import('@/components/salary/retirement/RetirementEstimate.vue')
+        // },
+        // {
+        //     path: '/salary/retirement/status',
+        //     component: () => import('@/components/salary/retirement/RetirementPaymentStatus.vue')
+        // },
+
+        // 근태 관리
         {
             path: '/attendance/myAttendance',
             component: () => import('@/pages/MyAttendancePage.vue')
         },
 
-        // 급여 관리
-        {
-            path: '/salary/payroll/slip',
-            component: () => import('@/components/salary/payroll/PayrollSlip.vue')
-        },
-        {
-            path: '/salary/payroll/issue',
-            component: () => import('@/components/salary/payroll/PayrollSlipIssue.vue')
-        },
+        // {
+        //     path: '/attendance/teamAttendance',
+        //     component: () => import('@/pages/TeamAttendancePage.vue')
+        // },
 
-        // 퇴직 관리
-        {
-            path: '/salary/retirement/estimate',
-            component: () => import('@/components/salary/retirement/RetirementEstimate.vue')
-        },
-        {
-            path: '/salary/retirement/status',
-            component: () => import('@/components/salary/retirement/RetirementPaymentStatus.vue')
-        }
+        // {
+        //     path: '/attendance/myCorrection',
+        //     component: () => import('@/pages/MyAttendancePage.vue')
+        // },
+
+        // {
+        //     path: '/attendance/allCorrection',
+        //     component: () => import('@/pages/MyAttendancePage.vue')
+        // },
+
+        // {
+        //     path: '/attendance/myCommute',
+        //     component: () => import('@/pages/MyAttendancePage.vue')
+        // },
+
+        // {
+        //     path: '/attendance/allCommute',
+        //     component: () => import('@/pages/MyAttendancePage.vue')
+        // },
+
+        // {
+        //     path: '/attendance/myLeave',
+        //     component: () => import('@/pages/MyAttendancePage.vue')
+        // },
+
+        // {
+        //     path: '/attendance/allLeave',
+        //     component: () => import('@/pages/MyAttendancePage.vue')
+        // },
 
     ]
 })
