@@ -35,8 +35,8 @@
 
       <!-- Right: Employee Profile -->
       <div class="profile-panel">
-        <h2>프로필 정보</h2>
         <template v-if="selectedEmployee">
+          <h2>프로필 정보</h2>
           <div class="profile-top">
             <div class="profile-card">
               <img src="@/assets/icons/profile_img.svg" alt="profile" class="profile2"/>

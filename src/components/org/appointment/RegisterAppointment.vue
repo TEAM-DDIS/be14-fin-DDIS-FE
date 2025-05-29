@@ -1,61 +1,64 @@
 <!-- 조직 및 직무 > 인사발령 -->
 <template>
-  <div class="register-container">
-    <h2 class="page-title">인사발령 등록</h2>
-    <!-- 기본 정보 폼 -->
-    <div class="info-section">
-      <table class="info-table">
-        <tr>
-          <th>사원명</th>
-          <td><input v-model="form.name" type="text" placeholder="사원명 입력" /></td>
-        </tr>
-        <tr>
-          <th>발령제목</th>
-          <td><input v-model="form.title" type="text" placeholder="발령제목 입력" /></td>
-        </tr>
-        <tr>
-          <th>발령유형</th>
-          <td>
-            <select v-model="form.type">
-              <option value="승진">승진</option>
-              <option value="전보">전보</option>
-              <option value="전직">전직</option>
-              <option value="직급조정">직급조정</option>
-              <option value="직무">직무</option>
-            </select>
-          </td>
-        </tr>
-        <tr>
-          <th>발령일자</th>
-          <td><input v-model="form.effectiveDate" type="date" /></td>
-        </tr>
-      </table>
-    </div>
-    <!-- 조직 변경 테이블 -->
-    <div class="org-section">
-      <table class="org-table">
-        <thead>
+  <h1 class="page-title">인사발령 등록</h1>
+
+  <div class="content-box">
+    <div class="register-container">
+      <!-- 기본 정보 폼 -->
+      <div class="info-section">
+        <table class="info-table">
           <tr>
-            <th>항목</th>
-            <th>현재 소속 조직</th>
-            <th>발령 조직</th>
+            <th>사원명</th>
+            <td><input v-model="form.name" type="text" placeholder="사원명 입력" /></td>
           </tr>
-        </thead>
-        <tbody>
-          <tr v-for="(label, key) in orgFields" :key="key">
-            <td>{{ label }}</td>
-            <td><input :value="currentOrg[key]" disabled /></td>
+          <tr>
+            <th>발령제목</th>
+            <td><input v-model="form.title" type="text" placeholder="발령제목 입력" /></td>
+          </tr>
+          <tr>
+            <th>발령유형</th>
             <td>
-              <input v-model="form.org[key]" type="text" :placeholder="label + ' 입력'" />
+              <select v-model="form.type">
+                <option value="승진">승진</option>
+                <option value="전보">전보</option>
+                <option value="전직">전직</option>
+                <option value="직급조정">직급조정</option>
+                <option value="직무">직무</option>
+              </select>
             </td>
           </tr>
-        </tbody>
-      </table>
-    </div>
-    <!-- 버튼 -->
-    <div class="button-group">
-        <button class="btn-cancel" @click="cancel()">취소</button>
-        <button class="btn-save" @click="submit()">저장</button>
+          <tr>
+            <th>발령일자</th>
+            <td><input v-model="form.effectiveDate" type="date" /></td>
+          </tr>
+        </table>
+      </div>
+      <!-- 조직 변경 테이블 -->
+      <div class="org-section">
+        <table class="org-table">
+          <thead>
+            <tr>
+              <th>항목</th>
+              <th>현재 소속 조직</th>
+              <th>발령 조직</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="(label, key) in orgFields" :key="key">
+              <td>{{ label }}</td>
+              <td><input :value="currentOrg[key]" disabled /></td>
+              <td>
+                <input v-model="form.org[key]" type="text" :placeholder="label + ' 입력'" />
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <!-- 버튼 -->
+      <div class="button-group">
+          <button class="btn-cancel" @click="cancel()">취소</button>
+          <button class="btn-save" @click="submit()">저장</button>
+      </div>
     </div>
   </div>
 </template>
@@ -133,11 +136,18 @@ function cancel() {
   padding: 24px;
   background: #fff;
 }
-.page-title {
-  font-size: 20px;
-  font-weight: 600;
-  margin-bottom: 24px;
+.content-box {
+  background: #fff;
+  border-radius: 12px;
+  padding: 20px 32px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  margin: 24px;
 }
+.page-title {
+  margin-left: 20px;
+  margin-bottom: 50px;
+}
+
 .info-section,
 .org-section {
   margin-bottom: 24px;

@@ -1,7 +1,7 @@
 <!-- 조직 및 직무 > 조직 및 직무 소개 -->
 <template>
   <div class="job-detail-page">
-    <h2 class="page-title">조직 및 직무 소개</h2>
+    <h1 class="page-title">조직 및 직무 소개</h1>
     
     <div class="content-box">
       <h2 class="title">{{ teamName }}</h2>
@@ -67,37 +67,62 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
-import data from '/org.json'  // 경로 맞게 조절
 
-const route = useRoute()
-const teamId = Number(route.params.teamId)
-const jobs = data.job
-const teams = data.team
+const route        = useRoute()
+const teamId       = Number(route.params.teamId)
 
-const team = teams.find(t => t.team_id === teamId)
-const teamName = team ? team.team_name : '알 수 없는 팀'
-const teamIntro = data.introduction.find(i => i.introduction_type === '팀' && i.team_id === teamId)
+// reactive 데이터
+const jobs         = ref([])
+const teams        = ref([])
+const introductions= ref([])
 
-const filteredJobs = computed(() => {
-  return jobs.filter(job => job.team_id === teamId)
-})
+// 페이지에서 바로 사용하는 값들도 ref로 선언
+const teamName     = ref('알 수 없는 팀')
+const teamIntro    = ref(null)
+const selectedJobId= ref(null)
 
-const selectedJobId = ref(
-  filteredJobs.value.length > 0 ? filteredJobs.value[0].job_id : null
-)
+// fetch 로드 후 초기화
+onMounted(async () => {
+  try {
+    const res   = await fetch('/org.json')
+    const oData = await res.json()
 
-const selectedJobs = computed(() => {
-  if (selectedJobId.value === null) {
-    // 전체 직무 표시
-    return filteredJobs.value
-  } else {
-    // 선택된 직무만 표시
-    return filteredJobs.value.filter(job => job.job_id === selectedJobId.value)
+    jobs.value          = oData.job
+    teams.value         = oData.team
+    introductions.value = oData.introduction
+
+    // 팀 이름, 소개 설정
+    const team = teams.value.find(t => t.team_id === teamId)
+    if (team) {
+      teamName.value  = team.team_name
+      teamIntro.value = introductions.value.find(
+        i => i.introduction_type === '팀' && i.team_id === teamId
+      )
+    }
+
+    // 기본 selectedJobId (첫 번째 직무) 설정
+    const myJobs = jobs.value.filter(j => j.team_id === teamId)
+    selectedJobId.value = myJobs.length ? myJobs[0].job_id : null
+
+  } catch (e) {
+    console.error('org.json 로드 실패:', e)
   }
 })
+
+// 필터링된 직무 목록
+const filteredJobs = computed(() =>
+  jobs.value.filter(j => j.team_id === teamId)
+)
+
+// 현재 선택된 직무만
+const selectedJobs = computed(() => {
+  if (selectedJobId.value == null) return []
+  return filteredJobs.value.filter(j => j.job_id === selectedJobId.value)
+})
 </script>
+
 
 <style scoped>
 .job-detail-page {
@@ -113,6 +138,7 @@ const selectedJobs = computed(() => {
 }
 
 .page-title {
+  margin-left: 20px;
   margin-bottom: 50px;
 }
 .job-tabs {

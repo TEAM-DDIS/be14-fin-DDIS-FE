@@ -1,7 +1,7 @@
 <template>
   <div class="org-container">
     <h3 class="company-title">
-      DDIS <span class="rep">({{ getCompanyRep() }})</span>
+      DDIS <span class="rep">{{ getCompanyRep() }}</span>
     </h3>
     <ul class="org-list">
       <li v-for="hq in headquarters" :key="hq.head_code">

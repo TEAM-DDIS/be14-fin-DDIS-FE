@@ -1,6 +1,6 @@
 <template>
   <div class="org-page">
-    <h2 class="page-title">조직 및 직무 소개</h2>
+    <h1 class="page-title">조직 및 직무 소개</h1>
 
     <div class="content-box">
       <div class="division-container">
@@ -103,6 +103,7 @@ onMounted(async () => {
 }
 
 .page-title {
+  margin-left: 20px;
   margin-bottom: 50px;
 }
 
