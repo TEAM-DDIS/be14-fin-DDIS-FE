@@ -44,7 +44,7 @@ const router = createRouter({
         {
             path: '/attendance/myAttendance',
             component: () => import('@/pages/MyAttendancePage.vue')
-        }
+        },
 
         // 급여 관리
         {
