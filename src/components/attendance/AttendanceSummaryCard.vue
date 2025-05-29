@@ -1,8 +1,20 @@
 <template>
   <div class="attendance-summary-card">
     <p class="greeting">
-      {{ name }} 사원님 안녕하세요.<br />
-      <span class="status">{{ status }}입니다.</span>
+      <!-- name + position -->
+      <span class="greeting-main">
+        {{ name }} {{ position }}
+      </span>
+      <span class="greeting-sub">
+        님 안녕하세요.
+      </span>
+      <br />
+
+      <!-- status -->
+      <span class="status-wrapper">
+        <span class="status-main">{{ status }}</span>
+        <span class="status-sub">입니다.</span>
+      </span>
     </p>
 
     <div class="time-info">
@@ -49,7 +61,8 @@
 import { ref, computed, onUnmounted } from 'vue'
 
 const props = defineProps({
-  name: { type: String, default: '김랑랑' }
+  name: { type: String, default: '김랑랑' },
+  position: { type: String, default: '사원' }
 })
 
 const checkIn = ref('')
@@ -115,23 +128,46 @@ onUnmounted(() => {
 <style scoped>
 .attendance-summary-card {
   background: white;
-  padding: 20px;
+  padding: 18px;
   border-radius: 20px;
   box-shadow: 1px 1px 20px 1px rgba(0, 0, 0, 0.05);
   font-family: 'Pretendard', sans-serif;
-  height: 480px;
 }
 
 .greeting {
-  font-size: 14px;
-  font-weight: 500;
   margin-bottom: 8px;
   line-height: 1.6;
   text-align: left;
 }
 
-.status {
+/* 이름·직급 */
+.greeting-main {
+  font-size: 18px;
   font-weight: 600;
+}
+/* “님 안녕하세요.” */
+.greeting-sub {
+  font-size: 16px;
+  font-weight: 400;
+}
+
+/* status 부분 래핑 */
+.status-wrapper {
+  display: inline-flex;
+  align-items: baseline;
+}
+
+/* 동적 status(출근 전 / 근무 중 / 근무 종료) */
+.status-main {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+/* “입니다.” */
+.status-sub {
+  font-size: 16px;
+  font-weight: 400;
+  margin-left: 4px;
 }
 
 .time-info {
@@ -149,8 +185,8 @@ onUnmounted(() => {
 
 .circle {
   position: relative;
-  width: 230px;
-  height: 230px;
+  width: 210px;
+  height: 210px;
 }
 
 svg {
@@ -196,8 +232,9 @@ svg {
 }
 
 .percent-text .time {
-  font-size: 18px;
-  margin: 0;
+    font-size: 18px;
+    font-weight: bold;
+    margin: 0;
 }
 
 .check-btn {
@@ -209,7 +246,7 @@ svg {
   font-size: 14px;
   color: white;
   margin: 0 auto;
-  margin-top: 70px;
+  margin-top: 50px;
   display: block;
   cursor: pointer;
   transition: background-color 0.3s ease;
