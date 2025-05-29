@@ -42,7 +42,7 @@ const router = createRouter({
 
         },
         {
-            path: '/attendance',
+            path: '/attendance/myAttendance',
             component: () => import('@/pages/MyAttendancePage.vue')
         }
 
