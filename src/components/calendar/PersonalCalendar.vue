@@ -1,59 +1,61 @@
 <template>
-    <div style="padding: 20px;">
-        <div style="width: 700px; height: 700px;">
-            <FullCalendar :options="calendarOptions" style="height: 100%; width: 100%;" />
+    <div class="personal-calendar">
+        <div style="padding: 20px;">
+            <div style="width: 700px; height: 700px;">
+                <FullCalendar :options="calendarOptions" style="height: 100%; width: 100%;" />
+            </div>
         </div>
-    </div>
-    <el-dialog
-        v-model="showPersonalForm"
-        :title="`${clickedDate} 개인 일정 추가`"
-        width="400px"
-        destroy-on-close>
-        <el-form :model="personalForm">
-            <el-form-item label="일정명">
-                <el-input v-model="personalForm.title" placeholder="예: 병원 예약" />
-            </el-form-item>
-            <el-form-item label="시간">
-                <el-time-picker v-model="personalForm.time"
-                            placeholder="시간 선택"
-                            format="HH:mm"
-                            value-format="HH:mm"
-                            :picker-options="{
-                                start: '08:00',
-                                step: '00:30',
-                                end: '20:00'
-                            }" 
-                />
-            </el-form-item>
-        </el-form>
-        <!-- <el-dialog 
-            v-model="showEditModal" 
-            title="개인 일정 수정" 
+        <el-dialog
+            v-model="showPersonalForm"
+            :title="`${clickedDate} 개인 일정 추가`"
             width="400px"
             destroy-on-close>
-            <el-form :model="editForm">
+            <el-form :model="personalForm">
                 <el-form-item label="일정명">
-                    <el-input v-model="editForm.title" />
+                    <el-input v-model="personalForm.title" placeholder="예: 병원 예약" />
                 </el-form-item>
                 <el-form-item label="시간">
-                    <el-time-picker
-                    v-model="editForm.time"
-                    format="HH:mm"
-                    value-format="HH:mm"
-                    placeholder="시간 선택" />
+                    <el-time-picker v-model="personalForm.time"
+                                placeholder="시간 선택"
+                                format="HH:mm"
+                                value-format="HH:mm"
+                                :picker-options="{
+                                    start: '08:00',
+                                    step: '00:30',
+                                    end: '20:00'
+                                }" 
+                    />
                 </el-form-item>
-                </el-form>
+            </el-form>
+            <!-- <el-dialog 
+                v-model="showEditModal" 
+                title="개인 일정 수정" 
+                width="400px"
+                destroy-on-close>
+                <el-form :model="editForm">
+                    <el-form-item label="일정명">
+                        <el-input v-model="editForm.title" />
+                    </el-form-item>
+                    <el-form-item label="시간">
+                        <el-time-picker
+                        v-model="editForm.time"
+                        format="HH:mm"
+                        value-format="HH:mm"
+                        placeholder="시간 선택" />
+                    </el-form-item>
+                    </el-form>
+                <template #footer>
+                    <el-button @click="deleteEvent" type="danger">삭제</el-button>
+                    <el-button @click="showEditModal = false">취소</el-button>
+                    <el-button type="primary" @click="updateEvent">수정</el-button>
+                </template>
+            </el-dialog> -->
             <template #footer>
-                <el-button @click="deleteEvent" type="danger">삭제</el-button>
-                <el-button @click="showEditModal = false">취소</el-button>
-                <el-button type="primary" @click="updateEvent">수정</el-button>
+                <el-button @click="showPersonalForm = false">취소</el-button>
+                <el-button type="primary" @click="addPersonalEvent">등록</el-button>
             </template>
-        </el-dialog> -->
-        <template #footer>
-            <el-button @click="showPersonalForm = false">취소</el-button>
-            <el-button type="primary" @click="addPersonalEvent">등록</el-button>
-        </template>
-    </el-dialog>
+        </el-dialog>
+    </div>
 </template>
 
 <script setup>
@@ -199,6 +201,14 @@
 </script>
 
 <style setup>
+    /* 캘린더 박스 */
+    .personal-calendar {
+        background-color: #ffffff;
+        border-radius: 20px;
+        box-shadow: 1px 1px 20px 1px rgba(0, 0, 0, 0.05);
+        padding: 50px;
+    }
+
     /* 요일 헤더 색상 */
     .fc-col-header-cell.fc-day-sun {
         color: red;
