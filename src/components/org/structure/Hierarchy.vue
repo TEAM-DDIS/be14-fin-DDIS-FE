@@ -55,7 +55,7 @@ onMounted(async () => {
     axios.get('http://localhost:3000/headquarters'),
     axios.get('http://localhost:3000/department'),
     axios.get('http://localhost:3000/team'),
-    // axios.get('http://localhost:3000/employees'),
+    axios.get('http://localhost:3000/employees'),
     axios.get('http://localhost:3000/position'),
     axios.get('http://localhost:3000/rank')
   ])
