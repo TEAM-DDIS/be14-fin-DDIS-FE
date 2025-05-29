@@ -25,15 +25,21 @@ const router = createRouter({
         },
         {
             path: '/org/evaluation',
-            component: () => import('@/component/EvaluationPage.vue')
+            component: () => import('@/components/Evaluation/EvaluationPage.vue')
         },
         {
             path: '/org/goals',
-            component: () => import('@/component/GoalListPage.vue')
+            component: () => import('@/components/Goals/GoalListPage.vue')
+        },
+        {
+            path: '/org/login',
+            component: () => import('@/components/login/LoginPage.vue'),
+            meta: { hideLayout : true}
         },
         {
             path: '/jobdetail/:teamId',
             component: () => import('@/components/org/introduction/JobDetail.vue')
+
         }
 
     ]
