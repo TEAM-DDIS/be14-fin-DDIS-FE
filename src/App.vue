@@ -1,7 +1,10 @@
 <template>
   <div class="app">
     <!-- 상단 헤더 -->
-    <Header />
+     <header>
+      <Header />
+     </header>
+    
 
     <!-- 사이드바 + 서브사이드바 + 메인 콘텐츠 레이아웃 -->
     <div class="layout" ref="layoutRef">
@@ -22,6 +25,7 @@
       </main>
     </div>
   </div>
+
 </template>
 
 <script setup>
@@ -57,10 +61,33 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
+html, body {
+  margin: 0;
+  padding: 0;
+}
+
 .app {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  min-width:100vh;
+  background-color: #f9f9f9;
+  .app {
+  padding: 0;    /* 필요하다면 좌우 패딩을 모두 0으로 */
+}
+
+}
+
+
+header {
+  width: 100%;
+  height: 60px;
+  background-color: #f9f9f9;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1000;
 }
 
 /* 사이드바 + 콘텐츠 레이아웃 */
@@ -69,14 +96,17 @@ onBeforeUnmount(() => {
   flex: 1;
   position: relative;
   overflow: visible;
+  height: 100%;
+  margin-top: 40px;
 }
 
 /* 메인 콘텐츠 영역 */
 .main-content {
   flex: 1;
+  background-color: #f9f9f9;
   overflow-y: auto;
-  padding: 24px;
-  background-color: #fff;
+  margin-bottom: -10px;
+
 }
 
 /* SubSidebar 절대 위치 */
