@@ -49,8 +49,11 @@
   .sidebar {
     width: 180px;
     /* height: 100vh; */
+<<<<<<< HEAD
+=======
     margin-left: -10px;
     margin-bottom: -10px;
+>>>>>>> 3aa98c3b92417da4821d5d5a38f535917f2e65dd
     background-color: #f5f5f5;
     padding: 20px 20px;
     box-sizing: border-box;
@@ -59,7 +62,11 @@
     justify-content: space-between;
     box-shadow: 1px 0 5px rgba(0, 0, 0, 0.05);
     gap: 30px;
+<<<<<<< HEAD
+    margin-top: 30px
+=======
     /* margin-top: 30px */
+>>>>>>> 3aa98c3b92417da4821d5d5a38f535917f2e65dd
   }
 
     /* 출근 박스는 마진 없이 자동으로 하단에 배치 */

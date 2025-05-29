@@ -1,67 +1,66 @@
 <!-- 조직 및 직무 > 조직 및 직무 소개 -->
 <template>
   <div class="job-detail-page">
-    <h1 class="title">{{ teamName }}</h1>
+    <h2 class="page-title">조직 및 직무 소개</h2>
     
-    <p v-if="teamIntro" class="team-intro">{{ teamIntro.introduction_context }}</p>
+    <div class="content-box">
+      <h2 class="title">{{ teamName }}</h2>
+      
+      <p v-if="teamIntro" class="team-intro">{{ teamIntro.introduction_context }}</p>
 
-    <!-- 직무 선택 탭 -->
-    <div class="job-tabs">
-      <!-- <button 
-        :class="{ active: selectedJobId === null }" 
-        @click="selectedJobId = null"
-      >
-      </button> -->
-      <button
-        v-for="job in filteredJobs" 
-        :key="job.job_id"
-        :class="{ active: selectedJobId === job.job_id }"
-        @click="selectedJobId = job.job_id"
-      >
-        {{ job.job_name }}
-      </button>
-    </div>
+      <!-- 직무 선택 탭 -->
+      <div class="job-tabs">
+        <button
+          v-for="job in filteredJobs" 
+          :key="job.job_id"
+          :class="{ active: selectedJobId === job.job_id }"
+          @click="selectedJobId = job.job_id"
+        >
+          {{ job.job_name }}
+        </button>
+      </div>
 
-    <!-- 선택된 직무만 보여주기 -->
-    <div v-if="filteredJobs.length === 0" class="no-jobs">
-      해당 팀의 직무 정보가 없습니다.
-    </div>
+      <!-- 선택된 직무만 보여주기 -->
+      <div v-if="filteredJobs.length === 0" class="no-jobs">
+        해당 팀의 직무 정보가 없습니다.
+      </div>
 
-    <div v-else class="job-cards-container">
-      <div 
-        v-for="job in selectedJobs" 
-        :key="job.job_id" 
-        class="job-card"
-      >
-        <h2 class="job-name">{{ job.job_name }}</h2>
+      <div v-else class="job-cards-container">
+        <div 
+          v-for="job in selectedJobs" 
+          :key="job.job_id" 
+          class="job-card"
+        >
+          <h2 class="job-name">{{ job.job_name }}</h2>
 
-        <section class="job-section">
-          <h3>주요 역할</h3>
-          <ul>
-            <li v-for="(role, idx) in job.job_role" :key="idx">{{ role }}</li>
-          </ul>
-        </section>
+          <section class="job-section">
+            <h3>주요 역할</h3>
+            <ul>
+              <li v-for="(role, idx) in job.job_role" :key="idx">{{ role }}</li>
+            </ul>
+          </section>
 
-        <section class="job-section">
-          <h3>필요 역량</h3>
-          <ul>
-            <li v-for="(need, idx) in job.job_need" :key="idx">{{ need }}</li>
-          </ul>
-        </section>
+          <section class="job-section">
+            <h3>필요 역량</h3>
+            <ul>
+              <li v-for="(need, idx) in job.job_need" :key="idx">{{ need }}</li>
+            </ul>
+          </section>
 
-        <section class="job-section">
-          <h3>필수 조건</h3>
-          <ul>
-            <li v-for="(necessary, idx) in job.job_necessary" :key="idx">{{ necessary }}</li>
-          </ul>
-        </section>
+          <section class="job-section">
+            <h3>필수 조건</h3>
+            <ul>
+              <li v-for="(necessary, idx) in job.job_necessary" :key="idx">{{ necessary }}</li>
+            </ul>
+          </section>
 
-        <section class="job-section">
-          <h3>우대 사항</h3>
-          <ul>
-            <li v-for="(preference, idx) in job.job_preference" :key="idx">{{ preference }}</li>
-          </ul>
-        </section>
+          <section class="job-section">
+            <h3>우대 사항</h3>
+            <ul>
+              <li v-for="(preference, idx) in job.job_preference" :key="idx">{{ preference }}</li>
+            </ul>
+          </section>
+        </div>
       </div>
     </div>
   </div>
@@ -101,7 +100,21 @@ const selectedJobs = computed(() => {
 </script>
 
 <style scoped>
+.job-detail-page {
+  padding: 20px 40px;
+}
 
+.content-box {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 20px 32px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  margin: 24px;
+}
+
+.page-title {
+  margin-bottom: 50px;
+}
 .job-tabs {
   margin-bottom: 20px;
   display: flex;
@@ -136,7 +149,8 @@ const selectedJobs = computed(() => {
 
 .job-card {
   background: #ffffff;
-  width: 800px;
+  max-width: 800px;
+  width: 100%;  
   border-radius: 12px;
   padding: 20px 30px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.2);
@@ -186,5 +200,19 @@ const selectedJobs = computed(() => {
   color: #555;
   width: 600px;
   margin: 30px auto 50px auto;
+}
+
+@media (max-width: 840px) {
+  .content-box {
+    margin: 16px;
+    padding: 16px 24px;
+  }
+  .team-intro {
+    width: 100%;
+    margin: 20px 0;
+  }
+  .job-card {
+    padding: 16px;
+  }
 }
 </style>
