@@ -154,6 +154,7 @@
         display: flex;
         flex-direction: column;
         gap: 30px;
+        margin-left: -10px;
     }
 
     .main-title {
