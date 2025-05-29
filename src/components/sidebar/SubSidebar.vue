@@ -57,7 +57,7 @@
     const subMenuMap = {
         '인사 정보': {
             '사원조회':{
-
+                path: '/employeeInfo/employeeSearch'
             },
             '내 인사정보':{
 

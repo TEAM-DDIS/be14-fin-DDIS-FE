@@ -41,6 +41,11 @@ const router = createRouter({
             component: () => import('@/components/org/introduction/JobDetail.vue')
 
         },
+        {
+            path: '/employeeInfo/employeeSearch',
+            component: () => import('@/components/employeeInfo/employeeSearch/EmployeeSearchPage.vue')
+
+        },
         
         // 급여 관리
         // {
