@@ -26,6 +26,10 @@ const router = createRouter({
         {
             path: '/org/goals',
             component: () => import('@/components/Goals/GoalListPage.vue')
+        },
+        {
+            path: '/attendance',
+            component: () => import('@/pages/MyAttendancePage.vue')
         }
 
     ]
