@@ -206,7 +206,7 @@
         background-color: #ffffff;
         border-radius: 20px;
         box-shadow: 1px 1px 20px 1px rgba(0, 0, 0, 0.05);
-        padding: 50px 130px;
+        padding: 20 50px;
     }
 
     /* 요일 헤더 색상 */
