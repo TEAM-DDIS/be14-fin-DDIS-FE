@@ -1,7 +1,7 @@
 <template>
     <div class="personal-calendar">
         <div style="padding: 20px;">
-            <div style="width: 700px; height: 700px;">
+            <div style="width: 1200px; height: 700px;">
                 <FullCalendar :options="calendarOptions" style="height: 100%; width: 100%;" />
             </div>
         </div>
@@ -206,7 +206,7 @@
         background-color: #ffffff;
         border-radius: 20px;
         box-shadow: 1px 1px 20px 1px rgba(0, 0, 0, 0.05);
-        padding: 50px;
+        padding: 50px 130px;
     }
 
     /* 요일 헤더 색상 */

@@ -1,36 +1,38 @@
 <template>
-    <div style="padding: 20px;">
-        <div style="width: 700px; height: 700px;">
-            <FullCalendar :options="calendarOptions" style="height: 100%; width: 100%;" />
+    <div class="team-calendar">
+        <div style="padding: 20px;">
+            <div style="width: 1200px; height: 700px;">
+                <FullCalendar :options="calendarOptions" style="height: 100%; width: 100%;" />
+            </div>
         </div>
+        <el-dialog
+            v-model="showTeamForm"
+            :title="`${clickedDate} 회의 일정 추가`"
+            width="400px"
+            destroy-on-close>
+            <el-form :model="teamForm">
+                <el-form-item label="회의명">
+                    <el-input v-model="teamForm.title" placeholder="예: 개발 회의" />
+                </el-form-item>
+                <el-form-item label="시간">
+                    <el-time-picker v-model="teamForm.time"
+                                placeholder="시간 선택"
+                                format="HH:mm"
+                                value-format="HH:mm"
+                                :picker-options="{
+                                    start: '08:00',
+                                    step: '00:30',
+                                    end: '20:00'
+                                }" 
+                    />
+                </el-form-item>
+            </el-form>
+            <template #footer>
+                <el-button @click="showTeamForm = false">취소</el-button>
+                <el-button type="primary" @click="addTeamEvent">등록</el-button>
+            </template>
+        </el-dialog>
     </div>
-    <el-dialog
-        v-model="showTeamForm"
-        :title="`${clickedDate} 회의 일정 추가`"
-        width="400px"
-        destroy-on-close>
-        <el-form :model="teamForm">
-            <el-form-item label="회의명">
-                <el-input v-model="teamForm.title" placeholder="예: 개발 회의" />
-            </el-form-item>
-            <el-form-item label="시간">
-                <el-time-picker v-model="teamForm.time"
-                            placeholder="시간 선택"
-                            format="HH:mm"
-                            value-format="HH:mm"
-                            :picker-options="{
-                                start: '08:00',
-                                step: '00:30',
-                                end: '20:00'
-                            }" 
-                />
-            </el-form-item>
-        </el-form>
-        <template #footer>
-            <el-button @click="showTeamForm = false">취소</el-button>
-            <el-button type="primary" @click="addTeamEvent">등록</el-button>
-        </template>
-    </el-dialog>
 </template>
 
 <script setup>
@@ -150,6 +152,14 @@
 </script>
 
 <style setup>
+    /* 캘린더 박스 */
+    .team-calendar {
+        background-color: #ffffff;
+        border-radius: 20px;
+        box-shadow: 1px 1px 20px 1px rgba(0, 0, 0, 0.05);
+        padding: 50px 130px;
+    }
+
     /* 요일 헤더 색상 */
     .fc-col-header-cell.fc-day-sun {
         color: red;
