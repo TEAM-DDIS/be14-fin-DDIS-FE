@@ -1,15 +1,21 @@
-<!-- 조직 및 직무 > 조직 및 직무 소개 -->
 <template>
   <div class="org-page">
-    
     <h2 class="page-title">조직 및 직무 소개</h2>
 
     <div class="content-box">
       <div class="division-container">
-        <div class="division-section" v-for="division in divisionsWithDepartments" :key="division.name">
+        <div
+          class="division-section"
+          v-for="division in divisionsWithDepartments"
+          :key="division.name"
+        >
           <h2 class="division-title">{{ division.name }}</h2>
           <div class="department-grid">
-            <div class="department-card" v-for="dept in division.departments" :key="dept.introduction_id">
+            <div
+              class="department-card"
+              v-for="dept in division.departments"
+              :key="dept.introduction_id"
+            >
               <h3 class="department-name">{{ dept.introduction_name }}</h3>
               <p class="description">{{ dept.introduction_context }}</p>
               <div class="tags">
@@ -18,7 +24,6 @@
                   :key="team.team_id"
                   class="tag"
                   @click="goToJob(team.team_id)"
-                  style="cursor:pointer"
                 >
                   # {{ team.team_name }}
                 </span>
@@ -28,17 +33,18 @@
         </div>
       </div>
     </div>
+
     <button class="edit-button">편집</button>
   </div>
 </template>
 
 <script setup>
-import { computed } from 'vue'
-import { RouterLink, useRouter } from 'vue-router'
-import data from '/org.json' // json 경로 맞게 조정하세요
+import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 
-const introductions = data.introduction // 배열임
-const teams = data.team
+const orgData = ref({ introduction: [], team: [] })
+const introductions = computed(() => orgData.value.introduction || [])
+const teams = computed(() => orgData.value.team || [])
 
 const divisions = [
   { id: 1, name: '개발본부', departmentIds: [1, 2] },
@@ -48,31 +54,36 @@ const divisions = [
 
 const router = useRouter()
 
-// divisions에 부서별 정보와 각 부서에 속한 팀 데이터 추가
 const divisionsWithDepartments = computed(() =>
   divisions.map(div => {
-    const departments = introductions.filter(
-      intro => intro.introduction_type === '부서' &&
-               div.departmentIds.includes(intro.department_id)
+    const departments = introductions.value.filter(
+      intro =>
+        intro.introduction_type === '부서' &&
+        div.departmentIds.includes(intro.department_id)
     )
-    // 각 부서에 속한 팀 데이터(이름 + id)만 필터링해서 저장
     const departmentsWithTeams = departments.map(dept => {
-      const deptTeams = teams.filter(team => team.department_id === dept.department_id)
+      const deptTeams = teams.value.filter(
+        team => team.department_id === dept.department_id
+      )
       return { ...dept, teams: deptTeams }
     })
-    return {
-      ...div,
-      departments: departmentsWithTeams
-    }
+    return { ...div, departments: departmentsWithTeams }
   })
 )
 
 function goToJob(teamId) {
-  // router.push({ path: `/jobdetail/${encodeURIComponent(jobName)}` })
-    router.push({ path: `/jobdetail/${teamId}` })
-
+  router.push({ path: `/jobdetail/${teamId}` })
 }
 
+onMounted(async () => {
+  try {
+    const res = await fetch('/org.json')
+    if (!res.ok) throw new Error(res.statusText)
+    orgData.value = await res.json()
+  } catch (e) {
+    console.error('org.json 로드 실패:', e)
+  }
+})
 </script>
 
 <style scoped>
@@ -85,7 +96,7 @@ function goToJob(teamId) {
   background: #ffffff;
   border-radius: 12px;
   padding: 20px 32px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
   margin: 24px;
   max-width: 100%;
   overflow-x: auto;
@@ -96,9 +107,9 @@ function goToJob(teamId) {
 }
 
 .division-container {
-  display: flex;           /* 수평 정렬 */
-  gap: 40px;               /* 본부 간 간격 */
-  justify-content: flex-start; /* 왼쪽 정렬 */
+  display: flex;
+  gap: 40px;
+  justify-content: flex-start;
   flex-wrap: wrap;
 }
 
@@ -150,7 +161,7 @@ function goToJob(teamId) {
   color: #3c3c3c;
   margin-bottom: 30px;
   text-align: center;
-  padding: 8px 0px;
+  padding: 8px 0;
 }
 
 .tags {
@@ -166,12 +177,11 @@ function goToJob(teamId) {
   padding: 8px 10px;
   font-size: 12px;
   color: #ffffff;
-  text-decoration: none;
+  cursor: pointer;
 }
 
 .edit-button {
   position: absolute;
-  font-weight: bold;
   top: 24px;
   right: 24px;
   background-color: #00a8e8;
@@ -179,6 +189,7 @@ function goToJob(teamId) {
   border: none;
   border-radius: 12px;
   padding: 10px 30px;
+  font-weight: bold;
   cursor: pointer;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }

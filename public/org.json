@@ -1724,9 +1724,9 @@
       "head_code": "H001",
       "department_code": "D001",
       "team_code": "T001",
-      "position_code": "P002",
-      "rank_code": "R003",
-      "birthdate": "1990-05-10",
+      "position_code": "P004",
+      "rank_code": "R005",
+      "birthdate": "1988-05-10",
       "email": "kim.cs@example.com"
     },
     {
@@ -1734,21 +1734,43 @@
       "employee_name": "이영희",
       "head_code": "H001",
       "department_code": "D001",
-      "team_code": "T002",
+      "team_code": "T001",
+      "position_code": "P003",
+      "rank_code": "R004",
+      "birthdate": "1990-11-12",
+      "email": "lee.yh@example.com"
+    },
+    {
+      "employee_id": 3,
+      "employee_name": "박민호",
+      "head_code": "H001",
+      "department_code": "D001",
+      "team_code": "T001",
+      "position_code": "P002",
+      "rank_code": "R003",
+      "birthdate": "1992-03-14",
+      "email": "park.mh@example.com"
+    },
+        {
+      "employee_id": 4,
+      "employee_name": "김띠스",
+      "head_code": "H001",
+      "department_code": "D001",
+      "team_code": "T001",
       "position_code": "P001",
       "rank_code": "R002",
       "birthdate": "1992-11-23",
       "email": "lee.yh@example.com"
     },
     {
-      "employee_id": 3,
-      "employee_name": "박민호",
-      "head_code": "H002",
-      "department_code": "D003",
-      "team_code": "T005",
-      "position_code": "P003",
-      "rank_code": "R004",
-      "birthdate": "1988-02-14",
+      "employee_id": 5,
+      "employee_name": "조랑랑",
+      "head_code": "H001",
+      "department_code": "D001",
+      "team_code": "T001",
+      "position_code": "P001",
+      "rank_code": "R001",
+      "birthdate": "1999-02-14",
       "email": "park.mh@example.com"
     }
   ]
