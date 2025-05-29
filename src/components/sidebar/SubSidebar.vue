@@ -100,10 +100,10 @@
         },
         '전자 결재': {
             '기안 작성': {
-
+                path: '/draftdoc/draftcreate'
             },
             '기안함': {
-
+                path: '/draftdoc/mydraft/submitted'
             },
             '결재함': {
 
