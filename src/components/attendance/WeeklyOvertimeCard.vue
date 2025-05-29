@@ -5,7 +5,7 @@
     <!-- Legend -->
     <div class="legend">
       <div class="legend-item">
-        <span class="dot extended"></span>연장
+        <span class="dot extended"></span>시간 외
       </div>
       <div class="legend-item">
         <span class="dot night"></span>야간
@@ -34,12 +34,12 @@
     <!-- Total & Description -->
     <div class="total">{{ totalHours }}시간</div>
     <p class="desc">
-      초과근무는 주당 누적 12시간을 초과할 수 없으며,  
-      연장 근무는 반드시 사전 승인을 받아야 합니다.
+      초과 근무는 주당 누적 12시간을 초과할 수 없으며,  
+      초과 시 반드시 사전 승인을 받아야 합니다.
     </p>
 
     <!-- Apply Button -->
-    <button class="apply-btn" @click="onApply">근무신청</button>
+    <button class="apply-btn" @click="onApply">근무 신청</button>
   </div>
 </template>
 
@@ -74,15 +74,16 @@ function onApply() {
 <style scoped>
 .weekly-overtime-card {
   background: white;
-  padding: 20px;
+  padding: 18px;
   border-radius: 20px;
   box-shadow: 1px 1px 20px 1px rgba(0, 0, 0, 0.05);
   font-family: 'Pretendard', sans-serif;
 }
 
 .title {
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 600;
+  margin-top: 0;
   margin-bottom: 12px;
 }
 
@@ -128,7 +129,7 @@ function onApply() {
 
 /* Total & Description */
 .total {
-  font-size: 24px;
+  font-size: 20px;
   font-weight: 700;
   margin-bottom: 8px;
   color: #333;
@@ -145,7 +146,6 @@ function onApply() {
   display: block;
   width: 93px;
   height: 37px;
-  padding: 8px 0;
   background-color: #00A8E8;
   color: white;
   font-size: 14px;
@@ -154,6 +154,7 @@ function onApply() {
   border-radius: 10px;
   cursor: pointer;
   transition: filter 0.2s;
+  margin: 16px 0 0 auto;
 }
 .apply-btn:hover {
   filter: brightness(1.1);

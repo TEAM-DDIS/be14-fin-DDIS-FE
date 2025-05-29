@@ -128,16 +128,20 @@ onUnmounted(() => {
 <style scoped>
 .attendance-summary-card {
   background: white;
-  padding: 18px;
+  padding-top: 8px;    /* 상단만 8px 로 줄임 */
+  padding-right: 18px;
+  padding-bottom: 18px;
+  padding-left: 18px;
   border-radius: 20px;
   box-shadow: 1px 1px 20px 1px rgba(0, 0, 0, 0.05);
   font-family: 'Pretendard', sans-serif;
 }
 
 .greeting {
-  margin-bottom: 8px;
-  line-height: 1.6;
-  text-align: left;
+    margin-top: 8px;
+    margin-bottom: 8px;
+    line-height: 1.6;
+    text-align: left;
 }
 
 /* 이름·직급 */
