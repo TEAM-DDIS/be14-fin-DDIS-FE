@@ -127,15 +127,15 @@
 
     // JSON 데이터 로드
     onMounted(async () => {
-    const res = await fetch('/schedule.json')
-    const data = await res.json()
-    calendarOptions.events = data.map(item => ({
+    const res = await fetch('/attendance.json')
+    const { schedule } = await res.json()
+    calendarOptions.events = schedule.map(item => ({
         title: '', // 직접 렌더링 하므로 필요 없음
-        start: item.date,
-        className: convertStatusToClass(item.status),
+        start: item.work_date,
+        className: convertStatusToClass(item.work_status_id),
         extendedProps: {
-            status: item.status,
-            employee: item.employee
+            status: item.work_status_id,
+            employee: item.employee_name
         }
     }))
     })
