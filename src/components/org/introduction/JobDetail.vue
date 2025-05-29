@@ -69,7 +69,7 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { useRoute } from 'vue-router'
-import data from '/server/db.json'  // 경로 맞게 조절
+import data from '/org.json'  // 경로 맞게 조절
 
 const route = useRoute()
 const teamId = Number(route.params.teamId)

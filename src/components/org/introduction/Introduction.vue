@@ -35,7 +35,7 @@
 <script setup>
 import { computed } from 'vue'
 import { RouterLink, useRouter } from 'vue-router'
-import data from '/server/db.json' // json 경로 맞게 조정하세요
+import data from '/org.json' // json 경로 맞게 조정하세요
 
 const introductions = data.introduction // 배열임
 const teams = data.team
