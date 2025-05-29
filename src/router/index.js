@@ -32,6 +32,11 @@ const router = createRouter({
             component: () => import('@/components/Goals/GoalListPage.vue')
         },
         {
+            path: '/org/login',
+            component: () => import('@/components/login/LoginPage.vue'),
+            meta: { hideLayout : true}
+        },
+        {
             path: '/jobdetail/:teamId',
             component: () => import('@/components/org/introduction/JobDetail.vue')
 
