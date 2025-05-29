@@ -51,14 +51,20 @@ function logout() {
 
 <style scoped>
 .header {
+  width: 100%;
+  height: 60px;
+  min-height: 60px;     /* ✅ 높이 보장 */
+  max-height: 60px;
+  overflow: hidden;      /* ✅ 내부 넘침 방지 */
+  white-space: nowrap;   /* ✅ 한 줄 유지 */
+  text-overflow: ellipsis; /* ✅ 텍스트 넘칠 때 말줄임 */
+  box-sizing: border-box;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  height: 60px;
   padding: 0 16px;
   background-color: #f9f9f9;
   border-bottom: 1px solid #ddd;
-  box-sizing: border-box;
 }
 
 .logo-img {
