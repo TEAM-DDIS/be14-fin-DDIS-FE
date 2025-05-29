@@ -40,6 +40,10 @@ const router = createRouter({
             path: '/jobdetail/:teamId',
             component: () => import('@/components/org/introduction/JobDetail.vue')
 
+        },
+        {
+            path: '/attendance/myAttendance',
+            component: () => import('@/pages/MyAttendancePage.vue')
         }
 
     ]
