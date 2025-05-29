@@ -8,7 +8,7 @@
 
     <!-- 사이드바 + 서브사이드바 + 메인 콘텐츠 레이아웃 -->
     <div class="layout" ref="layoutRef">
-      <Sidebar
+      <Sidebar class="sidebar"
         @menu-selected="selectedMenu = $event"
         :selected="selectedMenu"
       />
@@ -60,22 +60,21 @@ onBeforeUnmount(() => {
 })
 </script>
 
-<style scoped>
+<style>
 html, body {
-  margin: 0;
-  padding: 0;
+  margin: 0; padding: 0;
+  height: 100%;
+  overflow-x: hidden;       /* 전체 페이지 스크롤 감추기 */
 }
 
 .app {
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
-  min-width:100vh;
+  /* min-height: 100vh;
+  min-width:100vh; */
+  height: 100%;
   background-color: #f9f9f9;
-  .app {
-  padding: 0;    /* 필요하다면 좌우 패딩을 모두 0으로 */
-}
-
+  margin-top: 30px;
 }
 
 
@@ -106,6 +105,9 @@ header {
   background-color: #f9f9f9;
   overflow-y: auto;
   margin-bottom: -10px;
+    margin-top: 30px;
+
+    scrollbar-gutter: stable; 
 
 }
 
