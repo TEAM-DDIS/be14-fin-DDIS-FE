@@ -56,10 +56,12 @@
     }
     const subMenuMap = {
         '인사 정보': {
-            '사원조회':{
-                path: '/employeeInfo/employeeSearch'
-            },
             '내 인사정보':{
+                items:[
+                    {name:'사원 상세 조회', path: '/employeeInfo/employeeSearch'},
+                ]
+            },
+            '사원 조회':{
 
             }
         },
@@ -89,13 +91,20 @@
         },
         '조직 및 직무': {
             '조직 구성': {
-                path: '/org/structure',
-            },
+                items: [
+                    { name:'조직 구성 조회', path: '/org/structure'},
+                ]
+            },            
             '조직 및 직무 소개': {
-                path: '/org/introduction',
+                items: [
+                    { name:'조직 및 직무 소개', path: '/org/introduction'}        
+                ]
             },
             '인사발령': {
-                path: '/org/appointment',
+                items:[
+                    {name:'인사발령 이력', path: '/org/appointment'},
+                    {name:'인사발령 등록', path: '/org/appointment/register'},
+                ]
             }
         },
         '전자 결재': {
@@ -137,8 +146,8 @@
             },
             '성과 관리': {
                 items: [
-                    { name: '목표', path: '/org/goals'},
-                    { name: '성과 이력', }
+                    { name: '목표 및 실적 관리', path: '/org/goals'},
+                    // { name: '성과 이력', }
                 ]
             }
         },

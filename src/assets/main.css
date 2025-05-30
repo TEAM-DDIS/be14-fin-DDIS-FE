@@ -14,4 +14,7 @@
 
   /* 선택된 행 배경 */
   --ag-selected-row-background-color:#d4dbe0;
+
+  --ag-row-height: 48px;            /* 기본 행 높이를 48px로 늘림 */
+  --ag-row-height-line: 48px;
 }

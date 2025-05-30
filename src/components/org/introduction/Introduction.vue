@@ -117,10 +117,6 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-/* .org-page {
-  position: relative;
-  padding: 20px 40px;
-} */
   .page-title {
     margin-left: 20px;
     margin-bottom: 50px;
@@ -215,28 +211,49 @@ onMounted(async () => {
 .tag {
   background-color: #3f3f3f;
   border-radius: 15px;
+  border: 2px solid transparent;
   padding: 8px 10px;
   font-size: 12px;
+  font-weight: bold;
   color: #ffffff;
   cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: background-color 0.2s, box-shadow 0.2s;
+  box-sizing: border-box;
+}
+.tag:hover {
+  background-color: white;
+  color: #3f3f3f;
+  border-color: #3f3f3f;
+  box-shadow:
+  inset 1px 1px 10px rgba(0, 0, 0, 0.25);
 }
 
 .edit-button {
   position: absolute;
   top: 24px;
   right: 24px;
-  background-color: #00a8e8;
-  color: white;
-  border: none;
-  border-radius: 12px;
-  padding: 10px 30px;
+  font-size: 14px;
   font-weight: bold;
   cursor: pointer;
+  font-family: inherit;
+  background-color: #00a8e8;
+  color: white;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  padding: 10px 30px;
+  cursor: pointer;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: background-color 0.2s, box-shadow 0.2s;
+  box-sizing: border-box;
 }
 
 .edit-button:hover {
-  background-color: #07749f;
+  background-color: white;
+  color: #00a8e8;
+  border-color: #00a8e8;
+  box-shadow:
+  inset 1px 1px 10px rgba(0, 0, 0, 0.25);
 }
 
 @media (max-width: 768px) {

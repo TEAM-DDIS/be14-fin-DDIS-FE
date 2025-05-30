@@ -93,9 +93,7 @@
       field: 'detail',
       width: 80,
       cellRenderer: () => `
-      <button class="detail-btn">
-        <img src="${detailIconUrl}" class="detail-icon"/>
-      </button>
+        <img src="${detailIconUrl}" class="detail-btn"/>
     `
     }
   ]
@@ -193,37 +191,56 @@
   .action-btn {
     display: inline-flex;
     align-items: center;
-    border-radius: 8px;
-    font-size: 14px;
-    cursor: pointer;
-    transition: background-color 0.2s;
   }
+
+
   .action-btn.primary {
-    background-color: #00a8e8;
-    color: #fff;
-    padding: 8px 30px;
-    border: none;
-  }
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+  font-family: inherit;
+  background-color: #00a8e8;
+  color: white;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  padding: 10px 30px;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: background-color 0.2s, box-shadow 0.2s;
+  box-sizing: border-box;
+}
+
   .action-btn.primary:hover {
-    background-color: #07749f;
-  }
+  background-color: white;
+  color: #00a8e8;
+  border-color: #00a8e8;
+  box-shadow:
+  inset 1px 1px 10px rgba(0, 0, 0, 0.25);
+}
   .action-btn.secondary {
-    background-color: #eeeeee;
-    color: #374151;
-    padding: 8px 30px;
+    background-color: #D3D3D3;
+    color: #000;
     border: none;
+    border-radius: 10px;
+    padding: 10px 30px;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    transition: background-color 0.2s, box-shadow 0.2s;
+    box-sizing: border-box;
   }
   .action-btn.secondary:hover {
-    background-color: #cecece;
+    background-color: #000;
+    color: #fff;
   }
+
+
   .detail-btn {
     background: none;
     border: none;
     padding: 4px;
     cursor: pointer;
-  }
-  .detail-icon {
-    width: 20px;
-    height: 20px;
+    width: 30px;
+    height: 30px;
   }
 </style>

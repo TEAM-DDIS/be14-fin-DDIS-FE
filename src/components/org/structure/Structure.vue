@@ -1,5 +1,6 @@
 <template>
-  <h1 class="title">조직 구성</h1>
+  <h1 class="page-title">조직 구성</h1>
+  <p class="desc">조직도 조회</p>
   <div class="content-box">
     <div class="org-dashboard">
       <!-- Left: Org Hierarchy -->
@@ -170,10 +171,16 @@ const detailsRowData = computed(() => {
 </script>
 
 <style scoped>
-.title {
-  margin-left: 20px;
-  margin-bottom: 50px;
-}
+  .page-title {
+    margin-left: 20px;
+    margin-bottom: 50px;
+    color: #00a8e8;
+  }
+  .desc {
+    display: block;
+    margin-left: 20px;
+    margin-bottom: 10px;
+  }
 .content-box {
   background: #ffffff;
   border-radius: 12px;
@@ -227,6 +234,8 @@ h2 {
 }
 .member-list li.active {
   background: #efefef;
+  transition: background-color 0.2s;
+
 }
 .profile {
   width: 40px;
