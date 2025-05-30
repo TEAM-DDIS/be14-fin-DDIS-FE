@@ -1,14 +1,16 @@
 <template>
   <div class="goal-page">
-    <span class="total-title">성과 관리</span>
+    <h1 class="total-title">성과 관리</h1>
     <div class="labels-row">
-      <h2 class="section-title">목표 관리</h2>
+      <p class="section-title">목표 관리</p>
       <div class="label-spacer"></div>
-      <h2 class="section-title">실적 관리</h2>
+      <p class="section-title">실적 관리</p>
     </div>
     <div class="panels">
+      <img class="arrows" src="@/assets/icons/Polygon-2.svg"> 
       <section class="panel goals-panel">
         <div class="goal-container">
+          <!-- <img class="arrows" src="@/assets/icons/Polygon-2.svg">  -->
           <div v-if="goals.length === 0 && !showGoalForm" class="placeholder">
             <p class="placeholder-text">목표를 등록해보세요!</p>
           </div>
@@ -39,7 +41,7 @@
           <div v-else class="goals-list">
             <div
               v-for="goal in goals"
-              :key="goal.goalId"
+              :key="goal.goalId" 
               class="goal-card"
               :class="{ selected: selected === goal.goalId }"
               @click="selectGoal(goal)"
@@ -71,8 +73,6 @@
         </div>
       </section>
 
-      <div class="arrow-container"><span class="arrow-icon"></span></div>
-
       <section class="panel perf-panel">
         <div class="perf-header">
           <button v-if="selectedGoal?.performance" class="btn-delete" @click="deletePerf">삭제</button>
@@ -81,6 +81,7 @@
           <p class="empty-text">목표를 클릭해서 실적을 등록해보세요!</p>
         </div>
         <div v-else class="perf-content">
+          
           <div class="detail-title"><span class="detail-title-label">목표명</span></div>
           <h3 class="perf-title">{{ selectedGoal.goalTitle }}</h3>
           <div class="detail-header"><span class="detail-label">상세 내용</span></div>
@@ -139,12 +140,12 @@ const showGoalForm = ref(false)
 const userStore = useUserStore()
 
 const newGoal = reactive({
-  title: '',
-  target: null,
-  weight: null,
-  description: '',
-  date: getKoreaLocalDateTimeString(),
-  owner: '김띠스 대리'
+  goalTitle: '',
+  goalTarget: null,
+  goalWeight: null,
+  goalContent: '',
+  goalCreatedAt: getKoreaLocalDateTimeString(),
+  employeeName: userStore.name
 })
 
 const form = reactive({
@@ -155,7 +156,7 @@ const form = reactive({
   fileSize: ''
 })
 
-const selectedGoal = computed(() => goals.value.find(g => g.id === selected.value))
+const selectedGoal = computed(() => goals.value.find(g => g.goalId === selected.value))
 
 onMounted(fetchGoals)
 function getKoreaLocalDateTimeString() {
@@ -185,8 +186,8 @@ function fetchGoals() {
 
 watch(() => form.actual, val => {
   const g = selectedGoal.value
-  if (!g || !g.target) return
-  g.progress = Math.min(100, Math.round((val / g.target) * 100))
+  if (!g || !g.goalValue) return
+  g.progress = Math.min(100, Math.round((val / g.goalValue) * 100))
 })
 
 function confirmDelete(id) {
@@ -194,15 +195,16 @@ function confirmDelete(id) {
 }
 
 function addGoal() {
-  if (!newGoal.title) return
+  if (!newGoal.goalTitle) return
 
   const token = localStorage.getItem('token')
   const payload = {
-    goalTitle: newGoal.title,
-    goalValue: newGoal.target,
-    goalWeight: newGoal.weight,
-    goalContent: newGoal.description,
-    goalCreatedAt: newGoal.date
+    goalTitle: newGoal.goalTitle,
+    goalValue: newGoal.goalValue,
+    goalWeight: newGoal.goalWeight,
+    goalContent: newGoal.goalContent,
+    goalCreatedAt: newGoal.goalCreatedAt,
+    employeeName: newGoal.employeeName
 
   }
 
@@ -228,15 +230,15 @@ function addGoal() {
 }
 
 function cancelGoal() {
-  newGoal.title = ''
-  newGoal.target = null
-  newGoal.weight = null
-  newGoal.description = ''
+  newGoal.goalTitle  = ''
+  newGoal.goalValue  = null
+  newGoal.goalWeight  = null
+  newGoal.goalContent  = ''
   showGoalForm.value = false
 }
 
 function selectGoal(goal) {
-  selected.value = goal.id
+  selected.value = goal.goalId
   form.actual = goal.performance.actual
   form.comment = goal.performance.comment
   form.fileName = goal.performance.attachment?.name || ''
@@ -279,7 +281,7 @@ function deletePerf() {
 }
 
 function deleteGoal(id) {
-  const idx = goals.value.findIndex(g => g.id === id)
+  const idx = goals.value.findIndex(g => g.goalId === id)
   if (idx !== -1) {
     goals.value.splice(idx, 1)
     if (selected.value === id) selected.value = null
@@ -288,13 +290,25 @@ function deleteGoal(id) {
 </script>
 
 <style scoped>
-.total-title{font-size:24px; color:#00A8E8;font-weight: 600;}
+
+.total-title{
+  margin-left: 20px;
+  margin-bottom: 50px;
+  color: #00a8e8;
+  }
+/* .section-title {margin-left: 20px;} */
 .goal-page{padding:24px;display:flex;flex-direction:column;height:100vh}
-.labels-row{display:flex;gap:24px;margin-bottom:8px}
-.section-title:first-child{width:40%; font-size: 12px;}.label-spacer{width:20px}.section-title:last-child{font-size: 12px; width:55%}
-.panels{flex:1;display:flex;gap:24px;overflow:hidden}
+.labels-row{display:flex;gap:24px;margin-bottom:8px;margin-top:-18px;}
+.section-title:first-child{width:40%; margin-left: 20px;}.label-spacer{width:20px}.section-title:last-child{margin-left: 20px; width:55%}
+.panels{flex:1;display:flex;overflow:hidden; position: relative;}
 .panel{background:#fff;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,0.05);display:flex;flex-direction:column;padding:24px}
-.goals-panel{width:40%}.goal-container, .perf-content{flex:1}
+.panel::-webkit-scrollbar {
+  display: none;
+}
+.goals-panel{width:45%; position: relative;  z-index: 3; overflow-y: auto;}.goal-container, .perf-content{flex:1;}
+.goals-panel::-webkit-scrollbar {
+  display: none;
+}
 .placeholder{flex:1;display:flex;align-items:center;justify-content:center}
 .placeholder-text{color:#00A8E8;font-size:1.2rem;font-weight:600}
 .goal-form{background:#fff;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,0.05);padding:24px;display:flex;flex-direction:column;gap:16px;margin-bottom:16px}
@@ -303,16 +317,62 @@ function deleteGoal(id) {
 .form-row input,.form-row textarea{box-sizing:border-box;width:100%;padding:8px 12px;border:1px solid #d9d9d9;border-radius:6px;background:#fafafa;font-size:.95rem;transition:border-color .2s,background .2s}
 .form-row input{height:48px}.form-row textarea{height:96px;overflow-y:auto;resize:none}
 .form-row input:focus,.form-row textarea:focus{outline:none;border-color:#00A8E8;background:#fff}
+.form-row textarea{
+  font-family: inherit;          /* 부모 폰트 상속 */
+  font-size: .95rem;             /* input과 동일한 글자 크기 */
+  line-height: 1.4;              /* 입력창 행간 */
+  padding: 8px 12px;             /* input과 동일한 패딩 */
+  border: 1px solid #d9d9d9;     /* 테두리 통일 */
+  border-radius: 6px;            /* 둥근 모서리 */
+  background: #fafafa;           /* 배경색 통일 */
+  box-sizing: border-box;        /* 너비 계산 방식 통일 */
+  resize: none;                  /* 크기 조절 비활성화(필요시 제거) */
+  height: 48px;  
+}
 .form-actions{display:flex;justify-content:flex-end;gap:8px}
-.btn-primary{background:#00A8E8;color:#fff;border:none;padding:8px 20px;border-radius:6px;cursor:pointer}
-.btn-secondary{background:#f5f5f5;color:#333;border:none;padding:8px 20px;border-radius:6px;cursor:pointer}
-.goals-list{flex:1;overflow-y:auto;padding-right:4px;margin-bottom:16px}
-.goal-card{position:relative;background:#fff;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,0.05);padding:16px;margin-bottom:12px;cursor:pointer;transition:transform .2s}
+.btn-primary{background:#00A8E8;color:#fff;border:none;padding:10px 24px;border-radius:6px;cursor:pointer; margin-bottom:20px}
+.btn-primary:hover {background:#0b4f6a;}
+.btn-secondary{background:#f5f5f5;color:#333;border:none;padding:8px 20px;border-radius:6px;cursor:pointer; margin-bottom:20px}
+.goals-list{flex:1;overflow-y:auto;padding-right:4px;margin-bottom:16px; }
+/* .goal-card{position:relative;background:#fff;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,0.1);padding:16px;margin-bottom:12px;cursor:pointer;transition:transform .2s} */
+/* 기본 상태 */
+.goal-card {
+  position: relative;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  padding: 16px;
+  padding-bottom: 20px;
+  margin-bottom: 12px;
+  cursor: pointer;
+  transition: transform .2s, box-shadow .2s;
+}
+
+/* 클릭(Active) 상태 */
+.goal-card:active {
+  box-shadow:
+    inset 0 4px 8px rgba(0,0,0,0.15), /* 안쪽 그림자 */
+    0 2px 8px rgba(0,0,0,0.1);        /* 기존 바깥 그림자 유지 */
+}
+
+/* 선택(selected) 상태 */
+.goal-card.selected {
+  /* 기존 외곽 그림자는 유지하면서 안쪽 그림자 추가 */
+  box-shadow:
+    inset 0 4px 8px rgba(0,0,0,0.15),
+    0 2px 8px rgba(0,0,0,0.1);
+  /* 선택된 카드에 살짝 눌린 느낌 주고 싶다면 transform도 사용할 수 있습니다 */
+  transform: translateY(0);
+
+  background-color: #f7f7f7;
+}
+
 .goal-card:hover{transform:translateY(-2px)}
-.goal-card.selected{background:#d7d7d7;box-shadow:inset 0 2px 4px rgba(0,0,0,0.08),0 1px 2px rgba(0,0,0,0.05)}
-.btn-card-delete{position:absolute;top:2px;right:2px;background:transparent;border:none;font-size:1.2rem;color:#888;cursor:pointer;opacity:0;transition:opacity .2s}
+.btn-card-delete{position:absolute;top:3px;right:3px;background:transparent;border:none;font-size:28px;margin-bottom: 5px;
+  color:#888;cursor:pointer;opacity:0;transition:opacity .2s}
 .goal-card:hover .btn-card-delete{opacity:1}
-.card-top{display:flex;justify-content:space-between;color:#888;font-size:.85rem;margin-bottom:8px}
+.card-top{display:flex;justify-content:space-between;color:#888;font-size:.85rem;margin-bottom:10px;
+  margin-top:10px;}
 .card-title{font-size:1rem;font-weight:600;margin:4px 0 12px;line-height:1.4}
 .card-bottom{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
 .progress-group{flex:1;display:flex;align-items:center;gap:8px}
@@ -324,16 +384,21 @@ function deleteGoal(id) {
 .pill.weight{background:#8EC48E}
 .pill.target{background:#F48E8E}
 .actions{display:flex;justify-content:center;gap:8px}
-.arrow-container{display:flex;align-items:center;justify-content:center}
-.arrow-icon{width:20px;height:20px;border-right:2px solid #ddd;border-bottom:2px solid #ddd;transform:rotate(-45deg)}
 .perf-title {
   color: #00A8E8;
   font-size: 1.5rem; /* 글씨 크기 확대 */
   font-weight: 600;
   margin: 0;
 }
-.perf-panel{width:55%;display:flex;flex-direction:column;overflow-y:auto;padding-bottom:24px;background:#f5f5f5}
-.perf-header{display:flex;justify-content:flex-end;margin-bottom:16px;padding:16px 0}
+.perf-panel{width:55%;display:flex;flex-direction:column;overflow-y:auto;padding-bottom:24px;background:#f5f5f5; position: relative; z-index: 1;}
+.perf-header{display:flex;justify-content:flex-end;}
+.perf-content{position: relative;}
+.arrows {
+  position: absolute;
+  left: 43%;
+  /* 실적 패널 위, 목표 패널 아래 */
+  z-index: 2;
+}
 .perf-form {
   display: grid;
   /* 왼쪽은 label 크기만큼, 오른쪽은 나머지 모두 */
@@ -348,30 +413,50 @@ function deleteGoal(id) {
 .detail-table-vertical{width:100%;border-collapse:collapse;margin-bottom:20px}
 .detail-table-vertical th,.detail-table-vertical td{border:1px solid #e0e0e0;padding:12px;text-align:center;font-size:.9rem}
 .detail-table-vertical th{background:#fafafa;font-weight:600}
+.detail-table-vertical td{background:#ffffff;}
 .attach-area,
 .input-area {
   display: contents;
 }
 
 .input-area label{font-weight:600}
-.input-area input,.input-area textarea{width:100%;padding:8px;border:1px solid #d9d9d9;border-radius:6px;background:#fafafa;resize:none}
+.input-area input,.input-area textarea{
+
+  padding:8px;border:1px solid #d9d9d9;border-radius:6px;background:#fafafa;resize:none}
 .input-area textarea {
-  width: 100%;
-  box-sizing: border-box;
+  font-family: inherit;          /* 부모 폰트 상속 */
+  font-size: .95rem;             /* input과 동일한 글자 크기 */
+  line-height: 1.4;              /* 입력창 행간 */
+  padding: 8px 12px;             /* input과 동일한 패딩 */
+  border: 1px solid #d9d9d9;     /* 테두리 통일 */
+  border-radius: 6px;            /* 둥근 모서리 */
+  background: #fafafa;           /* 배경색 통일 */
+  box-sizing: border-box;        /* 너비 계산 방식 통일 */
+  resize: none;                  /* 크기 조절 비활성화(필요시 제거) */
+  height: 48px;  
+}
+.form-row textarea:focus,
+.input-area textarea:focus {
+  outline: none;
+  border-color: #00A8E8;
+  background: #fff;
 }
 
 .attach-area label{width:80px;font-weight:600}
 .file-box{display:flex;align-items:center;background:#fafafa;border-radius:6px;padding:6px 12px;gap:8px}
-.btn-attach{background:#00A8E8;color:#fff;border:none;padding:6px 12px;border-radius:6px;cursor:pointer}
+.btn-attach{background:#00A8E8;color:#fff;border:none;padding:10px 24px;border-radius:6px;cursor:pointer}
+.btn-attach:hover {background:#0b4f6a;}
 .sr-only{position:absolute;width:1px;height:1px;overflow:hidden}
+
 .btn-save-wrap{text-align:center}
 .btn-save{background:#00A8E8;color:#fff;border:none;padding:10px 24px;border-radius:6px;cursor:pointer}
+.btn-save:hover {background:#0b4f6a;}
 .detail-title { margin-bottom:12px; }
 .detail-title-label { display:block; font-size:0.9rem; color:#888; margin-bottom:4px; }
 .detail-header { display:flex; align-items:center; padding:8px 0; border-top:1px solid #e0e0e0; margin-top:16px; }
 .detail-label { font-size:1rem; font-weight:600; color:#333; }
 .detail-table-vertical tr:nth-child(odd) td {
-  background: #fafafa;
+  background: #ffffff;
 }
 .detail-table-vertical tr:nth-child(even) td {
   background: #fff;
