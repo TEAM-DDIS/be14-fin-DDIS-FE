@@ -1,8 +1,32 @@
 <template>
     <div class="personal-calendar">
+        <!-- Legend -->
+        <div class="legend">
+            <div class="legend-item">
+                <span class="dot leave"></span>연차
+            </div>
+            <div class="legend-item">
+                <span class="dot half"></span>반차
+            </div>
+            <div class="legend-item">
+                <span class="dot trip"></span>출장
+            </div>
+            <div class="legend-item">
+                <span class="dot out"></span>외근
+            </div>
+            <div class="legend-item">
+                <span class="dot late"></span>지각
+            </div>
+            <div class="legend-item">
+                <span class="dot absent"></span>결근
+            </div>
+            <div class="legend-item">
+                <span class="dot schedule"></span>개인 일정
+            </div>
+        </div>
         <div style="padding: 20px;">
-            <div style="width: 1200px; height: 700px;">
-                <FullCalendar :options="calendarOptions" style="height: 100%; width: 100%;" />
+            <div style="width: 1100px;">
+                <FullCalendar :options="calendarOptions" style="width: 100%;" />
             </div>
         </div>
         <el-dialog
@@ -91,15 +115,8 @@
         initialView: 'dayGridMonth',
         locale: koLocale,
         firstDay: 0,
-        height: '100%',
-        contentHeight: 600,
+        contentHeight: 'auto',
         fixedWeekCount: true,
-        dayMaxEventRows: 3,
-        moreLinkContent: function(args) {
-            return {
-                html: `<span style="font-size: 8px; color: #555;">+ ${args.num}건 더 보기</span>`
-            }
-        },
         dayCellContent: handleDayCellContent,
         events: [],
         eventContent: function(arg) {
@@ -206,8 +223,37 @@
         background-color: #ffffff;
         border-radius: 20px;
         box-shadow: 1px 1px 20px 1px rgba(0, 0, 0, 0.05);
-        padding: 20 50px;
+        padding-left: 25px;
+        padding-top: 25px;
+        padding-bottom: 25px;
     }
+
+    /* Legend */
+.legend {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+.legend-item {
+  display: flex;
+  align-items: center;
+  font-size: 12px;
+  color: #333;
+}
+.dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-right: 4px;
+}
+.dot.leave { background-color: #A3C7F3; }
+.dot.half    { background-color: #B5E4F0; }
+.dot.trip  { background-color: #B7E4C7; }
+.dot.out  { background-color: #D0F0B0; }
+.dot.late  { background-color: #FFD59E; }
+.dot.absent  { background-color: #F7A6A6; }
+.dot.schedule  { background-color: #e19bf9; }
 
     /* 요일 헤더 색상 */
     .fc-col-header-cell.fc-day-sun {
@@ -248,11 +294,20 @@
     }
     .event-late {
         background-color: #FFD59E !important;
-        color: black !important;
+        color: white !important;
     }
     .event-absent {
         background-color: #F7A6A6 !important;
         color: white !important;
+    }
+
+    .fc-daygrid-event {
+    /* 기존 height: 15px 를 해제하고, 자동 높이나 최소 높이를 설정 */
+    height: auto !important;
+    min-height: 24px !important;    /* 원하는 최소 높이 */
+    line-height: 24px !important;    /* 텍스트가 세로 가운데 오도록 */
+    padding: 2px 4px !important;     /* 위아래 여백 조금 추가 */
+    font-size: 12px !important;      /* 전체 폰트 크기도 살짝 키워보기 */
     }
 
     /* 라벨 내부 정렬 */
@@ -260,17 +315,16 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
-        font-size: 11px;
         padding: 0 4px;
         width: 100%;
     }
     .event-status {
         font-weight: 600;
-        font-size: 10px;
+        font-size: 18px;
     }
     .event-employee {
         font-weight: normal;
-        font-size: 8px;
+        font-size: 16px;
     }
 
     /* 라벨 테두리 제거 */
@@ -290,7 +344,7 @@
         display: flex;
         flex-direction: column;
         justify-content: start;
-        height: 90px !important;
+        min-height: 100px !important;
         overflow: hidden;
     }
 
