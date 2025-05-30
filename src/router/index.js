@@ -41,6 +41,16 @@ const router = createRouter({
             component: () => import('@/components/org/introduction/JobDetail.vue')
 
         },
+        {
+            path: '/employeeInfo/employeeSearch',
+            component: () => import('@/components/employeeInfo/employeeSearch/EmployeeSearchPage.vue')
+
+        },
+        {
+            path: '/post/postList',
+            component: () => import('@/components/post/PostListPage.vue')
+
+        },
         
         // 급여 관리
         // {
@@ -102,7 +112,24 @@ const router = createRouter({
         //     path: '/attendance/allLeave',
         //     component: () => import('@/pages/MyAttendancePage.vue')
         // },
-
+        
+        // 전자결재
+        {
+            path: '/draftdoc/draftcreate',
+            component: () => import('@/components/draftdoc/draftcreate/DraftTemplateList.vue')
+        },
+        {
+            path: '/org/draftlis/formA',
+            component: () => import('@/components/draftdoc/forms/DraftFormA.vue')
+        },
+        {
+            path: '/org/draftlis/formB',
+            component: () => import('@/components/draftdoc/forms/DraftFormB.vue')
+        },
+        {
+            path: '/draftdoc/mydraft/submitted',
+            component: () => import('@/components/draftdoc/mydraft/Submitted.vue')
+        },
     ]
 })
 

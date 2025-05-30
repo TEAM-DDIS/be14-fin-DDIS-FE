@@ -57,7 +57,7 @@
     const subMenuMap = {
         '인사 정보': {
             '사원조회':{
-
+                path: '/employeeInfo/employeeSearch'
             },
             '내 인사정보':{
 
@@ -100,10 +100,10 @@
         },
         '전자 결재': {
             '기안 작성': {
-
+                path: '/draftdoc/draftcreate'
             },
             '기안함': {
-
+                path: '/draftdoc/mydraft/submitted'
             },
             '결재함': {
 
