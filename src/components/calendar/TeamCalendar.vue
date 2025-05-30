@@ -1,37 +1,34 @@
 <template>
     <div class="team-calendar">
-        <div style="padding: 20px;">
-            <div style="width: 1200px; height: 700px;">
-                <FullCalendar :options="calendarOptions" style="height: 100%; width: 100%;" />
+        <!-- Legend -->
+        <div class="legend">
+            <div class="legend-item">
+                <span class="dot leave"></span>연차
+            </div>
+            <div class="legend-item">
+                <span class="dot half"></span>반차
+            </div>
+            <div class="legend-item">
+                <span class="dot trip"></span>출장
+            </div>
+            <div class="legend-item">
+                <span class="dot out"></span>외근
+            </div>
+            <div class="legend-item">
+                <span class="dot late"></span>지각
+            </div>
+            <div class="legend-item">
+                <span class="dot absent"></span>결근
+            </div>
+            <div class="legend-item">
+                <span class="dot meeting"></span>회의
             </div>
         </div>
-        <el-dialog
-            v-model="showTeamForm"
-            :title="`${clickedDate} 회의 일정 추가`"
-            width="400px"
-            destroy-on-close>
-            <el-form :model="teamForm">
-                <el-form-item label="회의명">
-                    <el-input v-model="teamForm.title" placeholder="예: 개발 회의" />
-                </el-form-item>
-                <el-form-item label="시간">
-                    <el-time-picker v-model="teamForm.time"
-                                placeholder="시간 선택"
-                                format="HH:mm"
-                                value-format="HH:mm"
-                                :picker-options="{
-                                    start: '08:00',
-                                    step: '00:30',
-                                    end: '20:00'
-                                }" 
-                    />
-                </el-form-item>
-            </el-form>
-            <template #footer>
-                <el-button @click="showTeamForm = false">취소</el-button>
-                <el-button type="primary" @click="addTeamEvent">등록</el-button>
-            </template>
-        </el-dialog>
+        <div style="padding: 20px;">
+            <div style="width: 1100px;">
+                <FullCalendar :options="calendarOptions" style="width: 100%;" />
+            </div>
+        </div>
     </div>
 </template>
 
@@ -68,21 +65,14 @@
         initialView: 'dayGridMonth',
         locale: koLocale,
         firstDay: 0,
-        height: '100%',
-        contentHeight: 600,
+        contentHeight: 'auto',
         fixedWeekCount: true,
-        dayMaxEventRows: 3,
-        moreLinkContent: function(args) {
-            return {
-                html: `<span style="font-size: 8px; color: #555;">+ ${args.num}건 더 보기</span>`
-            }
-        },
         dayCellContent: handleDayCellContent,
         events: [],
         eventContent: function(arg) {
             const props = arg.event.extendedProps
 
-            if (props.type === 'team') {
+            if (props.type === 'personal') {
                 return {
                     html: `
                         <div class="event-label">
@@ -109,46 +99,15 @@
     const res = await fetch('/attendance.json')
     const { schedule } = await res.json()
     calendarOptions.events = schedule.map(item => ({
-        title: '', // 직접 렌더링 하므로 필요 없음
-        start: item.work_date,
-        className: convertStatusToClass(item.work_status_id),
-        extendedProps: {
-            status: item.work_status_id,
-            employee: item.employee_name
-        }
-    }))
-    })
-
-    const showModal = ref(false)
-    const clickedDate = ref('')
-    const selectedEvents = ref([])
-
-    calendarOptions.dateClick = function (info) {
-    clickedDate.value = info.dateStr
-    showTeamForm.value = true
-    }
-
-
-    /* 회의 일정 등록 */
-    const showTeamForm = ref(false)
-    const teamForm = reactive({ title: '', time: '' })
-
-    const addTeamEvent = () => {
-        if (!teamForm.title || !teamForm.time) return
-        calendarOptions.events.push({
-            title: '',
-            start: clickedDate.value,
-            className: 'event-team',
+            title: '', // 직접 렌더링 하므로 필요 없음
+            start: item.work_date,
+            className: convertStatusToClass(item.work_status_id),
             extendedProps: {
-                type: 'team',
-                title: teamForm.title,
-                time: teamForm.time
+                status: item.work_status_id,
+                employee: item.employee_name
             }
-        })
-        teamForm.title = ''
-        teamForm.time = ''
-        showTeamForm.value = false
-    }
+        }))
+    })
 </script>
 
 <style setup>
@@ -159,6 +118,27 @@
         box-shadow: 1px 1px 20px 1px rgba(0, 0, 0, 0.05);
         padding: 50px 130px;
     }
+
+    /* Legend */
+    .legend {
+        display: flex;
+        gap: 16px;
+        margin-bottom: 12px;
+    }
+    .legend-item {
+        display: flex;
+        align-items: center;
+        font-size: 12px;
+        color: #333;
+    }
+    .dot {
+        display: inline-block;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        margin-right: 4px;
+    }
+    .dot.meeting { background-color: #c1c1c1; }
 
     /* 요일 헤더 색상 */
     .fc-col-header-cell.fc-day-sun {
@@ -199,11 +179,20 @@
     }
     .event-late {
         background-color: #FFD59E !important;
-        color: black !important;
+        color: white !important;
     }
     .event-absent {
         background-color: #F7A6A6 !important;
         color: white !important;
+    }
+
+    .fc-daygrid-event {
+    /* 기존 height: 15px 를 해제하고, 자동 높이나 최소 높이를 설정 */
+    height: auto !important;
+    min-height: 24px !important;    /* 원하는 최소 높이 */
+    line-height: 24px !important;    /* 텍스트가 세로 가운데 오도록 */
+    padding: 2px 4px !important;     /* 위아래 여백 조금 추가 */
+    font-size: 12px !important;      /* 전체 폰트 크기도 살짝 키워보기 */
     }
 
     /* 라벨 내부 정렬 */
@@ -211,17 +200,16 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
-        font-size: 11px;
         padding: 0 4px;
         width: 100%;
     }
     .event-status {
         font-weight: 600;
-        font-size: 10px;
+        font-size: 18px;
     }
     .event-employee {
         font-weight: normal;
-        font-size: 8px;
+        font-size: 16px;
     }
 
     /* 라벨 테두리 제거 */
@@ -241,7 +229,7 @@
         display: flex;
         flex-direction: column;
         justify-content: start;
-        height: 90px !important;
+        min-height: 100px !important;
         overflow: hidden;
     }
 
@@ -264,15 +252,29 @@
         font-family: 'Pretendard', sans-serif !important;
     }
 
+    /* disabled 상태(opacity) 해제 */
+    .fc-button:disabled {
+        opacity: 1 !important;
+    }
+
+    /* disabled Today 버튼에 대한 배경/글자색 고정 */
+    .fc-today-button:disabled {
+        background-color: #00A8E8 !important;
+        color: white       !important;
+        border: 1px solid transparent !important;
+    }
+
     /* 오늘 버튼 */
     .fc-today-button {
         background-color: #00A8E8 !important;
         color: white !important;
-        border: none !important;
+        border: 1px solid transparent !important;
         padding: 4px 10px !important;
         border-radius: 6px !important;
         font-size: 12px !important;
         font-weight: 500 !important;
+        width: 50px !important;
+        height: 30px !important;
     }
 
     /* 이전/다음 버튼 */
@@ -280,21 +282,25 @@
     .fc-next-button {
         background-color: #00A8E8 !important;
         color: white !important;
-        border: none !important;
+        border: 1px solid transparent !important;
         padding: 4px 10px !important;
         border-radius: 6px !important;
         font-size: 12px !important;
         font-weight: 500 !important;
         margin-left: 4px !important;
+        width: 40px !important;
+        height: 30px !important;
     }
 
     /* 버튼 hover 효과 */
     .fc-button:hover {
-        filter: brightness(1.1) !important;
-        cursor: pointer !important;
+        background-color: white !important;
+        color: #00A8E8 !important;
+        border: 1px solid #00A8E8 !important;
+        box-shadow: inset 1px 1px 10px rgba(0, 0, 0, 0.25) !important;
     }
 
-    /* 개인 일정 라벨 색 */
+    /* 회의 라벨 색 */
     .event-team {
         background-color: #c1c1c1 !important;
         color: white !important;
