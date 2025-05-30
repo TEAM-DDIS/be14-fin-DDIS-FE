@@ -1,4 +1,3 @@
-<!-- src/components/OrgDashboard.vue -->
 <template>
   <h1 class="title">조직 구성</h1>
   <div class="content-box">
@@ -12,7 +11,7 @@
       <!-- Middle: Team Members List -->
       <div class="team-panel">
         <template v-if="selectedTeam">
-          <h3>{{ selectedTeam.team_name }} 팀원</h3>
+          <h2>{{ selectedTeam.team_name }} 팀원</h2>
           <ul class="member-list">
             <li
               v-for="emp in teamMembers"
@@ -20,11 +19,11 @@
               @click="onEmployeeSelected(emp)"
               :class="{ active: emp.employee_id === selectedEmployee?.employee_id }"
             >
-              <i class="fa fa-user-circle icon" />
+              <img src="@/assets/icons/profile_img.svg" alt="profile" class="profile"/>
               <div class="member-info">
                 <strong>{{ emp.employee_name }}</strong>
                 <span>{{ emp.position_name }}</span>
-                <small>{{ emp.rank_name }}</small>
+                <small>/ {{ emp.rank_name }}</small>
               </div>
             </li>
           </ul>
@@ -37,24 +36,26 @@
       <!-- Right: Employee Profile -->
       <div class="profile-panel">
         <template v-if="selectedEmployee">
-          <div class="profile-card">
-            <i class="fa fa-user-circle avatar" />
-            <h4>{{ selectedEmployee.position_name }} {{ selectedEmployee.employee_name }}</h4>
+          <h2>프로필 정보</h2>
+          <div class="profile-top">
+            <div class="profile-card">
+              <img src="@/assets/icons/profile_img.svg" alt="profile" class="profile2"/>
+              <h4>{{ selectedEmployee.rank_name }} {{ selectedEmployee.employee_name }}</h4>
+            </div>
+            <ag-grid-vue
+              class="ag-theme-alpine profile-grid"
+              :columnDefs="profileColumnDefs"
+              :rowData="profileRowData"
+              :getRowClass="getRowClass"
+              :domLayout="'autoHeight'"
+              :headerHeight="0"
+              :rowHeight="36"
+            />
           </div>
-
-          <!-- 기본 정보 AG Grid -->
-          <ag-grid-vue
-            class="ag-theme-alpine profile-grid"
-            :columnDefs="profileColumnDefs"
-            :rowData="profileRowData"
-            :domLayout="'autoHeight'"
-            :headerHeight="0"
-            :rowHeight="32"
-          />
 
           <!-- 상세 정보 -->
           <details class="profile-details">
-            <summary>▼ 상세 정보</summary>
+            <summary>상세 정보</summary>
             <ag-grid-vue
               class="ag-theme-alpine details-grid"
               :columnDefs="detailsColumnDefs"
@@ -75,8 +76,8 @@
 
 <script setup>
 import { ref, reactive, onMounted, computed } from 'vue'
-import axios from 'axios'
 import OrgHierarchy from '@/components/org/structure/Hierarchy.vue'
+
 
 // AG Grid 모듈 등록
 import { AgGridVue } from 'ag-grid-vue3'
@@ -96,27 +97,29 @@ const dataStore = reactive({
   departments: [], headquarters: []
 })
 
-// 처음 마운트 시 데이터 로드
+// 처음 마운트 시 employees.json과 org.json에서 데이터 로드
 onMounted(async () => {
-  const [eRes, pRes, rRes, dRes, hRes] = await Promise.all([
-    axios.get('http://localhost:3000/employees'),
-    axios.get('http://localhost:3000/position'),
-    axios.get('http://localhost:3000/rank'),
-    axios.get('http://localhost:3000/department'),
-    axios.get('http://localhost:3000/headquarters'),
-  ])
-  dataStore.positions    = pRes.data
-  dataStore.ranks        = rRes.data
-  dataStore.departments  = dRes.data
-  dataStore.headquarters = hRes.data
-  dataStore.employees    = eRes.data.map(e => ({
-    ...e,
-    position_name: pRes.data.find(p => p.position_code === e.position_code)?.position_name || '',
-    rank_name:     rRes.data.find(r => r.rank_code     === e.rank_code    )?.rank_name     || ''
-  }))
+  try {
+    const res = await fetch('/org.json')
+    const oData = await res.json()
+    // org.json 안의 배열들을 바로 꺼내서 저장
+    dataStore.positions    = oData.position
+    dataStore.ranks        = oData.rank
+    dataStore.departments  = oData.department
+    dataStore.headquarters = oData.headquarters
+    // employees 배열도 org.json 안에 있으므로 별도 fetch 불필요
+    dataStore.employees    = oData.employees.map(e => ({
+      ...e,
+      position_name: oData.position.find(p => p.position_code === e.position_code)?.position_name || '',
+      rank_name:     oData.rank.find(r => r.rank_code     === e.rank_code    )?.rank_name     || ''
+    }))
+  } catch (err) {
+    console.error('org.json 로드 실패:', err)
+  }
 })
 
-// OrgHierarchy.vue 로부터 선택된 팀을 받는다
+
+// OrgHierarchy.vue에서 팀 선택
 function onTeamSelected(team) {
   selectedTeam.value     = team
   selectedEmployee.value = null
@@ -130,7 +133,7 @@ function onEmployeeSelected(emp) {
 
 // AG Grid 컬럼 정의
 const profileColumnDefs = [
-  { field: 'label', cellClass: 'label-cell' },
+  { field: 'label', cellClass: 'label-cell', width: 120},
   { field: 'value', cellClass: 'value-cell', flex: 1 }
 ]
 const detailsColumnDefs = profileColumnDefs
@@ -140,10 +143,10 @@ const profileRowData = computed(() => {
   if (!selectedEmployee.value) return []
   const e = selectedEmployee.value
   return [
-    { label: '이름',         value: e.employee_name },
-    { label: '생년월일',     value: e.birthdate || '-' },
-    { label: '직급',         value: e.rank_name },
-    { label: '사번',         value: e.employee_id }
+    { label: '이름',     value: e.employee_name },
+    { label: '생년월일', value: e.birthdate || '-' },
+    { label: '직급',     value: e.rank_name },
+    { label: '사번',     value: e.employee_id }
   ]
 })
 
@@ -154,20 +157,21 @@ const detailsRowData = computed(() => {
   const lookup = (arr, codeField, codeValue, nameField) =>
     (dataStore[arr].find(x => x[codeField] === codeValue) || {})[nameField] || ''
   return [
-    { label: '소속 본부',    value: lookup('headquarters','head_code',      e.head_code,       'head_name') },
-    { label: '소속 부서',    value: lookup('department','department_code', e.department_code, 'department_name') },
-    { label: '소속 팀',      value: selectedTeam.value.team_name },
-    { label: '직책',        value: e.position_name },
-    { label: '직급',        value: e.rank_name },
-    { label: '직무',        value: e.job_code },
-    { label: '이메일',      value: e.email || '-' }
+    { label: '소속 본부', value: lookup('headquarters','head_code',      e.head_code,       'head_name') },
+    { label: '소속 부서', value: lookup('departments','department_code', e.department_code, 'department_name') },
+    { label: '소속 팀',   value: selectedTeam.value.team_name },
+    { label: '직책',     value: e.position_name },
+    { label: '직급',     value: e.rank_name },
+    { label: '직무',     value: e.job_code },
+    { label: '이메일',   value: e.email || '-' }
   ]
 })
+
 </script>
 
 <style scoped>
 .title {
-  margin-left:20px;
+  margin-left: 20px;
   margin-bottom: 50px;
 }
 .content-box {
@@ -176,17 +180,32 @@ const detailsRowData = computed(() => {
   padding: 20px 32px;
   box-shadow: 0 4px 12px rgba(0,0,0,0.05);
   margin: 24px;
+  max-width: 100%;
+  overflow-x: auto;
 }
 .org-dashboard {
   display: grid;
-  grid-template-columns: 240px 1fr 1fr;
-  height: 100vh;
+  grid-template-columns: 0.7fr 0.6fr 1fr;
+  gap: 16px;
 }
-.left { border-right:1px solid #ddd; overflow-y:auto; }
-.team-panel, .profile-panel { padding:16px; overflow-y:auto; border-right:1px solid #ddd; }
-.profile-panel { border-right:none; }
+.left,
+.team-panel,
+.profile-panel {
+  overflow-y: auto;
+  scrollbar-gutter: stable;
+}
+.left,
+.team-panel {
+  padding: 16px;
+  border-right: 1px solid #ddd;
+}
+.profile-panel { padding: 16px; }
 
-/* placeholder */
+h2 {
+  margin-top: 20px;
+}
+
+/* panel 별 내부 설정 */
 .placeholder {
   color: #323232;
   padding: 32px;
@@ -194,30 +213,75 @@ const detailsRowData = computed(() => {
 }
 
 /* member list */
-.member-list { list-style:none; margin:0; padding:0; }
-.member-list li {
-  display:flex; align-items:center; padding:8px; cursor:pointer;
-  border-bottom:1px solid #eee;
+.member-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
 }
-.member-list li.active { background:#eef6ff; }
-.icon { font-size:24px; margin-right:8px; }
-.member-info strong { display:block; }
-.member-info span  { font-size:13px; color:#666; }
+.member-list li {
+  display: flex;
+  align-items: center;
+  padding: 20px;
+  cursor: pointer;
+  border-bottom: 1px solid #d1d1d1;
+}
+.member-list li.active {
+  background: #efefef;
+}
+.profile {
+  width: 40px;
+  height: 40px;
+  margin-right: 20px;
+}
+.member-info strong { display: block; }
+.member-info span  {
+  font-size: 14px;
+  color: #3b3b3b;
+}
 
-/* profile */
-.profile-card { text-align:center; margin-bottom:16px; }
-.avatar { font-size:80px; color:#b0c4de; }
+/* right profile */
+.profile-top {
+  display: flex;
+  align-items: flex-start;
+  gap: 30px;
+  margin-bottom: 16px;
+}
+
+.profile-card {
+  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  text-align: center;
+  border: 1px solid #aeaeae;
+  border-radius: 10px;
+  padding: 10px 30px;
+}
+.profile2 {
+  width: 120px;
+  height: 120px;
+  margin: 20px auto 10px auto;
+}
+
+.profile-grid {
+  flex: 1;
+}
 
 /* AG Grid */
-.profile-grid, .details-grid {
-  width:100%;
-  margin-bottom:16px;
+.profile-grid,
+.details-grid {
+  width: 100%;
+  margin-bottom: 16px;
 }
-.label-cell { font-weight:500; background:#f9fafb; }
-.value-cell { padding-left:12px; }
+.label-cell { font-weight: 500; background: #f9fafb; }
+.value-cell { padding-left: 12px; }
 .profile-details summary {
-  cursor:pointer;
-  font-weight:bold;
-  margin-bottom:8px;
+  cursor: pointer;
+  font-weight: bold;
+  margin-bottom: 8px;
+}
+
+.ag-theme-alpine :deep(.label-cell) {
+  /* label-cell 컬러 */
+  background-color: #eeeeee !important;
 }
 </style>

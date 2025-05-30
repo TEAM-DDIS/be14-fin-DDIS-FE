@@ -1,7 +1,5 @@
 <template>
   <div class="weekly-overtime-card">
-    <h3 class="title">주간 초과근무</h3>
-
     <!-- Legend -->
     <div class="legend">
       <div class="legend-item">

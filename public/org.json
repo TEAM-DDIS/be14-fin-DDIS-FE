@@ -1717,6 +1717,119 @@
     "is_applied": false
   }
   ],
+  "appointmentDetail": [
+    {
+      "appointment_id": 1,
+      "registration_date": "2025-05-20",
+      "appointment_effective_date": "2025-06-01",
+      "title": "2025년 6월 승진 인사발령",
+      "details": [
+        {
+          "appointment_type": "승진",
+          "employee_name": "고도연",
+          "department_name": "PC게임개발부서",
+          "team_name": "PC개발팀",
+          "new_rank": "대리"
+        },
+        {
+          "appointment_type": "승진",
+          "employee_name": "김띠스",
+          "department_name": "PC게임개발부서",
+          "team_name": "PC개발팀",
+          "new_rank": "과장"
+        }
+      ]
+    },
+    {
+      "appointment_id": 2,
+      "registration_date": "2025-04-15",
+      "appointment_effective_date": "2025-05-01",
+      "title": "2025년 5월 전보 인사발령",
+      "details": [
+        {
+          "appointment_type": "전보",
+          "employee_name": "박민호",
+          "department_name": "아트개발부서",
+          "team_name": "아트팀",
+          "new_rank": "사원"
+        },
+        {
+          "appointment_type": "전보",
+          "employee_name": "이영희",
+          "department_name": "아트개발부서",
+          "team_name": "아트팀",
+          "new_rank": "대리"
+        }
+      ]
+    },
+    {
+      "appointment_id": 3,
+      "registration_date": "2025-03-10",
+      "appointment_effective_date": "2025-04-01",
+      "title": "2025년 4월 전직 인사발령",
+      "details": [
+        {
+          "appointment_type": "전직",
+          "employee_name": "최준혁",
+          "department_name": "디자인부서",
+          "team_name": "디자인팀",
+          "new_rank": "차장"
+        },
+        {
+          "appointment_type": "전직",
+          "employee_name": "고도연",
+          "department_name": "디자인부서",
+          "team_name": "디자인팀",
+          "new_rank": "부장"
+        }
+      ]
+    },
+    {
+      "appointment_id": 4,
+      "registration_date": "2025-02-05",
+      "appointment_effective_date": "2025-03-01",
+      "title": "2025년 3월 직급조정 인사발령",
+      "details": [
+        {
+          "appointment_type": "직급조정",
+          "employee_name": "김띠스",
+          "department_name": "QA부서",
+          "team_name": "QA팀",
+          "new_rank": "대리"
+        },
+        {
+          "appointment_type": "직급조정",
+          "employee_name": "박민호",
+          "department_name": "QA부서",
+          "team_name": "QA팀",
+          "new_rank": "과장"
+        }
+      ]
+    },
+    {
+      "appointment_id": 5,
+      "registration_date": "2025-01-01",
+      "appointment_effective_date": "2025-02-01",
+      "title": "2025년 2월 직무 인사발령",
+      "details": [
+        {
+          "appointment_type": "직무",
+          "employee_name": "이영희",
+          "department_name": "경영지원부서",
+          "team_name": "지원팀",
+          "new_rank": "사원"
+        },
+        {
+          "appointment_type": "직무",
+          "employee_name": "최준혁",
+          "department_name": "경영지원부서",
+          "team_name": "지원팀",
+          "new_rank": "대리"
+        }
+      ]
+    }
+  ],
+
    "employees": [
     {
       "employee_id": 1,
@@ -1724,9 +1837,9 @@
       "head_code": "H001",
       "department_code": "D001",
       "team_code": "T001",
-      "position_code": "P002",
-      "rank_code": "R003",
-      "birthdate": "1990-05-10",
+      "position_code": "P004",
+      "rank_code": "R005",
+      "birthdate": "1988-05-10",
       "email": "kim.cs@example.com"
     },
     {
@@ -1734,21 +1847,43 @@
       "employee_name": "이영희",
       "head_code": "H001",
       "department_code": "D001",
-      "team_code": "T002",
+      "team_code": "T001",
+      "position_code": "P003",
+      "rank_code": "R004",
+      "birthdate": "1990-11-12",
+      "email": "lee.yh@example.com"
+    },
+    {
+      "employee_id": 3,
+      "employee_name": "박민호",
+      "head_code": "H001",
+      "department_code": "D001",
+      "team_code": "T001",
+      "position_code": "P002",
+      "rank_code": "R003",
+      "birthdate": "1992-03-14",
+      "email": "park.mh@example.com"
+    },
+        {
+      "employee_id": 4,
+      "employee_name": "김띠스",
+      "head_code": "H001",
+      "department_code": "D001",
+      "team_code": "T001",
       "position_code": "P001",
       "rank_code": "R002",
       "birthdate": "1992-11-23",
       "email": "lee.yh@example.com"
     },
     {
-      "employee_id": 3,
-      "employee_name": "박민호",
-      "head_code": "H002",
-      "department_code": "D003",
-      "team_code": "T005",
-      "position_code": "P003",
-      "rank_code": "R004",
-      "birthdate": "1988-02-14",
+      "employee_id": 5,
+      "employee_name": "조랑랑",
+      "head_code": "H001",
+      "department_code": "D001",
+      "team_code": "T001",
+      "position_code": "P001",
+      "rank_code": "R001",
+      "birthdate": "1999-02-14",
       "email": "park.mh@example.com"
     }
   ]
