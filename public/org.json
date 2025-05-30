@@ -1717,6 +1717,119 @@
     "is_applied": false
   }
   ],
+  "appointmentDetail": [
+    {
+      "appointment_id": 1,
+      "registration_date": "2025-05-20",
+      "appointment_effective_date": "2025-06-01",
+      "title": "2025년 6월 승진 인사발령",
+      "details": [
+        {
+          "appointment_type": "승진",
+          "employee_name": "고도연",
+          "department_name": "PC게임개발부서",
+          "team_name": "PC개발팀",
+          "new_rank": "대리"
+        },
+        {
+          "appointment_type": "승진",
+          "employee_name": "김띠스",
+          "department_name": "PC게임개발부서",
+          "team_name": "PC개발팀",
+          "new_rank": "과장"
+        }
+      ]
+    },
+    {
+      "appointment_id": 2,
+      "registration_date": "2025-04-15",
+      "appointment_effective_date": "2025-05-01",
+      "title": "2025년 5월 전보 인사발령",
+      "details": [
+        {
+          "appointment_type": "전보",
+          "employee_name": "박민호",
+          "department_name": "아트개발부서",
+          "team_name": "아트팀",
+          "new_rank": "사원"
+        },
+        {
+          "appointment_type": "전보",
+          "employee_name": "이영희",
+          "department_name": "아트개발부서",
+          "team_name": "아트팀",
+          "new_rank": "대리"
+        }
+      ]
+    },
+    {
+      "appointment_id": 3,
+      "registration_date": "2025-03-10",
+      "appointment_effective_date": "2025-04-01",
+      "title": "2025년 4월 전직 인사발령",
+      "details": [
+        {
+          "appointment_type": "전직",
+          "employee_name": "최준혁",
+          "department_name": "디자인부서",
+          "team_name": "디자인팀",
+          "new_rank": "차장"
+        },
+        {
+          "appointment_type": "전직",
+          "employee_name": "고도연",
+          "department_name": "디자인부서",
+          "team_name": "디자인팀",
+          "new_rank": "부장"
+        }
+      ]
+    },
+    {
+      "appointment_id": 4,
+      "registration_date": "2025-02-05",
+      "appointment_effective_date": "2025-03-01",
+      "title": "2025년 3월 직급조정 인사발령",
+      "details": [
+        {
+          "appointment_type": "직급조정",
+          "employee_name": "김띠스",
+          "department_name": "QA부서",
+          "team_name": "QA팀",
+          "new_rank": "대리"
+        },
+        {
+          "appointment_type": "직급조정",
+          "employee_name": "박민호",
+          "department_name": "QA부서",
+          "team_name": "QA팀",
+          "new_rank": "과장"
+        }
+      ]
+    },
+    {
+      "appointment_id": 5,
+      "registration_date": "2025-01-01",
+      "appointment_effective_date": "2025-02-01",
+      "title": "2025년 2월 직무 인사발령",
+      "details": [
+        {
+          "appointment_type": "직무",
+          "employee_name": "이영희",
+          "department_name": "경영지원부서",
+          "team_name": "지원팀",
+          "new_rank": "사원"
+        },
+        {
+          "appointment_type": "직무",
+          "employee_name": "최준혁",
+          "department_name": "경영지원부서",
+          "team_name": "지원팀",
+          "new_rank": "대리"
+        }
+      ]
+    }
+  ],
+
    "employees": [
     {
       "employee_id": 1,

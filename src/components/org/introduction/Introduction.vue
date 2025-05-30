@@ -1,6 +1,8 @@
+<!-- 조직 및 직무 > 조직 및 직무 소개 -->
 <template>
   <div class="org-page">
     <h1 class="page-title">조직 및 직무 소개</h1>
+    <p class="desc">부서 별 소개</p>
 
     <div class="content-box">
       <div class="division-container">
@@ -34,17 +36,25 @@
       </div>
     </div>
 
-    <button class="edit-button">편집</button>
+    <button class="edit-button" @click="openEditModal">편집</button>
+    <!-- 모달 컴포넌트 -->
+    <EditDeptModal
+      v-if="showEditModal"
+      :initial="currentDept"
+      @close="closeEditModal"
+      @save="saveEdit"
+    />
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import EditDeptModal from './EditDeptModal.vue'
 
 const orgData = ref({ introduction: [], team: [] })
-const introductions = computed(() => orgData.value.introduction || [])
-const teams = computed(() => orgData.value.team || [])
+const introductions = computed(() => orgData.value.introduction)
+const teams = computed(() => orgData.value.team)
 
 const divisions = [
   { id: 1, name: '개발본부', departmentIds: [1, 2] },
@@ -56,15 +66,11 @@ const router = useRouter()
 
 const divisionsWithDepartments = computed(() =>
   divisions.map(div => {
-    const departments = introductions.value.filter(
-      intro =>
-        intro.introduction_type === '부서' &&
-        div.departmentIds.includes(intro.department_id)
+    const departmentList = introductions.value.filter(
+      intro => intro.introduction_type === '부서' && div.departmentIds.includes(intro.department_id)
     )
-    const departmentsWithTeams = departments.map(dept => {
-      const deptTeams = teams.value.filter(
-        team => team.department_id === dept.department_id
-      )
+    const departmentsWithTeams = departmentList.map(dept => {
+      const deptTeams = teams.value.filter(team => team.department_id === dept.department_id)
       return { ...dept, teams: deptTeams }
     })
     return { ...div, departments: departmentsWithTeams }
@@ -75,23 +81,57 @@ function goToJob(teamId) {
   router.push({ path: `/jobdetail/${teamId}` })
 }
 
+// --- 모달 제어 ---
+const showEditModal = ref(false)
+const currentDept = reactive({ introduction_id: null, introduction_name: '', introduction_context: '' })
+
+function openEditModal() {
+  showEditModal.value = true
+  const firstDept = divisionsWithDepartments.value[0]?.departments[0]
+  if (firstDept) {
+    currentDept.introduction_id = firstDept.introduction_id
+    currentDept.introduction_name = firstDept.introduction_name
+    currentDept.introduction_context = firstDept.introduction_context
+  }
+}
+function closeEditModal() {
+  showEditModal.value = false
+}
+function saveEdit(updated) {
+  const idx = orgData.value.introduction.findIndex(d => d.introduction_id === updated.introduction_id)
+  if (idx !== -1) {
+    orgData.value.introduction[idx].introduction_context = updated.introduction_context
+  }
+  closeEditModal()
+}
+
 onMounted(async () => {
   try {
     const res = await fetch('/org.json')
     if (!res.ok) throw new Error(res.statusText)
     orgData.value = await res.json()
   } catch (e) {
-    console.error('org.json 로드 실패:', e)
+    console.error('org.json load failed:', e)
   }
 })
 </script>
 
 <style scoped>
-.org-page {
+/* .org-page {
   position: relative;
   padding: 20px 40px;
-}
-
+} */
+  .page-title {
+    margin-left: 20px;
+    margin-bottom: 50px;
+    color: #00a8e8;
+  }
+  .desc {
+    display: block;
+    margin-left: 20px;
+    margin-bottom: 10px;
+  }
+  
 .content-box {
   background: #ffffff;
   border-radius: 12px;
