@@ -29,56 +29,6 @@
                 <FullCalendar :options="calendarOptions" style="width: 100%;" />
             </div>
         </div>
-        <el-dialog
-            v-model="showPersonalForm"
-            :title="`${clickedDate} 개인 일정 추가`"
-            width="400px"
-            destroy-on-close>
-            <el-form :model="personalForm">
-                <el-form-item label="일정명">
-                    <el-input v-model="personalForm.title" placeholder="예: 병원 예약" />
-                </el-form-item>
-                <el-form-item label="시간">
-                    <el-time-picker v-model="personalForm.time"
-                                placeholder="시간 선택"
-                                format="HH:mm"
-                                value-format="HH:mm"
-                                :picker-options="{
-                                    start: '08:00',
-                                    step: '00:30',
-                                    end: '20:00'
-                                }" 
-                    />
-                </el-form-item>
-            </el-form>
-            <!-- <el-dialog 
-                v-model="showEditModal" 
-                title="개인 일정 수정" 
-                width="400px"
-                destroy-on-close>
-                <el-form :model="editForm">
-                    <el-form-item label="일정명">
-                        <el-input v-model="editForm.title" />
-                    </el-form-item>
-                    <el-form-item label="시간">
-                        <el-time-picker
-                        v-model="editForm.time"
-                        format="HH:mm"
-                        value-format="HH:mm"
-                        placeholder="시간 선택" />
-                    </el-form-item>
-                    </el-form>
-                <template #footer>
-                    <el-button @click="deleteEvent" type="danger">삭제</el-button>
-                    <el-button @click="showEditModal = false">취소</el-button>
-                    <el-button type="primary" @click="updateEvent">수정</el-button>
-                </template>
-            </el-dialog> -->
-            <template #footer>
-                <el-button @click="showPersonalForm = false">취소</el-button>
-                <el-button type="primary" @click="addPersonalEvent">등록</el-button>
-            </template>
-        </el-dialog>
     </div>
 </template>
 
@@ -149,72 +99,15 @@
     const res = await fetch('/attendance.json')
     const { schedule } = await res.json()
     calendarOptions.events = schedule.map(item => ({
-        title: '', // 직접 렌더링 하므로 필요 없음
-        start: item.work_date,
-        className: convertStatusToClass(item.work_status_id),
-        extendedProps: {
-            status: item.work_status_id,
-            employee: item.employee_name
-        }
-    }))
-    })
-
-    const showModal = ref(false)
-    const clickedDate = ref('')
-    const selectedEvents = ref([])
-
-    calendarOptions.dateClick = function (info) {
-    clickedDate.value = info.dateStr
-    showPersonalForm.value = true
-    }
-
-    // calendarOptions.eventClick = function(info) {
-    //     const event = info.event
-    //     selectedEvent.value = event
-    //     editForm.title = event.extendedProps.title || ''
-    //     editForm.time = event.extendedProps.time || ''
-    //     showEditModal.value = true
-    // }
-
-    /* 개인 일정 등록 */
-    const showPersonalForm = ref(false)
-    const personalForm = reactive({ title: '', time: '' })
-
-    const addPersonalEvent = () => {
-        if (!personalForm.title || !personalForm.time) return
-        calendarOptions.events.push({
-            title: '',
-            start: clickedDate.value,
-            className: 'event-personal',
+            title: '', // 직접 렌더링 하므로 필요 없음
+            start: item.work_date,
+            className: convertStatusToClass(item.work_status_id),
             extendedProps: {
-                type: 'personal',
-                title: personalForm.title,
-                time: personalForm.time
+                status: item.work_status_id,
+                employee: item.employee_name
             }
-        })
-        personalForm.title = ''
-        personalForm.time = ''
-        showPersonalForm.value = false
-    }
-
-    /* 개인 일정 수정 */
-    // const showEditModal = ref(false)
-    // const selectedEvent = ref(null)
-    // const editForm = reactive({ title: '', time: '' })
-
-    // const updateEvent = () => {
-    //     if (!selectedEvent.value) return
-    //     selectedEvent.value.setExtendedProp('title', editForm.title)
-    //     selectedEvent.value.setExtendedProp('time', editForm.time)
-    //     showEditModal.value = false
-    // }
-
-    // const deleteEvent = () => {
-    //     if (!selectedEvent.value) return
-    //     selectedEvent.value.remove()
-    //     showEditModal.value = false
-    // }
-
+        }))
+    })
 </script>
 
 <style setup>
@@ -229,31 +122,31 @@
     }
 
     /* Legend */
-.legend {
-  display: flex;
-  gap: 16px;
-  margin-bottom: 12px;
-}
-.legend-item {
-  display: flex;
-  align-items: center;
-  font-size: 12px;
-  color: #333;
-}
-.dot {
-  display: inline-block;
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  margin-right: 4px;
-}
-.dot.leave { background-color: #A3C7F3; }
-.dot.half    { background-color: #B5E4F0; }
-.dot.trip  { background-color: #B7E4C7; }
-.dot.out  { background-color: #D0F0B0; }
-.dot.late  { background-color: #FFD59E; }
-.dot.absent  { background-color: #F7A6A6; }
-.dot.schedule  { background-color: #e19bf9; }
+    .legend {
+        display: flex;
+        gap: 16px;
+        margin-bottom: 12px;
+    }
+    .legend-item {
+        display: flex;
+        align-items: center;
+        font-size: 12px;
+        color: #333;
+    }
+    .dot {
+        display: inline-block;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        margin-right: 4px;
+    }
+    .dot.leave { background-color: #A3C7F3; }
+    .dot.half    { background-color: #B5E4F0; }
+    .dot.trip  { background-color: #B7E4C7; }
+    .dot.out  { background-color: #D0F0B0; }
+    .dot.late  { background-color: #FFD59E; }
+    .dot.absent  { background-color: #F7A6A6; }
+    .dot.schedule  { background-color: #e19bf9; }
 
     /* 요일 헤더 색상 */
     .fc-col-header-cell.fc-day-sun {
@@ -367,15 +260,29 @@
         font-family: 'Pretendard', sans-serif !important;
     }
 
+    /* disabled 상태(opacity) 해제 */
+    .fc-button:disabled {
+        opacity: 1 !important;
+    }
+
+    /* disabled Today 버튼에 대한 배경/글자색 고정 */
+    .fc-today-button:disabled {
+        background-color: #00A8E8 !important;
+        color: white       !important;
+        border: 1px solid transparent !important;
+    }
+
     /* 오늘 버튼 */
     .fc-today-button {
         background-color: #00A8E8 !important;
         color: white !important;
-        border: none !important;
+        border: 1px solid transparent !important;
         padding: 4px 10px !important;
         border-radius: 6px !important;
         font-size: 12px !important;
         font-weight: 500 !important;
+        width: 50px !important;
+        height: 30px !important;
     }
 
     /* 이전/다음 버튼 */
@@ -383,18 +290,22 @@
     .fc-next-button {
         background-color: #00A8E8 !important;
         color: white !important;
-        border: none !important;
+        border: 1px solid transparent !important;
         padding: 4px 10px !important;
         border-radius: 6px !important;
         font-size: 12px !important;
         font-weight: 500 !important;
         margin-left: 4px !important;
+        width: 40px !important;
+        height: 30px !important;
     }
 
     /* 버튼 hover 효과 */
     .fc-button:hover {
-        filter: brightness(1.1) !important;
-        cursor: pointer !important;
+        background-color: white !important;
+        color: #00A8E8 !important;
+        border: 1px solid #00A8E8 !important;
+        box-shadow: inset 1px 1px 10px rgba(0, 0, 0, 0.25) !important;
     }
 
     /* 개인 일정 라벨 색 */
