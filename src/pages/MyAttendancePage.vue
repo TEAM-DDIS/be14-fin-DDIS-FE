@@ -15,10 +15,6 @@
           @apply="onOvertimeApply"
           />
       </div>
-      <div class="personal-event-card">
-        <span class="desc">개인 일정 등록</span>
-        <PersonalEventCard/>
-      </div>
     </div>
     <div class="right-panel">
       <span class="desc">개인 캘린더</span>

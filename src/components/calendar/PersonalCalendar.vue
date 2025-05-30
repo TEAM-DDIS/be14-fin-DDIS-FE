@@ -1,27 +1,30 @@
 <template>
     <div class="personal-calendar">
-        <!-- Legend -->
-        <div class="legend">
-            <div class="legend-item">
-                <span class="dot leave"></span>연차
-            </div>
-            <div class="legend-item">
-                <span class="dot half"></span>반차
-            </div>
-            <div class="legend-item">
-                <span class="dot trip"></span>출장
-            </div>
-            <div class="legend-item">
-                <span class="dot out"></span>외근
-            </div>
-            <div class="legend-item">
-                <span class="dot late"></span>지각
-            </div>
-            <div class="legend-item">
-                <span class="dot absent"></span>결근
-            </div>
-            <div class="legend-item">
-                <span class="dot schedule"></span>개인 일정
+        <div class="legend-wrapper">
+            <!-- Legend -->
+            <div class="legend">
+                <div class="legend-item">
+                    <span class="dot leave"></span>연차
+                </div>
+                <div class="legend-item">
+                    <span class="dot half"></span>반차
+                </div>
+                <div class="legend-item">
+                    <span class="dot trip"></span>출장
+                </div>
+                <div class="legend-item">
+                    <span class="dot out"></span>외근
+                </div>
+                <div class="legend-item">
+                    <span class="dot late"></span>지각
+                </div>
+                <div class="legend-item">
+                    <span class="dot absent"></span>결근
+                </div>
+                <div class="legend-item">
+                    <span class="dot schedule"></span>개인 일정
+                </div>
+                <button class="register-btn" @click="show = true">일정 등록</button>
             </div>
         </div>
         <div style="padding: 20px;">
@@ -29,6 +32,15 @@
                 <FullCalendar :options="calendarOptions" style="width: 100%;" />
             </div>
         </div>
+        <Teleport to="body">
+            <div v-if="show" class="overlay" @click.self="show=false">
+                <div class="modal">
+                    <span class="desc">개인 일정 등록</span>
+                    <!-- PersonalEventCard 삽입 -->
+                    <PersonalEventCard @add="onAdd" />
+                </div>
+            </div>
+        </Teleport>
     </div>
 </template>
 
@@ -39,6 +51,23 @@
     import interactionPlugin from '@fullcalendar/interaction'
     import koLocale from '@fullcalendar/core/locales/ko'
     import { ElDialog, ElForm, ElFormItem, ElInput, ElButton, ElTimePicker } from 'element-plus'
+    import PersonalEventCard from '../attendance/PersonalEventCard.vue'
+
+    const show = ref(false)
+
+    function onAdd({ date, title, time }) {
+        calendarOptions.events.push({
+            title: '',              // eventContent에서 actual title/time을 렌더링
+            start: date,            // ex) "2025-05-30"
+            className: 'event-personal',
+            extendedProps: {
+                type: 'personal',
+                title,
+                time
+            }
+        })
+        show.value = false
+    }
 
     // 날짜 숫자만 보이게
     const handleDayCellContent = (arg) => {
@@ -121,6 +150,13 @@
         padding-bottom: 25px;
     }
 
+    /* legend + 버튼을 좌우 정렬 */
+    .legend-wrapper {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
     /* Legend */
     .legend {
         display: flex;
@@ -147,6 +183,55 @@
     .dot.late  { background-color: #FFD59E; }
     .dot.absent  { background-color: #F7A6A6; }
     .dot.schedule  { background-color: #e19bf9; }
+
+    /* 일정 등록 버튼 */
+    .register-btn {
+        background-color: #00A8E8;
+        border: 1px solid #00A8E8;
+        color: #fff;
+        font-weight: bold;
+        border-radius: 10px;
+        padding: 4px 12px;
+        margin-left: 639px;
+        width: 93px;
+        height: 37px;
+        font-size: 14px;
+    }
+    .register-btn:hover {
+        background-color: #fff;
+        color: #00A8E8;
+        border: 1px solid #00A8E8;
+        box-shadow: inset 1px 1px 6px rgba(0,0,0,0.1);
+    }
+
+    .register-btn:focus {
+        outline: none !important;
+        box-shadow: none !important;
+    }
+
+    .overlay {
+        position: fixed; top:0; left:0; right:0; bottom:0;
+        background: rgba(0,0,0,0.4);
+        display: flex; align-items: center; justify-content: center;
+        z-index: 2000;
+    }
+
+    .modal {
+        background: white;
+        padding: 30px;
+        border-radius: 20px;
+        width: 420px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.2);
+    }
+
+    .desc {
+        display: block;
+        font-size: 18px;
+        color: #666;
+        line-height: 1.4;
+        margin-bottom: 20px;
+    }
+
 
     /* 요일 헤더 색상 */
     .fc-col-header-cell.fc-day-sun {
@@ -199,8 +284,10 @@
     height: auto !important;
     min-height: 24px !important;    /* 원하는 최소 높이 */
     line-height: 24px !important;    /* 텍스트가 세로 가운데 오도록 */
-    padding: 2px 4px !important;     /* 위아래 여백 조금 추가 */
+    padding-bottom: 3px !important;
     font-size: 12px !important;      /* 전체 폰트 크기도 살짝 키워보기 */
+    border-radius: 5px !important;
+    margin-bottom: 2px !important;
     }
 
     /* 라벨 내부 정렬 */
@@ -208,8 +295,9 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding: 0 4px;
+        padding: 3 4px;
         width: 100%;
+        height: 30px;
     }
     .event-status {
         font-weight: 600;

@@ -71,15 +71,6 @@
 </script>
 
 <style scoped>
-    .personal-event-card {
-        background: #fff;
-        padding: 18px;
-        border-radius: 20px;
-        box-shadow: 1px 1px 20px 1px rgba(0, 0, 0, 0.05);
-        display: flex;
-        flex-direction: column;
-    }
-
     .event-form {
         flex: 1;
     }
@@ -106,5 +97,10 @@
         color: #00A8E8;
         border: 1px solid #00A8E8;
         box-shadow: inset 1px 1px 10px rgba(0, 0, 0, 0.25);
+    }
+
+    .personal-event-card {
+        /* 기본 primary 색(파랑)을 검정으로 덮어씁니다 */
+        --el-color-primary: #000 !important;
     }
 </style>
