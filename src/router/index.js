@@ -50,11 +50,11 @@ const router = createRouter({
             component: () => import('@/components/employeeInfo/employeeSearch/EmployeeSearchPage.vue')
 
         },
-        {
-            path: '/post/postList',
-            component: () => import('@/components/post/PostListPage.vue')
+        // {
+        //     path: '/post/postList',
+        //     component: () => import('@/components/post/PostListPage.vue')
 
-        },
+        // },
         
         // 급여 관리
         // {
@@ -130,10 +130,10 @@ const router = createRouter({
             path: '/org/draftlis/formB',
             component: () => import('@/components/draftdoc/forms/DraftFormB.vue')
         },
-        {
-            path: '/draftdoc/mydraft/submitted',
-            component: () => import('@/components/draftdoc/mydraft/Submitted.vue')
-        },
+        // {
+        //     path: '/draftdoc/mydraft/submitted',
+        //     component: () => import('@/components/draftdoc/mydraft/Submitted.vue')
+        // },
     ]
 })
 
