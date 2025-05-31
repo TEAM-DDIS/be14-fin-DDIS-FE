@@ -191,7 +191,7 @@ watch(() => form.actual, val => {
 })
 
 function confirmDelete(id) {
-  if (confirm('정말 삭제하시겠습니까?')) deleteGoal(id)
+  if (confirm('정말 삭제하시겠습니까?')) deleteGoals(id)
 }
 
 function addGoal() {
@@ -285,6 +285,31 @@ function deleteGoal(id) {
   if (idx !== -1) {
     goals.value.splice(idx, 1)
     if (selected.value === id) selected.value = null
+  }
+}
+async function deleteGoals(id) {
+  try {
+    const token = localStorage.getItem('token')
+    const res = await fetch(`http://localhost:8000/goals/${id}`, {
+      method: 'DELETE',
+      headers: { 
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json' 
+    },
+    body: JSON.stringify({  goalId: id})
+  })
+    if (!res.ok) throw new Error(`${res.status} ${res.statusText}`)
+
+    // UI에서 해당 목표 제거
+    const idx = goals.value.findIndex(g => g.goalId === id)
+    if (idx !== -1) {
+      goals.value.splice(idx, 1)
+      if (selected.value === id) selected.value = null
+    }
+  }
+  catch (err) {
+    console.error('목표 삭제 실패:', err)
+    alert('삭제 중 오류가 발생했습니다.')
   }
 }
 </script>
