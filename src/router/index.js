@@ -130,10 +130,14 @@ const router = createRouter({
             path: '/org/draftlis/formB',
             component: () => import('@/components/draftdoc/forms/DraftFormB.vue')
         },
-        // {
-        //     path: '/draftdoc/mydraft/submitted',
-        //     component: () => import('@/components/draftdoc/mydraft/Submitted.vue')
-        // },
+        {
+            path: '/draftdoc/mydraft/submitted',
+            component: () => import('@/components/draftdoc/mydraft/Submitted.vue')
+        },
+        {
+            path: '/draftdoc/temporarydoc',
+            component: () => import('@/components/draftdoc/draftcreate/TemporaryDoc.vue')
+        }
     ]
 })
 

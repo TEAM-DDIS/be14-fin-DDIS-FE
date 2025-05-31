@@ -100,18 +100,37 @@
         },
         '전자 결재': {
             '기안 작성': {
-                path: '/draftdoc/draftcreate'
+                items: [
+                    {name: '기안작성', path: '/draftdoc/draftcreate'},
+                    {name: '임시저장함', path: 'draftdoc/temporarydoc' }
+                ]
             },
             '기안함': {
-                path: '/draftdoc/mydraft/submitted'
+                items: [
+                    {name: '상신문서함', path: '/draftdoc/mydraft/submitted'},
+                    {name: '완료문서함' },
+                    {name: '반려문서함' },
+                    {name: '회수문서함'}
+
+                ]
             },
             '결재함': {
-
+                items: [
+                    {name: '결재대기함'},
+                    {name: '진행문서함'},
+                    {name: '결재완료함'}
+                ]
             },
             '수신함': {
+                items: [
+                    {name: '수신문서함'}
+                ]
 
             },
             '참조함': {
+                items: [
+                    {name: '참조문서함'}
+                ]
 
             },
         },
