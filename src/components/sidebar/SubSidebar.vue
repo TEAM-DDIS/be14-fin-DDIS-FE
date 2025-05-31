@@ -69,7 +69,9 @@
                 { name: '내 근태 현황', 
                     path: '/attendance/myAttendance',
                 },
-                { name: '팀 근태 현황', },
+                { name: '팀 근태 현황',
+                    path: '/attendance/teamAttendance',
+                },
                 { name: '내 출근 정정 관리', },
                 { name: '전체 출근 정정 관리', }
             ]

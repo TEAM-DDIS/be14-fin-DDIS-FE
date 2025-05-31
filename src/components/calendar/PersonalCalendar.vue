@@ -50,7 +50,6 @@
     import dayGridPlugin from '@fullcalendar/daygrid'
     import interactionPlugin from '@fullcalendar/interaction'
     import koLocale from '@fullcalendar/core/locales/ko'
-    import { ElDialog, ElForm, ElFormItem, ElInput, ElButton, ElTimePicker } from 'element-plus'
     import PersonalEventCard from '../attendance/PersonalEventCard.vue'
 
     const show = ref(false)
@@ -163,12 +162,14 @@
         gap: 16px;
         margin-bottom: 12px;
     }
+
     .legend-item {
         display: flex;
         align-items: center;
         font-size: 12px;
         color: #333;
     }
+
     .dot {
         display: inline-block;
         width: 10px;
@@ -176,13 +177,13 @@
         border-radius: 50%;
         margin-right: 4px;
     }
-    .dot.leave { background-color: #A3C7F3; }
-    .dot.half    { background-color: #B5E4F0; }
-    .dot.trip  { background-color: #B7E4C7; }
+    .dot.leave { background-color: #8C9FFF; }
+    .dot.half    { background-color: #8CC2FF; }
+    .dot.trip  { background-color: #C5E695; }
     .dot.out  { background-color: #D0F0B0; }
-    .dot.late  { background-color: #FFD59E; }
-    .dot.absent  { background-color: #F7A6A6; }
-    .dot.schedule  { background-color: #e19bf9; }
+    .dot.late  { background-color: #FFD38C; }
+    .dot.absent  { background-color: #FF8C9A; }
+    .dot.schedule  { background-color: #AE8CFF; }
 
     /* 일정 등록 버튼 */
     .register-btn {
@@ -251,43 +252,45 @@
 
     /* 근무 상태별 배경 색상 */
     .event-leave {
-        background-color: #A3C7F3 !important;
-        color: white !important;
+        background-color: white !important;
+        border: 3.5px solid #8C9FFF !important;
     }
     .event-half-am {
-        background-color: #B5E4F0 !important;
-        color: white !important;
+        background-color: white !important;
+        border: 3.5px solid #8CC2FF !important;
     }
     .event-half-pm {
-        background-color: #B5E4F0 !important;
-        color: white !important;
+        background-color: white !important;
+        border: 3.5px solid #8CC2FF !important;
     }
     .event-trip {
-        background-color: #B7E4C7 !important;
-        color: white !important;
+        background-color: white !important;
+        border: 3.5px solid #C5E695 !important;
     }
     .event-out {
-        background-color: #D0F0B0 !important;
-        color: white !important;
+        background-color: white !important;
+        border: 3.5px solid #D0F0B0 !important;
     }
     .event-late {
-        background-color: #FFD59E !important;
-        color: white !important;
+        background-color: white !important;
+        border: 3.5px solid #FFD38C !important;
     }
     .event-absent {
-        background-color: #F7A6A6 !important;
-        color: white !important;
+        background-color: white !important;
+        border: 3.5px solid #FF8C9A !important;
     }
 
     .fc-daygrid-event {
-    /* 기존 height: 15px 를 해제하고, 자동 높이나 최소 높이를 설정 */
-    height: auto !important;
-    min-height: 24px !important;    /* 원하는 최소 높이 */
-    line-height: 24px !important;    /* 텍스트가 세로 가운데 오도록 */
-    padding-bottom: 3px !important;
-    font-size: 12px !important;      /* 전체 폰트 크기도 살짝 키워보기 */
-    border-radius: 5px !important;
-    margin-bottom: 2px !important;
+        /* 기존 height: 15px 를 해제하고, 자동 높이나 최소 높이를 설정 */
+        height: auto !important;
+        min-height: 24px !important;    /* 원하는 최소 높이 */
+        line-height: 24px !important;    /* 텍스트가 세로 가운데 오도록 */
+        padding-bottom: 3px !important;
+        margin-left: 10px !important;
+        margin-right: 10px !important;
+        font-size: 12px !important;      /* 전체 폰트 크기도 살짝 키워보기 */
+        border-radius: 15px !important;
+        margin-bottom: 5px !important;
     }
 
     /* 라벨 내부 정렬 */
@@ -299,19 +302,21 @@
         width: 100%;
         height: 30px;
     }
+
     .event-status {
+        color: black;
         font-weight: 600;
         font-size: 18px;
     }
     .event-employee {
+        color: black;
         font-weight: normal;
         font-size: 16px;
     }
 
     /* 라벨 테두리 제거 */
     .fc-event {
-        border: none !important;
-        box-shadow: none !important;
+        box-shadow: 0 2px 2px rgba(0,0,0,0.1) !important;
         outline: none !important;
     }
 
@@ -368,7 +373,7 @@
         padding: 4px 10px !important;
         border-radius: 6px !important;
         font-size: 12px !important;
-        font-weight: 500 !important;
+        font-weight: bold !important;
         width: 50px !important;
         height: 30px !important;
     }
@@ -382,7 +387,7 @@
         padding: 4px 10px !important;
         border-radius: 6px !important;
         font-size: 12px !important;
-        font-weight: 500 !important;
+        font-weight: bold !important;
         margin-left: 4px !important;
         width: 40px !important;
         height: 30px !important;
@@ -398,7 +403,7 @@
 
     /* 개인 일정 라벨 색 */
     .event-personal {
-        background-color: #e19bf9 !important;
-        color: white !important;
+        background-color: white !important;
+        border: 3.5px solid #AE8CFF !important;
     }
 </style>

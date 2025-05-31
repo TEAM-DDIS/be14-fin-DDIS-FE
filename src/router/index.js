@@ -122,14 +122,14 @@ const router = createRouter({
             path: '/draftdoc/draftcreate',
             component: () => import('@/components/draftdoc/draftcreate/DraftTemplateList.vue')
         },
-        // {
-        //     path: '/org/draftlis/formA',
-        //     component: () => import('@/components/draftdoc/forms/DraftFormA.vue')
-        // },
-        // {
-        //     path: '/org/draftlis/formB',
-        //     component: () => import('@/components/draftdoc/forms/DraftFormB.vue')
-        // },
+        {
+            path: '/org/draftlis/formA',
+            component: () => import('@/components/draftdoc/forms/DraftFormA.vue')
+        },
+        {
+            path: '/org/draftlis/formB',
+            component: () => import('@/components/draftdoc/forms/DraftFormB.vue')
+        },
         // {
         //     path: '/draftdoc/mydraft/submitted',
         //     component: () => import('@/components/draftdoc/mydraft/Submitted.vue')
