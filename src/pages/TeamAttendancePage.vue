@@ -8,7 +8,7 @@
             </div>
             <div class="meeting-event-card">
                 <span class="desc">오늘 회의 일정</span>
-                <MeetingEventCard/>
+                <TodayMeetingCard/>
             </div>
         </div>
         <div class="right-panel">
@@ -21,7 +21,7 @@
 <script setup>
     import TeamCalendar from '../components/calendar/TeamCalendar.vue'
     import TeamWorkStatusCard from '../components/attendance/TeamWorkStatusCard.vue'
-    import MeetingEventCard from '../components/attendance/MeetingEventCard.vue'
+    import TodayMeetingCard from '../components/attendance/TodayMeetingCard.vue'
 </script>
 
 <style scoped>
