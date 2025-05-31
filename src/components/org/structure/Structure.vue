@@ -44,13 +44,15 @@
               <h4>{{ selectedEmployee.rank_name }} {{ selectedEmployee.employee_name }}</h4>
             </div>
             <ag-grid-vue
-              class="ag-theme-alpine profile-grid"
+              class="ag-theme-alpine custom-theme"
+              :gridOptions="{ theme: 'legacy' }"
               :columnDefs="profileColumnDefs"
               :rowData="profileRowData"
               :getRowClass="getRowClass"
               :domLayout="'autoHeight'"
               :headerHeight="0"
               :rowHeight="36"
+              style="width: 100%; height: 10px;"
             />
           </div>
 

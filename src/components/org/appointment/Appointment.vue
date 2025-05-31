@@ -52,13 +52,13 @@
 </template>
 
 <script setup>
-  import 'ag-grid-community/styles/ag-grid.css'
-  import 'ag-grid-community/styles/ag-theme-alpine.css'
+  // import 'ag-grid-community/styles/ag-grid.css'
+  // import 'ag-grid-community/styles/ag-theme-alpine.css'
   import { AgGridVue } from 'ag-grid-vue3'
   import { ModuleRegistry, AllCommunityModule } from 'ag-grid-community'
   import { ref, computed, onMounted } from 'vue'
   import { useRouter } from 'vue-router'
-  // import BaseGrid from '@/components/grid/BaseGrid.vue'
+
 
   import detailIconUrl from '@/assets/icons/detail_appointment.svg'
 
