@@ -3,27 +3,159 @@
     {
       "work_date": "2025-05-01",
       "work_status_id": "연차",
-      "employee_name": "최유진"
+      "employee_name": "최유진",
+      "team_id": "PC개발팀",
+      "role": "팀장",
+      "profile_img": "test_img.png"
     },
     {
       "work_date": "2025-05-01",
       "work_status_id": "지각",
-      "employee_name": "이정자"
+      "employee_name": "이정자",
+      "team_id": "PC개발팀",
+      "role": "대리",
+      "profile_img": "test_img.png"
     },
     {
       "work_date": "2025-05-01",
       "work_status_id": "출장",
-      "employee_name": "권영자"
+      "employee_name": "권영자",
+      "team_id": "PC개발팀",
+      "role": "사원",
+      "profile_img": "test_img.png"
     },
     {
       "work_date": "2025-05-01",
       "work_status_id": "결근",
-      "employee_name": "박승민"
+      "employee_name": "박승민",
+      "team_id": "PC개발팀",
+      "role": "사원",
+      "profile_img": "test_img.png"
     },
     {
       "work_date": "2025-05-09",
       "work_status_id": "오전반차",
-      "employee_name": "백구범"
+      "employee_name": "백구범",
+      "team_id": "PC개발팀",
+      "role": "사원",
+      "profile_img": "test_img.png"
+    },
+    {
+      "work_date": "2025-05-31",
+      "work_status_id": "연차",
+      "employee_name": "최유진",
+      "team_id": "PC개발팀",
+      "role": "팀장",
+      "profile_img": "test_img.png"
+    },
+    {
+      "work_date": "2025-05-31",
+      "work_status_id": "지각",
+      "employee_name": "이정자",
+      "team_id": "PC개발팀",
+      "role": "대리",
+      "profile_img": "test_img.png"
+    },
+    {
+      "work_date": "2025-05-31",
+      "work_status_id": "출장",
+      "employee_name": "권영자",
+      "team_id": "PC개발팀",
+      "role": "사원",
+      "profile_img": "test_img.png"
+    },
+    {
+      "work_date": "2025-05-31",
+      "work_status_id": "결근",
+      "employee_name": "박승민",
+      "team_id": "PC개발팀",
+      "role": "사원",
+      "profile_img": "test_img.png"
+    },
+    {
+      "work_date": "2025-05-31",
+      "work_status_id": "오전반차",
+      "employee_name": "백구범",
+      "team_id": "PC개발팀",
+      "role": "사원",
+      "profile_img": "test_img.png"
+    }
+  ],
+
+  "teamattendance": [
+    {
+      "work_date": "2025-05-31",
+      "work_status_id": "연차",
+      "employee_name": "최유진",
+      "team_id": "PC개발팀",
+      "role": "팀장",
+      "profile_img": "/img/test1.png"
+    },
+    {
+      "work_date": "2025-05-31",
+      "work_status_id": "지각",
+      "employee_name": "이정자",
+      "team_id": "PC개발팀",
+      "role": "대리",
+      "profile_img": "/img/test2.png"
+    },
+    {
+      "work_date": "2025-05-31",
+      "work_status_id": "출장",
+      "employee_name": "권영자",
+      "team_id": "PC개발팀",
+      "role": "사원",
+      "profile_img": "/img/test3.png"
+    },
+    {
+      "work_date": "2025-05-31",
+      "work_status_id": "결근",
+      "employee_name": "박승민",
+      "team_id": "PC개발팀",
+      "role": "사원",
+      "profile_img": "/img/test4.png"
+    },
+    {
+      "work_date": "2025-05-31",
+      "work_status_id": "오전반차",
+      "employee_name": "백구범",
+      "team_id": "PC개발팀",
+      "role": "사원",
+      "profile_img": "/img/test5.png"
+    },
+    {
+      "work_date": "2025-05-31",
+      "work_status_id": "근무 중",
+      "employee_name": "김랑랑",
+      "team_id": "PC개발팀",
+      "role": "사원",
+      "profile_img": "/img/test5.png"
+    },
+    {
+      "work_date": "2025-05-31",
+      "work_status_id": "-",
+      "employee_name": "이삥삥",
+      "team_id": "PC개발팀",
+      "role": "사원",
+      "profile_img": "/img/test5.png"
+    }
+  ],
+
+  "meetings": [
+    {
+      "meeting_date": "2025-05-31",
+      "meeting_title": "개발 회의",
+      "meeting_time": "11:00"
+    },
+    {
+      "meeting_date": "2025-05-31",
+      "meeting_title": "서비스 리뷰",
+      "meeting_time": "14:00"
+    },
+    {
+      "meeting_date": "2025-05-31",
+      "meeting_title": "평가 회의",
+      "meeting_time": "15:30"
     }
   ],
   

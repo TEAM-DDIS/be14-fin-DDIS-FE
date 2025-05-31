@@ -82,10 +82,10 @@ const router = createRouter({
             component: () => import('@/pages/MyAttendancePage.vue')
         },
 
-        // {
-        //     path: '/attendance/teamAttendance',
-        //     component: () => import('@/pages/TeamAttendancePage.vue')
-        // },
+        {
+            path: '/attendance/teamAttendance',
+            component: () => import('@/pages/TeamAttendancePage.vue')
+        },
 
         // {
         //     path: '/attendance/myCorrection',
