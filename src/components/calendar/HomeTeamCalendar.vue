@@ -4,33 +4,6 @@
             <FullCalendar :options="calendarOptions" style="height: 100%; width: 100%;" />
         </div>
     </div>
-    <el-dialog
-        v-model="showTeamForm"
-        :title="`${clickedDate} 회의 일정 추가`"
-        width="400px"
-        destroy-on-close>
-        <el-form :model="teamForm">
-            <el-form-item label="회의명">
-                <el-input v-model="teamForm.title" placeholder="예: 개발 회의" />
-            </el-form-item>
-            <el-form-item label="시간">
-                <el-time-picker v-model="teamForm.time"
-                            placeholder="시간 선택"
-                            format="HH:mm"
-                            value-format="HH:mm"
-                            :picker-options="{
-                                start: '08:00',
-                                step: '00:30',
-                                end: '20:00'
-                            }" 
-                />
-            </el-form-item>
-        </el-form>
-        <template #footer>
-            <el-button @click="showTeamForm = false">취소</el-button>
-            <el-button type="primary" @click="addTeamEvent">등록</el-button>
-        </template>
-    </el-dialog>
 </template>
 
 <script setup>
@@ -116,37 +89,6 @@
         }
     }))
     })
-
-    const showModal = ref(false)
-    const clickedDate = ref('')
-    const selectedEvents = ref([])
-
-    calendarOptions.dateClick = function (info) {
-    clickedDate.value = info.dateStr
-    showTeamForm.value = true
-    }
-
-
-    /* 회의의 일정 등록 */
-    const showTeamForm = ref(false)
-    const teamForm = reactive({ title: '', time: '' })
-
-    const addTeamEvent = () => {
-        if (!teamForm.title || !teamForm.time) return
-        calendarOptions.events.push({
-            title: '',
-            start: clickedDate.value,
-            className: 'event-team',
-            extendedProps: {
-                type: 'team',
-                title: teamForm.title,
-                time: teamForm.time
-            }
-        })
-        teamForm.title = ''
-        teamForm.time = ''
-        showTeamForm.value = false
-    }
 </script>
 
 <style setup>
