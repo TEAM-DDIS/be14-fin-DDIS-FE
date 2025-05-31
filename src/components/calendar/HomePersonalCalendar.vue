@@ -4,56 +4,6 @@
             <FullCalendar :options="calendarOptions" style="height: 100%; width: 100%;" />
         </div>
     </div>
-    <el-dialog
-        v-model="showPersonalForm"
-        :title="`${clickedDate} 개인 일정 추가`"
-        width="400px"
-        destroy-on-close>
-        <el-form :model="personalForm">
-            <el-form-item label="일정명">
-                <el-input v-model="personalForm.title" placeholder="예: 병원 예약" />
-            </el-form-item>
-            <el-form-item label="시간">
-                <el-time-picker v-model="personalForm.time"
-                            placeholder="시간 선택"
-                            format="HH:mm"
-                            value-format="HH:mm"
-                            :picker-options="{
-                                start: '08:00',
-                                step: '00:30',
-                                end: '20:00'
-                            }" 
-                />
-            </el-form-item>
-        </el-form>
-        <!-- <el-dialog 
-            v-model="showEditModal" 
-            title="개인 일정 수정" 
-            width="400px"
-            destroy-on-close>
-            <el-form :model="editForm">
-                <el-form-item label="일정명">
-                    <el-input v-model="editForm.title" />
-                </el-form-item>
-                <el-form-item label="시간">
-                    <el-time-picker
-                    v-model="editForm.time"
-                    format="HH:mm"
-                    value-format="HH:mm"
-                    placeholder="시간 선택" />
-                </el-form-item>
-                </el-form>
-            <template #footer>
-                <el-button @click="deleteEvent" type="danger">삭제</el-button>
-                <el-button @click="showEditModal = false">취소</el-button>
-                <el-button type="primary" @click="updateEvent">수정</el-button>
-            </template>
-        </el-dialog> -->
-        <template #footer>
-            <el-button @click="showPersonalForm = false">취소</el-button>
-            <el-button type="primary" @click="addPersonalEvent">등록</el-button>
-        </template>
-    </el-dialog>
 </template>
 
 <script setup>
@@ -139,63 +89,6 @@
         }
     }))
     })
-
-    const showModal = ref(false)
-    const clickedDate = ref('')
-    const selectedEvents = ref([])
-
-    calendarOptions.dateClick = function (info) {
-    clickedDate.value = info.dateStr
-    showPersonalForm.value = true
-    }
-
-    // calendarOptions.eventClick = function(info) {
-    //     const event = info.event
-    //     selectedEvent.value = event
-    //     editForm.title = event.extendedProps.title || ''
-    //     editForm.time = event.extendedProps.time || ''
-    //     showEditModal.value = true
-    // }
-
-    /* 개인 일정 등록 */
-    const showPersonalForm = ref(false)
-    const personalForm = reactive({ title: '', time: '' })
-
-    const addPersonalEvent = () => {
-        if (!personalForm.title || !personalForm.time) return
-        calendarOptions.events.push({
-            title: '',
-            start: clickedDate.value,
-            className: 'event-personal',
-            extendedProps: {
-                type: 'personal',
-                title: personalForm.title,
-                time: personalForm.time
-            }
-        })
-        personalForm.title = ''
-        personalForm.time = ''
-        showPersonalForm.value = false
-    }
-
-    /* 개인 일정 수정 */
-    // const showEditModal = ref(false)
-    // const selectedEvent = ref(null)
-    // const editForm = reactive({ title: '', time: '' })
-
-    // const updateEvent = () => {
-    //     if (!selectedEvent.value) return
-    //     selectedEvent.value.setExtendedProp('title', editForm.title)
-    //     selectedEvent.value.setExtendedProp('time', editForm.time)
-    //     showEditModal.value = false
-    // }
-
-    // const deleteEvent = () => {
-    //     if (!selectedEvent.value) return
-    //     selectedEvent.value.remove()
-    //     showEditModal.value = false
-    // }
-
 </script>
 
 <style setup>

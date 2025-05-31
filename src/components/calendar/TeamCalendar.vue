@@ -1,37 +1,46 @@
 <template>
     <div class="team-calendar">
-        <div style="padding: 20px;">
-            <div style="width: 1200px; height: 700px;">
-                <FullCalendar :options="calendarOptions" style="height: 100%; width: 100%;" />
+        <div class="legend-wrapper">
+            <!-- Legend -->
+            <div class="legend">
+                <div class="legend-item">
+                    <span class="dot leave"></span>연차
+                </div>
+                <div class="legend-item">
+                    <span class="dot half"></span>반차
+                </div>
+                <div class="legend-item">
+                    <span class="dot trip"></span>출장
+                </div>
+                <div class="legend-item">
+                    <span class="dot out"></span>외근
+                </div>
+                <div class="legend-item">
+                    <span class="dot late"></span>지각
+                </div>
+                <div class="legend-item">
+                    <span class="dot absent"></span>결근
+                </div>
+                <div class="legend-item">
+                    <span class="dot meeting"></span>회의
+                </div>
+                <button class="register1-btn" @click="show = true">회의 등록</button>
             </div>
         </div>
-        <el-dialog
-            v-model="showTeamForm"
-            :title="`${clickedDate} 회의 일정 추가`"
-            width="400px"
-            destroy-on-close>
-            <el-form :model="teamForm">
-                <el-form-item label="회의명">
-                    <el-input v-model="teamForm.title" placeholder="예: 개발 회의" />
-                </el-form-item>
-                <el-form-item label="시간">
-                    <el-time-picker v-model="teamForm.time"
-                                placeholder="시간 선택"
-                                format="HH:mm"
-                                value-format="HH:mm"
-                                :picker-options="{
-                                    start: '08:00',
-                                    step: '00:30',
-                                    end: '20:00'
-                                }" 
-                    />
-                </el-form-item>
-            </el-form>
-            <template #footer>
-                <el-button @click="showTeamForm = false">취소</el-button>
-                <el-button type="primary" @click="addTeamEvent">등록</el-button>
-            </template>
-        </el-dialog>
+        <div style="padding: 20px;">
+            <div style="width: 1100px;">
+                <FullCalendar :options="calendarOptions" style="width: 100%;" />
+            </div>
+        </div>
+        <Teleport to="body">
+            <div v-if="show" class="overlay" @click.self="show=false">
+                <div class="modal">
+                    <span class="desc">회의 일정 등록</span>
+                    <!-- MeetingEventCard 삽입 -->
+                    <MeetingEventCard @add="onAdd" />
+                </div>
+            </div>
+        </Teleport>
     </div>
 </template>
 
@@ -41,7 +50,23 @@
     import dayGridPlugin from '@fullcalendar/daygrid'
     import interactionPlugin from '@fullcalendar/interaction'
     import koLocale from '@fullcalendar/core/locales/ko'
-    import { ElDialog, ElForm, ElFormItem, ElInput, ElButton, ElTimePicker } from 'element-plus'
+    import MeetingEventCard from '../attendance/MeetingEventCard.vue'
+
+    const show = ref(false)
+
+    function onAdd({ date, title, time }) {
+        calendarOptions.events.push({
+            title: '',              // eventContent에서 actual title/time을 렌더링
+            start: date,            // ex) "2025-05-30"
+            className: 'event-meeting',
+            extendedProps: {
+                type: 'meeting',
+                title,
+                time
+            }
+        })
+        show.value = false
+    }
 
     // 날짜 숫자만 보이게
     const handleDayCellContent = (arg) => {
@@ -68,21 +93,14 @@
         initialView: 'dayGridMonth',
         locale: koLocale,
         firstDay: 0,
-        height: '100%',
-        contentHeight: 600,
+        contentHeight: 'auto',
         fixedWeekCount: true,
-        dayMaxEventRows: 3,
-        moreLinkContent: function(args) {
-            return {
-                html: `<span style="font-size: 8px; color: #555;">+ ${args.num}건 더 보기</span>`
-            }
-        },
         dayCellContent: handleDayCellContent,
         events: [],
         eventContent: function(arg) {
             const props = arg.event.extendedProps
 
-            if (props.type === 'team') {
+            if (props.type === 'meeting') {
                 return {
                     html: `
                         <div class="event-label">
@@ -109,46 +127,15 @@
     const res = await fetch('/attendance.json')
     const { schedule } = await res.json()
     calendarOptions.events = schedule.map(item => ({
-        title: '', // 직접 렌더링 하므로 필요 없음
-        start: item.work_date,
-        className: convertStatusToClass(item.work_status_id),
-        extendedProps: {
-            status: item.work_status_id,
-            employee: item.employee_name
-        }
-    }))
-    })
-
-    const showModal = ref(false)
-    const clickedDate = ref('')
-    const selectedEvents = ref([])
-
-    calendarOptions.dateClick = function (info) {
-    clickedDate.value = info.dateStr
-    showTeamForm.value = true
-    }
-
-
-    /* 회의 일정 등록 */
-    const showTeamForm = ref(false)
-    const teamForm = reactive({ title: '', time: '' })
-
-    const addTeamEvent = () => {
-        if (!teamForm.title || !teamForm.time) return
-        calendarOptions.events.push({
-            title: '',
-            start: clickedDate.value,
-            className: 'event-team',
+            title: '', // 직접 렌더링 하므로 필요 없음
+            start: item.work_date,
+            className: convertStatusToClass(item.work_status_id),
             extendedProps: {
-                type: 'team',
-                title: teamForm.title,
-                time: teamForm.time
+                status: item.work_status_id,
+                employee: item.employee_name
             }
-        })
-        teamForm.title = ''
-        teamForm.time = ''
-        showTeamForm.value = false
-    }
+        }))
+    })
 </script>
 
 <style setup>
@@ -157,7 +144,93 @@
         background-color: #ffffff;
         border-radius: 20px;
         box-shadow: 1px 1px 20px 1px rgba(0, 0, 0, 0.05);
-        padding: 50px 130px;
+        padding-left: 25px;
+        padding-top: 25px;
+        padding-bottom: 25px;
+    }
+
+    /* legend + 버튼을 좌우 정렬 */
+    .legend-wrapper {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    /* Legend */
+    .legend {
+        display: flex;
+        gap: 16px;
+        margin-bottom: 12px;
+    }
+
+    .legend-item {
+        display: flex;
+        align-items: center;
+        font-size: 12px;
+        color: #333;
+    }
+
+    .dot {
+        display: inline-block;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        margin-right: 4px;
+    }
+    .dot.leave { background-color: #8C9FFF; }
+    .dot.half    { background-color: #8CC2FF; }
+    .dot.trip  { background-color: #C5E695; }
+    .dot.out  { background-color: #D0F0B0; }
+    .dot.late  { background-color: #FFD38C; }
+    .dot.absent  { background-color: #FF8C9A; }
+    .dot.meeting  { background-color: #c1c1c1; }
+
+    /* 회의 등록 버튼 */
+    .register1-btn {
+        background-color: #00A8E8;
+        border: 1px solid #00A8E8;
+        color: #fff;
+        font-weight: bold;
+        border-radius: 10px;
+        padding: 4px 12px;
+        margin-left: 664px;
+        width: 93px;
+        height: 37px;
+        font-size: 14px;
+    }
+    .register1-btn:hover {
+        background-color: #fff;
+        color: #00A8E8;
+        border: 1px solid #00A8E8;
+        box-shadow: inset 1px 1px 6px rgba(0,0,0,0.1);
+    }
+
+    .register1-btn:focus {
+        outline: none !important;
+        box-shadow: none !important;
+    }
+
+    .overlay {
+        position: fixed; top:0; left:0; right:0; bottom:0;
+        background: rgba(0,0,0,0.4);
+        display: flex; align-items: center; justify-content: center;
+        z-index: 2000;
+    }
+
+    .modal {
+        background: white;
+        padding: 30px;
+        border-radius: 20px;
+        width: 420px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.2);
+    }
+
+    .desc {
+        display: block;
+        font-size: 18px;
+        color: #666;
+        line-height: 1.4;
+        margin-bottom: 20px;
     }
 
     /* 요일 헤더 색상 */
@@ -178,32 +251,45 @@
 
     /* 근무 상태별 배경 색상 */
     .event-leave {
-        background-color: #A3C7F3 !important;
-        color: white !important;
+        background-color: white !important;
+        border: 3.5px solid #8C9FFF !important;
     }
     .event-half-am {
-        background-color: #B5E4F0 !important;
-        color: white !important;
+        background-color: white !important;
+        border: 3.5px solid #8CC2FF !important;
     }
     .event-half-pm {
-        background-color: #B5E4F0 !important;
-        color: white !important;
+        background-color: white !important;
+        border: 3.5px solid #8CC2FF !important;
     }
     .event-trip {
-        background-color: #B7E4C7 !important;
-        color: white !important;
+        background-color: white !important;
+        border: 3.5px solid #C5E695 !important;
     }
     .event-out {
-        background-color: #D0F0B0 !important;
-        color: white !important;
+        background-color: white !important;
+        border: 3.5px solid #D0F0B0 !important;
     }
     .event-late {
-        background-color: #FFD59E !important;
-        color: black !important;
+        background-color: white !important;
+        border: 3.5px solid #FFD38C !important;
     }
     .event-absent {
-        background-color: #F7A6A6 !important;
-        color: white !important;
+        background-color: white !important;
+        border: 3.5px solid #FF8C9A !important;
+    }
+
+    .fc-daygrid-event {
+        /* 기존 height: 15px 를 해제하고, 자동 높이나 최소 높이를 설정 */
+        height: auto !important;
+        min-height: 24px !important;    /* 원하는 최소 높이 */
+        line-height: 24px !important;    /* 텍스트가 세로 가운데 오도록 */
+        padding-bottom: 3px !important;
+        margin-left: 10px !important;
+        margin-right: 10px !important;
+        font-size: 12px !important;      /* 전체 폰트 크기도 살짝 키워보기 */
+        border-radius: 15px !important;
+        margin-bottom: 5px !important;    /* 전체 폰트 크기도 살짝 키워보기 */
     }
 
     /* 라벨 내부 정렬 */
@@ -211,23 +297,24 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
-        font-size: 11px;
-        padding: 0 4px;
+        padding: 3 4px;
         width: 100%;
+        height: 30px;
     }
     .event-status {
+        color: black;
         font-weight: 600;
-        font-size: 10px;
+        font-size: 18px;
     }
     .event-employee {
+        color: black;
         font-weight: normal;
-        font-size: 8px;
+        font-size: 16px;
     }
 
     /* 라벨 테두리 제거 */
     .fc-event {
-        border: none !important;
-        box-shadow: none !important;
+        box-shadow: 0 2px 2px rgba(0,0,0,0.1) !important;
         outline: none !important;
     }
 
@@ -241,7 +328,7 @@
         display: flex;
         flex-direction: column;
         justify-content: start;
-        height: 90px !important;
+        min-height: 100px !important;
         overflow: hidden;
     }
 
@@ -264,15 +351,29 @@
         font-family: 'Pretendard', sans-serif !important;
     }
 
+    /* disabled 상태(opacity) 해제 */
+    .fc-button:disabled {
+        opacity: 1 !important;
+    }
+
+    /* disabled Today 버튼에 대한 배경/글자색 고정 */
+    .fc-today-button:disabled {
+        background-color: #00A8E8 !important;
+        color: white       !important;
+        border: 1px solid transparent !important;
+    }
+
     /* 오늘 버튼 */
     .fc-today-button {
         background-color: #00A8E8 !important;
         color: white !important;
-        border: none !important;
+        border: 1px solid transparent !important;
         padding: 4px 10px !important;
         border-radius: 6px !important;
         font-size: 12px !important;
-        font-weight: 500 !important;
+        font-weight: bold !important;
+        width: 50px !important;
+        height: 30px !important;
     }
 
     /* 이전/다음 버튼 */
@@ -280,23 +381,27 @@
     .fc-next-button {
         background-color: #00A8E8 !important;
         color: white !important;
-        border: none !important;
+        border: 1px solid transparent !important;
         padding: 4px 10px !important;
         border-radius: 6px !important;
         font-size: 12px !important;
-        font-weight: 500 !important;
+        font-weight: bold !important;
         margin-left: 4px !important;
+        width: 40px !important;
+        height: 30px !important;
     }
 
     /* 버튼 hover 효과 */
     .fc-button:hover {
-        filter: brightness(1.1) !important;
-        cursor: pointer !important;
+        background-color: white !important;
+        color: #00A8E8 !important;
+        border: 1px solid #00A8E8 !important;
+        box-shadow: inset 1px 1px 10px rgba(0, 0, 0, 0.25) !important;
     }
 
-    /* 개인 일정 라벨 색 */
-    .event-team {
-        background-color: #c1c1c1 !important;
-        color: white !important;
+    /* 회의 라벨 색 */
+    .event-meeting {
+        background-color: white !important;
+        border: 3.5px solid #c1c1c1 !important;
     }
 </style>

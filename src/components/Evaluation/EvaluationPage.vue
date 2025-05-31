@@ -6,6 +6,7 @@
       </header>
       <div class="content-panels">
         <!-- 1) 평가 대상자 리스트 -->
+        <img class="arrows" src="@/assets/icons/Polygon-2.svg"> 
         <section class="panel people-panel">
           <ul class="people-list">
             <li
@@ -192,14 +193,18 @@ function submitEval() {
   flex: 1;
   display: flex;
   flex-direction: column;
-  background: #f5f7fa;
+  
 }
 .content-panels {
   display: flex;
   flex: 1;
-  gap: 24px;
   padding: 24px;
   overflow: hidden;
+}
+.arrows {
+  position:absolute;
+  left:55%;
+  z-index: 2;
 }
 
 /* 1) 평가 대상자 리스트 */
@@ -210,6 +215,7 @@ function submitEval() {
   padding: 16px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.05);
   overflow-y: auto;
+  margin-right: 20px;
 }
 .people-list {
   list-style: none;
@@ -251,6 +257,7 @@ function submitEval() {
   display: flex;
   flex-direction: column;
   overflow-y: auto;
+  z-index: 3;
 }
 .goals-list {
   flex: 1;
@@ -334,7 +341,7 @@ function submitEval() {
   flex: 1;
   background: #F8F9FA;
   border-radius: 12px;
-  padding: 16px;
+  padding: 30px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.05);
   display: flex;
   flex-direction: column;
@@ -381,6 +388,7 @@ function submitEval() {
   padding: 10px;
   text-align: center;
   border-bottom: 1px solid #e0e0e0;
+  border-right: 1px solid #e0e0e0;
   font-size: 0.95rem;
 }
 .detail-table th {
@@ -396,7 +404,7 @@ function submitEval() {
 .detail-table .subheader td {
   background: #f7f7f7;
   font-weight: 600;
-  border-top: 2px solid #d0d0d0;
+  
 }
 .detail-table .description {
   white-space: pre-wrap;
@@ -420,6 +428,7 @@ function submitEval() {
 }
 .form-group select,
 .form-group textarea {
+  font-family: inherit;
   width: 100%;
   padding: 12px;
   font-size: 1rem;
@@ -430,6 +439,7 @@ function submitEval() {
   box-sizing: border-box;
   resize: none;
 }
+
 .form-group select {
   appearance: none;
   background-image: url('data:image/svg+xml;utf8,<svg fill="%23888" height="24" viewBox="0 0 24 24" width="24"><path d="M7 10l5 5 5-5z"/></svg>');

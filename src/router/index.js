@@ -82,10 +82,10 @@ const router = createRouter({
             component: () => import('@/pages/MyAttendancePage.vue')
         },
 
-        // {
-        //     path: '/attendance/teamAttendance',
-        //     component: () => import('@/pages/TeamAttendancePage.vue')
-        // },
+        {
+            path: '/attendance/teamAttendance',
+            component: () => import('@/pages/TeamAttendancePage.vue')
+        },
 
         // {
         //     path: '/attendance/myCorrection',
@@ -134,6 +134,10 @@ const router = createRouter({
         //     path: '/draftdoc/mydraft/submitted',
         //     component: () => import('@/components/draftdoc/mydraft/Submitted.vue')
         // },
+        // {
+        //     path: '/draftdoc/temporarydoc',
+        //     component: () => import('@/components/draftdoc/draftcreate/TemporaryDoc.vue')
+        // }
     ]
 })
 
