@@ -1,4 +1,15 @@
 {
+  "leave": [
+    {
+      "total_days": 15,
+      "used_days": 5,
+      "remaining_days": 10,
+      "pending_leave_days": 2,
+      "first_notice_date": "2025-04-15",
+      "second_notice_date": null
+    }
+  ],
+
   "schedule": [
     {
       "work_date": "2025-05-01",
