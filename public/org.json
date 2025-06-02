@@ -1717,6 +1717,9 @@
     "is_applied": false
   }
   ],
+  "appointments":[
+
+  ],
   "appointmentDetail": [
     {
       "appointment_id": 1,

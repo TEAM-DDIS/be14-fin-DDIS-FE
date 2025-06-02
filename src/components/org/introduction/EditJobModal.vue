@@ -97,6 +97,7 @@ function onSave() {
   display: flex;
   flex-direction: column;
   align-items: center;            /* 가로 중앙 정렬 */
+  border-radius: 20px;
   gap: 12px;
   margin: 16px 0;
 }
@@ -120,30 +121,31 @@ function onSave() {
   justify-content: flex-end;
   gap: 8px;
 }
+
 .btn-cancel,
 .btn-save {
-  padding: 10px 30px;
-  border: none;
-  border-radius: 12px;
   font-size: 14px;
-  font-weight: 600;
+  font-weight: bold;
   cursor: pointer;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
   font-family: inherit;
+  background-color: #00a8e8;
+  color: white;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  padding: 10px 30px;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: background-color 0.2s, box-shadow 0.2s;
+  box-sizing: border-box;
 }
-.btn-cancel {
-  background: #eee;
-  color: #333;
-}
+
+.btn-save:hover,
 .btn-cancel:hover {
-  background: #cdcdcd;
-}
-.btn-save {
-  background: #00a8e8;
-  color: #fff;
-}
-.btn-save:hover {
-  background: #07749f;
+  background-color: white;
+  color: #00a8e8;
+  border-color: #00a8e8;
+  box-shadow:
+  inset 1px 1px 10px rgba(0, 0, 0, 0.25);
 }
 
 .modal h3 {

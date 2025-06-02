@@ -1,5 +1,6 @@
 <template>
-  <h1 class="title">조직 구성</h1>
+  <h1 class="page-title">조직 구성</h1>
+  <p class="desc">조직도 조회</p>
   <div class="content-box">
     <div class="org-dashboard">
       <!-- Left: Org Hierarchy -->
@@ -43,13 +44,15 @@
               <h4>{{ selectedEmployee.rank_name }} {{ selectedEmployee.employee_name }}</h4>
             </div>
             <ag-grid-vue
-              class="ag-theme-alpine profile-grid"
+              class="ag-theme-alpine custom-theme"
+              :gridOptions="{ theme: 'legacy' }"
               :columnDefs="profileColumnDefs"
               :rowData="profileRowData"
               :getRowClass="getRowClass"
               :domLayout="'autoHeight'"
               :headerHeight="0"
               :rowHeight="36"
+              style="width: 100%; height: 10px;"
             />
           </div>
 
@@ -72,10 +75,13 @@
       </div>
     </div>
   </div>
+  <button class="edit-button" @click="onEdit">편집</button>
+
 </template>
 
 <script setup>
 import { ref, reactive, onMounted, computed } from 'vue'
+import { useRouter } from 'vue-router' 
 import OrgHierarchy from '@/components/org/structure/Hierarchy.vue'
 
 
@@ -85,6 +91,8 @@ import { ModuleRegistry, AllCommunityModule } from 'ag-grid-community'
 import 'ag-grid-community/styles/ag-grid.css'
 import 'ag-grid-community/styles/ag-theme-alpine.css'
 ModuleRegistry.registerModules([AllCommunityModule])
+
+const router = useRouter() 
 
 // 선택된 팀, 사원
 const selectedTeam     = ref(null)
@@ -131,6 +139,16 @@ function onEmployeeSelected(emp) {
   selectedEmployee.value = emp
 }
 
+// "편집" 버튼 클릭 시 호출되는 메소드
+function onEdit() {
+  // 예시: 선택된 팀이나 사원이 있을 때
+  // 만약 수정 페이지에 선택된 팀/사원 정보를 넘기고 싶다면 query나 params로 전달
+  // 예) router.push({ name: 'OrgEdit', query: { team: selectedTeam.value?.team_code } })
+  //
+  // 아래는 단순히 '/org/edit' 경로로 이동하는 예시입니다.
+  router.push('/org/structure/edit')
+}
+
 // AG Grid 컬럼 정의
 const profileColumnDefs = [
   { field: 'label', cellClass: 'label-cell', width: 120},
@@ -170,10 +188,16 @@ const detailsRowData = computed(() => {
 </script>
 
 <style scoped>
-.title {
-  margin-left: 20px;
-  margin-bottom: 50px;
-}
+  .page-title {
+    margin-left: 20px;
+    margin-bottom: 50px;
+    color: #00a8e8;
+  }
+  .desc {
+    display: block;
+    margin-left: 20px;
+    margin-bottom: 10px;
+  }
 .content-box {
   background: #ffffff;
   border-radius: 12px;
@@ -227,6 +251,8 @@ h2 {
 }
 .member-list li.active {
   background: #efefef;
+  transition: background-color 0.2s;
+
 }
 .profile {
   width: 40px;
@@ -283,5 +309,32 @@ h2 {
 .ag-theme-alpine :deep(.label-cell) {
   /* label-cell 컬러 */
   background-color: #eeeeee !important;
+}
+
+.edit-button {
+  position: absolute;
+  top: 24px;
+  right: 24px;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+  font-family: inherit;
+  background-color: #00a8e8;
+  color: white;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  padding: 10px 30px;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: background-color 0.2s, box-shadow 0.2s;
+  box-sizing: border-box;
+}
+
+.edit-button:hover {
+  background-color: white;
+  color: #00a8e8;
+  border-color: #00a8e8;
+  box-shadow:
+  inset 1px 1px 10px rgba(0, 0, 0, 0.25);
 }
 </style>

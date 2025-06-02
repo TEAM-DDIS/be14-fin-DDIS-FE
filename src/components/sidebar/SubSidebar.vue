@@ -292,8 +292,6 @@
         border-bottom: 1px solid #ccc;
         color: #222;
         margin-top: 15px;
-
-        cursor: pointer; /* ✅ 추가: 제목에도 손가락 커서 */
         transition: color 0.2s ease;
     }
 

@@ -107,6 +107,10 @@ const router = createRouter({
 
         // 조직 및 직무 소개
         {
+            path: '/org/structure/edit',
+            component: () => import('@/components/org/structure/EditStructure.vue')
+        },
+        {
             path: '/org/introduction',
             component: () => import('@/components/org/introduction/Introduction.vue')
         },

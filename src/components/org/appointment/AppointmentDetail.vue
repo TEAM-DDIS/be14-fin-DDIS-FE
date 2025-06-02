@@ -30,6 +30,7 @@
       <div class="grid-wrapper ag-theme-alpine">
         <AgGridVue
             class="ag-theme-alpine custom-theme"
+            :gridOptions="{ theme: 'legacy' }"
             :columnDefs="detailColumnDefs"
             :rowData="rowDataDetail"
             :defaultColDef="defaultColDef"

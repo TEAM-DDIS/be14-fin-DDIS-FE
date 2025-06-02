@@ -106,32 +106,30 @@ function onSave() {
   gap: 8px;
 }
 
-.btn-cancel {
-  border: none;
-  border-radius: 12px;
-  padding: 10px 30px;
+.btn-cancel,
+.btn-save {
+  font-size: 14px;
   font-weight: bold;
   cursor: pointer;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  background: #eee;
-  color: #333;
-}
-.btn-save {
+  font-family: inherit;
   background-color: #00a8e8;
   color: white;
-  border: none;
-  border-radius: 12px;
+  border: 1px solid transparent;
+  border-radius: 10px;
   padding: 10px 30px;
-  font-weight: bold;
   cursor: pointer;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-}
-.btn-cancel:hover {
-  background-color: #cdcdcd;  
+  transition: background-color 0.2s, box-shadow 0.2s;
+  box-sizing: border-box;
 }
 
-.btn-save:hover {
-  background-color: #07749f;
+.btn-save:hover,
+.btn-cancel:hover {
+  background-color: white;
+  color: #00a8e8;
+  border-color: #00a8e8;
+  box-shadow:
+  inset 1px 1px 10px rgba(0, 0, 0, 0.25);
 }
 
 /* 모달 전체에 같은 서체 적용 */
