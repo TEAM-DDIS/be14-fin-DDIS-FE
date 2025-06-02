@@ -116,6 +116,11 @@ function onSave() {
   font-size: 14px;
   font-family: inherit;
 }
+.modal-content input:focus,
+.modal-content textarea:focus {
+    outline: none;
+    border: 1px solid black;
+}
 .modal-actions {
   display: flex;
   justify-content: flex-end;
