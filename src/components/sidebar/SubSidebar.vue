@@ -56,119 +56,188 @@
     }
     const subMenuMap = {
         '인사 정보': {
-            '내 인사정보':{
-                items:[
-                    {name:'사원 상세 조회', path: '/employeeInfo/employeeSearch'},
+            '사원 조회': {
+                items: [
+                    {
+                        name: '내 인사 정보',
+                        path: '/employeeInfo/myInfo'
+                    },
+                    {
+                        name: '사원 목록 조회',
+                        path: '/employeeInfo/employeeList'
+                    },
+                    {
+                        name: '계약서/법정서류 관리',
+                        path: '/employeeInfo/Contract'
+                    },
+                    {
+                        name: '징계 관리',
+                        path: '/employeeInfo/disciplinary'
+                    },
+                        
                 ]
-            },
-            '사원 조회':{
-
             }
         },
+
         '근태 관리': {
             '근태 현황': {
-            items: [
-                { name: '내 근태 현황', 
-                    path: '/attendance/myAttendance',
-                },
-                { name: '팀 근태 현황',
-                    path: '/attendance/teamAttendance',
-                },
-                { name: '내 출근 정정 관리', },
-                { name: '전체 출근 정정 관리', }
-            ]
+                items: [
+                    { 
+                        name: '내 근태 현황', 
+                        path: '/attendance/myAttendance',
+                    },
+                    { 
+                        name: '팀 근태 현황',
+                        path: '/attendance/teamAttendance',
+                    },
+                    { 
+                        name: '내 출근 정정 관리',
+                        path: '/attendance/myCorrection',
+                    },
+                    { 
+                        name: '전체 출근 정정 관리',
+                        path: '/attendance/allCorrection',
+                    },
+                ]
             },
             '출퇴근 관리': {
                 items: [
-                    { name: '내 출퇴근 관리', },
-                    { name: '전체 출퇴근 관리', }
+                    { 
+                        name: '내 출퇴근 관리',
+                        path: '/attendance/myCommute',
+                    },
+                    { 
+                        name: '전체 출퇴근 관리',
+                        path: '/attendance/allCommute',
+                    },
                 ]
             },
             '휴가 관리': {
                 items: [
-                    { name: '내 연차 관리', },
-                    { name: '전체 연차 관리', }
+                    { 
+                        name: '내 연차 관리',
+                        path: '/attendance/myLeave',
+                    },
+                    { 
+                        name: '전체 연차 관리',
+                        path: '/attendance/allLeave',
+                    },
                 ]
             }
         },
+        
         '조직 및 직무': {
             '조직 구성': {
                 items: [
-                    { name:'조직 구성 조회', path: '/org/structure'},
+                    { 
+                        name: '조직 구성 조회',
+                        path: '/org/structure',
+                    },
                 ]
-            },            
+            },
             '조직 및 직무 소개': {
                 items: [
-                    { name:'조직 및 직무 소개', path: '/org/introduction'}        
+                    { 
+                        name: '조직 및 직무 소개',
+                        path: '/org/introduction',
+                    },
                 ]
             },
             '인사발령': {
-                items:[
-                    {name:'인사발령 이력', path: '/org/appointment'},
-                    {name:'인사발령 등록', path: '/org/appointment/register'},
+                items: [
+                    { 
+                        name: '인사발령 이력',
+                        path: '/org/appointment',
+                    },
+                    { 
+                        name: '인사발령 등록',
+                        path: '/org/appointment/register',
+                    },
                 ]
-            }
+            },
         },
+
         '전자 결재': {
             '기안 작성': {
                 items: [
-                    {name: '기안작성', path: '/draftdoc/draftcreate'},
-                    {name: '임시저장함', path: 'draftdoc/temporarydoc' }
+                    {
+                        name: '기안작성', 
+                        path: '/draftdoc/draftcreate'
+                    },
+                    {
+                        name: '임시저장함', 
+                        path: '/draftdoc/temporarydoc'
+                    },
                 ]
             },
-            '기안함': {
+            '문서함': {
                 items: [
-                    {name: '상신문서함', path: '/draftdoc/mydraft/submitted'},
-                    {name: '완료문서함' },
-                    {name: '반려문서함' },
-                    {name: '회수문서함'}
-
+                    {
+                        name: '기안함', 
+                        path: '/draftdoc/mydraft'
+                    },
+                    {
+                        name: '결재함', 
+                        path: '/draftdoc/approve'
+                    },
+                    {
+                        name: '수신함', 
+                        path: '/draftdoc/inbox'
+                    },
+                    {
+                        name: '참조함', 
+                        path: '/draftdoc/reference'
+                    },
                 ]
-            },
-            '결재함': {
-                items: [
-                    {name: '결재대기함'},
-                    {name: '진행문서함'},
-                    {name: '결재완료함'}
-                ]
-            },
-            '수신함': {
-                items: [
-                    {name: '수신문서함'}
-                ]
-
-            },
-            '참조함': {
-                items: [
-                    {name: '참조문서함'}
-                ]
-
             },
         },
+
         '급여': {
             '급여 관리': {
                 items: [
-                    { name: '내 급여명세서 조회', path: '/salary/payroll/slip' },
-                    { name: '급여명세서 발급',   path: '/salary/payroll/issue' }
+                    { 
+                        name: '내 급여명세서 조회',
+                        path: '/salary/payroll/slip'
+                    },
+                    { 
+                        name: '급여명세서 발급', 
+                        path: '/salary/payroll/issue' 
+                    },
                 ]
             },
             '퇴직 관리': {
                 items: [
-                    { name: '예상 퇴직금 조회',   path: '/salary/retirement/estimate' },
-                    { name: '퇴직금 지급 현황',   path: '/salary/retirement/status' }
+                    { 
+                        name: '예상 퇴직금 조회', 
+                        path: '/salary/retirement/estimate' 
+                    },
+                    { 
+                        name: '퇴직금 지급 현황', 
+                        path: '/salary/retirement/status' 
+                    },
                 ]
             }
         },
+
         '평가 및 성과': {
             '평가 관리': {
                 items: [
-                    { name: '평가', path: '/org/evaluation'}
+                    { 
+                        name: '평가', 
+                        path: '/org/evaluation'
+                    },
                 ]
             },
             '성과 관리': {
                 items: [
-                    { name: '목표 및 실적 관리', path: '/org/goals'},
-                    // { name: '성과 이력', }
+                    { 
+                        name: '목표', 
+                        path: '/org/goals'
+                    },
+                    { 
+                        name: '성과 이력',
+                        path: '/org/achievment'
+                    },
                 ]
             }
         },
