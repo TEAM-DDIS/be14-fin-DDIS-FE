@@ -38,10 +38,10 @@
     <!-- 3) 페이징 + 버튼 -->
     <div class="pagination-control">
       <div class="button-group">
-        <!-- 삭제 버튼에 .btn-delete 클래스 적용 -->
+        <!-- 삭제 버튼 -->
         <button class="btn-delete" @click="onDeleteClick">삭제</button>
-        <!-- 등록 버튼에 .btn-save 클래스 적용 -->
-        <button class="btn-save">등록</button>
+        <!-- 등록 버튼: 클릭 시 onRegister 호출 -->
+        <button class="btn-save" @click="onRegister">등록</button>
       </div>
     </div>
 
@@ -64,6 +64,7 @@
 
 <script setup>
 import { ref, computed } from 'vue'
+import { useRouter } from 'vue-router'             // ← import useRouter
 import { AgGridVue } from 'ag-grid-vue3'
 import {
   ModuleRegistry,
@@ -86,6 +87,8 @@ ModuleRegistry.registerModules([
   CellStyleModule,
   ValidationModule
 ])
+
+const router = useRouter()  // ← 라우터 인스턴스 가져오기
 
 let gridApi = null
 const defaultRowHeight = 60
@@ -194,34 +197,39 @@ function getRowHeight(params) {
     ? 80
     : defaultRowHeight
 }
+
+// “등록” 버튼 클릭 시 호출되는 함수
+function onRegister() {
+  router.push('/post/postEnroll')
+}
+
+
 </script>
 
 <style scoped>
-
-
 .page-title {
   margin-left: 20px;
   margin-bottom: 50px;
   color: #00a8e8;
 }
 
-  .desc {
-    display: block;
-    margin-left: 20px;
-    margin-bottom: 10px;
-  } 
+.desc {
+  display: block;
+  margin-left: 20px;
+  margin-bottom: 10px;
+}
 
 /* 카드 스타일 */
 .card {
   background: #fff;
   border-radius: 12px;
-  box-shadow: 1px 1px 20px 1px rgba(0,0,0,0.05);
+  box-shadow: 1px 1px 20px 1px rgba(0, 0, 0, 0.05);
   width: 100%;
   height: 100%;
   min-width: 0;
   max-width: 100%;
-  margin: 20px 0 0 10;     /* 상단 32px, 좌우하단 0 */
-  padding: 20px 40px 32px 40px; /* 상 우 하 좌 */
+  margin: 20px 0 0 10px;
+  padding: 20px 40px 32px 40px;
   box-sizing: border-box;
   margin-bottom: 30px;
 }
@@ -229,13 +237,10 @@ function getRowHeight(params) {
 /* 카드 내부 검색창 */
 .search-bar-in-card {
   display: flex;
-  width: 20px;
-  height: 30px;
   align-items: center;
   margin-bottom: 20px;
   padding: 6px 8px;
   font-size: 14px;
-  color: #1F2937;
 }
 .search-bar-in-card .search-icon {
   width: 20px;
@@ -244,11 +249,12 @@ function getRowHeight(params) {
   pointer-events: none;
 }
 .search-bar-in-card .search-input {
-    border: 1px solid #D1D5DB;
-    border-radius: 4px;
-    padding: 6px 8px;
-    font-size: 14px;
-    color: #1F2937;
+  width: 100%;
+  border: 1px solid #D1D5DB;
+  border-radius: 4px;
+  padding: 6px 8px;
+  font-size: 14px;
+  color: #1F2937;
 }
 .search-bar-in-card .search-input:focus {
   outline: none;
