@@ -91,10 +91,10 @@ const router = createRouter({
         },
 
         // 전체 연차 관리
-        // {
-        //     path: '/attendance/allLeave',
-        //     component: () => import('@/pages/')
-        // },
+        {
+            path: '/attendance/allLeave',
+            component: () => import('@/pages/AllLeavePage.vue')
+        },
 
 
         // =============== 조직 및 직무 ===============
