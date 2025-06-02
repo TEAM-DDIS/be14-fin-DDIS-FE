@@ -191,10 +191,10 @@ const router = createRouter({
         // =============== 급여 관리 ===============
 
         // 내  급여 명세서 조회
-        // {
-        //     path: '/salary/payroll/slip',
-        //     component: () => import('@/components/salary/payroll/PayrollSlip.vue')
-        // },
+        {
+            path: '/salary/payroll/slip',
+            component: () => import('@/components/salary/payroll/PayrollSlip.vue')
+        },
 
         // 급여명세서 발급
         {

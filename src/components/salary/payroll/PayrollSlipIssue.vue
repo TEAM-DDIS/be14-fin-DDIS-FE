@@ -381,9 +381,9 @@ input[type="month"] {
   border: 1px solid #ccc;
 }
 
-/* ag-grid 헤더 색상 커스터마이징 */
+ag-grid 헤더 색상 커스터마이징
 .custom-grid :deep(.ag-header) {
-  background-color: #f0f0f0 !important;
+  background-color: #f8f9fa !important;
 }
 
 /* select 박스 고정 폭 */
@@ -394,13 +394,13 @@ input[type="month"] {
 /* 테이블 상단 제목 셀 스타일 */
 .main-head th,
 .table-head th {
-  background-color: #f0f0f0 !important;
+  background-color: #f8f9fa !important;
   font-weight: bold;
 }
 
 /* 서브 헤더 행 스타일 */
 .sub-head th {
-  background-color: #f0f0f0 !important;
+  background-color: #f8f9fa !important;
   font-weight: bold;
 }
 

@@ -80,10 +80,15 @@
         <span class="highlight">{{ formatCurrency(slip.netSalary || netPay) }}</span>
       </div>
 
-      <!-- 날짜 및 하단 버튼 -->
-      <div class="footer">
-        <p class="today bold">{{ today }}</p>
-        <button class="btn left no-print">메일 전송</button>
+<!-- 하단 버튼 영역 -->
+<div class="footer">
+  <p class="today bold">{{ today }}</p>
+  <button
+    v-if="props.showMailButton"
+    class="btn left no-print"
+  >
+    메일 전송
+  </button>
         <button class="btn right no-print" @click="downloadPDF">PDF 다운로드</button>
       </div>
     </div>
@@ -94,8 +99,13 @@
 import { computed, ref } from 'vue'
 import { useDateFormat } from '@vueuse/core'
 import html2pdf from 'html2pdf.js'
-
-const props = defineProps(['slip'])           // 부모에서 받은 slip 객체
+const props = defineProps({
+  slip: Object,
+  showMailButton: {
+    type: Boolean,
+    default: true
+  }
+})
 const emit = defineEmits(['close'])           // 닫기 이벤트
 const pdfContent = ref(null)                  // PDF로 출력할 영역
 
@@ -200,7 +210,7 @@ function downloadPDF() {
 }
 
 .info-table th {
-  background: #f0f0f0;
+  background: #f8f9fa;
   padding: 6px 8px;
   text-align: left;
   width: 25%;
@@ -216,7 +226,7 @@ function downloadPDF() {
 }
 .section-title-table td {
   text-align: center;
-  background: #f0f0f0;
+  background: #f8f9fa;
   font-weight: bold;
   border: 1px solid #ccc;
   padding: 10px;
@@ -228,7 +238,7 @@ function downloadPDF() {
   padding: 8px;
 }
 .sub-head th, .sub-sub-head th {
-  background: #f0f0f0;
+  background: #f8f9fa;
   font-weight: bold;
   border: 1px solid #ccc;
 }
@@ -251,7 +261,7 @@ function downloadPDF() {
   color: #00a8e8;
 }
 .gray-row {
-  background-color: #f0f0f0;
+  background-color: #f8f9fa;
   border: 1px solid #e0e0e0;
 }
 
@@ -261,7 +271,7 @@ function downloadPDF() {
   justify-content: space-between;
   padding: 10px;
   font-weight: bold;
-  background-color: #f0f0f0;
+  background-color:#f8f9fa;
 }
 
 /* 하단 버튼 및 날짜 */
