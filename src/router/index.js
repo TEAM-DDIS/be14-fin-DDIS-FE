@@ -12,6 +12,10 @@ const router = createRouter({
             component: () => import('@/components/org/structure/Structure.vue')
         },
         {
+            path: '/org/structure/edit',
+            component: () => import('@/components/org/structure/EditStructure.vue')
+        },
+        {
             path: '/org/introduction',
             component: () => import('@/components/org/introduction/Introduction.vue')
         },

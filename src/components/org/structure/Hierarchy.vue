@@ -172,16 +172,18 @@ function getTeamRep(teamCode) {
   margin-right: 6px;
 }
 .node.head {
-  font-weight: 600;
+  font-weight: bold;
   font-size: 20px;
   margin-bottom: 12px;
 }
 .node.dept {
   font-size: 18px;
+  font-weight:bold;
   margin-bottom: 12px;
 }
 .node.team {
   font-size: 17px;
+  font-weight:bold;
   margin-bottom: 10px;
 }
 .node.emp {
@@ -189,5 +191,18 @@ function getTeamRep(teamCode) {
   margin-bottom: 8px;
   color: #555;
   cursor: default;
+}
+
+.node.head,
+.node.dept,
+.node.team {
+  transition: background-color 0.2s;
+}
+
+.node.head:hover,
+.node.dept:hover,
+.node.team:hover {
+  background-color: #eee;
+  border-radius: 4px;
 }
 </style>
