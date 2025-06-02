@@ -1,20 +1,22 @@
 <template>
   <div class="notice-wrapper">
     <h1 class="page-title">공지사항</h1>
-
-    <!-- 1) 검색창 -->
-    <div class="search-bar">
-      <img src="@/assets/icons/search.svg" alt="검색" class="search-icon" />
-      <input
-        type="text"
-        v-model="searchText"
-        placeholder="제목을 입력하세요."
-        @input="onSearch"
-      />
-    </div>
+    <p class="desc">공지사항 목록</p>
 
     <!-- 2) AG Grid 영역 -->
     <div class="card">
+      <!-- 검색창을 카드 안으로 옮겼습니다 -->
+      <div class="search-bar-in-card">
+        <img src="@/assets/icons/search.svg" alt="검색" class="search-icon" />
+        <input
+          type="text"
+          v-model="searchText"
+          placeholder="제목을 입력하세요."
+          @input="onSearch"
+          class="search-input"
+        />
+      </div>
+
       <div class="ag-theme-alpine ag-grid-box">
         <AgGridVue
           class="ag-theme-alpine custom-theme"
@@ -35,15 +37,6 @@
 
     <!-- 3) 페이징 + 버튼 -->
     <div class="pagination-control">
-      <div>
-        <label>행 개수 보기:</label>
-        <select v-model.number="pageSize">
-          <option :value="5">5</option>
-          <option :value="10">10</option>
-          <option :value="20">20</option>
-          <option :value="50">50</option>
-        </select>
-      </div>
       <div class="button-group">
         <!-- 삭제 버튼에 .btn-delete 클래스 적용 -->
         <button class="btn-delete" @click="onDeleteClick">삭제</button>
@@ -70,11 +63,6 @@
 </template>
 
 <script setup>
-/*--------------------------------------------------
-  1) AG Grid CSS import (가장 먼저)
---------------------------------------------------*/
-
-
 import { ref, computed } from 'vue'
 import { AgGridVue } from 'ag-grid-vue3'
 import {
@@ -88,9 +76,7 @@ import {
   ValidationModule
 } from 'ag-grid-community'
 
-/*--------------------------------------------------
-  2) AG Grid 모듈 등록
---------------------------------------------------*/
+// AG Grid 모듈 등록
 ModuleRegistry.registerModules([
   AllCommunityModule,
   ClientSideRowModelModule,
@@ -101,13 +87,10 @@ ModuleRegistry.registerModules([
   ValidationModule
 ])
 
-/*--------------------------------------------------
-  3) 데이터 및 상태 선언
---------------------------------------------------*/
 let gridApi = null
 const defaultRowHeight = 60
 
-// 컬럼 정의 (체크박스, 번호, 제목, 작성자, 작성일자)
+// 컬럼 정의
 const columnDefs = ref([
   {
     headerName: '',
@@ -175,9 +158,7 @@ const filteredData = computed(() => {
   )
 })
 
-/*--------------------------------------------------
-  4) 그리드 이벤트 핸들러
---------------------------------------------------*/
+// 그리드 준비 시
 function onGridReady(params) {
   gridApi = params.api
 }
@@ -207,7 +188,7 @@ function confirmDelete() {
   showDeleteModal.value = false
 }
 
-// 제목 길이에 따라 rowHeight 조정
+// rowHeight 동적 결정
 function getRowHeight(params) {
   return params.data && params.data.title.length > 20
     ? 80
@@ -216,51 +197,62 @@ function getRowHeight(params) {
 </script>
 
 <style scoped>
-.notice-wrapper {
-  padding: 20px;
-}
+
+
 .page-title {
-  font-size: 24px;
-  font-weight: bold;
-  margin: 0 0 20px 20px;
+  margin-left: 20px;
+  margin-bottom: 50px;
   color: #00a8e8;
 }
 
-/* 검색창 */
-.search-bar {
-  position: relative;
-  width: 50%;
-  max-width: 250px;
-  height: 60px;
-  display: flex;
-  align-items: center;
-  margin-left: 20px;
-}
-.search-bar .search-icon {
-  position: absolute;
-  left: 10px;
-  width: 16px;
-  height: 16px;
-  pointer-events: none;
-}
-.search-bar input {
-  width: 100%;
-  padding: 8px 12px 8px 36px; /* 아이콘 공간 확보 */
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  font-size: 14px;
-}
-.search-bar input:focus {
-  outline: none;
-  border-color: #888;
-}
+  .desc {
+    display: block;
+    margin-left: 20px;
+    margin-bottom: 10px;
+  } 
 
+/* 카드 스타일 */
 .card {
   background: #fff;
   border-radius: 12px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.08);
-  padding: 20px;
-  margin: 0 20px 20px;
+  box-shadow: 1px 1px 20px 1px rgba(0,0,0,0.05);
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  max-width: 100%;
+  margin: 20px 0 0 10;     /* 상단 32px, 좌우하단 0 */
+  padding: 20px 40px 32px 40px; /* 상 우 하 좌 */
+  box-sizing: border-box;
+  margin-bottom: 30px;
+}
+
+/* 카드 내부 검색창 */
+.search-bar-in-card {
+  display: flex;
+  width: 20px;
+  height: 30px;
+  align-items: center;
+  margin-bottom: 20px;
+  padding: 6px 8px;
+  font-size: 14px;
+  color: #1F2937;
+}
+.search-bar-in-card .search-icon {
+  width: 20px;
+  height: 20px;
+  margin-right: 8px;
+  pointer-events: none;
+}
+.search-bar-in-card .search-input {
+    border: 1px solid #D1D5DB;
+    border-radius: 4px;
+    padding: 6px 8px;
+    font-size: 14px;
+    color: #1F2937;
+}
+.search-bar-in-card .search-input:focus {
+  outline: none;
+  border-color: #1F2937;
 }
 
 /* 그리드 컨테이너 (높이 고정) */
@@ -271,16 +263,18 @@ function getRowHeight(params) {
   overflow: hidden;
 }
 
-/* AG Grid 알파인 테마 변수 */
-
+/* 페이징 + 버튼 영역 */
+.pagination-control {
+  display: flex;
+  justify-content: flex-end;
+  margin: 0 20px 20px;
+}
 .button-group {
   display: flex;
   gap: 10px;
-  justify-content: flex-end;
-  margin-right: 20px;
 }
 
-/* . btn-save, btn-delete 스타일 추가 */
+/* btn-save, btn-delete 스타일 */
 .btn-save {
   background-color: #00a8e8;
   color: white;
@@ -301,7 +295,7 @@ function getRowHeight(params) {
 }
 
 .btn-delete {
-  background-color: #D3D3D3;
+  background-color: #d3d3d3;
   color: #000;
   border: none;
   border-radius: 10px;
@@ -352,6 +346,4 @@ function getRowHeight(params) {
 .modal-buttons .btn-save {
   width: 48%;
 }
-
-/* 필요하다면 .register/.delete .cancel/.confirm 등 기존 클래스 제거 가능 */
 </style>

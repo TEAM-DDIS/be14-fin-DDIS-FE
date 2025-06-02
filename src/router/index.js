@@ -139,9 +139,69 @@ const router = createRouter({
         //     component: () => import('@/components/draftdoc/mydraft/Submitted.vue')
         // }
         // {
-        //     path: '/draftdoc/temporarydoc',
-        //     component: () => import('@/components/draftdoc/draftcreate/TemporaryDoc.vue')
-        // }
+        //     path: '/salary/payroll/slip',
+        //     component: () => import('@/components/salary/payroll/PayrollSlip.vue')
+        // },
+
+        // 급여명세서 발급
+        // {
+        //     path: '/salary/payroll/issue',
+        //     component: () => import('@/components/salary/payroll/PayrollSlipIssue.vue')
+        // },
+
+        // 예상 퇴직금 조회
+        // {
+        //     path: '/salary/retirement/estimate',
+        //     component: () => import('@/components/salary/retirement/RetirementEstimate.vue')
+        // },
+
+        // 퇴직금 지급 현황
+        // {
+        //     path: '/salary/retirement/status',
+        //     component: () => import('@/components/salary/retirement/RetirementPaymentStatus.vue')
+        // },
+
+
+        // =============== 평가 및 성과 ===============
+
+        // 평가
+        {
+            path: '/org/evaluation',
+            component: () => import('@/components/Evaluation/EvaluationPage.vue')
+        },
+
+        // 목표 설정
+        {
+            path: '/org/goals',
+            component: () => import('@/components/Goals/GoalListPage.vue')
+        },
+
+        // 성과 이력
+        // {
+        //     path: '/org/achievment',
+        //     component: () => import('@/')
+        // },
+        
+
+        // =============== 공지사항 ===============
+
+        {
+            path: '/post',
+            component: () => import('@/components/post/PostListPage.vue')
+        },
+
+        // {
+        //     path: '/post/postEnroll',
+        //     component: () => import('@/components/post/PostEnrollPage.vue')
+        // },
+
+
+        // =============== 용어사전 ===============
+
+        // {
+        //     path: '/dictionary',
+        //     component: () => import('@/')
+        // },
     ]
 })
 
