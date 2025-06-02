@@ -85,16 +85,16 @@ const router = createRouter({
         // },
 
         // 내 연차 관리
-        // {
-        //     path: '/attendance/myLeave',
-        //     component: () => import('@/pages/')
-        // },
+        {
+            path: '/attendance/myLeave',
+            component: () => import('@/pages/MyLeavePage.vue')
+        },
 
         // 전체 연차 관리
-        // {
-        //     path: '/attendance/allLeave',
-        //     component: () => import('@/pages/')
-        // },
+        {
+            path: '/attendance/allLeave',
+            component: () => import('@/pages/AllLeavePage.vue')
+        },
 
 
         // =============== 조직 및 직무 ===============
@@ -197,10 +197,10 @@ const router = createRouter({
         // },
 
         // 급여명세서 발급
-        // {
-        //     path: '/salary/payroll/issue',
-        //     component: () => import('@/components/salary/payroll/PayrollSlipIssue.vue')
-        // },
+        {
+            path: '/salary/payroll/issue',
+            component: () => import('@/components/salary/payroll/PayrollSlipIssue.vue')
+        },
 
         // 예상 퇴직금 조회
         // {
@@ -238,10 +238,19 @@ const router = createRouter({
 
         // =============== 공지사항 ===============
 
-        // {
-        //     path: '/post',
-        //     component: () => import('@/components/post/PostListPage.vue')
-        // },
+
+        // 공지사항 목록 조회
+        {
+            path: '/post',
+            component: () => import('@/components/post/PostListPage.vue')
+        },
+
+
+        // 공지사항 등록 
+        {
+            path: '/post/postEnroll',
+            component: () => import('@/components/post/PostEnroll.vue')
+        },
 
 
         // =============== 용어사전 ===============

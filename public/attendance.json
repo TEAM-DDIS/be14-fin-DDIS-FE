@@ -1,4 +1,162 @@
 {
+  "leave": [
+    {
+      "total_days": 15,
+      "used_days": 5,
+      "remaining_days": 10,
+      "pending_leave_days": 2,
+      "first_notice_date": "2025-04-15",
+      "second_notice_date": null
+    }
+  ],
+
+  "leave_used": [
+  {
+    "id": 1,
+    "type": "연차",
+    "status": "승인",
+    "request_date": "2025-03-31",
+    "start_date": "2025-03-31",
+    "end_date": "2025-03-31",
+    "days": 1,
+    "reason": "개인사유",
+    "rejection_reason": "-"
+  },
+  {
+    "id": 2,
+    "type": "연차",
+    "status": "반려",
+    "request_date": "2025-03-31",
+    "start_date": "2025-03-31",
+    "end_date": "2025-03-31",
+    "days": 1,
+    "reason": "휴가",
+    "rejection_reason": "서류 미제출"
+  }
+],
+
+"leave_applied": [
+  {
+    "id": 1,
+    "type": "연차",
+    "status": "승인",
+    "request_date": "2025-03-31",
+    "start_date": "2025-03-31",
+    "end_date": "2025-03-31",
+    "days": 1,
+    "reason": "개인사유",
+    "rejection_reason": "-"
+  },
+  {
+    "id": 2,
+    "type": "연차",
+    "status": "대기중",
+    "request_date": "2025-03-31",
+    "start_date": "2025-03-31",
+    "end_date": "2025-03-31",
+    "days": 1,
+    "reason": "휴가",
+    "rejection_reason": null
+  }
+],
+
+  "all_leave_used": [
+    {
+      "id": 27,
+      "employeeId": "1826058",
+      "employeeName": "김완형",
+      "type": "연차",
+      "status": "승인",
+      "request_date": "2025-03-31",
+      "start_date": "2025-03-31",
+      "end_date": "2025-03-31",
+      "days": 1,
+      "reason": "개인사유",
+      "rejection_reason": "-"
+    },
+    {
+      "id": 26,
+      "employeeId": "1826058",
+      "employeeName": "김완형",
+      "type": "연차",
+      "status": "승인",
+      "request_date": "2025-03-30",
+      "start_date": "2025-03-30",
+      "end_date": "2025-03-30",
+      "days": 1,
+      "reason": "휴가",
+      "rejection_reason": "-"
+    },
+    {
+      "id": 25,
+      "employeeId": "1826058",
+      "employeeName": "김완형",
+      "type": "오전반차",
+      "status": "승인",
+      "request_date": "2025-03-29",
+      "start_date": "2025-03-29",
+      "end_date": "2025-03-29",
+      "days": 0.5,
+      "reason": "개인사유",
+      "rejection_reason": "-"
+    },
+    {
+      "id": 24,
+      "employeeId": "1826058",
+      "employeeName": "김완형",
+      "type": "연차",
+      "status": "반려",
+      "request_date": "2025-03-28",
+      "start_date": "2025-03-28",
+      "end_date": "2025-03-28",
+      "days": 1,
+      "reason": "휴가",
+      "rejection_reason": "서류 미제출"
+    }
+  ],
+
+  "all_leave_applied": [
+    {
+      "id": 12,
+      "employeeId": "1826058",
+      "employeeName": "김완형",
+      "type": "연차",
+      "status": "대기중",
+      "request_date": "2025-04-01",
+      "start_date": "2025-04-03",
+      "end_date": "2025-04-03",
+      "days": 1,
+      "reason": "개인사유",
+      "rejection_reason": null
+    },
+    {
+      "id": 11,
+      "employeeId": "1830059",
+      "employeeName": "박지민",
+      "type": "오후반차",
+      "status": "대기중",
+      "request_date": "2025-04-01",
+      "start_date": "2025-04-04",
+      "end_date": "2025-04-04",
+      "days": 0.5,
+      "reason": "병원진료",
+      "rejection_reason": null
+    },
+    {
+      "id": 10,
+      "employeeId": "1830088",
+      "employeeName": "이준호",
+      "type": "연차",
+      "status": "대기중",
+      "request_date": "2025-04-01",
+      "start_date": "2025-04-05",
+      "end_date": "2025-04-05",
+      "days": 1,
+      "reason": "휴가",
+      "rejection_reason": null
+    }
+  ],
+
   "schedule": [
     {
       "work_date": "2025-05-01",
