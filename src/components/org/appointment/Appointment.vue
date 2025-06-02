@@ -21,9 +21,9 @@
           placeholder="사원번호"
           v-model="filterEmployee"
         />
-        <button class="action-btn primary" @click="onSearch">
+        <!-- <button class="action-btn primary" @click="onSearch">
           <i class="fa fa-search"></i> 조회
-        </button>
+        </button> -->
       </div>
       <div class="actions">
         <button class="action-btn secondary" @click="onDelete">
@@ -160,20 +160,22 @@
   .filter-box {
     display: flex;
     flex-direction: column;
-    align-items: center;
+    align-items: flex-end;
     gap: 12px;
     margin-bottom: 16px;
     padding: 16px 24px;
   }
   .filters {
     display: flex;
+    align-items: end;
     align-items: center;
-    gap: 12px;
+    gap: 20px;
   }
   .actions {
     display: flex;
     gap: 8px;
     align-self: flex-end;
+    margin-left: auto;
     margin-top: 8px;
   }
   .filters label {
@@ -182,12 +184,25 @@
   }
   .filters select,
   .filters input {
-    border: 1px solid #D1D5DB;
-    border-radius: 4px;
+    border: 1px solid #c8c8c8;
+    border-radius: 8px;
     padding: 6px 8px;
     font-size: 14px;
-    color: #1F2937;
+    color: #000000;
   }
+  .filters input {
+    width: 250px;
+  }
+  .filters select {
+    width: 160px;
+  }
+
+  .filters select:focus,
+  .filters input:focus {
+    outline: none;
+    border: 1px solid black;
+  }
+
   .action-btn {
     display: inline-flex;
     align-items: center;

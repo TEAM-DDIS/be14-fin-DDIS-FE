@@ -8,23 +8,23 @@
       <div class="toolbar-card">
         <h2 class="toolbar-label">조직도 편집</h2>
 
-        <!-- ＋ 버튼: 모달 열기 (임시로 주석) -->
+        <!-- ＋ 버튼: AddModal 열기 -->
         <button class="toolbar-btn" @click="openAddModal">
           <p class="toolbar-btn-detail">＋</p>
         </button>
 
-        <!-- － 버튼: 삭제 모달 열기 (임시로 주석) -->
+        <!-- － 버튼: DeleteModal 열기 -->
         <button class="toolbar-btn" @click="openDeleteModal">
           <p class="toolbar-btn-detail">－</p>
         </button>
 
-        <!-- 검색 입력란: 엔터 키누르면 searchOrg 호출 -->
+        <!-- 검색 입력란: 엔터 키 누르면 searchOrg 호출 -->
         <div class="search">
           <img src="@/assets/icons/search.svg" alt="search" class="search-img" />
           <input
             type="text"
             v-model="searchKeyword"
-            placeholder="부서 또는 팀 이름/코드를 입력 후 Enter"
+            placeholder="조직 검색"
             class="toolbar-search"
             @keyup.enter="searchOrg"
           />
@@ -117,7 +117,7 @@
             <ul class="info-list">
               <div class="button-group">
                 <button class="btn-dept" @click="showMovePanel = true">팀 이동</button>
-                <button class="btn-employee" @click="showMovePanel = true">팀팀원 이동</button>
+                <button class="btn-employee" @click="showMovePanel = true">팀원 이동</button>
               </div>
               <h3 class="section-title">팀 정보</h3>
               <li><strong>팀명: </strong> {{ selectedTeam.team_name }}</li>
@@ -196,8 +196,23 @@
       </div>
     </div>
 
-    <!-- ⑤ 신규 조직 등록 모달 (생략) -->
-    <!-- ⑥ 조직 삭제 모달 (생략) -->
+    <!-- 신규 조직 등록 모달 -->
+    <AddModal
+      v-if="showAddModal"
+      :orgOptions="orgOptions"
+      @close="closeAddModal"
+      @submit="handleAddOrg"
+    />
+
+    <!-- 조직 삭제 모달 -->
+    <DeleteModal
+      v-if="showDeleteModal"
+      :orgOptions="orgOptions"
+      :initialType="deleteType"
+      :deleteListAll="deleteListAll"
+      @close="closeDeleteModal"
+      @confirm="handleDeleteOrg"
+    />
   </div>
 </template>
 
@@ -205,70 +220,114 @@
 import { ref, reactive, onMounted, computed } from 'vue'
 import OrgHierarchyAll from '@/components/org/structure/HierarchyAll.vue'
 import EditHierarchy from '@/components/org/structure/EditHierarchy.vue'
+import AddModal from '@/components/org/structure/AddModal.vue'
+import DeleteModal from '@/components/org/structure/DeleteModal.vue'
 
 const dataStore = reactive({
   introduction: [],
   job: [],
-  headquarters: [],
-  departments: [],
-  teams: [],
+  headquarters: [],   // { head_id, head_code, head_name }
+  departments: [],    // { department_id, department_code, department_name, head_id }
+  teams: [],          // { team_id, team_code, team_name, department_id }
   position: [],
   rank: [],
-  appointment: [],
-  appointmentDetail: [],
   employees: []
 })
 
 const dataLoaded = ref(false)
-
-// 검색어
 const searchKeyword = ref('')
 
-// 선택된 부서/팀/직원
-const selectedDept = ref(null)
-const selectedTeam = ref(null)
-const selectedEmployee = ref(null)
+const selectedDept     = ref(null)  // 선택된 부서 객체
+const selectedTeam     = ref(null)  // 선택된 팀 객체
+const selectedEmployee = ref(null)  // 선택된 직원 객체
 
-// “부서 이동” 패널 표시 여부
 const showMovePanel = ref(false)
 
-// 부서소개, 팀소개 (info-panel에서 사용)
+const showAddModal    = ref(false)
+const showDeleteModal = ref(false)
+
+// 조직 종류 옵션 (“본부/부서/팀”)
+const orgOptions = [
+  { id: 'head', name: '본부' },
+  { id: 'dept', name: '부서' },
+  { id: 'team', name: '팀' }
+]
+
+const deleteType = ref('')
+// deleteListAll: dataStore 값이 바뀔 때마다 자동 업데이트
+const deleteListAll = computed(() => {
+  return {
+    head: dataStore.headquarters.map(hq => ({
+      value: hq.head_id,
+      label: `${hq.head_name} (코드: ${hq.head_code})`
+    })),
+    dept: dataStore.departments.map(dept => ({
+      value: dept.department_id,
+      label: `${dept.department_name} (코드: ${dept.department_code})`
+    })),
+    team: dataStore.teams.map(tm => ({
+      value: tm.team_id,
+      label: `${tm.team_name} (코드: ${tm.team_code})`
+    }))
+  }
+})
+// 실제 DeleteModal에 넘길 deleteList (선택 조직 종류별 필터링 결과)
+const deleteList = computed(() => {
+  return deleteListAll.value[ deleteType.value ] || []
+})
+
+
 const deptIntroduction = computed(() => {
   if (!selectedDept.value) return { tags: [] }
   return (
-    dataStore.introduction.find(
-      i =>
-        i.introduction_type === '부서' &&
-        i.department_id === selectedDept.value.department_id
-    ) || { introduction_context: '', tags: [] }
+    dataStore.introduction.find(i => i.introduction_type === '부서' && i.department_id === selectedDept.value.department_id)
+    || { introduction_context: '', tags: [] }
   )
 })
 const teamIntroduction = computed(() => {
   if (!selectedTeam.value) return { tags: [] }
   return (
-    dataStore.introduction.find(
-      i =>
-        i.introduction_type === '팀' &&
-        i.team_id === selectedTeam.value.team_id
-    ) || { introduction_context: '', tags: [] }
+    dataStore.introduction.find(i => i.introduction_type === '팀' && i.team_id === selectedTeam.value.team_id)
+    || { introduction_context: '', tags: [] }
   )
 })
 
-// 부서/팀 클릭 핸들러
+onMounted(async () => {
+  try {
+    const res   = await fetch('/org.json')
+    const oData = await res.json()
+    dataStore.introduction = oData.introduction
+    dataStore.job          = oData.job
+    dataStore.headquarters = oData.headquarters
+    dataStore.departments  = oData.department
+    dataStore.teams        = oData.team
+    dataStore.position     = oData.position
+    dataStore.rank         = oData.rank
+    dataStore.employees    = oData.employees.map(e => ({
+      ...e,
+      position_name: oData.position.find(p => p.position_code === e.position_code)?.position_name || '',
+      rank_name:     oData.rank.find(r => r.rank_code === e.rank_code)?.rank_name || ''
+    }))
+    dataLoaded.value = true
+  } catch (err) {
+    console.error('org.json 로드 실패:', err)
+  }
+})
+
 function onDeptSelected(dept) {
-  console.log('부서 선택:', dept)
-  selectedDept.value = dept
-  selectedTeam.value = null
+  selectedDept.value     = dept
+  selectedTeam.value     = null
   selectedEmployee.value = null
 }
 function onTeamSelected(team) {
-  console.log('팀 선택:', team)
-  selectedTeam.value = team
-  selectedDept.value = null
+  selectedTeam.value     = team
+  selectedDept.value     = null
   selectedEmployee.value = null
 }
+function onEmployeeClick(emp) {
+  selectedEmployee.value = emp
+}
 
-// 드래그&드롭 이동 트리의 부서/팀 선택 (임시로 콘솔 출력)
 function onDeptSelectedForMove(dept) {
   console.log('이동용 부서 선택 ▶', dept)
 }
@@ -276,7 +335,6 @@ function onTeamSelectedForMove(team) {
   console.log('이동용 팀 선택 ▶', team)
 }
 
-// 이동 취소 / 수정
 function cancelMove() {
   showMovePanel.value = false
 }
@@ -284,7 +342,6 @@ function confirmMove() {
   showMovePanel.value = false
 }
 
-// 부서 소개, 팀 소개 접근용
 function getHeadNameById(headId) {
   const h = dataStore.headquarters.find(hq => hq.head_id === headId)
   return h ? h.head_name : ''
@@ -298,7 +355,6 @@ function getHeadNameByDept(departmentId) {
   return d ? getHeadNameById(d.head_id) : ''
 }
 
-// 직원 목록 필터
 function employeesByDept(deptCode) {
   return dataStore.employees.filter(e => e.department_code === deptCode)
 }
@@ -306,35 +362,30 @@ function employeesByTeam(teamCode) {
   return dataStore.employees.filter(e => e.team_code === teamCode)
 }
 
-// 검색 함수: 엔터 누르면 호출됨
 function searchOrg() {
   const key = searchKeyword.value.trim().toLowerCase()
-  console.log('searchOrg() 호출, 키워드=', key)
-
   if (!key) {
     alert('검색어를 입력해 주세요.')
     return
   }
 
-  // 1) 부서명 또는 코드 검색
+  // 부서명 또는 부서코드 검색
   const foundDept = dataStore.departments.find(
     d =>
       d.department_name.toLowerCase().includes(key) ||
       d.department_code.toLowerCase().includes(key)
   )
-  console.log('foundDept=', foundDept)
   if (foundDept) {
     onDeptSelected(foundDept)
     return
   }
 
-  // 2) 팀명 또는 코드 검색
+  // 팀명 또는 팀코드 검색
   const foundTeam = dataStore.teams.find(
     t =>
       t.team_name.toLowerCase().includes(key) ||
       t.team_code.toLowerCase().includes(key)
   )
-  console.log('foundTeam=', foundTeam)
   if (foundTeam) {
     onTeamSelected(foundTeam)
     return
@@ -343,37 +394,37 @@ function searchOrg() {
   alert('검색 결과가 없습니다.')
 }
 
-// mounted 시 org.json 데이터 로드
-onMounted(async () => {
-  try {
-    const res = await fetch('/org.json')
-    const oData = await res.json()
-    dataStore.introduction = oData.introduction
-    dataStore.job = oData.job
-    dataStore.headquarters = oData.headquarters
-    dataStore.departments = oData.department
-    dataStore.teams = oData.team
-    dataStore.position = oData.position
-    dataStore.rank = oData.rank
-    dataStore.appointment = oData.appointment
-    dataStore.appointmentDetail = oData.appointmentDetail
-    dataStore.employees = oData.employees.map(e => ({
-      ...e,
-      position_name:
-        oData.position.find(p => p.position_code === e.position_code)
-          ?.position_name || '',
-      rank_name:
-        oData.rank.find(r => r.rank_code === e.rank_code)?.rank_name || ''
-    }))
-    dataLoaded.value = true
-    console.log('org.json 데이터 로드 완료', dataStore)
-  } catch (err) {
-    console.error('org.json 로드 실패:', err)
-  }
-})
+// AddModal / DeleteModal: 열기/닫기/처리 로직
+function openAddModal() {
+  showAddModal.value = true
+}
+// AddModal 닫기
+function closeAddModal() {
+  showAddModal.value = false
+}
 
-// (모달 관련 함수들은 생략)
+function handleAddOrg(payload) {
+  console.log('신규 조직 등록 →', payload)
+  // TODO: 실제 등록 API 호출 또는 dataStore 갱신 로직 추가
+  showAddModal.value = false
+}
 
+// “－” 버튼 클릭 → DeleteModal 열기
+function openDeleteModal() {
+  deleteType.value = ''       // 모달 열 때 초기화
+  showDeleteModal.value = true
+}
+// DeleteModal 닫기
+function closeDeleteModal() {
+  showDeleteModal.value = false
+}
+
+function handleDeleteOrg(payload) {
+  console.log('삭제할 조직 종류:', payload.type)
+  console.log('선택된 ID들:', payload.ids)
+  // TODO: 실제 삭제 API 호출 또는 dataStore 갱신 로직 추가
+  showDeleteModal.value = false
+}
 </script>
 
 <style scoped>
@@ -383,21 +434,24 @@ onMounted(async () => {
   margin: 0;
   padding: 0;
 }
+
 .page-title {
   margin-left: 20px;
   margin-bottom: 30px;
   color: #00a8e8;
 }
+
 .desc {
   display: block;
   margin-left: 20px;
   margin-bottom: 8px;
 }
+
 .page-container {
   padding: 20px;
 }
 
-/* Toolbar */
+/* ① 조직도 편집 툴바 */
 .toolbar-card {
   display: flex;
   align-items: center;
@@ -409,11 +463,13 @@ onMounted(async () => {
   margin-bottom: 50px;
   gap: 15px;
 }
+
 .toolbar-label {
   font-weight: bold;
   font-size: 20px;
   margin-right: 12px;
 }
+
 .toolbar-btn {
   width: 40px;
   height: 40px;
@@ -428,15 +484,31 @@ onMounted(async () => {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   transition: background-color 0.2s, box-shadow 0.2s;
 }
+
 .toolbar-btn:hover {
   background-color: #fff;
   color: #00a8e8;
   border: 1px solid #00a8e8;
 }
+
 .toolbar-btn-detail {
   margin-bottom: 2px;
   line-height: 1;
 }
+
+/* 검색 입력란 */
+.search {
+  display: flex;
+  align-items: center;
+  margin-left: auto;
+  gap: 8px;
+}
+
+.search-img {
+  width: 25px;
+  height: 25px;
+}
+
 .toolbar-search {
   padding: 6px 12px;
   border: 1px solid #dddddd;
@@ -445,15 +517,10 @@ onMounted(async () => {
   width: 310px;
   height: 50%;
 }
-.search-img {
-  width: 25px;
-  height: 25px;
-}
-.search {
-  display: flex;
-  align-items: center;
-  margin-left: auto;
-  gap: 8px; /* 아이콘과 입력칸 사이 간격 */
+
+.toolbar-search:focus {
+    outline: none;
+    border: 1px solid black;
 }
 
 /* 3열 레이아웃 */
@@ -463,6 +530,7 @@ onMounted(async () => {
   gap: 24px;
   align-items: stretch;
 }
+
 .section {
   display: flex;
   flex-direction: column;
@@ -480,6 +548,7 @@ onMounted(async () => {
   min-height: 0;
   overflow: hidden;
 }
+
 .card-title {
   font-weight: bold;
   margin-bottom: 12px;
@@ -489,11 +558,13 @@ onMounted(async () => {
 .tree-panel {
   overflow-y: auto;
 }
+
 .tree-container {
   flex: 1;
   overflow-y: auto;
   padding-right: 8px;
 }
+
 .loading {
   text-align: center;
   color: #888;
@@ -509,45 +580,55 @@ onMounted(async () => {
   padding-bottom: 2px;
   margin-bottom: 12px;
 }
+
 .info-panel {
   overflow-y: auto;
   overflow-x: auto;
   padding: 30px 40px;
 }
+
 .info-list {
   list-style: none;
   font-size: 18px;
   margin-bottom: 40px;
 }
+
 .info-list li {
   margin-bottom: 6px;
 }
+
 .member-section {
   margin-top: 16px;
 }
+
 .member-table {
   width: 100%;
   border-collapse: collapse;
   font-size: 14px;
   margin-bottom: 20px;
 }
+
 .member-table th,
 .member-table td {
   border: 1px solid #ddd;
   padding: 6px;
   text-align: left;
 }
+
 .member-table th {
   background: #f9fafb;
   font-weight: 500;
 }
+
 .member-table tr.active {
   background: #ececec;
 }
+
 .no-data {
   text-align: center;
   color: #888;
 }
+
 .placeholder-info {
   color: #00a8e8;
   font-size: 18px;
@@ -564,6 +645,7 @@ onMounted(async () => {
   margin-bottom: 20px;
   justify-content: flex-end;
 }
+
 .btn-dept,
 .btn-employee {
   font-size: 14px;
@@ -578,6 +660,7 @@ onMounted(async () => {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   transition: background-color 0.2s, box-shadow 0.2s;
 }
+
 .btn-dept:hover,
 .btn-employee:hover {
   background-color: #fff;
@@ -591,22 +674,26 @@ onMounted(async () => {
   flex-direction: column;
   padding: 30px 40px;
 }
+
 .move-instruction {
   font-size: 16px;
   color: #555;
   margin-bottom: 12px;
 }
+
 .move-tree-container {
   flex: 1;
   overflow-y: auto;
   padding-right: 8px;
 }
+
 .move-buttons {
   display: flex;
   justify-content: flex-end;
   margin-top: 12px;
   gap: 16px;
 }
+
 .btn-cancel,
 .btn-confirm {
   font-size: 14px;
@@ -621,6 +708,7 @@ onMounted(async () => {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   transition: background-color 0.2s, box-shadow 0.2s;
 }
+
 .btn-cancel:hover,
 .btn-confirm:hover {
   background-color: #fff;

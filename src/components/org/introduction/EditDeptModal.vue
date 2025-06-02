@@ -161,6 +161,10 @@ function onSave() {
   font-size: 15px;
   line-height: 1.4;
 }
+.modal-content textarea:focus {
+    outline: none;
+    border: 1px solid black;
+}
 
 /* 버튼 텍스트 스타일 */
 .btn-cancel,
