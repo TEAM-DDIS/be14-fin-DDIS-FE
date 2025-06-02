@@ -24,46 +24,45 @@
 </template>
 
 <script setup>
-import PersonalCalendar from '../components/calendar/PersonalCalendar.vue'
-import AttendanceSummaryCard from '../components/attendance/AttendanceSummaryCard.vue'
-import WeeklyOvertimeCard from '../components/attendance/WeeklyOvertimeCard.vue'
-import PersonalEventCard from '../components/attendance/PersonalEventCard.vue'
+  import PersonalCalendar from '../components/calendar/PersonalCalendar.vue'
+  import AttendanceSummaryCard from '../components/attendance/AttendanceSummaryCard.vue'
+  import WeeklyOvertimeCard from '../components/attendance/WeeklyOvertimeCard.vue'
 </script>
 
 <style scoped>
-.page-title {
+  .page-title {
+      margin-left: 20px;
+      margin-bottom: 50px;
+      color: #00a8e8;
+    }
+
+  .desc {
+    display: block;
     margin-left: 20px;
-    margin-bottom: 50px;
-    color: #00a8e8;
+    margin-bottom: 10px;
   }
 
-.desc {
-  display: block;
-  margin-left: 20px;
-  margin-bottom: 10px;
-}
+  .my-attendance-page {
+    display: flex;
+    gap: 40px;
+    padding: 20px;
+  }
 
-.my-attendance-page {
-  display: flex;
-  gap: 40px;
-  padding: 20px;
-}
+  .left-panel {
+    width: 400px;
+    display: flex;
+    flex-direction: column;
+  }
 
-.left-panel {
-  width: 400px;
-  display: flex;
-  flex-direction: column;
-}
+  .attendance-summary-card {
+    margin-bottom: 30px;
+  }
 
-.attendance-summary-card {
-  margin-bottom: 30px;
-}
+  .weekly-over-time-card {
+    margin-bottom: 30px;
+  }
 
-.weekly-over-time-card {
-  margin-bottom: 30px;
-}
-
-.right-panel {
-    flex: 1;
-}
+  .right-panel {
+      flex: 1;
+  }
 </style>
