@@ -190,7 +190,6 @@ const router = createRouter({
         //     component: () => import('@/components/post/PostListPage.vue')
         // },
 
-        
 
 
         // =============== 용어사전 ===============
