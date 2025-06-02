@@ -238,10 +238,19 @@ const router = createRouter({
 
         // =============== 공지사항 ===============
 
-        // {
-        //     path: '/post',
-        //     component: () => import('@/components/post/PostListPage.vue')
-        // },
+
+        // 공지사항 목록 조회
+        {
+            path: '/post',
+            component: () => import('@/components/post/PostListPage.vue')
+        },
+
+
+        // 공지사항 등록 
+        {
+            path: '/post/postEnroll',
+            component: () => import('@/components/post/PostEnroll.vue')
+        },
 
 
         // =============== 용어사전 ===============
