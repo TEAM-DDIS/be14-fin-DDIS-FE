@@ -2,7 +2,7 @@
   <div class="notice-wrapper">
     <h1 class="page-title">공지사항</h1>
 
-    <!-- 검색창 -->
+    <!-- 1) 검색창 -->
     <div class="search-bar">
       <img src="@/assets/icons/search.svg" alt="검색" class="search-icon" />
       <input
@@ -13,12 +13,13 @@
       />
     </div>
 
-    <!-- AG Grid -->
+    <!-- 2) AG Grid 영역 -->
     <div class="card">
       <div class="ag-theme-alpine ag-grid-box">
         <AgGridVue
-          class="ag-grid"
-          style="width:100%; height:100%;"
+          class="ag-theme-alpine custom-theme"
+          :gridOptions="{ theme: 'legacy' }"
+          style="width: 100%; height: 500px;"
           :columnDefs="columnDefs"
           :rowData="filteredData"
           rowSelection="multiple"
@@ -32,7 +33,7 @@
       </div>
     </div>
 
-    <!-- 페이징 + 버튼 -->
+    <!-- 3) 페이징 + 버튼 -->
     <div class="pagination-control">
       <div>
         <label>행 개수 보기:</label>
@@ -44,18 +45,24 @@
         </select>
       </div>
       <div class="button-group">
-        <button class="btn delete" @click="onDeleteClick">삭제</button>
-        <button class="btn register">등록</button>
+        <!-- 삭제 버튼에 .btn-delete 클래스 적용 -->
+        <button class="btn-delete" @click="onDeleteClick">삭제</button>
+        <!-- 등록 버튼에 .btn-save 클래스 적용 -->
+        <button class="btn-save">등록</button>
       </div>
     </div>
 
-    <!-- 삭제 확인 모달 -->
+    <!-- 4) 삭제 확인 모달 -->
     <div v-if="showDeleteModal" class="modal-overlay">
       <div class="modal-content">
         <p>정말로 선택된 항목을 삭제하시겠습니까?</p>
         <div class="modal-buttons">
-          <button class="btn cancel" @click="cancelDelete">취소</button>
-          <button class="btn confirm" @click="confirmDelete">확인</button>
+          <button class="btn-delete cancel" @click="cancelDelete">
+            취소
+          </button>
+          <button class="btn-save confirm" @click="confirmDelete">
+            확인
+          </button>
         </div>
       </div>
     </div>
@@ -63,12 +70,16 @@
 </template>
 
 <script setup>
+/*--------------------------------------------------
+  1) AG Grid CSS import (가장 먼저)
+--------------------------------------------------*/
+
+
 import { ref, computed } from 'vue'
 import { AgGridVue } from 'ag-grid-vue3'
-import 'ag-grid-community/styles/ag-theme-alpine.css'
-
 import {
   ModuleRegistry,
+  AllCommunityModule,
   ClientSideRowModelModule,
   RowSelectionModule,
   PaginationModule,
@@ -77,8 +88,11 @@ import {
   ValidationModule
 } from 'ag-grid-community'
 
-// AG Grid 모듈 등록
+/*--------------------------------------------------
+  2) AG Grid 모듈 등록
+--------------------------------------------------*/
 ModuleRegistry.registerModules([
+  AllCommunityModule,
   ClientSideRowModelModule,
   RowSelectionModule,
   PaginationModule,
@@ -87,28 +101,53 @@ ModuleRegistry.registerModules([
   ValidationModule
 ])
 
-// 그리드 API를 저장할 변수
+/*--------------------------------------------------
+  3) 데이터 및 상태 선언
+--------------------------------------------------*/
 let gridApi = null
-
-// 기본 행 높이
 const defaultRowHeight = 60
 
-// 컬럼 정의 (첫 번째 열에 체크박스용 설정 추가)
+// 컬럼 정의 (체크박스, 번호, 제목, 작성자, 작성일자)
 const columnDefs = ref([
   {
     headerName: '',
     field: 'checkbox',
-    checkboxSelection: true,       // 각 행 체크박스 활성화
-    headerCheckboxSelection: true, // 헤더 전체 선택 체크박스 활성화
+    checkboxSelection: true,
+    headerCheckboxSelection: true,
     width: 50,
-    pinned: 'left',                // 왼쪽 고정
-    cellClass: 'checkbox-cell',    // 아래 CSS 클래스
+    pinned: 'left',
+    cellClass: 'checkbox-cell',
     headerClass: 'checkbox-header-cell'
   },
-  { headerName: '번호',     field: 'id',     width: 100, cellClass: 'center-align', headerClass: 'header-number' },
-  { headerName: '제목',     field: 'title',  flex: 2,  autoHeight: true, cellStyle: { whiteSpace: 'normal' }, headerClass: 'header-title' },
-  { headerName: '작성자',   field: 'writer', flex: 1,  cellClass: 'center-align', headerClass: 'header-writer' },
-  { headerName: '작성일자', field: 'date',   flex: 1,  cellClass: 'center-align', headerClass: 'header-date' }
+  {
+    headerName: '번호',
+    field: 'id',
+    width: 100,
+    cellClass: 'center-align',
+    headerClass: 'header-number'
+  },
+  {
+    headerName: '제목',
+    field: 'title',
+    flex: 2,
+    autoHeight: true,
+    cellStyle: { whiteSpace: 'normal' },
+    headerClass: 'header-title'
+  },
+  {
+    headerName: '작성자',
+    field: 'writer',
+    flex: 1,
+    cellClass: 'center-align',
+    headerClass: 'header-writer'
+  },
+  {
+    headerName: '작성일자',
+    field: 'date',
+    flex: 1,
+    cellClass: 'center-align',
+    headerClass: 'header-date'
+  }
 ])
 
 // 더미 데이터
@@ -125,24 +164,25 @@ const rowData = ref(
 )
 
 const searchText = ref('')
-const pageSize   = ref(10)
+const pageSize = ref(10)
 const showDeleteModal = ref(false)
 
+// 필터링된 데이터
 const filteredData = computed(() => {
   if (!searchText.value) return rowData.value
-  return rowData.value.filter(r =>
+  return rowData.value.filter((r) =>
     r.title.toLowerCase().includes(searchText.value.toLowerCase())
   )
 })
 
-// Ag-Grid가 준비되면 호출되는 콜백
+/*--------------------------------------------------
+  4) 그리드 이벤트 핸들러
+--------------------------------------------------*/
 function onGridReady(params) {
   gridApi = params.api
 }
 
-// 삭제 버튼 클릭 시 모달 열기
 function onDeleteClick() {
-  // 선택된 항목이 없으면 모달을 띄우지 않음
   const selectedRows = gridApi.getSelectedRows()
   if (selectedRows.length === 0) {
     alert('삭제할 항목을 선택하세요.')
@@ -151,29 +191,27 @@ function onDeleteClick() {
   showDeleteModal.value = true
 }
 
-// 모달 취소
 function cancelDelete() {
   showDeleteModal.value = false
 }
 
-// 모달 확인 시 실제 삭제 수행
 function confirmDelete() {
   const selectedRows = gridApi.getSelectedRows()
   if (selectedRows.length > 0) {
-    // rowData에서 선택된 항목 제외
     const remaining = rowData.value.filter(
       (row) => !selectedRows.includes(row)
     )
     rowData.value = remaining
-    // 그리드에서 선택 제거
     gridApi.deselectAll()
   }
   showDeleteModal.value = false
 }
 
-// 동적 행 높이 결정
+// 제목 길이에 따라 rowHeight 조정
 function getRowHeight(params) {
-  return params.data && params.data.title.length > 20 ? 80 : defaultRowHeight
+  return params.data && params.data.title.length > 20
+    ? 80
+    : defaultRowHeight
 }
 </script>
 
@@ -188,7 +226,7 @@ function getRowHeight(params) {
   color: #00a8e8;
 }
 
-/* 검색창 컨테이너 */
+/* 검색창 */
 .search-bar {
   position: relative;
   width: 50%;
@@ -207,9 +245,9 @@ function getRowHeight(params) {
 }
 .search-bar input {
   width: 100%;
-  padding: 8px 12px 8px 36px; /* 왼쪽에 아이콘 공간(36px) 확보 */
+  padding: 8px 12px 8px 36px; /* 아이콘 공간 확보 */
   border: 1px solid #ccc;
-  border-radius: 4px;
+  border-radius: 8px;
   font-size: 14px;
 }
 .search-bar input:focus {
@@ -225,6 +263,7 @@ function getRowHeight(params) {
   margin: 0 20px 20px;
 }
 
+/* 그리드 컨테이너 (높이 고정) */
 .ag-grid-box {
   height: 500px;
   border: 1px solid #d9d9d9;
@@ -232,108 +271,53 @@ function getRowHeight(params) {
   overflow: hidden;
 }
 
-/* AG Grid 테마 변수 */
-:deep(.ag-theme-alpine) {
-  --ag-background-color: #fff;
-  --ag-header-background-color: #e0f7fa;
-  --ag-header-foreground-color: #006064;
-  --ag-border-color: transparent;
-  --ag-row-hover-color: #f1f8e9;
-}
+/* AG Grid 알파인 테마 변수 */
 
-/* ———————————————————————————————————————————— */
-/* 1) 헤더 셀과 바디 셀 좌우 패딩 맞추기                       */
-/* ———————————————————————————————————————————— */
-:deep(.ag-theme-alpine .ag-header-cell) {
-  padding: 0 12px !important;
-  box-sizing: border-box;
-  border-bottom: 1px solid #b2ebf2; /* 기존 border-bottom 유지 */
-}
-
-/* 짝수/홀수 행 색상 */
-:deep(.ag-theme-alpine .ag-row:nth-child(odd) .ag-cell) {
-  background-color: #fafafa;
-}
-:deep(.ag-theme-alpine .ag-row:nth-child(even) .ag-cell) {
-  background-color: #fff;
-}
-
-/* 2) 바디 셀 기본 패딩 및 세로 정렬 */
-:deep(.ag-theme-alpine .ag-cell) {
-  border-bottom: 1px solid #e0e0e0;
-  border-left: none;
-  border-right: none;
-  padding: 0 12px;
-  line-height: 60px; /* 기본 rowHeight(60px) 기준 세로 중앙 */
-}
-
-.center-align {
-  text-align: center;
-}
-
-:deep(.ag-theme-alpine .ag-paging-panel) {
-  justify-content: center;
-  padding: 8px 0;
-}
-
-/* ———————————————————————————————————————————— */
-/* 3) 체크박스 전용 바디 셀 (flex 중앙 정렬, padding 제거)         */
-/* ———————————————————————————————————————————— */
-.checkbox-cell {
-  display: flex !important;
-  justify-content: center !important;
-  align-items: center !important;
-  padding: 0 !important;
-}
-:deep(.checkbox-cell .ag-checkbox-input) {
-  position: relative !important;
-  top: 50% !important;
-  transform: translateY(-50%) !important;
-  margin: 0 !important;
-}
-
-/* ———————————————————————————————————————————— */
-/* 4) 체크박스 전용 헤더 셀 (flex 중앙 정렬, margin-left로 좌측 맞춤) */
-/* ———————————————————————————————————————————— */
-.checkbox-header-cell {
-  display: flex !important;
-  justify-content: center !important;
-  align-items: center !important;
-  padding: 0 !important;
-  margin-left: 12px; /* 일반 헤더 텍스트와 시작 지점 맞춤 */
-}
-:deep(.checkbox-header-cell .ag-checkbox-input) {
-  position: relative !important;
-  top: 50% !important;
-  transform: translateY(-50%) !important;
-  margin: 0 !important;
-}
-
-/* ———————————————————————————————————————————— */
-/* 5) 검색창, 페이징 + 버튼 등 하단 영역                       */
-/* ———————————————————————————————————————————— */
-.pagination-control {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin: 0 20px 20px;
-}
 .button-group {
   display: flex;
   gap: 10px;
-}
-.btn {
-  background: #00a8e8;
-  color: #fff;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 4px;
-  cursor: pointer;
+  justify-content: flex-end;
+  margin-right: 20px;
 }
 
-/* ———————————————————————————————————————————— */
-/* 6) 삭제 확인 모달 스타일                                      */
-/* ———————————————————————————————————————————— */
+/* . btn-save, btn-delete 스타일 추가 */
+.btn-save {
+  background-color: #00a8e8;
+  color: white;
+  font-weight: bold;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  padding: 10px 30px;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: background-color 0.2s, box-shadow 0.2s;
+  box-sizing: border-box;
+}
+.btn-save:hover {
+  background-color: white;
+  color: #00a8e8;
+  border-color: #00a8e8;
+  box-shadow: inset 1px 1px 10px rgba(0, 0, 0, 0.25);
+}
+
+.btn-delete {
+  background-color: #D3D3D3;
+  color: #000;
+  border: none;
+  border-radius: 10px;
+  padding: 10px 30px;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: background-color 0.2s, box-shadow 0.2s;
+  box-sizing: border-box;
+}
+.btn-delete:hover {
+  background-color: #000;
+  color: #fff;
+}
+
+/* 삭제 확인 모달 스타일 */
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -362,14 +346,12 @@ function getRowHeight(params) {
   display: flex;
   justify-content: space-between;
 }
-.modal-buttons .btn {
+.modal-buttons .btn-delete {
   width: 48%;
 }
-.modal-buttons .cancel {
-  background: #ccc;
-  color: #333;
+.modal-buttons .btn-save {
+  width: 48%;
 }
-.modal-buttons .confirm {
-  background: #e74c3c;
-}
+
+/* 필요하다면 .register/.delete .cancel/.confirm 등 기존 클래스 제거 가능 */
 </style>
