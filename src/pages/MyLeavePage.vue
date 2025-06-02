@@ -1,5 +1,5 @@
 <template>
-    <h1 class="page-title">내 연차 현황</h1>
+    <h1 class="page-title">내 연차 관리</h1>
     <div class="my-leave-page">
         <div class="leave-count-card">
             <span class="desc">연차 현황</span>
