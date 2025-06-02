@@ -144,10 +144,10 @@ const router = createRouter({
         // },
 
         // 급여명세서 발급
-        // {
-        //     path: '/salary/payroll/issue',
-        //     component: () => import('@/components/salary/payroll/PayrollSlipIssue.vue')
-        // },
+        {
+            path: '/salary/payroll/issue',
+            component: () => import('@/components/salary/payroll/PayrollSlipIssue.vue')
+        },
 
         // 예상 퇴직금 조회
         // {
