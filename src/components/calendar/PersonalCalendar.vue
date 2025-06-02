@@ -233,7 +233,6 @@
         margin-bottom: 20px;
     }
 
-
     /* 요일 헤더 색상 */
     .fc-col-header-cell.fc-day-sun {
         color: red;

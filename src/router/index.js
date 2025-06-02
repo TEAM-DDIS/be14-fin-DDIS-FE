@@ -85,10 +85,10 @@ const router = createRouter({
         // },
 
         // 내 연차 관리
-        // {
-        //     path: '/attendance/myLeave',
-        //     component: () => import('@/pages/')
-        // },
+        {
+            path: '/attendance/myLeave',
+            component: () => import('@/pages/MyLeavePage.vue')
+        },
 
         // 전체 연차 관리
         // {

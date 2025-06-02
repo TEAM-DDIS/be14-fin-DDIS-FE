@@ -1,4 +1,65 @@
 {
+  "leave": [
+    {
+      "total_days": 15,
+      "used_days": 5,
+      "remaining_days": 10,
+      "pending_leave_days": 2,
+      "first_notice_date": "2025-04-15",
+      "second_notice_date": null
+    }
+  ],
+
+  "leave_used": [
+  {
+    "id": 1,
+    "type": "연차",
+    "status": "승인",
+    "request_date": "2025-03-31",
+    "start_date": "2025-03-31",
+    "end_date": "2025-03-31",
+    "days": 1,
+    "reason": "개인사유",
+    "rejection_reason": "-"
+  },
+  {
+    "id": 2,
+    "type": "연차",
+    "status": "반려",
+    "request_date": "2025-03-31",
+    "start_date": "2025-03-31",
+    "end_date": "2025-03-31",
+    "days": 1,
+    "reason": "휴가",
+    "rejection_reason": "서류 미제출"
+  }
+],
+
+"leave_applied": [
+  {
+    "id": 1,
+    "type": "연차",
+    "status": "승인",
+    "request_date": "2025-03-31",
+    "start_date": "2025-03-31",
+    "end_date": "2025-03-31",
+    "days": 1,
+    "reason": "개인사유",
+    "rejection_reason": "-"
+  },
+  {
+    "id": 2,
+    "type": "연차",
+    "status": "대기중",
+    "request_date": "2025-03-31",
+    "start_date": "2025-03-31",
+    "end_date": "2025-03-31",
+    "days": 1,
+    "reason": "휴가",
+    "rejection_reason": null
+  }
+],
+
   "schedule": [
     {
       "work_date": "2025-05-01",
