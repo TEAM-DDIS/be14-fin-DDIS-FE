@@ -1,56 +1,89 @@
-<!-- EditHierarchy.vue -->
 <template>
-  <div class="edit-hierarchy">
-    <ul class="head-list">
-      <li
-        v-for="head in heads"
-        :key="head.head_id"
-        class="node head-node"
-       @dragover.prevent="onDragOver($event, 'head', head)"
-       @dragleave="onDragLeave($event)"
-       @drop="onDrop('head', head)"
-      >
-        <!-- 본부 이름 (드롭 대상) -->
-        <div class="node-label">
-          <i class="fa fa-building-o icon-head"></i>
-          {{ head.head_name }}
+  <div class="org-container">
+    <!-- 최상위 회사 노드 -->
+    <div
+      class="node head-root"
+      @click="toggleRoot"
+      :class="{ 'expanded-root': expandedRoot }"
+    >
+      <i :class="expandedRoot ? 'fa fa-chevron-down' : 'fa fa-chevron-right'"></i>
+      DDIS <span class="rep">{{ getCompanyRep() }}</span>
+    </div>
+
+    <!-- DDIS가 펼쳐져 있을 때 본부 목록 표시 -->
+    <ul v-show="expandedRoot" class="org-list">
+      <li v-for="hq in headquarters" :key="hq.head_code">
+        <!-- 본부 노드 -->
+        <div
+          class="node head"
+          @click="toggleHead(hq.head_code)"
+          @dragover.prevent="onDragOver"
+          @dragleave="onDragLeave"
+          @drop="onDrop('head', hq, $event)"
+        >
+          <i :class="expanded[hq.head_code] ? 'fa fa-chevron-down' : 'fa fa-chevron-right'" />
+          {{ hq.head_name }}
+          <small>(본부장: {{ getHeadRep(hq.head_code) }})</small>
         </div>
 
-        <!-- 이 본부에 속한 부서 목록 -->
-        <ul class="dept-list">
+        <!-- 본부가 펼쳐져 있을 때 하위 부서 목록 표시 -->
+        <ul v-show="expanded[hq.head_code]">
           <li
-            v-for="dept in departmentsUnderHead(head.head_id)"
-            :key="dept.department_id"
-            class="node dept-node"
-            draggable="true"
-            @dragstart="onDragStart('department', dept)"
-            @dragover.prevent
-            @drop="onDrop('department', dept)"
-            @click.stop="selectDept(dept)"
+            v-for="dept in getDepartments(hq.head_id)"
+            :key="dept.department_code"
           >
-            <!-- 부서 이름 (드래그 가능 + 클릭 시 ‘dept-selected’ 이벤트 발생) -->
-            <div class="node-label">
-              <i class="fa fa-sitemap icon-dept"></i>
+            <!-- 부서 노드: 클릭 시 토글/emit, draggable -->
+            <div
+              class="node dept"
+              @click.stop="selectDepartment(dept)"
+              draggable="true"
+              @dragstart="onDragStart('department', dept)"
+              @dragover.prevent="onDragOver"
+              @dragleave="onDragLeave"
+              @drop="onDrop('department', dept, $event)"
+            >
+              <i
+                :class="expanded[dept.department_code]
+                  ? 'fa fa-chevron-down'
+                  : 'fa fa-chevron-right'"
+              />
               {{ dept.department_name }}
+              <small>(부서장: {{ getDeptRep(dept.department_code) }})</small>
             </div>
 
-            <!-- 이 부서에 속한 팀 목록 -->
-            <ul class="team-list">
+            <!-- 부서가 펼쳐져 있을 때 하위 팀 표시 -->
+            <ul v-show="expanded[dept.department_code]">
               <li
-                v-for="team in teamsUnderDept(dept.department_id)"
-                :key="team.team_id"
-                class="node team-node"
-                draggable="true"
-                @dragstart="onDragStart('team', team)"
-                @dragover.prevent
-                @drop="onDrop('team', team)"
-                @click.stop="selectTeam(team)"
+                v-for="team in getTeams(dept.department_id)"
+                :key="team.team_code"
               >
-                <!-- 팀 이름 (드래그 가능 + 클릭 시 ‘team-selected’ 이벤트 발생) -->
-                <div class="node-label">
-                  <i class="fa fa-users icon-team"></i>
+                <!-- 팀 노드: 클릭 시 토글/emit, draggable -->
+                <div
+                  class="node team"
+                  @click.stop="selectTeam(team)"
+                  draggable="true"
+                  @dragstart="onDragStart('team', team)"
+                  @dragover.prevent="onDragOver"
+                  @dragleave="onDragLeave"
+                  @drop="onDrop('team', team, $event)"
+                >
+                  <i
+                    :class="expanded[team.team_code]
+                      ? 'fa fa-chevron-down'
+                      : 'fa fa-chevron-right'"
+                  />
                   {{ team.team_name }}
+                  <small>(팀장: {{ getTeamRep(team.team_code) }})</small>
                 </div>
+
+                <!-- 팀이 펼쳐졌을 때 직원 표시 -->
+                <ul v-show="expanded[team.team_code]">
+                  <li v-for="emp in getEmployeesByTeam(team.team_code)" :key="emp.employee_id">
+                    <div class="node emp">
+                      {{ emp.rank_name }} {{ emp.position_name }}: {{ emp.employee_name }}
+                    </div>
+                  </li>
+                </ul>
               </li>
             </ul>
           </li>
@@ -61,18 +94,14 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { reactive, ref, onMounted } from 'vue'
 
-/**
- * Props:
- *  - heads:      [{ head_id, head_name, head_code }, ...]
- *  - departments:[{ department_id, department_name, department_code, head_id }, ...]
- *  - teams:      [{ team_id, team_name, team_code, department_id }, ...]
- *  - employees:  (드래그&드롭 시 참고용으로 넘겨두었으나, 여기서는 사용하지 않음)
- *  - positions, ranks: (조회용으로 넘겨두었으나, 여기서는 사용하지 않음)
- */
+// 부모 컴포넌트로 이벤트 전달(dept-selected, team-selected)
+const emit = defineEmits(['dept-selected', 'team-selected'])
+
+// props로 전달받는 데이터
 const props = defineProps({
-  heads: {
+  headquarters: {
     type: Array,
     required: true
   },
@@ -84,174 +113,248 @@ const props = defineProps({
     type: Array,
     required: true
   },
-  employees: Array,
-  positions: Array,
-  ranks: Array
+  employees: {
+    type: Array,
+    required: true
+  },
+  positions: {
+    type: Array,
+    required: true
+  },
+  ranks: {
+    type: Array,
+    required: true
+  }
 })
 
-const emit = defineEmits([
-  'dept-selected',  // 부서 이름 클릭 시 부모에게 알려줌
-  'team-selected'   // 팀 이름 클릭 시 부모에게 알려줌
-])
+// 1) 최상위 “DDIS” 노드 펼침 상태
+const expandedRoot = ref(true) // 기본값을 true로 두어 처음에 본부가 보이도록 함
 
-// 드래그 중인 아이템(type: 'department'|'team', item: 실제 객체)
+// 2) 각 본부/부서/팀 펼침 상태 저장용
+const expanded = reactive({})
+
+// 3) 드래그 중인 객체 정보 (type: 'department'|'team', item: 객체)
 const dragData = ref({ type: null, item: null })
 
-/**
- * 드래그 시작할 때 호출
- * @param {String} type  - 'department' 또는 'team'
- * @param {Object} item  - 드래그하고 있는 실제 부서/팀 객체
- */
+// 최상위 “DDIS” 토글
+function toggleRoot() {
+  expandedRoot.value = !expandedRoot.value
+}
+
+// 본부 토글
+function toggleHead(headCode) {
+  expanded[headCode] = !expanded[headCode]
+}
+// 부서 토글
+function toggleDept(deptCode) {
+  expanded[deptCode] = !expanded[deptCode]
+}
+// 팀 토글
+function toggleTeam(teamCode) {
+  expanded[teamCode] = !expanded[teamCode]
+}
+
+// 부서 선택 시 토글 후 이벤트 emit
+function selectDepartment(dept) {
+  toggleDept(dept.department_code)
+  emit('dept-selected', dept)
+}
+
+// 팀 선택 시 토글 후 이벤트 emit
+function selectTeam(team) {
+  toggleTeam(team.team_code)
+  emit('team-selected', team)
+}
+
+// 드래그 시작: type과 해당 아이템을 저장
 function onDragStart(type, item) {
   dragData.value = { type, item }
 }
+// 드래그 오버 시 시각 강조
+function onDragOver(event) {
+  const node = event.currentTarget.querySelector('.node')
+  if (node) node.classList.add('drag-over')
+}
+// 드래그 떠날 때 강조 제거
+function onDragLeave(event) {
+  const node = event.currentTarget.querySelector('.node')
+  if (node) node.classList.remove('drag-over')
+}
 
-/**
- * 드롭할 때 호출
- * @param {String} targetType  - 드롭 대상의 타입('head','department','team')
- * @param {Object} targetItem  - 드롭 대상 객체
- */
-function onDrop(targetType, targetItem) {
-  // 부서를 본부 위에 드롭했다면 → 해당 부서의 head_id를 바꿔준다
-  if (dragData.value.type === 'department' && targetType === 'head') {
-    dragData.value.item.head_id = targetItem.head_id
+// 드롭 처리: 부서→본부, 팀→부서 이동
+function onDrop(targetType, targetItem, event) {
+  const node = event.currentTarget.querySelector('.node')
+  if (node) node.classList.remove('drag-over')
+
+  const { type, item } = dragData.value
+
+  if (type === 'department' && targetType === 'head') {
+    // 부서를 새로운 본부로 이동: head_id 갱신
+    item.head_id = targetItem.head_id
+  } else if (type === 'team' && targetType === 'department') {
+    // 팀을 새로운 부서로 이동: department_id 갱신
+    item.department_id = targetItem.department_id
   }
-  // 팀을 부서 위에 드롭했다면 → 해당 팀의 department_id를 바꿔준다
-  else if (dragData.value.type === 'team' && targetType === 'department') {
-    dragData.value.item.department_id = targetItem.department_id
-  }
-  // 그 외(예를 들어 팀을 팀 위에 드롭 같은 허용하지 않는 경우)는 무시
 
   // 드래그 데이터 초기화
   dragData.value = { type: null, item: null }
 }
 
-/**
- * 특정 본부 ID에 속한 부서들만 필터링
- * @param {Number} headId
- * @returns {Array} 해당 본부의 부서 리스트
- */
-function departmentsUnderHead(headId) {
+// 본부 ID로 해당 본부의 부서 목록을 반환
+function getDepartments(headId) {
   return props.departments.filter(d => d.head_id === headId)
 }
-
-/**
- * 특정 부서 ID에 속한 팀들만 필터링
- * @param {Number} deptId
- * @returns {Array} 해당 부서의 팀 리스트
- */
-function teamsUnderDept(deptId) {
-  return props.teams.filter(t => t.department_id === deptId)
+// 부서 ID로 해당 부서의 팀 목록을 반환
+function getTeams(departmentId) {
+  return props.teams.filter(t => t.department_id === departmentId)
+}
+// 팀 코드로 해당 팀에 속한 직원 목록을 반환
+function getEmployeesByTeam(teamCode) {
+  return props.employees.filter(e => e.team_code === teamCode)
 }
 
-/**
- * 부서 노드 클릭 시
- */
-function selectDept(dept) {
-  emit('dept-selected', dept)
+// “회사 대표” (position_code = 'P005') 조회
+function getCompanyRep() {
+  const ceo = props.employees.find(e => e.position_code === 'P005')
+  return ceo ? ceo.employee_name : ''
 }
-
-/**
- * 팀 노드 클릭 시
- */
-function selectTeam(team) {
-  emit('team-selected', team)
+// 해당 본부의 “본부장” (position_code = 'P004') 조회
+function getHeadRep(headCode) {
+  const h = props.employees.find(
+    e => e.head_code === headCode && e.position_code === 'P004'
+  )
+  return h ? h.employee_name : ''
+}
+// 해당 부서의 “부서장” (position_code = 'P003') 조회
+function getDeptRep(deptCode) {
+  const d = props.employees.find(
+    e => e.department_code === deptCode && e.position_code === 'P003'
+  )
+  return d ? d.employee_name : ''
+}
+// 해당 팀의 “팀장” (position_code = 'P002') 조회
+function getTeamRep(teamCode) {
+  const t = props.employees.find(
+    e => e.team_code === teamCode && e.position_code === 'P002'
+  )
+  return t ? t.employee_name : ''
 }
 </script>
 
 <style scoped>
-.edit-hierarchy {
-  font-family: “Noto Sans KR”, sans-serif;
+.org-container {
   font-size: 14px;
   color: #333;
+  padding: 0 12px;
 }
 
-/* 최상위 본부(Head) 리스트 */
-.head-list {
-  list-style: none;
-  padding-left: 0;
-  margin: 0;
-}
-
-/* 본부 노드 */
-.head-node {
-  margin-bottom: 8px;
-  padding: 4px 0;
-}
-
-/* 부서 리스트 */
-.dept-list {
-  list-style: none;
-  padding-left: 20px;
-  margin: 4px 0 0;
-}
-
-/* 부서 노드 */
-.dept-node {
-  margin-bottom: 4px;
-  padding: 4px 0;
-}
-
-/* 팀 리스트 */
-.team-list {
-  list-style: none;
-  padding-left: 20px;
-  margin: 2px 0 0;
-}
-
-/* 팀 노드 */
-.team-node {
-  margin-bottom: 2px;
-  padding: 4px 0;
-}
-
-/* 공통 노드 레이블 */
-.node-label {
+/* 최상위 DDIS 노드 스타일 */
+.node.head-root {
+  font-size: 20px;
+  font-weight: bold;
+  margin-bottom: 12px;
   display: flex;
   align-items: center;
-  padding: 2px 8px;
-  border-radius: 6px;
   cursor: pointer;
-  user-select: none;
 }
-
-/* 드래그 가능한 요소에 약간의 호버/포커스 스타일 */
-.node-label:hover {
-  background-color: #f1f8ff;
-}
-
-/* 본부 아이콘 */
-.icon-head {
+.node.head-root i {
   margin-right: 6px;
-  color: #2f80ed;
+  font-size: 12px;
+  color: #00a8e8;
 }
-/* 부서 아이콘 */
-.icon-dept {
-  margin-right: 6px;
-  color: #219653;
-}
-/* 팀 아이콘 */
-.icon-team {
-  margin-right: 6px;
-  color: #f2994a;
+/* “EXPANDED” 상태도 강조 표시 */
+.expanded-root {
+  background-color: #f0f8ff;
+  border-radius: 4px;
+  padding: 2px 4px;
 }
 
-/* 드롭 가능한 노드(Head 또는 Department)에 시각적 강조선 추가 */
-.head-node .node-label,
-.dept-node .node-label {
-  border: 1px solid transparent;
+/* 계층별 리스트 */
+.org-list,
+.org-list ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
 }
-.head-node .node-label.drag-over,
-.dept-node .node-label.drag-over {
-  border-color: #2f80ed;
-  background-color: #eaf4ff;
+.org-list li {
+  position: relative;
+  padding-left: 24px;
 }
 
-/* 드래그 시 불투명도 조절 */
-.node-label[draggable="true"] {
-  user-select: none;
+/* 세로 라인 */
+.org-list li::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 8px;
+  width: 2px;
+  height: 100%;
+  background: #ccc;
 }
-.node-label[draggable="true"]:active {
-  opacity: 0.6;
+/* 가로 라인 */
+.org-list li::after {
+  content: '';
+  position: absolute;
+  top: 12px;
+  left: 8px;
+  width: 15px;
+  height: 2px;
+  background: #ccc;
+}
+
+.node {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 4px;
+}
+.node i {
+  margin-right: 6px;
+  font-size: 12px;
+  color: #00a8e8;
+}
+
+/* 본부/부서/팀/직원 폰트 크기 차등 적용 */
+.node.head,
+.node.dept,
+.node.team {
+  font-weight: bold;
+}
+.node.head {
+  font-size: 20px;
+  margin-bottom: 12px;
+}
+.node.dept {
+  font-size: 20px;
+  margin-bottom: 8px;
+}
+.node.team {
+  font-size: 18px;
+  margin-bottom: 6px;
+}
+.node.emp {
+  font-size: 16px;
+  margin-bottom: 5px;
+  color: #555;
+  cursor: default;
+}
+.node i {
+  margin-right: 6px;
+  font-size: 12px;
+  color: #00a8e8;
+}
+
+/* Hover 시 강조 효과 */
+.node.head:hover,
+.node.dept:hover,
+.node.team:hover {
+  background-color: #f0f0f0;
+}
+
+/* 드래그 오버 시 강조 스타일 */
+.drag-over {
+  border: 1px solid #2f80ed !important;
+  background-color: #eaf4ff !important;
 }
 </style>

@@ -6,30 +6,42 @@
     <div class="section">
       <p class="desc">조직도 편집</p>
       <div class="toolbar-card">
-        <label for="org-select" class="toolbar-label">조직도 편집</label>
-        <select id="org-select" v-model="selectedOrg" class="toolbar-select">
+        <!-- 툴바 제목 -->
+        <h2 class="toolbar-label">조직도 편집</h2>
+
+        <!-- 조직 종류 선택 셀렉트 -->
+        <!-- <select id="org-select" v-model="selectedOrg" class="toolbar-select">
           <option disabled value="">조직 선택</option>
           <option v-for="org in orgOptions" :key="org.id" :value="org.id">
             {{ org.name }}
           </option>
-        </select>
-        <button class="toolbar-btn" @click="addOrg"><i class="fa fa-plus"></i></button>
-        <button class="toolbar-btn" @click="removeOrg"><i class="fa fa-minus"></i></button>
-        <input
-          type="text"
-          v-model="searchKeyword"
-          placeholder="검색"
-          class="toolbar-search"
-        />
-        <!-- 부서 이동 모드를 켜거나 끄는 버튼 -->
-        <button class="move-mode-btn" @click="toggleMoveMode">
-          부서 이동
+        </select> -->
+
+        <!-- ＋ 버튼: 모달 열기 -->
+        <button class="toolbar-btn" @click="openAddModal">
+          <p class="toolbar-btn-detail">＋</p>
         </button>
+
+        <!-- － 버튼: 삭제 모달 열기 -->
+        <button class="toolbar-btn" @click="openDeleteModal">
+          <p class="toolbar-btn-detail">－</p>
+        </button>
+
+        <!-- 검색 입력란 -->
+         <div class="search">
+          <img src="@/assets/icons/search.svg" alt="search" class="search-img">
+          <input
+            type="text"
+            v-model="searchKeyword"
+            placeholder="검색"
+            class="toolbar-search"
+          />
+        </div>
       </div>
     </div>
 
     <div class="content-grid">
-      <!-- ② 조직도 조회용 트리 / 왼쪽 패널 -->
+      <!-- ② 조직도 조회 패널 -->
       <div class="section">
         <p class="desc">조직도 조회</p>
         <div class="card tree-panel">
@@ -51,38 +63,33 @@
         </div>
       </div>
 
-      <!-- ③ 부서/팀 정보 + 소개 + 직원 목록 / 중앙 패널 -->
+      <!-- ③ 부서/팀 정보 + 직원 목록 패널 -->
       <div class="section">
         <p class="desc">조직 정보 조회</p>
         <div class="card info-panel">
           <h2 class="card-title">조직 정보</h2>
 
-          <!-- 3-1) 부서가 선택된 경우 -->
+          <!-- 부서 선택 시 -->
           <div v-if="selectedDept" class="info-content">
+            <div class="button-group">
+              <button class="btn-dept" @click="showMovePanel = true">부서 이동</button>
+              <button class="btn-employee">부서원 이동</button>
+            </div>
             <ul class="info-list">
               <h3 class="section-title">부서 정보</h3>
-              <li><strong>부서명:</strong> {{ selectedDept.department_name }}</li>
-              <li><strong>부서 코드:</strong> {{ selectedDept.department_code }}</li>
+              <li><strong>부서명: </strong> {{ selectedDept.department_name }}</li>
+              <li><strong>부서 코드: </strong> {{ selectedDept.department_code }}</li>
               <li>
-                <strong>상위 본부명:</strong>
+                <strong>상위 본부명: </strong>
                 {{ getHeadNameById(selectedDept.head_id) }}
               </li>
               <li>
-                <strong>관련 팀:</strong>
-                <span
-                  v-for="(tag, idx) in deptIntroduction?.tags"
-                  :key="idx"
-                >
-                  {{ tag }}
-                  <span
-                    v-if="idx < (deptIntroduction?.tags.length || 0) - 1"
-                  >
-                    , 
-                  </span>
+                <strong>관련 팀: </strong>
+                <span v-for="(tag, idx) in deptIntroduction.tags" :key="idx">
+                  {{ tag }}<span v-if="idx < deptIntroduction.tags.length - 1">, </span>
                 </span>
               </li>
             </ul>
-
             <div class="member-section">
               <h3 class="section-title">직원 목록</h3>
               <table class="member-table">
@@ -109,31 +116,28 @@
                   <tr
                     v-if="employeesByDept(selectedDept.department_code).length === 0"
                   >
-                    <td colspan="4" class="no-data">
-                      해당 부서에 직원이 없습니다.
-                    </td>
+                    <td colspan="4" class="no-data">해당 부서에 직원이 없습니다.</td>
                   </tr>
                 </tbody>
               </table>
             </div>
           </div>
 
-          <!-- 3-2) 팀이 선택된 경우 -->
+          <!-- 팀 선택 시 -->
           <div v-else-if="selectedTeam" class="info-content">
             <ul class="info-list">
               <h3 class="section-title">팀 정보</h3>
-              <li><strong>팀명:</strong> {{ selectedTeam.team_name }}</li>
-              <li><strong>팀 코드:</strong> {{ selectedTeam.team_code }}</li>
+              <li><strong>팀명: </strong> {{ selectedTeam.team_name }}</li>
+              <li><strong>팀 코드: </strong> {{ selectedTeam.team_code }}</li>
               <li>
-                <strong>상위 부서명:</strong>
+                <strong>상위 부서명: </strong>
                 {{ getDeptNameById(selectedTeam.department_id) }}
               </li>
               <li>
-                <strong>상위 본부명:</strong>
+                <strong>상위 본부명: </strong>
                 {{ getHeadNameByDept(selectedTeam.department_id) }}
               </li>
             </ul>
-
             <div class="member-section">
               <h3 class="section-title">직원 목록</h3>
               <table class="member-table">
@@ -157,70 +161,146 @@
                     <td>{{ emp.position_name }}</td>
                     <td>{{ emp.rank_name }}</td>
                   </tr>
-                  <tr
-                    v-if="employeesByTeam(selectedTeam.team_code).length === 0"
-                  >
-                    <td colspan="4" class="no-data">
-                      해당 팀에 직원이 없습니다.
-                    </td>
+                  <tr v-if="employeesByTeam(selectedTeam.team_code).length === 0">
+                    <td colspan="4" class="no-data">해당 팀에 직원이 없습니다.</td>
                   </tr>
                 </tbody>
               </table>
             </div>
           </div>
 
-          <!-- 3-3) 아무것도 선택되지 않은 경우 -->
+          <!-- 아무것도 선택 안 됐을 때 -->
           <div v-else class="placeholder-info">
             좌측 트리에서 부서 또는 팀을 선택하세요.
           </div>
         </div>
       </div>
 
-      <!-- ④ 부서 이동 모드 / 오른쪽 패널 -->
-      <div class="section">
-        <!-- showMoveMode 가 true일 때만 오른쪽 카드 표시 -->
-        <template v-if="showMoveMode">
-          <p class="desc">조직 구조 이동</p>
-          <div class="card move-panel">
-            <h2 class="card-title">부서 이동</h2>
-            <p class="move-instruction">
-              드래그&드롭으로 부서·팀을 다른 본부/부서로 이동할 수 있습니다.
-            </p>
-            <div class="move-tree-container">
-              <EditHierarchy
-                v-if="dataLoaded && showMoveMode"
-                :headquarters="dataStore.headquarters"
-                :departments="dataStore.departments"
-                :teams="dataStore.teams"
-                :employees="dataStore.employees"
-                :positions="dataStore.position"
-                :ranks="dataStore.rank"
-                @dept-selected="onDeptSelectedForMove"
-                @team-selected="onTeamSelectedForMove"
-              />
-            </div>
-            <div class="move-buttons">
-              <button class="btn-cancel" @click="cancelMove">취소</button>
-              <button class="btn-confirm" @click="confirmMove">확인</button>
-            </div>
+      <!-- ④ 부서 이동 (showMovePanel이 true일 때만 보여준다) -->
+      <div class="section" v-if="showMovePanel">
+        <p class="desc">조직 구조 이동</p>
+        <div class="card move-panel">
+          <h2 class="card-title">부서 이동</h2>
+          <p class="move-instruction">이동할 부서를 드래그하여 편집하세요.</p>
+
+          <div class="move-tree-container">
+            <EditHierarchy
+              v-if="dataLoaded"
+              :headquarters="dataStore.headquarters"
+              :departments="dataStore.departments"
+              :teams="dataStore.teams"
+              :employees="dataStore.employees"
+              :positions="dataStore.position"
+              :ranks="dataStore.rank"
+              @dept-selected="onDeptSelectedForMove"
+              @team-selected="onTeamSelectedForMove"
+            />
           </div>
-        </template>
+
+          <div class="move-buttons">
+            <button class="btn-cancel" @click="cancelMove">취소</button>
+            <button class="btn-confirm" @click="confirmMove">수정</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ⑤ 신규 조직 등록 모달 -->
+    <div v-if="showAddModal" class="modal-overlay" @click.self="closeAddModal">
+      <div class="modal-content">
+        <h3 class="modal-title">신규 조직 등록</h3>
+
+        <!-- 조직 종류 선택: 기본값으로 selectedOrg -->
+        <label class="modal-label" for="modal-org-type">조직 종류</label>
+        <select
+          id="modal-org-type"
+          v-model="newOrgType"
+          class="modal-select"
+        >
+          <option disabled value="">조직 종류 선택</option>
+          <option v-for="org in orgOptions" :key="org.id" :value="org.id">
+            {{ org.name }}
+          </option>
+        </select>
+
+        <!-- 신규 조직 이름 입력 -->
+        <label class="modal-label" for="modal-org-name">조직 이름</label>
+        <input
+          id="modal-org-name"
+          v-model="newOrgName"
+          type="text"
+          placeholder="새 조직 이름을 입력하세요"
+          class="modal-input"
+        />
+
+        <div class="modal-buttons">
+          <button class="modal-btn-cancel" @click="closeAddModal">취소</button>
+          <button class="modal-btn-submit" @click="submitNewOrg">등록</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ⑥ 조직 삭제 모달 -->
+    <div
+      v-if="showDeleteModal"
+      class="modal-overlay"
+      @click.self="closeDeleteModal"
+    >
+      <div class="modal-content">
+        <h3 class="modal-title">조직 삭제</h3>
+
+        <!-- 조직 종류 선택 -->
+        <label class="modal-label" for="delete-org-type">삭제할 조직 종류</label>
+        <select
+          id="delete-org-type"
+          v-model="deleteOrgType"
+          class="modal-select"
+        >
+          <option disabled value="">조직 종류 선택</option>
+          <option v-for="org in orgOptions" :key="org.id" :value="org.id">
+            {{ org.name }}
+          </option>
+        </select>
+
+        <!-- 선택한 조직 종류에 해당하는 항목 체크박스 나열 -->
+        <div v-if="deleteList.length > 0" class="delete-list">
+          <label
+            v-for="item in deleteList"
+            :key="item.value"
+            class="delete-list-item"
+          >
+            <input
+              type="checkbox"
+              :value="item.value"
+              v-model="selectedDeleteIds"
+            />
+            {{ item.label }}
+          </label>
+        </div>
+        <div v-else class="no-data" style="margin-top: 12px;">
+          조직 종류를 선택하면 목록이 여기에 표시됩니다.
+        </div>
+
+        <div class="modal-buttons">
+          <button class="modal-btn-cancel" @click="closeDeleteModal">취소</button>
+          <button
+            class="modal-btn-delete"
+            @click="doDeleteOrg"
+            :disabled="selectedDeleteIds.length === 0"
+          >
+            확인
+          </button>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, computed } from 'vue'
+import { ref, reactive, onMounted, computed, watch } from 'vue'
 import OrgHierarchyAll from '@/components/org/structure/HierarchyAll.vue'
 import EditHierarchy from '@/components/org/structure/EditHierarchy.vue'
 
-/**
- * dataStore: org.json 전체 데이터를 저장
- *  - introduction: 부서/팀별 소개
- *  - headquarters, department, team, position, rank: 조직 구조
- *  - employees: 직원 목록
- */
 const dataStore = reactive({
   introduction: [],
   job: [],
@@ -234,129 +314,36 @@ const dataStore = reactive({
   employees: []
 })
 
-// 화면 로딩 완료 여부
 const dataLoaded = ref(false)
 
-// 툴바 관련 상태 (조직도 선택, 검색어)
+// 툴바 옵션: 본부, 부서, 팀
 const orgOptions = ref([
-  { id: 'all', name: 'DDIS 전체' },
-  { id: 'dev', name: '개발본부' },
-  { id: 'hr', name: '경영지원본부' },
-  { id: 'biz', name: '사업본부' }
+  { id: 'head', name: '본부' },
+  { id: 'dept', name: '부서' },
+  { id: 'team', name: '팀' }
 ])
-const selectedOrg = ref('')
-const searchKeyword = ref('')
+const selectedOrg = ref('')      // toolbar 셀렉트에서 선택된 조직 종류
+const searchKeyword = ref('')    // 검색어
 
-// 사용자가 선택한 부서/팀/직원
+// 신규 조직 등록용 상태
+const showAddModal = ref(false)  // 등록 모달 표시 여부
+const newOrgType = ref('')       // 모달 내 조직 종류 (초기값: toolbar에서 선택된 selectedOrg)
+const newOrgName = ref('')       // 모달 내 신규 조직명
+
+// 삭제용 모달 상태
+const showDeleteModal = ref(false)   // 삭제 모달 표시 여부
+const deleteOrgType = ref('')        // 삭제 모달 내 조직 종류 선택
+const selectedDeleteIds = ref([])    // 체크된 삭제 대상 ID들
+
+// 선택된 부서/팀/직원
 const selectedDept = ref(null)
 const selectedTeam = ref(null)
 const selectedEmployee = ref(null)
 
-// 부서 이동 모드 표시 여부
-const showMoveMode = ref(false)
+// “부서 이동” 패널 표시 여부
+const showMovePanel = ref(false)
 
-/**
- * mounted 시 public/org.json 파일을 fetch
- */
-onMounted(async () => {
-  try {
-    const res = await fetch('/org.json')
-    const oData = await res.json()
-
-    // introduction 데이터
-    dataStore.introduction = oData.introduction || []
-
-    // 조직 구조/직원 데이터
-    dataStore.headquarters = oData.headquarters || []
-    dataStore.departments = oData.department || []
-    dataStore.teams = oData.team || []
-    dataStore.position = oData.position || []
-    dataStore.rank = oData.rank || []
-    dataStore.appointment = oData.appointment || []
-    dataStore.appointmentDetail = oData.appointmentDetail || []
-
-    // employees 에는 position_name, rank_name까지 매핑해 둠
-    dataStore.employees = (oData.employees || []).map(e => ({
-      ...e,
-      position_name:
-        oData.position.find(p => p.position_code === e.position_code)
-          ?.position_name || '',
-      rank_name:
-        oData.rank.find(r => r.rank_code === e.rank_code)?.rank_name || ''
-    }))
-
-    dataLoaded.value = true
-  } catch (err) {
-    console.error('org.json 로드 실패:', err)
-  }
-})
-
-/**
- * “부서” 클릭 시 호출
- */
-function onDeptSelected(dept) {
-  selectedDept.value = dept
-  selectedTeam.value = null
-  selectedEmployee.value = null
-}
-
-/**
- * “팀” 클릭 시 호출
- */
-function onTeamSelected(team) {
-  selectedTeam.value = team
-  selectedDept.value = null
-  selectedEmployee.value = null
-}
-
-/**
- * 직원 클릭 시 호출
- */
-function onEmployeeClick(emp) {
-  selectedEmployee.value = emp
-}
-
-/**
- * 부서 이동 모드 토글
- */
-function toggleMoveMode() {
-  showMoveMode.value = !showMoveMode.value
-}
-
-/**
- * 부서 이동 트리에서 “부서” 클릭 시
- */
-function onDeptSelectedForMove(dept) {
-  console.log('이동용 부서 선택 ▶', dept)
-}
-
-/**
- * 부서 이동 트리에서 “팀” 클릭 시
- */
-function onTeamSelectedForMove(team) {
-  console.log('이동용 팀 선택 ▶', team)
-}
-
-/**
- * 부서 이동 취소
- */
-function cancelMove() {
-  showMoveMode.value = false
-}
-
-/**
- * 부서 이동 확인 (저장 로직)
- */
-function confirmMove() {
-  // 실제로 드래그&드롭 후 dataStore.departments, dataStore.teams가 수정되었으므로
-  // 원한다면 여기에 서버로 변경사항 전송(fetch/post 등)을 추가.
-  alert('부서 이동 내용이 저장되었습니다.')
-  showMoveMode.value = false
-}
-
-/**
- * 부서가 선택된 경우, dataStore.introduction에서 해당 부서 소개 객체를 찾음
- */
+// 부서, 팀 소개 추출 용
 const deptIntroduction = computed(() => {
   if (!selectedDept.value) return null
   return (
@@ -364,13 +351,9 @@ const deptIntroduction = computed(() => {
       i =>
         i.introduction_type === '부서' &&
         i.department_id === selectedDept.value.department_id
-    ) || null
+    ) || { introduction_context: '', tags: [] }
   )
 })
-
-/**
- * 팀이 선택된 경우, dataStore.introduction에서 해당 팀 소개 객체를 찾음
- */
 const teamIntroduction = computed(() => {
   if (!selectedTeam.value) return null
   return (
@@ -378,55 +361,201 @@ const teamIntroduction = computed(() => {
       i =>
         i.introduction_type === '팀' &&
         i.team_id === selectedTeam.value.team_id
-    ) || null
+    ) || { introduction_context: '', tags: [] }
   )
 })
 
-/**
- * head_id(숫자)를 받아서 head_name 반환
- */
+// 삭제 모달에서 보여줄 리스트 (조직 종류에 따라 동적으로 생성)
+const deleteList = computed(() => {
+  if (deleteOrgType.value === 'head') {
+    // 본부 목록: head_id와 head_name
+    return dataStore.headquarters.map(hq => ({
+      value: hq.head_id,
+      label: `${hq.head_name} (코드: ${hq.head_code})`
+    }))
+  }
+  if (deleteOrgType.value === 'dept') {
+    // 부서 목록: department_id와 department_name
+    return dataStore.departments.map(dept => ({
+      value: dept.department_id,
+      label: `${dept.department_name} (코드: ${dept.department_code})`
+    }))
+  }
+  if (deleteOrgType.value === 'team') {
+    // 팀 목록: team_id와 team_name
+    return dataStore.teams.map(team => ({
+      value: team.team_id,
+      label: `${team.team_name} (코드: ${team.team_code})`
+    }))
+  }
+  return []
+})
+
+// watch: 조직 종류를 바꿀 때 체크박스 초기화
+watch(deleteOrgType, () => {
+  selectedDeleteIds.value = []
+})
+
+// mounted 시 org.json 로드
+onMounted(async () => {
+  try {
+    const res = await fetch('/org.json')
+    const oData = await res.json()
+    dataStore.introduction = oData.introduction
+    dataStore.job = oData.job
+    dataStore.headquarters = oData.headquarters
+    dataStore.departments = oData.department
+    dataStore.teams = oData.team
+    dataStore.position = oData.position
+    dataStore.rank = oData.rank
+    dataStore.appointment = oData.appointment
+    dataStore.appointmentDetail = oData.appointmentDetail
+    dataStore.employees = oData.employees.map(e => ({
+      ...e,
+      position_name:
+        oData.position.find(p => p.position_code === e.position_code)
+          ?.position_name || '',
+      rank_name:
+        oData.rank.find(r => r.rank_code === e.rank_code)?.rank_name || ''
+    }))
+    dataLoaded.value = true
+  } catch (err) {
+    console.error('org.json 로드 실패:', err)
+  }
+})
+
+// 조회용 트리에서 부서 선택
+function onDeptSelected(dept) {
+  selectedDept.value = dept
+  selectedTeam.value = null
+  selectedEmployee.value = null
+}
+// 조회용 트리에서 팀 선택
+function onTeamSelected(team) {
+  selectedTeam.value = team
+  selectedDept.value = null
+  selectedEmployee.value = null
+}
+
+// Move 트리에서 부서 선택
+function onDeptSelectedForMove(dept) {
+  console.log('이동용 부서 선택 ▶', dept)
+}
+// Move 트리에서 팀 선택
+function onTeamSelectedForMove(team) {
+  console.log('이동용 팀 선택 ▶', team)
+}
+
+// “취소” 버튼: showMovePanel = false
+function cancelMove() {
+  showMovePanel.value = false
+}
+// “수정” 버튼: (실제 로직 수행 후) showMovePanel = false
+function confirmMove() {
+  // 실제 수정 로직 추가 가능
+  showMovePanel.value = false
+}
+
+// 부서 소개, 팀 소개 접근용
 function getHeadNameById(headId) {
   const h = dataStore.headquarters.find(hq => hq.head_id === headId)
   return h ? h.head_name : ''
 }
-/**
- * department_id(숫자)를 받아서 department_name 반환
- */
 function getDeptNameById(departmentId) {
   const d = dataStore.departments.find(d => d.department_id === departmentId)
   return d ? d.department_name : ''
 }
-/**
- * department_id 기준으로 head_id를 구해, head_name 반환
- */
 function getHeadNameByDept(departmentId) {
   const d = dataStore.departments.find(d => d.department_id === departmentId)
-  if (!d) return ''
-  return getHeadNameById(d.head_id)
+  return d ? getHeadNameById(d.head_id) : ''
 }
 
-/**
- * 선택된 부서의 직원 목록 반환 (department_code 기준)
- */
 function employeesByDept(deptCode) {
   return dataStore.employees.filter(e => e.department_code === deptCode)
 }
-
-/**
- * 선택된 팀의 직원 목록 반환 (team_code 기준)
- */
 function employeesByTeam(teamCode) {
   return dataStore.employees.filter(e => e.team_code === teamCode)
 }
 
-/**
- * 툴바: 조직도 추가/삭제 (예시)
- */
-function addOrg() {
-  alert('조직도 추가 기능 호출')
+// 신규 조직 등록 모달: 열기 / 닫기
+function openAddModal() {
+  newOrgType.value = selectedOrg.value || ''
+  newOrgName.value = ''
+  showAddModal.value = true
 }
+function closeAddModal() {
+  showAddModal.value = false
+}
+
+// 신규 조직 등록 시 호출
+function submitNewOrg() {
+  if (!newOrgType.value) {
+    alert('조직 종류를 선택해 주세요.')
+    return
+  }
+  if (!newOrgName.value.trim()) {
+    alert('조직 이름을 입력해 주세요.')
+    return
+  }
+  console.log('신규 조직 등록 →', {
+    type: newOrgType.value,
+    name: newOrgName.value.trim()
+  })
+  // 실제 등록 로직(API 호출 등)을 여기에 추가
+  showAddModal.value = false
+}
+
+// 삭제용 모달: 열기 / 닫기
+function openDeleteModal() {
+  deleteOrgType.value = selectedOrg.value || ''
+  selectedDeleteIds.value = []
+  showDeleteModal.value = true
+}
+function closeDeleteModal() {
+  showDeleteModal.value = false
+}
+
+// 조직 삭제 로직
+function doDeleteOrg() {
+  if (!deleteOrgType.value) {
+    alert('삭제할 조직 종류를 선택해 주세요.')
+    return
+  }
+  if (selectedDeleteIds.value.length === 0) {
+    alert('삭제할 조직을 하나 이상 선택해 주세요.')
+    return
+  }
+
+  // 본부 삭제
+  if (deleteOrgType.value === 'head') {
+    dataStore.headquarters = dataStore.headquarters.filter(
+      hq => !selectedDeleteIds.value.includes(hq.head_id)
+    )
+    // (선택적으로: 이 본부에 속한 부서들도 cascade 삭제할 수 있음)
+  }
+  // 부서 삭제
+  if (deleteOrgType.value === 'dept') {
+    dataStore.departments = dataStore.departments.filter(
+      dept => !selectedDeleteIds.value.includes(dept.department_id)
+    )
+    // (선택적으로: 이 부서에 속한 팀들도 cascade 삭제할 수 있음)
+  }
+  // 팀 삭제
+  if (deleteOrgType.value === 'team') {
+    dataStore.teams = dataStore.teams.filter(
+      team => !selectedDeleteIds.value.includes(team.team_id)
+    )
+  }
+
+  // 삭제 후 모달 닫기
+  showDeleteModal.value = false
+  selectedDeleteIds.value = []
+}
+
+// 툴바 “삭제” 버튼 예시 (단순 알림)
 function removeOrg() {
-  alert('조직도 삭제 기능 호출')
+  // 모달을 띄우도록 처리
+  openDeleteModal()
 }
 </script>
 
@@ -439,76 +568,84 @@ function removeOrg() {
 }
 .page-title {
   margin-left: 20px;
-  margin-bottom: 50px;
+  margin-bottom: 30px;
   color: #00a8e8;
 }
 .desc {
   display: block;
   margin-left: 20px;
-  margin-bottom: 8px; /* 여백을 약간 줄임 */
+  margin-bottom: 8px;
 }
 .page-container {
   padding: 20px;
 }
 
-/* ① 조직도 편집 툴바 */
+/* Toolbar */
 .toolbar-card {
   display: flex;
   align-items: center;
-  background: #ffffff;
+  background: #fff;
   border-radius: 12px;
-  padding: 20px 32px;
+  padding: 16px 24px;
+  height: 100px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-  margin-bottom: 30px;
+  margin-bottom: 50px;
+  gap: 15px;
 }
 .toolbar-label {
   font-weight: bold;
   font-size: 20px;
-  margin-right: 16px;
+  margin-right: 12px;
 }
 .toolbar-select {
   border: 1px solid #d1d1d1;
-  border-radius: 4px;
-  padding: 8px 8px;
-  font-size: 14px;
-  margin-right: 8px;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 16px;
+  margin-right: 20px;
 }
 .toolbar-btn {
-  width: 32px;
-  height: 32px;
-  border: none;
-  background: #00a8e8;
-  color: white;
-  border-radius: 4px;
-  font-size: 14px;
+  width: 40px;
+  height: 40px;
+  font-size: 24px;
+  font-weight: bold;
   cursor: pointer;
-  margin-right: 8px;
-}
-.toolbar-btn i {
-  pointer-events: none;
-}
-.toolbar-search {
-  margin-left: auto;
-  padding: 4px 12px;
-  border: 1px solid #d1d1d1;
-  border-radius: 4px;
-  font-size: 14px;
-  width: 180px;
-}
-/* 부서 이동 모드 토글 버튼 */
-.move-mode-btn {
-  margin-left: 16px;
+  font-family: inherit;
   background-color: #00a8e8;
   color: white;
-  border: none;
-  border-radius: 4px;
-  padding: 8px 16px;
-  font-size: 14px;
-  cursor: pointer;
-  transition: background-color 0.2s;
+  border: 1px solid transparent;
+  border-radius: 5px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: background-color 0.2s, box-shadow 0.2s;
 }
-.move-mode-btn:hover {
-  background-color: #008fc1;
+.toolbar-btn:hover {
+  background-color: #fff;
+  color: #00a8e8;
+  border: 1px solid #00a8e8;
+}
+.toolbar-btn-detail {
+  margin-bottom: 2px;
+  line-height: 1;
+}
+.toolbar-search {
+  padding: 6px 12px;
+  border: 1px solid #dddddd;
+  border-radius: 8px;
+  font-size: 16px;
+  width: 260px;
+  height: 50%;
+}
+.search-img {
+  width: 25px;
+  height: 25px;
+}
+.search {
+  display: flex;
+  justify-content: flex-end;
+  margin-left: auto;
+  margin-right: 80px;
+  align-items: center;
+  gap: 5px;
 }
 
 /* 3열 레이아웃 */
@@ -523,27 +660,27 @@ function removeOrg() {
   flex-direction: column;
 }
 
-/* 공통 카드 스타일 */
+/* Card */
 .card {
-  background: #ffffff;
+  background: #fff;
   border-radius: 12px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-  padding: 30px 40px;
+  padding: 24px;
   display: flex;
   flex-direction: column;
-  max-height: 75vh;
+  flex: 1;
+  min-height: 0;
   overflow: hidden;
-  flex: 1;      /* 세로로 같은 높이를 차지하게 함 */
-  min-height: 0; /* 내부 스크롤이 잘 동작하도록 */
 }
 .card-title {
   font-weight: bold;
-  margin-bottom: 8px;
+  margin-bottom: 12px;
 }
 
-/* ② 조직도 트리 카드 */
+/* ② 조직도 조회 */
 .tree-panel {
   overflow-y: auto;
+  padding: 30px 40px;
 }
 .tree-container {
   flex: 1;
@@ -559,38 +696,25 @@ function removeOrg() {
 /* ③ 부서/팀 정보 카드 */
 .section-title {
   display: inline-block;
-  border-bottom: 2px solid #00a8e8;
-  font-size: 22px;
+  border-bottom: 4px solid #00a8e8;
+  font-size: 20px;
   font-weight: bold;
   padding-bottom: 2px;
   margin-bottom: 12px;
 }
-
 .info-panel {
   overflow-y: auto;
   overflow-x: auto;
-  padding-right: 8px;
+  padding: 30px 40px;
 }
 .info-list {
   list-style: none;
-  font-size: 20px;
-  margin-bottom: 8px;
+  font-size: 18px;
+  margin-bottom: 40px;
 }
 .info-list li {
   margin-bottom: 6px;
 }
-.intro-tags {
-  font-size: 16px;
-  color: #3d3d3d;
-  margin-bottom: 16px;
-}
-.no-intro {
-  font-size: 18px;
-  color: #888;
-  margin: 16px 0;
-  text-align: center;
-}
-/* 직원 목록 테이블 */
 .member-section {
   margin-top: 16px;
 }
@@ -598,12 +722,12 @@ function removeOrg() {
   width: 100%;
   border-collapse: collapse;
   font-size: 14px;
-  margin: 0 auto;
+  margin-bottom: 20px;
 }
 .member-table th,
 .member-table td {
   border: 1px solid #ddd;
-  padding: 8px;
+  padding: 6px;
   text-align: left;
 }
 .member-table th {
@@ -617,16 +741,51 @@ function removeOrg() {
   text-align: center;
   color: #888;
 }
+.placeholder-info {
+  color: #888;
+  text-align: center;
+  margin-top: 40px;
+}
+
+/* 버튼 그룹 */
+.button-group {
+  display: flex;
+  gap: 12px;
+  margin-right: 20px;
+  margin-bottom: 20px;
+  justify-content: flex-end;
+}
+.btn-dept,
+.btn-employee {
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+  font-family: inherit;
+  background-color: #00a8e8;
+  color: white;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  padding: 10px 30px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: background-color 0.2s, box-shadow 0.2s;
+}
+.btn-dept:hover,
+.btn-employee:hover {
+  background-color: #fff;
+  color: #00a8e8;
+  border: 1px solid #00a8e8;
+}
 
 /* ④ 부서 이동 카드 */
 .move-panel {
   display: flex;
   flex-direction: column;
+  padding: 30px 40px;
 }
 .move-instruction {
   font-size: 16px;
   color: #555;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
 }
 .move-tree-container {
   flex: 1;
@@ -643,31 +802,112 @@ function removeOrg() {
 .btn-confirm {
   font-size: 14px;
   font-weight: bold;
+  cursor: pointer;
+  font-family: inherit;
   background-color: #00a8e8;
   color: white;
-  border: none;
-  border-radius: 4px;
-  padding: 8px 20px;
-  cursor: pointer;
-  transition: background-color 0.2s;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  padding: 10px 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: background-color 0.2s, box-shadow 0.2s;
 }
 .btn-cancel:hover,
 .btn-confirm:hover {
-  background-color: #008fc1;
+  background-color: #fff;
+  color: #00a8e8;
+  border: 1px solid #00a8e8;
 }
 
-/* 스크롤바 스타일 */
-.tree-container::-webkit-scrollbar,
-.move-tree-container::-webkit-scrollbar {
-  width: 6px;
+/* ⑤ 신규 조직 등록 모달 */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
 }
-.tree-container::-webkit-scrollbar-thumb,
-.move-tree-container::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.2);
-  border-radius: 3px;
+.modal-content {
+  background: #fff;
+  border-radius: 12px;
+  padding: 24px 32px;
+  width: 500px;
+  max-width: 90%;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
 }
-.tree-container::-webkit-scrollbar-track,
-.move-tree-container::-webkit-scrollbar-track {
-  background: transparent;
+.modal-title {
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 30px;
+  text-align: center;
+}
+.modal-label {
+  display: block;
+  font-size: 16px;
+  font-weight: bold;
+  margin-top: 12px;
+  margin-bottom: 6px;
+}
+.modal-select,
+.modal-input {
+  width: 100%;
+  padding: 8px 10px;
+  font-size: 14px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  box-sizing: border-box;
+}
+.modal-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 30px;
+}
+.modal-btn-cancel,
+.modal-btn-submit,
+.modal-btn-delete {
+  font-weight: bold;
+  cursor: pointer;
+  font-family: inherit;
+  background-color: #00a8e8;
+  color: white;
+  border: 1px solid transparent;
+  padding: 8px 20px;
+  border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: background-color 0.2s, box-shadow 0.2s;
+}
+
+.modal-btn-cancel:hover,
+.modal-btn-submit:hover,
+.modal-btn-delete:hover {
+  background-color: #fff;
+  color: #00a8e8;
+  border: 1px solid #00a8e8;
+}
+
+/* ⑥ 조직 삭제 모달 (위와 동일하게 모달 배경 및 콘텐츠) */
+.delete-list {
+  max-height: 400px;
+  overflow-y: auto;
+  margin-bottom: 20px;
+  border: 1px solid #ddd;
+  padding: 8px;
+  border-radius: 8px;
+}
+.delete-list-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+  font-size: 16px;
+}
+.delete-list-item input {
+  margin-right: 8px;
 }
 </style>
