@@ -185,15 +185,12 @@ const router = createRouter({
 
         // =============== 공지사항 ===============
 
-        {
-            path: '/post',
-            component: () => import('@/components/post/PostListPage.vue')
-        },
-
         // {
-        //     path: '/post/postEnroll',
-        //     component: () => import('@/components/post/PostEnrollPage.vue')
+        //     path: '/post',
+        //     component: () => import('@/components/post/PostListPage.vue')
         // },
+
+        
 
 
         // =============== 용어사전 ===============
