@@ -40,10 +40,10 @@
   }
 
   .leave-count-card {
-    margin-bottom: 30px;
+    margin-bottom: 50px;
   }
 
   .my-leave-used-card {
-    margin-bottom: 30px;
+    margin-bottom: 50px;
   }
 </style>
