@@ -202,6 +202,8 @@ async function onLogin() {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   color: #fff;
   font-size: 18px;
+  border: 1px solid transparent;
+
   font-weight: bold;
   cursor: pointer;
   transition: background 0.2s;
