@@ -73,10 +73,10 @@ const router = createRouter({
         // },
 
         // 내 출퇴근 관리
-        // {
-        //     path: '/attendance/myCommute',
-        //     component: () => import('@/pages/')
-        // },
+        {
+            path: '/attendance/myCommute',
+            component: () => import('@/pages/MyCommutePage.vue')
+        },
 
         // 전체 출퇴근 관리
         // {
