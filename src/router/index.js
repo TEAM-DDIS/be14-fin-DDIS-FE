@@ -73,16 +73,23 @@ const router = createRouter({
         // },
 
         // 내 출퇴근 관리
-        // {
-        //     path: '/attendance/myCommute',
-        //     component: () => import('@/pages/')
-        // },
+        {
+            path: '/attendance/myCommute',
+            component: () => import('@/pages/MyCommutePage.vue')
+        },
 
         // 전체 출퇴근 관리
-        // {
-        //     path: '/attendance/allCommute',
-        //     component: () => import('@/pages/')
-        // },
+        {
+            path: '/attendance/allCommute',
+            component: () => import('@/pages/AllCommutePage.vue')
+        },
+
+        {
+            path: '/attendance/allCommute/:employeeId',
+            name: 'OtherCommutePage',
+            component: () => import('@/pages/OtherCommutePage.vue'),
+            props: true
+        },
 
         // 내 연차 관리
         {
@@ -262,10 +269,10 @@ const router = createRouter({
 
         // =============== 용어사전 ===============
 
-        // {
-        //     path: '/dictionary',
-        //     component: () => import('@/')
-        // },
+        {
+            path: '/dictionary',
+            component: () => import('@/components/dictionary/DictionaryPage.vue')
+        },
     ]
 })
 
