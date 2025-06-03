@@ -67,10 +67,10 @@ const router = createRouter({
         },
 
         // 전체 출근 정정 관리
-        // {
-        //     path: '/attendance/allCorrection',
-        //     component: () => import('@/pages/')
-        // },
+        {
+            path: '/attendance/allCorrection',
+            component: () => import('@/pages/AllCorrectionPage.vue')
+        },
 
         // 내 출퇴근 관리
         {

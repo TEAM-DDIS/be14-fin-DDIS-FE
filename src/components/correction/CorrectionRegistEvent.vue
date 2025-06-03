@@ -1,60 +1,57 @@
 <template>
-  <div class="correction-event-card">
-    <el-form :model="form" label-width="100px" class="event-form">
-      <!-- 변경요청 시각 -->
-      <el-form-item label="변경 요청 시각">
-        <el-time-picker
-          v-model="form.time"
-          type="time"
-          placeholder="시간 선택"
-          format="HH:mm"
-          value-format="HH:mm"
-          style="width: 100%;"
-          :editable="true"
-          :teleported="false"
-        />
-      </el-form-item>
-
-      <!-- 사유 입력 -->
-      <el-form-item label="사유">
-        <el-input
-          type="textarea"
-          v-model="form.reason"
-          placeholder="사유를 입력하세요"
-          :rows="4"
-        />
-      </el-form-item>
-    </el-form>
-
-    <!-- 제출 버튼 -->
-    <el-button
-      type="primary"
-      class="submit-btn"
-      @click="onSubmit"
-    >
-      확인
-    </el-button>
-  </div>
+    <div class="correction-event-card">
+        <el-form :model="form" label-width="100px" class="event-form">
+            <!-- 변경요청 시각 -->
+            <el-form-item label="변경 요청 시각">
+                <el-time-picker
+                    v-model="form.time"
+                    type="time"
+                    placeholder="시간 선택"
+                    format="HH:mm"
+                    value-format="HH:mm"
+                    style="width: 100%;"
+                    :editable="true"
+                    :teleported="false"
+                />
+            </el-form-item>
+            <!-- 사유 입력 -->
+            <el-form-item label="사유">
+                <el-input
+                    type="textarea"
+                    v-model="form.reason"
+                    placeholder="사유를 입력하세요"
+                    :rows="4"
+                />
+            </el-form-item>
+        </el-form>
+        <!-- 제출 버튼 -->
+        <el-button
+            type="primary"
+            class="submit-btn"
+            @click="onSubmit"
+            >
+            확인
+        </el-button>
+    </div>
 </template>
 
 <script setup>
-import { reactive } from 'vue'
+    import { reactive } from 'vue'
     import { ElForm, ElFormItem, ElDatePicker, ElInput, ElTimePicker, ElButton } from 'element-plus'
 
+    const emit = defineEmits(['submit'])
 
-const emit = defineEmits(['submit'])
+    const form = reactive({
+        time: '',
+        reason: ''
+    })
 
-const form = reactive({
-  time: '',
-  reason: ''
-})
-
-function onSubmit() {
-  if (!form.time || !form.reason) return
-  emit('submit', { time: form.time, reason: form.reason })
-  form.time = ''
-  form.reason = ''
-}
+    function onSubmit() {
+        if (!form.time || !form.reason) return
+        emit('submit', { time: form.time, reason: form.reason })
+        form.time = ''
+        form.reason = ''
+    }
 </script>
 
 <style scoped>
@@ -87,13 +84,12 @@ function onSubmit() {
     }
 
     :deep(.el-input__wrapper.is-focus) {
-  border-color: #000 !important;
-  box-shadow: 0 0 0 1px #000 !important;
-}
+        border-color: #000 !important;
+        box-shadow: 0 0 0 1px #000 !important;
+    }
 
-:deep(.el-textarea__inner:focus) {
-  border-color: #000 !important;
-  box-shadow: 0 0 0 1px #000 !important;
-}
-
+    :deep(.el-textarea__inner:focus) {
+        border-color: #000 !important;
+        box-shadow: 0 0 0 1px #000 !important;
+    }
 </style>
