@@ -157,6 +157,142 @@
     }
   ],
 
+  "correction_used": [
+  {
+    "id": 1,
+    "approval_status": "승인",
+    "request_time": "2025-03-31 09:15:28",
+    "check_in_time": "09:12",
+    "requested_time_change": "08:55:00",
+    "processed_time": "2025-03-31 15:33:16",
+    "reason": "개인사유",
+    "rejection_reason": null
+  },
+  {
+    "id": 2,
+    "approval_status": "반려",
+    "request_time": "2025-03-32 09:15:28",
+    "check_in_time": "09:12",
+    "requested_time_change": "08:55:00",
+    "processed_time": "2025-03-32 15:33:16",
+    "reason": "개인사유",
+    "rejection_reason": "사유 불명확"
+  }
+],
+
+"correction_regist": [
+  {
+    "id": 1,
+    "approval_status": "대기중",
+    "request_time": "2025-03-32 09:15:28",
+    "check_in_time": "09:12",
+    "requested_time_change": "08:55:00",
+    "processed_time": "2025-03-32 15:33:16",
+    "reason": "개인사유",
+    "rejection_reason": null
+  },
+  {
+    "id": 2,
+    "approval_status": "대기중",
+    "request_time": "2025-03-32 09:15:28",
+    "check_in_time": "09:12",
+    "requested_time_change": "08:55:00",
+    "processed_time": "2025-03-32 15:33:16",
+    "reason": "개인사유",
+    "rejection_reason": null
+  }
+],
+
+  "all_correction_used": [
+    {
+      "id": 27,
+      "employeeId": "1826058",
+      "employeeName": "김완형",
+      "approval_status": "승인",
+      "request_time": "2025-03-32 09:15:28",
+      "check_in_time": "09:12",
+      "requested_time_change": "08:55:00",
+      "processed_time": "2025-03-32 15:33:16",
+      "reason": "개인사유",
+      "rejection_reason": null
+    },
+    {
+      "id": 26,
+      "employeeId": "1826058",
+      "employeeName": "김완형",
+      "approval_status": "반려",
+      "request_time": "2025-03-32 09:15:28",
+      "check_in_time": "09:12",
+      "requested_time_change": "08:55:00",
+      "processed_time": "2025-03-32 15:33:16",
+      "reason": "개인사유",
+      "rejection_reason": "사유 불명확"
+    },
+    {
+      "id": 25,
+      "employeeId": "1826058",
+      "employeeName": "김완형",
+      "approval_status": "반려",
+      "request_time": "2025-03-32 09:15:28",
+      "check_in_time": "09:12",
+      "requested_time_change": "08:55:00",
+      "processed_time": "2025-03-32 15:33:16",
+      "reason": "개인사유",
+      "rejection_reason": "사유 불명확"
+    },
+    {
+      "id": 24,
+      "employeeId": "1826058",
+      "employeeName": "김완형",
+      "approval_status": "반려",
+      "request_time": "2025-03-32 09:15:28",
+      "check_in_time": "09:12",
+      "requested_time_change": "08:55:00",
+      "processed_time": "2025-03-32 15:33:16",
+      "reason": "개인사유",
+      "rejection_reason": "사유 불명확"
+    }
+  ],
+
+  "all_correction_regist": [
+    {
+      "id": 12,
+      "employeeId": "1826058",
+      "employeeName": "김완형",
+      "approval_status": "대기중",
+      "request_time": "2025-03-32 09:15:28",
+      "check_in_time": "09:12",
+      "requested_time_change": "08:55:00",
+      "processed_time": "2025-03-32 15:33:16",
+      "reason": "개인사유",
+      "rejection_reason": null
+    },
+    {
+      "id": 11,
+      "employeeId": "1830059",
+      "employeeName": "박지민",
+      "approval_status": "대기중",
+      "request_time": "2025-03-32 09:15:28",
+      "check_in_time": "09:12",
+      "requested_time_change": "08:55:00",
+      "processed_time": "2025-03-32 15:33:16",
+      "reason": "개인사유",
+      "rejection_reason": null
+    },
+    {
+      "id": 10,
+      "employeeId": "1830088",
+      "employeeName": "이준호",
+      "approval_status": "대기중",
+      "request_time": "2025-03-32 09:15:28",
+      "check_in_time": "09:12",
+      "requested_time_change": "08:55:00",
+      "processed_time": "2025-03-32 15:33:16",
+      "reason": "개인사유",
+      "rejection_reason": null
+    }
+  ],
+
   "schedule": [
     {
       "work_date": "2025-05-01",
