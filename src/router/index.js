@@ -24,14 +24,14 @@ const router = createRouter({
         // 내 인사 정보
         {
             path: '/employeeInfo/myInfo',
-            component: () => import('@/components/employeeInfo/employeeSearch/EmployeeSearchPage.vue')
+            component: () => import('@/components/employeeInfo/EmployeeSearchPage.vue')
         },
 
         // 사원 목록 조회
-        // {
-        //     path: '/employeeInfo/employeeList',
-        //     component: () => import('@/')
-        // },
+        {
+            path: '/employeeInfo/employeeList',
+            component: () => import('@/components/employeeInfo/EmployeeList.vue')
+        },
 
         // 계약서/법정서류 관리
         // {
