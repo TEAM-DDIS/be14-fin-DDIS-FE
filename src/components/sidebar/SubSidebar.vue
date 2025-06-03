@@ -266,8 +266,8 @@
         border-bottom-right-radius: 20px;
         border-top-left-radius: 0;
         border-bottom-left-radius: 0;
-
-        font-size: 16px;
+        height: 50px;
+        font-size: 17px;
         font-weight: bold;
         text-align: center;
         padding: 10.5px 0;
