@@ -60,7 +60,7 @@
       <p class="desc">급여명세서 상세</p>
       <p class="desc"></p>
     </div>
-    <div class="grid-section">
+    <div class="grid-section" ref="salarySection">
 
       <!-- 월별 급여 내역: ag-grid 사용 -->
       <div class="history-box">
@@ -128,7 +128,7 @@ import { useUserStore } from '@/stores/user'
 import axios from 'axios'
 import AgGrid from '@/components/grid/BaseGrid.vue'
 import Modal from '@/components/salary/payroll/PayrollModal.vue'
-
+const salarySection = ref(null)
 const userStore = useUserStore()
 const employee = ref(null)
 const dateRange = reactive({ start: '', end: '' })
@@ -188,6 +188,11 @@ async function fetchSalaryHistory() {
     current.setMonth(current.getMonth() + 1)
   }
   salaryHistory.value = results
+  scrollToSalarySection()
+}
+// 스크롤을 급여 내역 섹션으로 이동
+function scrollToSalarySection() {
+  salarySection.value?.scrollIntoView({ behavior: 'smooth' })
 }
 
 async function selectSlip(month) {
@@ -229,7 +234,7 @@ async function selectSlip(month) {
       { label: '고용보험', amount: data.employmentInsurance },
       { label: '총공제', amount: data.totalDeductions }
     ]
-  }
+    }
 
 }
 

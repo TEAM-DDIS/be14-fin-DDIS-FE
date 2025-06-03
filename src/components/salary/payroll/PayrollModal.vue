@@ -2,11 +2,9 @@
 <template>
   <div class="modal-wrapper" @click.self="emit('close')">
     <div class="modal" ref="pdfContent">
-      <!-- 닫기 버튼 -->
       <button class="close-btn no-print" @click="emit('close')">×</button>
       <h2 class="modal-title">급여명세서</h2>
 
-      <!-- 사원 정보 테이블 -->
       <table class="info-table bordered">
         <tr>
           <th>사번</th>
@@ -28,22 +26,17 @@
         </tr>
       </table>
 
-      <!-- 구분선 역할 -->
       <table class="section-title-table">
         <tr><td>세부 내역</td></tr>
       </table>
 
-      <!-- 지급/공제 테이블 두 개 나란히 배치 -->
       <div class="slip-tables">
-
-        <!-- 지급 테이블 -->
         <table class="table">
           <thead>
             <tr class="sub-head"><th colspan="2">지급</th></tr>
             <tr class="sub-sub-head"><th>항목</th><th>금액</th></tr>
           </thead>
           <tbody>
-            <!-- 항목 이름과 금액 출력 -->
             <tr v-for="item in slip.pays" :key="item.label">
               <td :class="item.label.includes('총') ? 'bold-label gray-row' : ''">{{ item.label }}</td>
               <td :class="['right-align', item.label.includes('총') ? 'highlight gray-row' : '']">
@@ -53,16 +46,13 @@
           </tbody>
         </table>
 
-        <!-- 공제 테이블 -->
         <table class="table">
           <thead>
             <tr class="sub-head"><th colspan="2">공제</th></tr>
             <tr class="sub-sub-head"><th>항목</th><th>금액</th></tr>
           </thead>
           <tbody>
-            <!-- 지급 항목 수와 맞추기 위해 빈 객체로 패딩된 항목까지 포함 -->
             <tr v-for="(item, index) in paddedDeductions" :key="index">
-              <!-- 총공제 항목이면 강조 처리, 없으면 공백 문자 출력 -->
               <td :class="item.label?.includes('총') ? 'bold-label gray-row' : ''">
                 {{ item.label || '\u00A0' }}
               </td>
@@ -74,21 +64,20 @@
         </table>
       </div>
 
-      <!-- 실 수령액 표시 영역 -->
       <div class="summary-row gray-row">
         <span>실 수령액(월)</span>
         <span class="highlight">{{ formatCurrency(slip.netSalary || netPay) }}</span>
       </div>
 
-<!-- 하단 버튼 영역 -->
-<div class="footer">
-  <p class="today bold">{{ today }}</p>
-  <button
-    v-if="props.showMailButton"
-    class="btn left no-print"
-  >
-    메일 전송
-  </button>
+      <div class="footer">
+        <p class="today bold">{{ today }}</p>
+        <button
+          v-if="props.showMailButton"
+          class="btn left no-print"
+          @click="sendMail" 
+        >
+          메일 전송
+        </button>
         <button class="btn right no-print" @click="downloadPDF">PDF 다운로드</button>
       </div>
     </div>
@@ -99,6 +88,8 @@
 import { computed, ref } from 'vue'
 import { useDateFormat } from '@vueuse/core'
 import html2pdf from 'html2pdf.js'
+import axios from 'axios' // ✅ axios 추가
+
 const props = defineProps({
   slip: Object,
   showMailButton: {
@@ -106,19 +97,16 @@ const props = defineProps({
     default: true
   }
 })
-const emit = defineEmits(['close'])           // 닫기 이벤트
-const pdfContent = ref(null)                  // PDF로 출력할 영역
+const emit = defineEmits(['close'])
+const pdfContent = ref(null)
 
-// 실 수령액 계산: slip에서 전달된 값이 없으면 계산
 const netPay = computed(() => props.slip.netSalary || (props.slip.totalPay - props.slip.totalDeduction))
 
-// 오늘 날짜 포맷팅
 const today = computed(() => {
   const date = new Date(props.slip.salaryDate)
   return useDateFormat(date, 'YYYY년 MM월 DD일').value
 })
 
-// 공제 항목의 길이를 지급 항목과 맞춰 빈 행 추가
 const paddedDeductions = computed(() => {
   const max = props.slip.pays.length
   const current = props.slip.deductions.length
@@ -126,17 +114,34 @@ const paddedDeductions = computed(() => {
   return [...props.slip.deductions, ...Array(pad).fill({})]
 })
 
-// 숫자를 천단위 쉼표로 변환
 function formatCurrency(val) {
   return val?.toLocaleString() || ''
 }
 
-// (아직 미구현) 메일 전송 버튼
-function sendMail() {
-  alert('메일 전송 기능이 아직 구현되지 않았습니다.')
+async function sendMail() {
+  try {
+    const payload = {
+      employeeEmail: props.slip.employeeEmail,
+      employeeId: props.slip.employeeId,
+      employeeName: props.slip.employeeName,
+      headName: props.slip.headName,
+      departmentName: props.slip.departmentName,
+      teamName: props.slip.teamName,
+      rankName: props.slip.rankName,
+      salaryDate: props.slip.salaryDate,
+      netSalary: props.slip.netSalary,
+      pays: props.slip.pays,
+      deductions: props.slip.deductions
+    }
+
+    await axios.post('http://localhost:8000/payroll/mail', payload)
+    alert('메일 전송이 완료되었습니다.')
+  } catch (error) {
+    console.error('메일 전송 실패', error)
+    alert('메일 전송에 실패했습니다.')
+  }
 }
 
-// PDF 다운로드 기능 (html2pdf.js)
 function downloadPDF() {
   const clone = pdfContent.value.cloneNode(true)
   clone.querySelectorAll('.no-print').forEach(el => el.remove())
@@ -150,7 +155,6 @@ function downloadPDF() {
     jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
   }).save()
 }
-
 </script>
 
 <style scoped>
