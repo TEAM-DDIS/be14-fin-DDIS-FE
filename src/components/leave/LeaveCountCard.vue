@@ -33,84 +33,84 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+  import { ref, onMounted } from 'vue'
 
-const leaveData = ref({
-  total_days: 0,
-  used_days: 0,
-  remaining_days: 0,
-  pending_leave_days: 0,
-  first_notice_date: '',
-  second_notice_date: ''
-})
+  const leaveData = ref({
+    total_days: 0,
+    used_days: 0,
+    remaining_days: 0,
+    pending_leave_days: 0,
+    first_notice_date: '',
+    second_notice_date: ''
+  })
 
-onMounted(async () => {
-  const res = await fetch('/attendance.json')
-  const json = await res.json()
-  leaveData.value = json.leave[0]
-})
+  onMounted(async () => {
+    const res = await fetch('/attendance.json')
+    const json = await res.json()
+    leaveData.value = json.leave[0]
+  })
 </script>
 
 <style scoped>
-.leave-count-wrapper {
-  display: flex;
-  justify-content: space-between;
-  background: #fff;
-  padding-top: 30px;
-  padding-bottom: 30px;
-  border-radius: 20px;
-    box-shadow: 1px 1px 20px 1px rgba(0, 0, 0, 0.05);
-  flex-wrap: wrap;
-}
+  .leave-count-wrapper {
+    display: flex;
+    justify-content: space-between;
+    background: #fff;
+    padding-top: 30px;
+    padding-bottom: 30px;
+    border-radius: 20px;
+      box-shadow: 1px 1px 20px 1px rgba(0, 0, 0, 0.05);
+    flex-wrap: wrap;
+  }
 
-.count-box {
-  display: flex;
-  gap: 80px;
-  padding-left: 50px;
-  flex-wrap: wrap;
-  flex: 1;
-}
+  .count-box {
+    display: flex;
+    gap: 80px;
+    padding-left: 50px;
+    flex-wrap: wrap;
+    flex: 1;
+  }
 
-.vertical-divider {
-  width: 1px;
-  background-color: #C7C7C7;
-  margin: 0 100px;
-}
+  .vertical-divider {
+    width: 1px;
+    background-color: #C7C7C7;
+    margin: 0 100px;
+  }
 
-.notice-box {
-  display: flex;
-  gap: 80px;
-  padding-right: 80px;
-  align-items: center;
-  white-space: nowrap;
-}
+  .notice-box {
+    display: flex;
+    gap: 80px;
+    padding-right: 80px;
+    align-items: center;
+    white-space: nowrap;
+  }
 
-.count-item, .notice-item {
-  display: flex;
-  flex-direction: column;
-  min-width: 120px;
-  align-items: center;     /* ✅ 가운데 정렬 */
-  text-align: center;      /* ✅ 텍스트도 중앙 정렬 */
-}
+  .count-item, .notice-item {
+    display: flex;
+    flex-direction: column;
+    min-width: 120px;
+    align-items: center;     /* ✅ 가운데 정렬 */
+    text-align: center;      /* ✅ 텍스트도 중앙 정렬 */
+  }
 
-.label {
-  font-size: 20px;
-  font-weight: bold;
-  color: black;
-  margin-bottom: 10px;
-}
+  .label {
+    font-size: 20px;
+    font-weight: bold;
+    color: black;
+    margin-bottom: 10px;
+  }
 
-.value {
-  font-size: 30px;
-  font-weight: bold;
-  color: black;
-}
+  .value {
+    font-size: 30px;
+    font-weight: bold;
+    color: black;
+  }
 
-.blue {
-  color: #00a8e8;
-}
+  .blue {
+    color: #00a8e8;
+  }
 
-.red {
-  color: #e63946;
-}
+  .red {
+    color: #e63946;
+  }
 </style>
