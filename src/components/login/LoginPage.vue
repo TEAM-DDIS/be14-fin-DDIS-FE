@@ -43,7 +43,7 @@
     <!-- 우측: 브랜딩 & 배경 -->
     <div class="login-right">
       <div class="branding">
-        <img src="@/assets/icons/pizza-icon.svg" alt="DDIS Logo" />
+        <img src="@/assets/icons/pizza-icon2.svg" alt="DDIS Logo" />
         <h2>DDIS</h2>
       </div>
     </div>
@@ -139,15 +139,23 @@ async function onLogin() {
 .login-form,
 .forgot {
   text-align: left;
-}
+  font-size: 18px;
 
+}
+.forgot a:hover{
+  color: #9c9c9c;
+  text-decoration: underline;
+}
 .login-left h1 {
-  font-size: 2.5rem;
+  /* margin-top: -10px; */
+  font-size: 40px;
   color: #00aeef;
 }
 
 .subtitle {
-  margin-top: 0.5rem;
+  margin-top: -15px;
+
+  /* margin-top: 0.5rem; */
   color: #868e96;
 }
 
@@ -159,39 +167,51 @@ async function onLogin() {
   display: flex;
   flex-direction: column;
 }
+.form-group input:focus{
+  border: 2px solid black;
+}
 
 .form-group + .form-group {
   margin-top: 1.5rem;
 }
 
 .form-group label {
-  margin-bottom: 0.5rem;
-  font-weight: 600;
+  margin-left: 5px;
+  margin-bottom: 0.3rem;
+  font-weight: 500;
+  color: #515151;
 }
 
 .form-group input {
+  height: 20px;
   padding: 0.75rem 1rem;
-  border-radius: 30px;
-  border: none;
+  border-radius: 10px;
+  border: 2px solid transparent;
   background-color: #fff;
   outline: none;
-  box-shadow: 0 0 0 1px #dee2e6;
-}
+  box-shadow: 0 0px 4px rgba(0, 0, 0, 0.05);}
 
 .btn-login {
   width: 100%;
+  height: 48px;
   padding: 0.75rem;
   margin-top: 2rem;
   border: none;
-  border-radius: 30px;
+  border-radius: 10px;
   background-color: #00aeef;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   color: #fff;
+  font-size: 18px;
   font-weight: bold;
   cursor: pointer;
   transition: background 0.2s;
 }
+
 .btn-login:hover {
-  background-color: #0096d6;
+  background-color: white;
+  color: #00a8e8;
+  border-color: #00a8e8;
+  box-shadow: inset 1px 1px 10px rgba(0, 0, 0, 0.2);
 }
 
 .error-text {
@@ -217,13 +237,17 @@ async function onLogin() {
   background-color: #00aeef;
   overflow: hidden;
   border-bottom-left-radius: 80px;
+  margin-bottom: 50px;
+  box-shadow: 0 0px 10px rgba(0, 0, 0, 0.8);
+  box-shadow: inset 1px 1px 10px rgba(0, 0, 0, 0.2);
+
 }
 
 .login-right::before {
   content: "";
   position: absolute;
   top: 0; left: 0;
-  width: 100%; height: 100%;
+  width: 100%; height: 90%;
   background: url("@/assets/icons/loginbackground.svg") no-repeat center/cover;
   opacity: 1;
 }
@@ -231,18 +255,18 @@ async function onLogin() {
 /* 로고 + 텍스트 가로 중앙 배치 */
 .branding {
   position: absolute;
-  top: 50%; left: 50%;
+  top: 55%; left: 50%;
   transform: translate(-50%, -50%);
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 25px;
   z-index: 1;
   color: #fff;
 }
 
 .branding img {
-  width: 150px;
-  height: 150px;
+  width: 100px;
+  height: 100px;
   margin: 0;
 }
 
@@ -250,5 +274,6 @@ async function onLogin() {
   margin: 0;
   font-size: 4rem;
   font-weight: bold;
+  margin-bottom:10px;
 }
 </style>
