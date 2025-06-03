@@ -21,9 +21,9 @@
           placeholder="사원번호"
           v-model="filterEmployee"
         />
-        <button class="action-btn primary" @click="onSearch">
+        <!-- <button class="action-btn primary" @click="onSearch">
           <i class="fa fa-search"></i> 조회
-        </button>
+        </button> -->
       </div>
       <div class="actions">
         <button class="action-btn secondary" @click="onDelete">
@@ -52,13 +52,13 @@
 </template>
 
 <script setup>
-  import 'ag-grid-community/styles/ag-grid.css'
-  import 'ag-grid-community/styles/ag-theme-alpine.css'
+  // import 'ag-grid-community/styles/ag-grid.css'
+  // import 'ag-grid-community/styles/ag-theme-alpine.css'
   import { AgGridVue } from 'ag-grid-vue3'
   import { ModuleRegistry, AllCommunityModule } from 'ag-grid-community'
   import { ref, computed, onMounted } from 'vue'
   import { useRouter } from 'vue-router'
-  // import BaseGrid from '@/components/grid/BaseGrid.vue'
+
 
   import detailIconUrl from '@/assets/icons/detail_appointment.svg'
 
@@ -93,9 +93,7 @@
       field: 'detail',
       width: 80,
       cellRenderer: () => `
-      <button class="detail-btn">
-        <img src="${detailIconUrl}" class="detail-icon"/>
-      </button>
+        <img src="${detailIconUrl}" class="detail-btn"/>
     `
     }
   ]
@@ -162,20 +160,22 @@
   .filter-box {
     display: flex;
     flex-direction: column;
-    align-items: center;
+    align-items: flex-end;
     gap: 12px;
     margin-bottom: 16px;
     padding: 16px 24px;
   }
   .filters {
     display: flex;
+    align-items: end;
     align-items: center;
-    gap: 12px;
+    gap: 20px;
   }
   .actions {
     display: flex;
     gap: 8px;
     align-self: flex-end;
+    margin-left: auto;
     margin-top: 8px;
   }
   .filters label {
@@ -184,46 +184,78 @@
   }
   .filters select,
   .filters input {
-    border: 1px solid #D1D5DB;
-    border-radius: 4px;
+    border: 1px solid #c8c8c8;
+    border-radius: 8px;
     padding: 6px 8px;
     font-size: 14px;
-    color: #1F2937;
+    color: #000000;
   }
+  .filters input {
+    width: 250px;
+  }
+  .filters select {
+    width: 160px;
+  }
+
+  .filters select:focus,
+  .filters input:focus {
+    outline: none;
+    border: 1px solid black;
+  }
+
   .action-btn {
     display: inline-flex;
     align-items: center;
-    border-radius: 8px;
-    font-size: 14px;
-    cursor: pointer;
-    transition: background-color 0.2s;
   }
+
+
   .action-btn.primary {
-    background-color: #00a8e8;
-    color: #fff;
-    padding: 8px 30px;
-    border: none;
-  }
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+  font-family: inherit;
+  background-color: #00a8e8;
+  color: white;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  padding: 10px 30px;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: background-color 0.2s, box-shadow 0.2s;
+  box-sizing: border-box;
+}
+
   .action-btn.primary:hover {
-    background-color: #07749f;
-  }
+  background-color: white;
+  color: #00a8e8;
+  border-color: #00a8e8;
+  box-shadow:
+  inset 1px 1px 10px rgba(0, 0, 0, 0.25);
+}
   .action-btn.secondary {
-    background-color: #eeeeee;
-    color: #374151;
-    padding: 8px 30px;
+    background-color: #D3D3D3;
+    color: #000;
     border: none;
+    border-radius: 10px;
+    padding: 10px 30px;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    transition: background-color 0.2s, box-shadow 0.2s;
+    box-sizing: border-box;
   }
   .action-btn.secondary:hover {
-    background-color: #cecece;
+    background-color: #000;
+    color: #fff;
   }
+
+
   .detail-btn {
     background: none;
     border: none;
     padding: 4px;
     cursor: pointer;
-  }
-  .detail-icon {
-    width: 20px;
-    height: 20px;
+    width: 30px;
+    height: 30px;
   }
 </style>

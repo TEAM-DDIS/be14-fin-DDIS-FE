@@ -9,34 +9,36 @@
         
     <div v-if="appointmentDetail" class="content-box">
       <h2 class="title">인사발령 상세 이력</h2>
+      <div class="tables">
+        <!-- 상단 기본 정보 (기존 테이블 유지 or 필요시 AG Grid 로 변경 가능) -->
+        <table class="header-table">
+          <tr>
+            <th>등록일자</th>
+            <td>{{ appointmentDetail.registration_date }}</td>
+          </tr>
+          <tr>
+            <th>발령일자</th>
+            <td>{{ appointmentDetail.appointment_effective_date }}</td>
+          </tr>
+          <tr>
+            <th>발령제목</th>
+            <td>{{ appointmentDetail.title }}</td>
+          </tr>
+        </table>
 
-      <!-- 상단 기본 정보 (기존 테이블 유지 or 필요시 AG Grid 로 변경 가능) -->
-      <table class="header-table">
-        <tr>
-          <th>등록일자</th>
-          <td>{{ appointmentDetail.registration_date }}</td>
-        </tr>
-        <tr>
-          <th>발령일자</th>
-          <td>{{ appointmentDetail.appointment_effective_date }}</td>
-        </tr>
-        <tr>
-          <th>발령제목</th>
-          <td>{{ appointmentDetail.title }}</td>
-        </tr>
-      </table>
-
-      <!-- AG Grid 로 대체된 상세 정보 -->
-      <div class="grid-wrapper ag-theme-alpine">
-        <AgGridVue
-            class="ag-theme-alpine custom-theme"
-            :columnDefs="detailColumnDefs"
-            :rowData="rowDataDetail"
-            :defaultColDef="defaultColDef"
-            animateRows
-            rowSelection="single"
-            style="width:100%; height:400px;"
-        />
+        <!-- AG Grid 로 대체된 상세 정보 -->
+        <div class="grid-wrapper ag-theme-alpine">
+          <AgGridVue
+              class="ag-theme-alpine custom-theme"
+              :gridOptions="{ theme: 'legacy' }"
+              :columnDefs="detailColumnDefs"
+              :rowData="rowDataDetail"
+              :defaultColDef="defaultColDef"
+              animateRows
+              rowSelection="single"
+              style="width:100%; height:300px;"
+          />
+        </div>
       </div>
     </div>
 
@@ -97,7 +99,6 @@
     minWidth: 100,
     filter: true,
     sortable: true,
-    cellStyle: { 'text-align': 'center' }
     }
 
     // rowDataDetail: details 가 준비되면 그 배열을 바인딩
@@ -113,6 +114,7 @@
     .back-btn {
         width: 24px;
         margin-right: -10px;
+        cursor: pointer;
     }
     .desc {
     display: block;
@@ -131,6 +133,13 @@
     text-align: center;
     margin-bottom: 24px;
     }
+
+    .tables {
+      width: 60%;
+      margin: 0 auto;
+      margin-top: 20px;
+      margin-bottom: 40px;
+    }
     .header-table {
     width: 100%;
     border-collapse: collapse;
@@ -138,11 +147,11 @@
     }
     .header-table th,
     .header-table td {
-    border: 1px solid #ccc;
+    border: 1px solid #c8c8c8;
     padding: 8px 12px;
     }
     .header-table th {
-    background: #f9f9f9;
+    background: #f8f9fa;
     width: 160px;
     text-align: left;
     }

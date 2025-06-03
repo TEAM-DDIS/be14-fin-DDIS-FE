@@ -41,7 +41,7 @@
     { name: '급여' },
     { name: '평가 및 성과' },
     { name: '공지 사항'},
-    { name: '용어 사전' }
+    { name: '용어 사전'}
   ]
 </script>
 
@@ -51,7 +51,7 @@
     margin-top: -6px;
     width: 180px;
     overflow-y: auto;
-  min-height: calc(100vh - 60px); /* ✅ 화면 하단까지 배경 보이게 */
+    min-height: calc(100vh - 60px); /* ✅ 화면 하단까지 배경 보이게 */
     /* position: fixed; */
     background-color: #f5f5f5;
     padding: 20px;
@@ -59,7 +59,7 @@
     display: flex;
     flex-direction: column;
     /* justify-content: space-between; */
-    box-shadow: 1px 0 5px rgba(0, 0, 0, 0.1);
+    box-shadow: 0.5px 0 5px rgba(0, 0, 0, 0.1);
     gap: 22px;
     /* font-size: 50px; */
       overflow: visible;  /* ✅ 스크롤 제거 */
@@ -68,7 +68,7 @@
 
     /* 출근 박스는 마진 없이 자동으로 하단에 배치 */
 .attendance-card {
-  opacity: 90%;
+  opacity: 80%;
   margin-left: -5px;
   position: sticky;
   bottom: 20px;
@@ -90,7 +90,7 @@
     border-bottom-left-radius: 20px;
     border-top-right-radius: 0;
     border-bottom-right-radius: 0;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    /* box-shadow: 0 0px 4px rgba(0, 0, 0, 0.2); */
     letter-spacing: 1px;
     /* margin-bottom: 5px; */
     box-sizing: border-box;

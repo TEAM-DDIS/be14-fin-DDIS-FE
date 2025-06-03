@@ -12,7 +12,6 @@
         <span class="dot holiday"></span>휴일
       </div>
     </div>
-
     <!-- Bar -->
     <div class="bar">
       <div
@@ -28,14 +27,12 @@
         :style="{ width: holidayPercent + '%' }"
       ></div>
     </div>
-
     <!-- Total & Description -->
     <div class="total">{{ totalHours }}시간</div>
     <p class="desc">
       초과 근무는 주당 누적 12시간을 초과할 수 없으며,  
       초과 시 반드시 사전 승인을 받아야 합니다.
     </p>
-
     <!-- Apply Button -->
     <button class="apply-btn" @click="onApply">근무 신청</button>
   </div>
