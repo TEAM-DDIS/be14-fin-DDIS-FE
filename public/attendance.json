@@ -316,6 +316,356 @@
       "meeting_time": "15:30"
     }
   ],
+
+  "commute": [
+      {
+    "work_date": "2025-05-01",
+    "work_status_id": "결근",
+    "check_in_time": null,
+    "check_out_time": null,
+    "work_duration": 0,
+    "over_work": 0,
+    "night_work": 0,
+    "holiday_work": 0,
+    "work_sum": 0
+  },
+  {
+    "work_date": "2025-05-02",
+    "work_status_id": "오전반차",
+    "check_in_time": "13:00",
+    "check_out_time": "18:00",
+    "work_duration": 5,
+    "over_work": 0,
+    "night_work": 0,
+    "holiday_work": 0,
+    "work_sum": 5
+  },
+  {
+    "work_date": "2025-05-03",
+    "work_status_id": "휴일",
+    "check_in_time": null,
+    "check_out_time": null,
+    "work_duration": 0,
+    "over_work": 0,
+    "night_work": 0,
+    "holiday_work": 0,
+    "work_sum": 0
+  },
+  {
+    "work_date": "2025-05-04",
+    "work_status_id": "휴일",
+    "check_in_time": null,
+    "check_out_time": null,
+    "work_duration": 0,
+    "over_work": 0,
+    "night_work": 0,
+    "holiday_work": 0,
+    "work_sum": 0
+  },
+  {
+    "work_date": "2025-05-05",
+    "work_status_id": "오전반차",
+    "check_in_time": "13:00",
+    "check_out_time": "18:00",
+    "work_duration": 5,
+    "over_work": 0,
+    "night_work": 0,
+    "holiday_work": 0,
+    "work_sum": 5
+  },
+  {
+    "work_date": "2025-05-06",
+    "work_status_id": "결근",
+    "check_in_time": null,
+    "check_out_time": null,
+    "work_duration": 0,
+    "over_work": 0,
+    "night_work": 0,
+    "holiday_work": 0,
+    "work_sum": 0
+  },
+  {
+    "work_date": "2025-05-07",
+    "work_status_id": "오전반차",
+    "check_in_time": "13:00",
+    "check_out_time": "18:00",
+    "work_duration": 5,
+    "over_work": 0,
+    "night_work": 0,
+    "holiday_work": 0,
+    "work_sum": 5
+  },
+  {
+    "work_date": "2025-05-08",
+    "work_status_id": "야간근무",
+    "check_in_time": "22:00",
+    "check_out_time": "06:00",
+    "work_duration": 0,
+    "over_work": 0,
+    "night_work": 8,
+    "holiday_work": 0,
+    "work_sum": 8
+  },
+  {
+    "work_date": "2025-05-09",
+    "work_status_id": "결근",
+    "check_in_time": null,
+    "check_out_time": null,
+    "work_duration": 0,
+    "over_work": 0,
+    "night_work": 0,
+    "holiday_work": 0,
+    "work_sum": 0
+  },
+  {
+    "work_date": "2025-05-10",
+    "work_status_id": "휴일",
+    "check_in_time": null,
+    "check_out_time": null,
+    "work_duration": 0,
+    "over_work": 0,
+    "night_work": 0,
+    "holiday_work": 0,
+    "work_sum": 0
+  },
+  {
+    "work_date": "2025-05-11",
+    "work_status_id": "휴일",
+    "check_in_time": null,
+    "check_out_time": null,
+    "work_duration": 0,
+    "over_work": 0,
+    "night_work": 0,
+    "holiday_work": 0,
+    "work_sum": 0
+  },
+  {
+    "work_date": "2025-05-12",
+    "work_status_id": "오전반차",
+    "check_in_time": "13:00",
+    "check_out_time": "18:00",
+    "work_duration": 5,
+    "over_work": 0,
+    "night_work": 0,
+    "holiday_work": 0,
+    "work_sum": 5
+  },
+  {
+    "work_date": "2025-05-13",
+    "work_status_id": "정상출근",
+    "check_in_time": "09:00",
+    "check_out_time": "18:00",
+    "work_duration": 8,
+    "over_work": 2,
+    "night_work": 0,
+    "holiday_work": 0,
+    "work_sum": 10
+  },
+  {
+    "work_date": "2025-05-14",
+    "work_status_id": "정상출근",
+    "check_in_time": "09:00",
+    "check_out_time": "18:00",
+    "work_duration": 8,
+    "over_work": 1,
+    "night_work": 0,
+    "holiday_work": 0,
+    "work_sum": 9
+  },
+  {
+    "work_date": "2025-05-15",
+    "work_status_id": "정상출근",
+    "check_in_time": "09:00",
+    "check_out_time": "18:00",
+    "work_duration": 8,
+    "over_work": 0,
+    "night_work": 0,
+    "holiday_work": 0,
+    "work_sum": 8
+  },
+  {
+    "work_date": "2025-05-16",
+    "work_status_id": "결근",
+    "check_in_time": null,
+    "check_out_time": null,
+    "work_duration": 0,
+    "over_work": 0,
+    "night_work": 0,
+    "holiday_work": 0,
+    "work_sum": 0
+  },
+  {
+    "work_date": "2025-05-17",
+    "work_status_id": "휴일근무",
+    "check_in_time": "10:00",
+    "check_out_time": "16:00",
+    "work_duration": 6,
+    "over_work": 0,
+    "night_work": 0,
+    "holiday_work": 6,
+    "work_sum": 6
+  },
+  {
+    "work_date": "2025-05-18",
+    "work_status_id": "휴일",
+    "check_in_time": null,
+    "check_out_time": null,
+    "work_duration": 0,
+    "over_work": 0,
+    "night_work": 0,
+    "holiday_work": 0,
+    "work_sum": 0
+  },
+  {
+    "work_date": "2025-05-19",
+    "work_status_id": "정상출근",
+    "check_in_time": "09:00",
+    "check_out_time": "18:00",
+    "work_duration": 8,
+    "over_work": 1,
+    "night_work": 0,
+    "holiday_work": 0,
+    "work_sum": 9
+  },
+  {
+    "work_date": "2025-05-20",
+    "work_status_id": "정상출근",
+    "check_in_time": "09:00",
+    "check_out_time": "18:00",
+    "work_duration": 8,
+    "over_work": 1,
+    "night_work": 0,
+    "holiday_work": 0,
+    "work_sum": 9
+  },
+  {
+    "work_date": "2025-05-21",
+    "work_status_id": "정상출근",
+    "check_in_time": "09:00",
+    "check_out_time": "18:00",
+    "work_duration": 8,
+    "over_work": 2,
+    "night_work": 0,
+    "holiday_work": 0,
+    "work_sum": 10
+  },
+  {
+    "work_date": "2025-05-22",
+    "work_status_id": "오후반차",
+    "check_in_time": "09:00",
+    "check_out_time": "13:00",
+    "work_duration": 4,
+    "over_work": 0,
+    "night_work": 0,
+    "holiday_work": 0,
+    "work_sum": 4
+  },
+  {
+    "work_date": "2025-05-23",
+    "work_status_id": "정상출근",
+    "check_in_time": "09:00",
+    "check_out_time": "18:00",
+    "work_duration": 8,
+    "over_work": 2,
+    "night_work": 0,
+    "holiday_work": 0,
+    "work_sum": 10
+  },
+  {
+    "work_date": "2025-05-24",
+    "work_status_id": "휴일",
+    "check_in_time": null,
+    "check_out_time": null,
+    "work_duration": 0,
+    "over_work": 0,
+    "night_work": 0,
+    "holiday_work": 0,
+    "work_sum": 0
+  },
+  {
+    "work_date": "2025-05-25",
+    "work_status_id": "휴일",
+    "check_in_time": null,
+    "check_out_time": null,
+    "work_duration": 0,
+    "over_work": 0,
+    "night_work": 0,
+    "holiday_work": 0,
+    "work_sum": 0
+  },
+  {
+    "work_date": "2025-05-26",
+    "work_status_id": "정상출근",
+    "check_in_time": "09:00",
+    "check_out_time": "18:00",
+    "work_duration": 8,
+    "over_work": 2,
+    "night_work": 0,
+    "holiday_work": 0,
+    "work_sum": 10
+  },
+  {
+    "work_date": "2025-05-27",
+    "work_status_id": "정상출근",
+    "check_in_time": "09:00",
+    "check_out_time": "18:00",
+    "work_duration": 8,
+    "over_work": 1,
+    "night_work": 0,
+    "holiday_work": 0,
+    "work_sum": 9
+  },
+  {
+    "work_date": "2025-05-28",
+    "work_status_id": "결근",
+    "check_in_time": null,
+    "check_out_time": null,
+    "work_duration": 0,
+    "over_work": 0,
+    "night_work": 0,
+    "holiday_work": 0,
+    "work_sum": 0
+  },
+  {
+    "work_date": "2025-05-29",
+    "work_status_id": "결근",
+    "check_in_time": null,
+    "check_out_time": null,
+    "work_duration": 0,
+    "over_work": 0,
+    "night_work": 0,
+    "holiday_work": 0,
+    "work_sum": 0
+  },
+  {
+    "work_date": "2025-05-30",
+    "work_status_id": "오전반차",
+    "check_in_time": "13:00",
+    "check_out_time": "18:00",
+    "work_duration": 5,
+    "over_work": 0,
+    "night_work": 0,
+    "holiday_work": 0,
+    "work_sum": 5
+  }
+  ],
+
+  "work_status_summary": [
+    { "work_date": "2025-05-01", "work_status_id": "정상출근" },
+  { "work_date": "2025-05-02", "work_status_id": "초과" },
+  { "work_date": "2025-05-03", "work_status_id": "지각" },
+  { "work_date": "2025-05-04", "work_status_id": "연차" },
+  { "work_date": "2025-05-05", "work_status_id": "연차" },
+  { "work_date": "2025-05-06", "work_status_id": "외근" },
+  { "work_date": "2025-05-07", "work_status_id": "초과" },
+  { "work_date": "2025-05-01", "work_status_id": "정상출근" },
+  { "work_date": "2025-05-02", "work_status_id": "초과" },
+  { "work_date": "2025-05-03", "work_status_id": "반차" },
+  { "work_date": "2025-05-04", "work_status_id": "연차" },
+  { "work_date": "2025-05-05", "work_status_id": "반차" },
+  { "work_date": "2025-05-06", "work_status_id": "외근" },
+  { "work_date": "2025-05-07", "work_status_id": "초과" }
+  ],
   
 "employees": [
     {
