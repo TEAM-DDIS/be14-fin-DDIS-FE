@@ -1,6 +1,6 @@
 <template>
   <!-- 제목 / 설명은 카드 밖 -->
-  <h1 class="page-title">공지사항 등록</h1>
+  <h1 class="page-title">공지사항</h1>
   <p class="desc">공지사항 등록 화면</p>
 
   <!-- 카드 박스 -->
@@ -212,22 +212,27 @@ function onSubmit() {
 .post-enroll-wrapper {
   background: #fff;
   border-radius: 12px;
-  padding: 20px 32px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-  margin: 24px;
+  box-shadow: 1px 1px 20px 1px rgba(0, 0, 0, 0.05);
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  max-width: 100%;
+  margin: 20px 0 0 10px;
+  padding: 20px 40px 32px 40px;
+  box-sizing: border-box;
+  margin-bottom: 30px;
 }
 
 /* page-title, desc (카드 밖) */
 .page-title {
   margin-left: 20px;
-  margin-bottom: 20px;
+  margin-bottom: 50px;
   color: #00a8e8;
 }
 .desc {
   display: block;
   margin-left: 20px;
-  margin-bottom: 30px;
-  color: #666;
+  margin-bottom: 10px;
 }
 
 /* 1) 제목/파일 행 정렬용 공통 */

@@ -251,6 +251,13 @@ const router = createRouter({
             path: '/post/postEnroll',
             component: () => import('@/components/post/PostEnroll.vue')
         },
+        
+        // 공지사항 상세 조회
+        {
+            path: '/post/postDetail/:id',
+            name : 'PostDetail',
+            component: () => import('@/components/post/PostDetailPage.vue')
+        },
 
 
         // =============== 용어사전 ===============

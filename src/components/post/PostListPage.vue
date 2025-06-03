@@ -1,11 +1,9 @@
 <template>
-  <div class="notice-wrapper">
     <h1 class="page-title">공지사항</h1>
     <p class="desc">공지사항 목록</p>
 
     <!-- 2) AG Grid 영역 -->
     <div class="card">
-      <!-- 검색창을 카드 안으로 옮겼습니다 -->
       <div class="search-bar-in-card">
         <img src="@/assets/icons/search.svg" alt="검색" class="search-icon" />
         <input
@@ -31,6 +29,7 @@
           :rowHeight="defaultRowHeight"
           :getRowHeight="getRowHeight"
           @grid-ready="onGridReady"
+          @cell-clicked="onCellClick"
         />
       </div>
     </div>
@@ -59,7 +58,7 @@
         </div>
       </div>
     </div>
-  </div>
+
 </template>
 
 <script setup>
@@ -198,9 +197,19 @@ function getRowHeight(params) {
     : defaultRowHeight
 }
 
+
 // “등록” 버튼 클릭 시 호출되는 함수
 function onRegister() {
   router.push('/post/postEnroll')
+}
+
+// AG Grid 셀 클릭 시 상세 페이지로 이동
+function onCellClick(e) {
+  // ‘title’ 컬럼을 클릭했을 때만 상세 페이지로 이동
+  if (e.colDef.field === 'title') {
+    const id = e.data.id
+    router.push(`/post/postDetail/${id}`)
+  }
 }
 
 
@@ -237,10 +246,13 @@ function onRegister() {
 /* 카드 내부 검색창 */
 .search-bar-in-card {
   display: flex;
+  width: 300px;
+  height: 30px;
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: 10px;
   padding: 6px 8px;
   font-size: 14px;
+  color: #1F2937;
 }
 .search-bar-in-card .search-icon {
   width: 20px;
