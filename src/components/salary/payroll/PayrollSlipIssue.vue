@@ -175,6 +175,7 @@ const salarySection = ref(null) // 급여 내역 영역 ref
 const selectedSlip = reactive({
   yearMonth: '',
   employeeId: '',
+  employeeEmail: '',
   employeeName: '',
   headName: '',
   departmentName: '',
@@ -310,6 +311,7 @@ async function selectSlip(e) {
     const { data: emp } = await axios.get(`http://localhost:8000/payroll/employees/${row.employeeId}`)
 
     selectedSlip.employeeId = emp.employeeId
+    selectedSlip.employeeEmail = emp.employeeEmail
     selectedSlip.employeeName = emp.employeeName
     selectedSlip.headName = emp.headName
     selectedSlip.departmentName = emp.departmentName
