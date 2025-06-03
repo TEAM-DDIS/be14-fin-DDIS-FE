@@ -269,10 +269,10 @@ const router = createRouter({
 
         // =============== 용어사전 ===============
 
-        // {
-        //     path: '/dictionary',
-        //     component: () => import('@/')
-        // },
+        {
+            path: '/dictionary',
+            component: () => import('@/components/dictionary/DictionaryPage.vue')
+        },
     ]
 })
 
