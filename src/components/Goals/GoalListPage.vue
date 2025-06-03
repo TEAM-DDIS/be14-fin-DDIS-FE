@@ -8,47 +8,78 @@
     </div>
     <div class="panels">
       <img class="arrows" src="@/assets/icons/Polygon-2.svg"> 
+
+      <!-- 1) 목표 목록 및 등록 패널 -->
       <section class="panel goals-panel">
         <div class="goal-container">
-          <!-- <img class="arrows" src="@/assets/icons/Polygon-2.svg">  -->
+          <!-- 목표가 없고 등록 폼도 안 보일 때 -->
           <div v-if="goals.length === 0 && !showGoalForm" class="placeholder">
             <p class="placeholder-text">목표를 등록해보세요!</p>
           </div>
+
+          <!-- 목표 등록 폼 -->
           <form v-else-if="showGoalForm" class="goal-form" @submit.prevent="addGoal">
             <div class="form-row">
               <label for="title">목표명</label>
-              <input id="title" v-model="newGoal.goalTitle" placeholder="예) 신규 고객 20명 확보" required />
+              <input
+                id="title"
+                v-model="newGoal.goalTitle"
+                placeholder="예) 신규 고객 20명 확보"
+                required
+              />
             </div>
             <div class="form-row half">
               <div>
                 <label for="target">목표수치</label>
-                <input id="target" v-model.number="newGoal.goalValue" type="number" placeholder="숫자로 입력" required />
+                <input
+                  id="target"
+                  v-model.number="newGoal.goalValue"
+                  type="number"
+                  placeholder="숫자로 입력"
+                  required
+                />
               </div>
               <div>
                 <label for="weight">가중치(%)</label>
-                <input id="weight" v-model.number="newGoal.goalWeight" type="number" placeholder="0~100" required />
+                <input
+                  id="weight"
+                  v-model.number="newGoal.goalWeight"
+                  type="number"
+                  placeholder="0~100"
+                  required
+                />
               </div>
             </div>
             <div class="form-row">
               <label for="description">목표내용</label>
-              <textarea id="description" v-model="newGoal.goalContent" placeholder="상세 설명을 입력하세요"></textarea>
+              <textarea
+                id="description"
+                v-model="newGoal.goalContent"
+                placeholder="상세 설명을 입력하세요"
+              ></textarea>
             </div>
             <div class="form-actions">
               <button class="btn-primary" type="submit">저장</button>
               <button class="btn-secondary" type="button" @click="cancelGoal">취소</button>
             </div>
           </form>
+
+          <!-- 목표 리스트 -->
           <div v-else class="goals-list">
             <div
               v-for="goal in goals"
-              :key="goal.goalId" 
+              :key="goal.goalId"
               class="goal-card"
               :class="{ selected: selected === goal.goalId }"
               @click="selectGoal(goal)"
             >
-              <button class="btn-card-delete" @click.stop="confirmDelete(goal.goalId)" title="삭제">×</button>
+              <button
+                class="btn-card-delete"
+                @click.stop="confirmDelete(goal.goalId)"
+                title="삭제"
+              >×</button>
               <div class="card-top">
-                <span class="date">{{ goal.goalCreatedAt }}</span>
+                <span class="date">{{ formatDate(goal.goalCreatedAt) }}</span>
                 <span class="author">{{ goal.employeeName }}</span>
               </div>
               <h4 class="card-title">{{ goal.goalTitle }}</h4>
@@ -68,20 +99,22 @@
             </div>
           </div>
         </div>
+
+        <!-- 목표등록 버튼 -->
         <div class="actions" v-if="!showGoalForm">
           <button class="btn-primary" @click="openGoalForm">목표등록</button>
         </div>
       </section>
 
+      <!-- 2) 실적 입력/수정 패널 -->
       <section class="panel perf-panel">
         <div class="perf-header">
-          <button v-if="selectedGoal?.performance" class="btn-delete" @click="deletePerf">삭제</button>
+          <button v-if="hasPerformance" class="btn-delete" @click="deletePerf">삭제</button>
         </div>
         <div v-if="!selectedGoal" class="empty">
           <p class="empty-text">목표를 클릭해서 실적을 등록해보세요!</p>
         </div>
         <div v-else class="perf-content">
-          
           <div class="detail-title"><span class="detail-title-label">목표명</span></div>
           <h3 class="perf-title">{{ selectedGoal.goalTitle }}</h3>
           <div class="detail-header"><span class="detail-label">상세 내용</span></div>
@@ -99,6 +132,30 @@
               <tr><td colspan="4">{{ selectedGoal.goalContent }}</td></tr>
             </tbody>
           </table>
+
+            <!-- 3) 이미 등록된 첨부파일이 있으면 목록으로 보여줌 -->
+          <div v-if="form.existingAttachmentUrls.length" class="existing-files">
+          <p class="section-title">기존 첨부파일</p>
+          <ul>
+            <li
+              v-for="(url, idx) in form.existingAttachmentUrls"
+              :key="idx"
+              class="existing-file-item"
+            >
+              <a
+                :href="url" 
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {{ form.existingAttachmentFileNames[idx] }}
+              </a>
+              <span class="file-size-text">
+                ({{ (form.existingAttachmentFileSizes[idx] / 1024 / 1024).toFixed(1) }}MB)
+              </span>
+            </li>
+          </ul>
+        </div>
+          <!-- 실적 입력/수정 폼 -->
           <div class="perf-form">
             <div class="attach-area">
               <label>첨부 파일</label>
@@ -120,7 +177,7 @@
               <textarea v-model="form.comment" placeholder="자기 평가"></textarea>
             </div>
             <div class="btn-save-wrap">
-              <button class="btn-save" @click="submitPerf">등록</button>
+              <button class="btn-save" @click="submitPerf">{{ hasPerformance ? '수정' : '등록' }}</button>
             </div>
           </div>
         </div>
@@ -129,72 +186,164 @@
   </div>
 </template>
 
-
 <script setup>
 import { ref, reactive, computed, watch, onMounted } from 'vue'
 import { useUserStore } from '@/stores/user'
+import { v4 as uuidv4 } from 'uuid'
 
 const goals = ref([])
 const selected = ref(null)
 const showGoalForm = ref(false)
 const userStore = useUserStore()
 
+// 신규 목표 등록용 reactive 객체
 const newGoal = reactive({
   goalTitle: '',
-  goalTarget: null,
+  goalValue: null,
   goalWeight: null,
   goalContent: '',
   goalCreatedAt: getKoreaLocalDateTimeString(),
   employeeName: userStore.name
 })
 
+// 실적 폼 데이터
 const form = reactive({
   actual: null,
   comment: '',
   file: null,
   fileName: '',
-  fileSize: ''
+  fileSize: '',
+  existingAttachmentKeys: [],
+  existingAttachmentFileNames: [],
+  existingAttachmentFileTypes: [],
+  existingAttachmentFileSizes: [],
+  performanceId: null,
+  existingAttachmentUrls: []
 })
 
-const selectedGoal = computed(() => goals.value.find(g => g.goalId === selected.value))
+// computed: 선택된 목표
+const selectedGoal = computed(() =>
+  goals.value.find(g => g.goalId === selected.value)
+)
+// computed: 실적이 이미 있으면 true
+const hasPerformance = computed(() => form.performanceId !== null)
 
 onMounted(fetchGoals)
-function getKoreaLocalDateTimeString() {
-  const now = new Date()
-  const tzOffset = now.getTimezoneOffset() * 60000 // 한국은 -540분 → +9시간
-  const localISOTime = new Date(now - tzOffset).toISOString().slice(0, 19)
-  return localISOTime // 예: "2025-05-29T10:43:00"
+
+// 날짜 포맷 함수 (YYYY-MM-DD)
+function formatDate(isoString) {
+  if (!isoString) return ''
+  return isoString.slice(0, 10)
 }
 
+// 한국 시각 기준 ISO 날짜 문자열 반환
+function getKoreaLocalDateTimeString() {
+  const now = new Date()
+  const tzOffset = now.getTimezoneOffset() * 60000
+  return new Date(now - tzOffset).toISOString().slice(0, 19)
+}
+
+// 목표 목록을 백엔드에서 가져오기
 function fetchGoals() {
   const token = localStorage.getItem('token')
   fetch('http://localhost:8000/goals', {
-    headers: {
-      'Authorization': `Bearer ${token}`
-    }
+    headers: { Authorization: `Bearer ${token}` }
   })
     .then(res => res.json())
     .then(data => {
-      goals.value = data.map(goal => ({
-        ...goal,
-        progress: 0,
-        performance: { date: '', actual: 0, comment: '', attachment: null }
-      }))
+      goals.value = data.map(goal => {
+        const prog = goal.performance
+          ? Math.min(
+              100,
+              Math.round((goal.performance.performanceValue / goal.goalValue) * 100)
+            )
+          : 0
+        return {
+          ...goal,
+          progress: prog
+        }
+      })
     })
     .catch(err => console.error('목표 불러오기 실패:', err))
 }
 
+// 실적 수치가 바뀔 때 progress 업데이트
 watch(() => form.actual, val => {
   const g = selectedGoal.value
   if (!g || !g.goalValue) return
   g.progress = Math.min(100, Math.round((val / g.goalValue) * 100))
 })
 
-function confirmDelete(id) {
-  if (confirm('정말 삭제하시겠습니까?')) deleteGoals(id)
+// 목표 클릭 시 폼 채우기
+function selectGoal(goal) {
+  selected.value = goal.goalId
+  resetForm()
+  if (goal.performance) {
+    const perf = goal.performance
+    form.actual = perf.performanceValue
+    form.comment = perf.selfreviewContent
+    form.performanceId = perf.performanceId
+    if (Array.isArray(perf.attachmentKeys) && perf.attachmentKeys.length) {
+      form.existingAttachmentKeys = [...perf.attachmentKeys]
+      form.existingAttachmentFileNames = [...perf.attachmentFileNames]
+      form.existingAttachmentFileTypes = [...perf.attachmentFileTypes]
+      form.existingAttachmentFileSizes = [...perf.attachmentFileSizes]
+      form.fileName = perf.attachmentFileNames[0]
+      form.fileSize = `${(perf.attachmentFileSizes[0] / 1024 / 1024).toFixed(1)}MB`
+    }
+  }
 }
 
-function addGoal() {
+// 폼 초기화
+function resetForm() {
+  form.actual = null
+  form.comment = ''
+  form.file = null
+  form.fileName = ''
+  form.fileSize = ''
+  form.existingAttachmentKeys = []
+  form.existingAttachmentFileNames = []
+  form.existingAttachmentFileTypes = []
+  form.existingAttachmentFileSizes = []
+  form.performanceId = null
+}
+
+// 목표 등록 폼 열기
+function openGoalForm() {
+  showGoalForm.value = true
+}
+
+
+// -----------------------------
+//  파일 다운로드
+// -----------------------------
+async function downloadAttachment(fileKey) {
+  try {
+    const token = localStorage.getItem('token')
+    const res = await fetch(
+      `http://localhost:8000/goals/performance/attachment/download-url?fileKey=${encodeURIComponent(fileKey)}`,
+      { headers: { Authorization: `Bearer ${token}` } }
+    )
+    if (!res.ok) throw new Error('다운로드 URL 생성 실패')
+    const presignedUrl = await res.text()
+    window.open(presignedUrl, '_blank')
+  } catch (err) {
+    console.error(err)
+    alert('파일 다운로드 중 오류가 발생했습니다.')
+  }
+}
+
+// 파일 선택 시 처리
+function onFileChange(e) {
+  const f = e.target.files[0]
+  if (!f) return
+  form.file = f
+  form.fileName = f.name
+  form.fileSize = (f.size / 1024 / 1024).toFixed(1) + 'MB'
+}
+
+// 1) 목표 등록
+async function addGoal() {
   if (!newGoal.goalTitle) return
 
   const token = localStorage.getItem('token')
@@ -205,114 +354,187 @@ function addGoal() {
     goalContent: newGoal.goalContent,
     goalCreatedAt: newGoal.goalCreatedAt,
     employeeName: newGoal.employeeName
-
   }
 
-  fetch('http://localhost:8000/goals', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`
-    },
-    body: JSON.stringify(payload)
-  })
-    .then(res => res.json())
-    .then(id => {
-      goals.value.push({
-        id: id,
-        ...payload,
-        progress: 0,
-        performance: { date: '', actual: 0, comment: '', attachment: null }
-      })
-      cancelGoal()
+  try {
+    const res = await fetch('http://localhost:8000/goals', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify(payload)
     })
-    .catch(err => console.error('목표 등록 실패:', err))
+    if (!res.ok) throw new Error('목표 등록 실패')
+    const id = await res.json()
+    goals.value.push({
+      goalId: id,
+      ...payload,
+      progress: 0,
+      performance: null
+    })
+    cancelGoal()
+  } catch (err) {
+    console.error(err)
+    alert('목표 등록 중 오류가 발생했습니다.')
+  }
 }
 
+// 목표 등록 취소
 function cancelGoal() {
-  newGoal.goalTitle  = ''
-  newGoal.goalValue  = null
-  newGoal.goalWeight  = null
-  newGoal.goalContent  = ''
+  newGoal.goalTitle = ''
+  newGoal.goalValue = null
+  newGoal.goalWeight = null
+  newGoal.goalContent = ''
   showGoalForm.value = false
 }
 
-function selectGoal(goal) {
-  selected.value = goal.goalId
-  form.actual = goal.performance.actual
-  form.comment = goal.performance.comment
-  form.fileName = goal.performance.attachment?.name || ''
-  form.fileSize = goal.performance.attachment?.size || ''
+// 목표 삭제 전 확인
+function confirmDelete(id) {
+  if (confirm('정말 삭제하시겠습니까?')) deleteGoals(id)
 }
 
-function openGoalForm() {
-  showGoalForm.value = true
-}
-
-function onFileChange(e) {
-  const f = e.target.files[0]
-  if (!f) return
-  form.file = f
-  form.fileName = f.name
-  form.fileSize = (f.size / 1024 / 1024).toFixed(1) + 'MB'
-}
-
-function submitPerf() {
-  const g = selectedGoal.value
-  if (!g) return
-  g.performance = {
-    date: new Date().toISOString().slice(0, 10),
-    actual: form.actual,
-    comment: form.comment,
-    attachment: form.file ? { name: form.fileName, size: form.fileSize } : null
-  }
-}
-
-function deletePerf() {
-  const g = selectedGoal.value
-  if (!g) return
-  g.performance = { date: '', actual: 0, comment: '', attachment: null }
-  g.progress = 0
-  form.actual = null
-  form.comment = ''
-  form.file = null
-  form.fileName = ''
-  form.fileSize = ''
-}
-
-function deleteGoal(id) {
-  const idx = goals.value.findIndex(g => g.goalId === id)
-  if (idx !== -1) {
-    goals.value.splice(idx, 1)
-    if (selected.value === id) selected.value = null
-  }
-}
+// 2) 목표 삭제
 async function deleteGoals(id) {
   try {
     const token = localStorage.getItem('token')
     const res = await fetch(`http://localhost:8000/goals/${id}`, {
       method: 'DELETE',
-      headers: { 
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json' 
-    },
-    body: JSON.stringify({  goalId: id})
-  })
-    if (!res.ok) throw new Error(`${res.status} ${res.statusText}`)
-
-    // UI에서 해당 목표 제거
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ goalId: id })
+    })
+    if (!res.ok) throw new Error('목표 삭제 실패')
     const idx = goals.value.findIndex(g => g.goalId === id)
     if (idx !== -1) {
       goals.value.splice(idx, 1)
       if (selected.value === id) selected.value = null
     }
-  }
-  catch (err) {
-    console.error('목표 삭제 실패:', err)
+  } catch (err) {
+    console.error(err)
     alert('삭제 중 오류가 발생했습니다.')
   }
 }
+
+// 3) 실적 등록/수정
+async function submitPerf() {
+  const g = selectedGoal.value
+  if (!g) return alert('먼저 목표를 선택해주세요.')
+
+  const token = localStorage.getItem('token')
+  let attachmentUrlsToSend = [...form.existingAttachmentKeys]
+  let fileNamesToSend = [...form.existingAttachmentFileNames]
+  let fileTypesToSend = [...form.existingAttachmentFileTypes]
+  let fileSizesToSend = [...form.existingAttachmentFileSizes]
+
+  // 새로 파일을 골랐다면 presign→PUT
+  if (form.file) {
+    try {
+      const key = `performance/${uuidv4()}-${form.file.name}`
+      const presignRes = await fetch(
+        `http://localhost:8000/s3/upload-url?fileName=${encodeURIComponent(key)}&ContentType=${encodeURIComponent(form.file.type)}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      )
+      if (!presignRes.ok) throw new Error('Presign URL 요청 실패')
+      const uploadUrl = await presignRes.text()
+
+      const putRes = await fetch(uploadUrl, {
+        method: 'PUT',
+        headers: { 'Content-Type': form.file.type },
+        body: form.file
+      })
+      if (!putRes.ok) throw new Error('S3 파일 업로드 실패')
+
+      attachmentUrlsToSend = [key]
+      fileNamesToSend = [form.fileName]
+      fileTypesToSend = [form.file.type]
+      fileSizesToSend = [form.file.size]
+    } catch (err) {
+      console.error(err)
+      return alert('파일 업로드 중 오류가 발생했습니다.')
+    }
+  }
+
+  const payload = {
+    performanceValue: form.actual,
+    selfreviewContent: form.comment,
+    selfCreatedAt: Date.now(),
+    employeeIdSelfreviewer: userStore.employeeId,
+    fileSize: fileSizesToSend.length ? fileSizesToSend[0] : null,
+    attachmentKey: attachmentUrlsToSend.length ? attachmentUrlsToSend[0] : null,
+    originalFileName: fileNamesToSend.length ? fileNamesToSend[0] : '',
+    fileType: fileTypesToSend.length ? fileTypesToSend[0] : ''
+  }
+
+  try {
+    let res
+    if (hasPerformance.value) {
+      res = await fetch(
+        `http://localhost:8000/goalsperf/${g.goalId}/performance/${form.performanceId}`,
+        {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`
+          },
+          body: JSON.stringify(payload)
+        }
+      )
+    } else {
+      res = await fetch(
+        `http://localhost:8000/goalsperf/${g.goalId}/performance`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`
+          },
+          body: JSON.stringify(payload)
+        }
+      )
+    }
+    if (!res.ok) {
+      console.error(await res.text())
+      return alert(hasPerformance.value ? '실적 수정에 실패했습니다.' : '실적 등록에 실패했습니다.')
+    }
+    const saved = await res.json()
+    form.performanceId = saved.performanceId
+    alert(hasPerformance.value ? '실적이 수정되었습니다.' : '실적이 등록되었습니다.')
+  } catch (err) {
+    console.error(err)
+    alert('실적 저장 중 오류가 발생했습니다.')
+  }
+}
+
+// 4) 실적 삭제
+async function deletePerf() {
+  const g = selectedGoal.value
+  if (!g || !hasPerformance.value) return
+  if (!confirm('정말 실적을 삭제하시겠습니까?')) return
+
+  const token = localStorage.getItem('token')
+  try {
+    const res = await fetch(
+      `http://localhost:8000/goals/${g.goalId}/performance/${form.performanceId}`,
+      {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` }
+      }
+    )
+    if (!res.ok) throw new Error('실적 삭제 실패')
+    resetForm()
+    alert('실적이 삭제되었습니다.')
+  } catch (e) {
+    console.error(e)
+    alert('실적 삭제 중 오류가 발생했습니다.')
+  }
+}
 </script>
+
+
+
 
 <style scoped>
 
