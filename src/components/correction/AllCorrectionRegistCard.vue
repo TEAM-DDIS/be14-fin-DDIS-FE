@@ -132,7 +132,7 @@
     const columnDefs = [
         { headerName: '번호', field: 'id', sort: 'desc' },
         { headerName: '사번', field: 'employeeId' },
-        { headerName: '이름', field: 'employeeName' },
+        { headerName: '성명', field: 'employeeName' },
         { headerName: '처리상태', field: 'approval_status' },
         { headerName: '신청일', field: 'request_time' },
         { headerName: '출근시각', field: 'check_in_time' },
@@ -173,7 +173,7 @@
     .all-leave-regist-card {
         background: #fff;
         padding: 30px;
-        border-radius: 0px 20px 20px 20px;
+        border-radius: 0px 12px 12px 12px;
         box-shadow: 1px 1px 20px 1px rgba(0, 0, 0, 0.05);
         flex-wrap: wrap;
     }
@@ -207,6 +207,10 @@
         display: flex;
         gap: 30px;
         flex-wrap: wrap;
+    }
+
+    .filters-row {
+        margin-bottom: 15px;
     }
 
     .filters select {
@@ -279,7 +283,7 @@
     .modal {
         background: white;
         padding: 20px;
-        border-radius: 20px;
+        border-radius: 12px;
         width: 420px;
         box-shadow: 0 2px 12px rgba(0,0,0,0.2);
     }

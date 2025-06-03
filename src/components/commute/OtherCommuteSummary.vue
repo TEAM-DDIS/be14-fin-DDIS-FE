@@ -65,7 +65,7 @@
 
     .summary-badge {
         padding: 8px 16px;
-        border-radius: 20px;
+        border-radius: 12px;
         font-weight: bold;
         font-size: 20px;
         color: #ffffff;

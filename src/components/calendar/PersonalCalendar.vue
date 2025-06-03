@@ -142,7 +142,7 @@
     /* 캘린더 박스 */
     .personal-calendar {
         background-color: #ffffff;
-        border-radius: 20px;
+        border-radius: 12px;
         box-shadow: 1px 1px 20px 1px rgba(0, 0, 0, 0.05);
         padding-left: 25px;
         padding-top: 25px;
@@ -220,7 +220,7 @@
     .modal {
         background: white;
         padding: 30px;
-        border-radius: 20px;
+        border-radius: 12px;
         width: 420px;
         box-shadow: 0 2px 12px rgba(0,0,0,0.2);
     }

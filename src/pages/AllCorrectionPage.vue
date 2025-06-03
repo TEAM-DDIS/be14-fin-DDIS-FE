@@ -1,6 +1,6 @@
 <template>
     <div>
-        <h1 class="page-title">전체 출근정정 관리</h1>
+        <h1 class="page-title">전체 출근 정정 관리</h1>
         <div class="all-leave-page">
             <!-- 날짜 필터 -->
             <div class="date-filter">

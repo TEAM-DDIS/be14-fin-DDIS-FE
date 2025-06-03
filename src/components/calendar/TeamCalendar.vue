@@ -220,7 +220,7 @@
     .modal {
         background: white;
         padding: 30px;
-        border-radius: 20px;
+        border-radius: 12px;
         width: 420px;
         box-shadow: 0 2px 12px rgba(0,0,0,0.2);
     }
