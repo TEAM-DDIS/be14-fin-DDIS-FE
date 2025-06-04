@@ -33,11 +33,11 @@
             </div>
         </div>
         <Teleport to="body">
-            <div v-if="show" class="overlay" @click.self="show=false">
+            <div v-if="show" class="overlay">
                 <div class="modal">
-                    <span class="desc">회의 일정 등록</span>
+                    <span class="modal-desc">회의 일정 등록</span>
                     <!-- MeetingEventCard 삽입 -->
-                    <MeetingEventCard @add="onAdd" />
+                    <MeetingEventCard @add="onAdd" @cancel="show = false"/>
                 </div>
             </div>
         </Teleport>
@@ -223,6 +223,14 @@
         border-radius: 12px;
         width: 420px;
         box-shadow: 0 2px 12px rgba(0,0,0,0.2);
+    }
+
+    .modal-desc {
+        display: block;
+        text-align: center;
+        font-weight: bold;
+        font-size: 20px;
+        margin-bottom: 20px;
     }
 
     .desc {

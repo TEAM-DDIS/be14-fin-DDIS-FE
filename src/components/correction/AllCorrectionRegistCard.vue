@@ -59,18 +59,20 @@
         </div>
         <!-- 모달 -->
         <Teleport to="body">
-            <div v-if="showModal" class="overlay" @click.self="showModal = false">
+            <div v-if="showModal" class="overlay">
                 <div class="modal">
-                    <span class="desc">
+                    <span class="modal-desc">
                         {{ modalType === 'reject' ? '출근 정정 요청 반려' : '출근 정정 요청 승인' }}
                     </span>
                     <CorrectionRejectEvent
                         v-if="modalType === 'reject'"
                         @submit="handleSubmit"
+                        @cancel="showModal = false"
                     />
                     <CorrectionApproveEvent
                         v-else
                         @confirm="handleConfirm"
+                        @cancel="showModal = false"
                     />
                 </div>
             </div>
@@ -286,6 +288,14 @@
         border-radius: 12px;
         width: 420px;
         box-shadow: 0 2px 12px rgba(0,0,0,0.2);
+    }
+
+    .modal-desc {
+        display: block;
+        text-align: center;
+        font-weight: bold;
+        font-size: 20px;
+        margin-bottom: 20px;
     }
 
     .desc {
