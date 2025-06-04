@@ -51,56 +51,56 @@ const router = createRouter({
         // 내 근태 현황
         {
             path: '/attendance/myAttendance',
-            component: () => import('@/pages/MyAttendancePage.vue')
+            component: () => import('@/pages/attendance/MyAttendancePage.vue')
         },
 
         // 팀 근태 현황
         {
             path: '/attendance/teamAttendance',
-            component: () => import('@/pages/TeamAttendancePage.vue')
+            component: () => import('@/pages/attendance/TeamAttendancePage.vue')
         },
 
         // 내 출근 정정 관리
         {
             path: '/attendance/myCorrection',
-            component: () => import('@/pages/MyCorrectionPage.vue')
+            component: () => import('@/pages/attendance/MyCorrectionPage.vue')
         },
 
         // 전체 출근 정정 관리
         {
             path: '/attendance/allCorrection',
-            component: () => import('@/pages/AllCorrectionPage.vue')
+            component: () => import('@/pages/attendance/AllCorrectionPage.vue')
         },
 
         // 내 출퇴근 관리
         {
             path: '/attendance/myCommute',
-            component: () => import('@/pages/MyCommutePage.vue')
+            component: () => import('@/pages/attendance/MyCommutePage.vue')
         },
 
         // 전체 출퇴근 관리
         {
             path: '/attendance/allCommute',
-            component: () => import('@/pages/AllCommutePage.vue')
+            component: () => import('@/pages/attendance/AllCommutePage.vue')
         },
 
         {
             path: '/attendance/allCommute/:employeeId',
             name: 'OtherCommutePage',
-            component: () => import('@/pages/OtherCommutePage.vue'),
+            component: () => import('@/pages/attendance/OtherCommutePage.vue'),
             props: true
         },
 
         // 내 연차 관리
         {
             path: '/attendance/myLeave',
-            component: () => import('@/pages/MyLeavePage.vue')
+            component: () => import('@/pages/attendance/MyLeavePage.vue')
         },
 
         // 전체 연차 관리
         {
             path: '/attendance/allLeave',
-            component: () => import('@/pages/AllLeavePage.vue')
+            component: () => import('@/pages/attendance/AllLeavePage.vue')
         },
 
 

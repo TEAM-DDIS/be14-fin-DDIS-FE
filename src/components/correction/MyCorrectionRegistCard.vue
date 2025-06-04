@@ -16,10 +16,10 @@
             </div>
         </div>
         <Teleport to="body">
-            <div v-if="showModal" class="overlay" @click.self="showModal = false">
+            <div v-if="showModal" class="overlay">
                 <div class="modal">
-                    <span class="desc">출근 시각 정정 신청</span>
-                    <CorrectionRegistEvent @submit="handleSubmit" />
+                    <span class="modal-desc">출근 시각 정정 신청</span>
+                    <CorrectionRegistEvent @submit="handleSubmit" @cancel="showModal = false" />
                 </div>
             </div>
         </Teleport>
@@ -60,39 +60,39 @@
 
 <style scoped>
     .section {
-    background: #fff;
-    padding: 30px;
-    border-radius: 20px;
-    box-shadow: 1px 1px 20px 1px rgba(0, 0, 0, 0.05);
-    flex-wrap: wrap;
+        background: #fff;
+        padding: 30px;
+        border-radius: 12px;
+        box-shadow: 1px 1px 20px 1px rgba(0, 0, 0, 0.05);
+        flex-wrap: wrap;
     }
 
     .btn-area {
-    width: 100%;
-    display: flex;
-    justify-content: flex-end;
-    margin-top: 20px;
+        width: 100%;
+        display: flex;
+        justify-content: flex-end;
+        margin-top: 20px;
     }
 
     .apply-btn {
-    background-color: #00a8e8;
-    color: white;
-    font-weight: bold;
-    border: 1px solid transparent;
-    border-radius: 10px;
-    padding: 10px 30px;
-    cursor: pointer;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-    transition: background-color 0.2s, box-shadow 0.2s;
-    box-sizing: border-box;
+        background-color: #00a8e8;
+        color: white;
+        font-weight: bold;
+        border: 1px solid transparent;
+        border-radius: 10px;
+        padding: 10px 30px;
+        cursor: pointer;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        transition: background-color 0.2s, box-shadow 0.2s;
+        box-sizing: border-box;
     }
 
     .apply-btn:hover {
-    background-color: white;
-    color: #00a8e8;
-    border-color: #00a8e8;
-    box-shadow:
-    inset 1px 1px 10px rgba(0, 0, 0, 0.25);
+        background-color: white;
+        color: #00a8e8;
+        border-color: #00a8e8;
+        box-shadow:
+        inset 1px 1px 10px rgba(0, 0, 0, 0.25);
     }
 
     .overlay {
@@ -108,6 +108,14 @@
         border-radius: 20px;
         width: 420px;
         box-shadow: 0 2px 12px rgba(0,0,0,0.2);
+    }
+
+    .modal-desc {
+        display: block;
+        text-align: center;
+        font-weight: bold;
+        font-size: 20px;
+        margin-bottom: 20px;
     }
 
     .desc {

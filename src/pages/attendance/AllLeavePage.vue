@@ -1,18 +1,33 @@
 <template>
     <div>
-        <h1 class="page-title">내 출퇴근 관리</h1>
+        <h1 class="page-title">전체 연차 관리</h1>
         <div class="all-leave-page">
             <!-- 날짜 필터 -->
             <div class="date-filter">
                 <span class="desc">기간 설정</span>
                 <DateFilter @search="handleSearch" />
             </div>
-            <div>
-                <MyCommuteSummary :commuteList="commuteList"/>
+            <!-- 겹치는 탭 -->
+            <div class="tab-wrapper">
+                <div class="tab-menu">
+                    <button
+                    :class="{ active: activeTab === 'used' }"
+                    @click="activeTab = 'used'"
+                    >
+                    사용내역
+                    </button>
+                    <button
+                    :class="{ active: activeTab === 'regist' }"
+                    @click="activeTab = 'regist'"
+                    >
+                    신청내역
+                    </button>
+                </div>
             </div>
-            <div>
-                <span class="desc">출퇴근 내역</span>
-                <MyCommuteCard/>
+            <!-- 탭 내용 -->
+            <div class="tab-content">
+                <AllLeaveUsedCard v-if="activeTab === 'used'" />
+                <AllLeaveRegistCard v-if="activeTab === 'regist'" />
             </div>
         </div>
     </div>
@@ -21,8 +36,8 @@
 <script setup>
     import { ref } from 'vue'
     import DateFilter from '@/components/leave/DateFilter.vue'
-import MyCommuteCard from '@/components/commute/MyCommuteCard.vue'
-import MyCommuteSummary from '@/components/commute/MyCommuteSummary.vue'
+    import AllLeaveUsedCard from '@/components/leave/AllLeaveUsedCard.vue'
+    import AllLeaveRegistCard from '@/components/leave/AllLeaveRegistCard.vue'
 
     const activeTab = ref('used')
 
@@ -34,14 +49,14 @@ import MyCommuteSummary from '@/components/commute/MyCommuteSummary.vue'
 <style scoped>
     .page-title {
         margin-left: 20px;
-        margin-bottom: 50px;
+        margin-bottom: 30px;
         color: #00a8e8;
     }
 
     .desc {
         display: block;
-        margin-left: 20px;
         margin-bottom: 10px;
+        font-size: 18px;
     }
 
     .all-leave-page {
