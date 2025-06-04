@@ -20,13 +20,14 @@
 <style scoped>
     .page-title {
         margin-left: 20px;
-        margin-bottom: 50px;
+        margin-bottom: 30px;
         color: #00a8e8;
     }
 
     .desc {
         display: block;
         margin-bottom: 10px;
+        font-size: 18px;
     }
 
     .my-correction-page {
