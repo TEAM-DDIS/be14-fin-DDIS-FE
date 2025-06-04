@@ -40,7 +40,6 @@ import MyCommuteSummary from '@/components/commute/MyCommuteSummary.vue'
 
     .desc {
         display: block;
-        margin-left: 20px;
         margin-bottom: 10px;
     }
 
