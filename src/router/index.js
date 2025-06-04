@@ -146,6 +146,40 @@ const router = createRouter({
 
         // 기안 작성
         {
+            path: '/org/login',
+            component: () => import('@/components/login/LoginPage.vue'),
+            meta: { hideLayout : true}
+        },
+        {
+            path: '/jobdetail/:teamId',
+            component: () => import('@/components/org/introduction/JobDetail.vue')
+
+        },
+        {
+            path: '/employeeInfo/employeeSearch',
+            component: () => import('@/components/employeeInfo/employeeSearch/EmployeeSearchPage.vue')
+
+        },
+        // {
+        //     path: '/post/postList',
+        //     component: () => import('@/components/post/PostListPage.vue')
+
+        // },
+        
+        // 급여 관리
+        {
+            path: '/salary/payroll/slip',
+            component: () => import('@/components/salary/payroll/PayrollSlip.vue')
+        },
+        {
+            path: '/salary/payroll/issue',
+            component: () => import('@/components/salary/payroll/PayrollSlipIssue.vue')
+        },
+
+        // 퇴직 관리
+        {
+        //     path: '/salary/retirement/estimate',
+        //     component: () => import('@/components/salary/retirement/RetirementEstimate.vue')
             path: '/draftdoc/draftcreate',
             component: () => import('@/components/draftdoc/draftcreate/DraftTemplateList.vue')
         },
