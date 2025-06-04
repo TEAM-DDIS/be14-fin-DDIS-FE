@@ -35,31 +35,29 @@
       </div>
     </div>
 
-    <!-- AG Grid 테이블 -->
-    <AgGridVue
-      class="ag-theme-alpine custom-theme"
-      style="width: 100%; height: 600px"
-      :gridOptions="{ theme: 'legacy' }"
-      :columnDefs="columnDefs"
-      :rowData="filteredData"
-      rowSelection="multiple"
-      :pagination="true"
-      :paginationPageSize="10"
-      @grid-ready="onGridReady"
-      @cell-clicked="onCellClick"
-    />
+    <div class="grid-wrapper">
+      <BaseGrid
+        class="ag-theme-alpine custom-theme"
+        :gridOptions="{ theme: 'legacy' }"
+        :columnDefs="columnDefs"
+        :rowData="filteredData"
+        width="100%"
+        height="600px"
+        :pagination="true"
+        :pageSize="10"
+        @ready="onGridReady"
+        @cell-click="onCellClick"
+      />
+    </div>
   </div>
 </template>
 
 <script setup>
-  // import 'ag-grid-community/styles/ag-grid.css'
-  // import 'ag-grid-community/styles/ag-theme-alpine.css'
-  import { AgGridVue } from 'ag-grid-vue3'
   import { ModuleRegistry, AllCommunityModule } from 'ag-grid-community'
   import { ref, computed, onMounted } from 'vue'
   import { useRouter } from 'vue-router'
 
-
+  import BaseGrid from '@/components/grid/BaseGrid.vue'
   import detailIconUrl from '@/assets/icons/detail_appointment.svg'
 
   const router = useRouter()
@@ -83,26 +81,44 @@
 
   // AG Grid 컬럼 정의
   const columnDefs = [
-    { headerName: '번호', field: 'appointment_id', width: 90, checkboxSelection: true },
-    { headerName: '사원번호', field: 'employee_id', flex: 1 },
-    { headerName: '발령유형', field: 'appointment_type', flex: 1 },
-    { headerName: '발령일자', field: 'appointment_effective_date', flex: 1 },
-    { headerName: '상태', field: 'appointment_status', flex: 1 },
+    { headerName: '번호', 
+      field: 'appointment_id', 
+      width: 90, 
+      checkboxSelection: true 
+    },
+    { headerName: '사원번호', 
+      field: 'employee_id', 
+      flex: 1 
+    },
+    { headerName: '발령유형', 
+      field: 'appointment_type', 
+      flex: 1 
+    },
+    { headerName: '발령일자', 
+      field: 'appointment_effective_date', 
+      flex: 1 
+    },
+    { headerName: '상태', 
+      field: 'appointment_status', 
+      flex: 1 
+    },
     {
       headerName: '상세',
       field: 'detail',
       width: 80,
       cellRenderer: () => `
-        <img src="${detailIconUrl}" class="detail-btn"/>
-    `
+        <img src="${detailIconUrl}" class="detail-btn"/>`
     }
   ]
 
   // 필터링된 데이터
   const filteredData = computed(() =>
     rowData.value.filter(item => {
-      const matchType = !selectedType.value || item.appointment_type === selectedType.value
-      const matchEmp  = !filterEmployee.value || item.employee_id.toString().includes(filterEmployee.value)
+      const matchType = 
+        !selectedType.value || item.appointment_type === selectedType.value
+      const matchEmp  = 
+        !filterEmployee.value || 
+        item.employee_id.toString().includes(filterEmployee.value)
       return matchType && matchEmp
     })
   )
@@ -142,13 +158,14 @@
 <style scoped>
   .page-title {
     margin-left: 20px;
-    margin-bottom: 50px;
+    margin-bottom: 30px;
     color: #00a8e8;
   }
   .desc {
     display: block;
     margin-left: 20px;
     margin-bottom: 10px;
+    font-size: 18px;
   }
   .content-box {
     background: #fff;

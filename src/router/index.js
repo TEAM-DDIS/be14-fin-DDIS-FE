@@ -109,36 +109,36 @@ const router = createRouter({
         // 조직 구성 조회
         {
             path: '/org/structure',
-            component: () => import('@/components/org/structure/Structure.vue')
+            component: () => import('@/pages/org/StructurePage.vue')
         },
 
         // 조직 및 직무 소개
         {
             path: '/org/structure/edit',
-            component: () => import('@/components/org/structure/EditStructure.vue')
+            component: () => import('@/pages/org/EditStructurePage.vue')
         },
         {
             path: '/org/introduction',
-            component: () => import('@/components/org/introduction/Introduction.vue')
+            component: () => import('@/pages/org/IntroductionPage.vue')
         },
 
         {
             path: '/jobdetail/:teamId',
-            component: () => import('@/components/org/introduction/JobDetail.vue')
+            component: () => import('@/pages/org/JobDetailPage.vue')
         },
 
         // 인사발령
         {
             path: '/org/appointment',
-            component: () => import('@/components/org/appointment/Appointment.vue')
+            component: () => import('@/pages/org/AppointmentPage.vue')
         },
         {
             path: '/org/appointment/register',
-            component: () => import('@/components/org/appointment/RegisterAppointment.vue')
+            component: () => import('@/pages/org/RegisterAppointmentPage.vue')
         },
         {
             path: '/org/appointment/:appointmentId',
-            component: () => import('@/components/org/appointment/AppointmentDetail.vue')
+            component: () => import('@/pages/org/AppointmentDetailPage.vue')
         },
 
 

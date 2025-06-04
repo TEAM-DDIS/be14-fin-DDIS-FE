@@ -444,7 +444,8 @@ function handleDeleteOrg(payload) {
 .desc {
   display: block;
   margin-left: 20px;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
+  font-size: 18px;
 }
 
 .page-container {
