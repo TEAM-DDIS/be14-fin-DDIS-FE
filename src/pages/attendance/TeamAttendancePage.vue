@@ -19,9 +19,9 @@
 </template>
 
 <script setup>
-    import TeamCalendar from '../components/calendar/TeamCalendar.vue'
-    import TeamWorkStatusCard from '../components/attendance/TeamWorkStatusCard.vue'
-    import TodayMeetingCard from '../components/attendance/TodayMeetingCard.vue'
+    import TeamCalendar from '@/components/calendar/TeamCalendar.vue'
+    import TeamWorkStatusCard from '@/components/attendance/TeamWorkStatusCard.vue'
+    import TodayMeetingCard from '@/components/attendance/TodayMeetingCard.vue'
 </script>
 
 <style scoped>

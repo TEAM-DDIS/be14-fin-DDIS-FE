@@ -24,9 +24,9 @@
 </template>
 
 <script setup>
-  import PersonalCalendar from '../components/calendar/PersonalCalendar.vue'
-  import AttendanceSummaryCard from '../components/attendance/AttendanceSummaryCard.vue'
-  import WeeklyOvertimeCard from '../components/attendance/WeeklyOvertimeCard.vue'
+  import PersonalCalendar from '@/components/calendar/PersonalCalendar.vue'
+  import AttendanceSummaryCard from '@/components/attendance/AttendanceSummaryCard.vue'
+  import WeeklyOvertimeCard from '@/components/attendance/WeeklyOvertimeCard.vue'
 </script>
 
 <style scoped>
