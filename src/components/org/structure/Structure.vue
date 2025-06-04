@@ -1,5 +1,6 @@
 <template>
-  <h1 class="title">조직 구성</h1>
+  <h1 class="page-title">조직 구성</h1>
+  <p class="desc">조직도 조회</p>
   <div class="content-box">
     <div class="org-dashboard">
       <!-- Left: Org Hierarchy -->
@@ -19,7 +20,7 @@
               @click="onEmployeeSelected(emp)"
               :class="{ active: emp.employee_id === selectedEmployee?.employee_id }"
             >
-              <img src="@/assets/icons/profile_img.svg" alt="profile" class="profile"/>
+              <img src="@/assets/icons/profile_img.svg" alt="profile" class="profile" />
               <div class="member-info">
                 <strong>{{ emp.employee_name }}</strong>
                 <span>{{ emp.position_name }}</span>
@@ -39,31 +40,31 @@
           <h2>프로필 정보</h2>
           <div class="profile-top">
             <div class="profile-card">
-              <img src="@/assets/icons/profile_img.svg" alt="profile" class="profile2"/>
+              <img src="@/assets/icons/profile_img.svg" alt="profile" class="profile2" />
               <h4>{{ selectedEmployee.rank_name }} {{ selectedEmployee.employee_name }}</h4>
             </div>
-            <ag-grid-vue
-              class="ag-theme-alpine profile-grid"
-              :columnDefs="profileColumnDefs"
-              :rowData="profileRowData"
-              :getRowClass="getRowClass"
-              :domLayout="'autoHeight'"
-              :headerHeight="0"
-              :rowHeight="36"
-            />
+            <!-- Profile Table -->
+            <table class="profile-table">
+              <tbody>
+                <tr v-for="row in profileRowData" :key="row.label">
+                  <td class="label-cell">{{ row.label }}</td>
+                  <td class="value-cell">{{ row.value }}</td>
+                </tr>
+              </tbody>
+            </table>
           </div>
 
           <!-- 상세 정보 -->
           <details class="profile-details">
             <summary>상세 정보</summary>
-            <ag-grid-vue
-              class="ag-theme-alpine details-grid"
-              :columnDefs="detailsColumnDefs"
-              :rowData="detailsRowData"
-              :domLayout="'autoHeight'"
-              :headerHeight="0"
-              :rowHeight="32"
-            />
+            <table class="details-table">
+              <tbody>
+                <tr v-for="row in detailsRowData" :key="row.label">
+                  <td class="label-cell">{{ row.label }}</td>
+                  <td class="value-cell">{{ row.value }}</td>
+                </tr>
+              </tbody>
+            </table>
           </details>
         </template>
         <template v-else>
@@ -72,58 +73,57 @@
       </div>
     </div>
   </div>
+  <button class="edit-button" @click="onEdit">편집</button>
 </template>
 
 <script setup>
 import { ref, reactive, onMounted, computed } from 'vue'
+import { useRouter } from 'vue-router'
 import OrgHierarchy from '@/components/org/structure/Hierarchy.vue'
 
-
-// AG Grid 모듈 등록
-import { AgGridVue } from 'ag-grid-vue3'
-import { ModuleRegistry, AllCommunityModule } from 'ag-grid-community'
-import 'ag-grid-community/styles/ag-grid.css'
-import 'ag-grid-community/styles/ag-theme-alpine.css'
-ModuleRegistry.registerModules([AllCommunityModule])
-
 // 선택된 팀, 사원
-const selectedTeam     = ref(null)
+const selectedTeam = ref(null)
 const selectedEmployee = ref(null)
-const teamMembers      = ref([])
+const teamMembers = ref([])
 
 // 공통 데이터 저장소
 const dataStore = reactive({
-  employees: [], positions: [], ranks: [],
-  departments: [], headquarters: []
+  employees: [],
+  positions: [],
+  ranks: [],
+  departments: [],
+  headquarters: []
 })
 
-// 처음 마운트 시 employees.json과 org.json에서 데이터 로드
+// org.json에서 데이터 로드
 onMounted(async () => {
   try {
     const res = await fetch('/org.json')
     const oData = await res.json()
-    // org.json 안의 배열들을 바로 꺼내서 저장
-    dataStore.positions    = oData.position
-    dataStore.ranks        = oData.rank
-    dataStore.departments  = oData.department
+    dataStore.positions = oData.position
+    dataStore.ranks = oData.rank
+    dataStore.departments = oData.department
     dataStore.headquarters = oData.headquarters
-    // employees 배열도 org.json 안에 있으므로 별도 fetch 불필요
-    dataStore.employees    = oData.employees.map(e => ({
+    dataStore.employees = oData.employees.map(e => ({
       ...e,
-      position_name: oData.position.find(p => p.position_code === e.position_code)?.position_name || '',
-      rank_name:     oData.rank.find(r => r.rank_code     === e.rank_code    )?.rank_name     || ''
+      position_name:
+        oData.position.find(p => p.position_code === e.position_code)?.position_name ||
+        '',
+      rank_name:
+        oData.rank.find(r => r.rank_code === e.rank_code)?.rank_name || ''
     }))
   } catch (err) {
     console.error('org.json 로드 실패:', err)
   }
 })
 
-
-// OrgHierarchy.vue에서 팀 선택
+// OrgHierarchy.vue에서 팀 선택 시
 function onTeamSelected(team) {
-  selectedTeam.value     = team
+  selectedTeam.value = team
   selectedEmployee.value = null
-  teamMembers.value      = dataStore.employees.filter(e => e.team_code === team.team_code)
+  teamMembers.value = dataStore.employees.filter(
+    e => e.team_code === team.team_code
+  )
 }
 
 // 팀원 클릭
@@ -131,54 +131,69 @@ function onEmployeeSelected(emp) {
   selectedEmployee.value = emp
 }
 
-// AG Grid 컬럼 정의
-const profileColumnDefs = [
-  { field: 'label', cellClass: 'label-cell', width: 120},
-  { field: 'value', cellClass: 'value-cell', flex: 1 }
-]
-const detailsColumnDefs = profileColumnDefs
+// "편집" 버튼 클릭 시
+const router = useRouter()
+function onEdit() {
+  router.push('/org/structure/edit')
+}
 
-// 기본 프로필 데이터
+// AG Grid 대신 사용했던 데이터 컴퓨티드
 const profileRowData = computed(() => {
   if (!selectedEmployee.value) return []
   const e = selectedEmployee.value
   return [
-    { label: '이름',     value: e.employee_name },
+    { label: '이름', value: e.employee_name },
     { label: '생년월일', value: e.birthdate || '-' },
-    { label: '직급',     value: e.rank_name },
-    { label: '사번',     value: e.employee_id }
+    { label: '직급', value: e.rank_name },
+    { label: '사번', value: e.employee_id }
   ]
 })
 
-// 상세 프로필 데이터
 const detailsRowData = computed(() => {
   if (!selectedEmployee.value) return []
   const e = selectedEmployee.value
   const lookup = (arr, codeField, codeValue, nameField) =>
-    (dataStore[arr].find(x => x[codeField] === codeValue) || {})[nameField] || ''
+    (dataStore[arr].find(x => x[codeField] === codeValue) || {})[nameField] ||
+    ''
   return [
-    { label: '소속 본부', value: lookup('headquarters','head_code',      e.head_code,       'head_name') },
-    { label: '소속 부서', value: lookup('departments','department_code', e.department_code, 'department_name') },
-    { label: '소속 팀',   value: selectedTeam.value.team_name },
-    { label: '직책',     value: e.position_name },
-    { label: '직급',     value: e.rank_name },
-    { label: '직무',     value: e.job_code },
-    { label: '이메일',   value: e.email || '-' }
+    {
+      label: '소속 본부',
+      value: lookup('headquarters', 'head_code', e.head_code, 'head_name')
+    },
+    {
+      label: '소속 부서',
+      value: lookup(
+        'departments',
+        'department_code',
+        e.department_code,
+        'department_name'
+      )
+    },
+    { label: '소속 팀', value: selectedTeam.value.team_name },
+    { label: '직책', value: e.position_name },
+    { label: '직급', value: e.rank_name },
+    { label: '직무', value: e.job_code },
+    { label: '이메일', value: e.email || '-' }
   ]
 })
-
 </script>
 
 <style scoped>
-.title {
+.page-title {
   margin-left: 20px;
   margin-bottom: 50px;
+  color: #00a8e8;
+}
+.desc {
+  display: block;
+  margin-left: 20px;
+  margin-bottom: 10px;
 }
 .content-box {
   background: #ffffff;
   border-radius: 12px;
   padding: 20px 32px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
   margin: 24px;
   max-width: 100%;
   overflow-x: auto;
@@ -199,15 +214,19 @@ const detailsRowData = computed(() => {
   padding: 16px;
   border-right: 1px solid #ddd;
 }
-.profile-panel { padding: 16px; }
+.profile-panel {
+  padding: 16px;
+}
 
 h2 {
   margin-top: 20px;
 }
 
-/* panel 별 내부 설정 */
+/* placeholder */
 .placeholder {
-  color: #323232;
+  color: #00a8e8;
+  font-size: 18px;
+  font-weight: bold;
   padding: 32px;
   text-align: center;
 }
@@ -227,14 +246,17 @@ h2 {
 }
 .member-list li.active {
   background: #efefef;
+  transition: background-color 0.2s;
 }
 .profile {
   width: 40px;
   height: 40px;
   margin-right: 20px;
 }
-.member-info strong { display: block; }
-.member-info span  {
+.member-info strong {
+  display: block;
+}
+.member-info span {
   font-size: 14px;
   color: #3b3b3b;
 }
@@ -246,7 +268,6 @@ h2 {
   gap: 30px;
   margin-bottom: 16px;
 }
-
 .profile-card {
   margin-bottom: 20px;
   display: flex;
@@ -262,26 +283,54 @@ h2 {
   margin: 20px auto 10px auto;
 }
 
-.profile-grid {
-  flex: 1;
-}
-
-/* AG Grid */
-.profile-grid,
-.details-grid {
+/* Profile & Details Table */
+.profile-table,
+.details-table {
   width: 100%;
+  border-collapse: collapse;
   margin-bottom: 16px;
 }
-.label-cell { font-weight: 500; background: #f9fafb; }
-.value-cell { padding-left: 12px; }
+.profile-table td,
+.details-table td {
+  border: 1px solid #c8c8c8;
+  padding: 8px 12px;
+}
+.label-cell {
+  background-color: #f8f9fa;
+  font-weight: bold;
+  width: 30%;
+}
+.value-cell {
+  padding-left: 12px;
+}
 .profile-details summary {
   cursor: pointer;
   font-weight: bold;
   margin-bottom: 8px;
 }
 
-.ag-theme-alpine :deep(.label-cell) {
-  /* label-cell 컬러 */
-  background-color: #eeeeee !important;
+/* Edit 버튼 */
+.edit-button {
+  position: absolute;
+  top: 40px;
+  right: 40px;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+  font-family: inherit;
+  background-color: #00a8e8;
+  color: white;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  padding: 10px 30px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: background-color 0.2s, box-shadow 0.2s;
+  box-sizing: border-box;
+}
+.edit-button:hover {
+  background-color: white;
+  color: #00a8e8;
+  border-color: #00a8e8;
+  box-shadow: inset 1px 1px 10px rgba(0, 0, 0, 0.25);
 }
 </style>

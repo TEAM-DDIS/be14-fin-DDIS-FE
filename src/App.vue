@@ -25,6 +25,7 @@
       </div>
     </div>
   </div>
+  
 </template>
 
 <script setup>
@@ -67,7 +68,12 @@ html, body {
   height: 100%;
   overflow: auto;
   font-family: sans-serif;
-    background-color: #f9f9f9;
+  background-color: #f9f9f9;
+
+    -webkit-user-select:none;
+  -moz-user-select:none;
+  -ms-user-select:none;
+  user-select:none
 
 }
 

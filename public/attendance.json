@@ -1,4 +1,298 @@
 {
+  "leave": [
+    {
+      "total_days": 15,
+      "used_days": 5,
+      "remaining_days": 10,
+      "pending_leave_days": 2,
+      "first_notice_date": "2025-04-15",
+      "second_notice_date": null
+    }
+  ],
+
+  "leave_used": [
+  {
+    "id": 1,
+    "type": "연차",
+    "status": "승인",
+    "request_date": "2025-03-31",
+    "start_date": "2025-03-31",
+    "end_date": "2025-03-31",
+    "days": 1,
+    "reason": "개인사유",
+    "rejection_reason": "-"
+  },
+  {
+    "id": 2,
+    "type": "연차",
+    "status": "반려",
+    "request_date": "2025-03-31",
+    "start_date": "2025-03-31",
+    "end_date": "2025-03-31",
+    "days": 1,
+    "reason": "휴가",
+    "rejection_reason": "서류 미제출"
+  }
+],
+
+"leave_applied": [
+  {
+    "id": 1,
+    "type": "연차",
+    "status": "승인",
+    "request_date": "2025-03-31",
+    "start_date": "2025-03-31",
+    "end_date": "2025-03-31",
+    "days": 1,
+    "reason": "개인사유",
+    "rejection_reason": "-"
+  },
+  {
+    "id": 2,
+    "type": "연차",
+    "status": "대기중",
+    "request_date": "2025-03-31",
+    "start_date": "2025-03-31",
+    "end_date": "2025-03-31",
+    "days": 1,
+    "reason": "휴가",
+    "rejection_reason": null
+  }
+],
+
+  "all_leave_used": [
+    {
+      "id": 27,
+      "employeeId": "1826058",
+      "employeeName": "김완형",
+      "type": "연차",
+      "status": "승인",
+      "request_date": "2025-03-31",
+      "start_date": "2025-03-31",
+      "end_date": "2025-03-31",
+      "days": 1,
+      "reason": "개인사유",
+      "rejection_reason": "-"
+    },
+    {
+      "id": 26,
+      "employeeId": "1826058",
+      "employeeName": "김완형",
+      "type": "연차",
+      "status": "승인",
+      "request_date": "2025-03-30",
+      "start_date": "2025-03-30",
+      "end_date": "2025-03-30",
+      "days": 1,
+      "reason": "휴가",
+      "rejection_reason": "-"
+    },
+    {
+      "id": 25,
+      "employeeId": "1826058",
+      "employeeName": "김완형",
+      "type": "오전반차",
+      "status": "승인",
+      "request_date": "2025-03-29",
+      "start_date": "2025-03-29",
+      "end_date": "2025-03-29",
+      "days": 0.5,
+      "reason": "개인사유",
+      "rejection_reason": "-"
+    },
+    {
+      "id": 24,
+      "employeeId": "1826058",
+      "employeeName": "김완형",
+      "type": "연차",
+      "status": "반려",
+      "request_date": "2025-03-28",
+      "start_date": "2025-03-28",
+      "end_date": "2025-03-28",
+      "days": 1,
+      "reason": "휴가",
+      "rejection_reason": "서류 미제출"
+    }
+  ],
+
+  "all_leave_applied": [
+    {
+      "id": 12,
+      "employeeId": "1826058",
+      "employeeName": "김완형",
+      "type": "연차",
+      "status": "대기중",
+      "request_date": "2025-04-01",
+      "start_date": "2025-04-03",
+      "end_date": "2025-04-03",
+      "days": 1,
+      "reason": "개인사유",
+      "rejection_reason": null
+    },
+    {
+      "id": 11,
+      "employeeId": "1830059",
+      "employeeName": "박지민",
+      "type": "오후반차",
+      "status": "대기중",
+      "request_date": "2025-04-01",
+      "start_date": "2025-04-04",
+      "end_date": "2025-04-04",
+      "days": 0.5,
+      "reason": "병원진료",
+      "rejection_reason": null
+    },
+    {
+      "id": 10,
+      "employeeId": "1830088",
+      "employeeName": "이준호",
+      "type": "연차",
+      "status": "대기중",
+      "request_date": "2025-04-01",
+      "start_date": "2025-04-05",
+      "end_date": "2025-04-05",
+      "days": 1,
+      "reason": "휴가",
+      "rejection_reason": null
+    }
+  ],
+
+  "correction_used": [
+  {
+    "id": 1,
+    "approval_status": "승인",
+    "request_time": "2025-03-31 09:15:28",
+    "check_in_time": "09:12",
+    "requested_time_change": "08:55:00",
+    "processed_time": "2025-03-31 15:33:16",
+    "reason": "개인사유",
+    "rejection_reason": null
+  },
+  {
+    "id": 2,
+    "approval_status": "반려",
+    "request_time": "2025-03-32 09:15:28",
+    "check_in_time": "09:12",
+    "requested_time_change": "08:55:00",
+    "processed_time": "2025-03-32 15:33:16",
+    "reason": "개인사유",
+    "rejection_reason": "사유 불명확"
+  }
+],
+
+"correction_regist": [
+  {
+    "id": 1,
+    "approval_status": "대기중",
+    "request_time": "2025-03-32 09:15:28",
+    "check_in_time": "09:12",
+    "requested_time_change": "08:55:00",
+    "processed_time": "2025-03-32 15:33:16",
+    "reason": "개인사유",
+    "rejection_reason": null
+  },
+  {
+    "id": 2,
+    "approval_status": "대기중",
+    "request_time": "2025-03-32 09:15:28",
+    "check_in_time": "09:12",
+    "requested_time_change": "08:55:00",
+    "processed_time": "2025-03-32 15:33:16",
+    "reason": "개인사유",
+    "rejection_reason": null
+  }
+],
+
+  "all_correction_used": [
+    {
+      "id": 27,
+      "employeeId": "1826058",
+      "employeeName": "김완형",
+      "approval_status": "승인",
+      "request_time": "2025-03-32 09:15:28",
+      "check_in_time": "09:12",
+      "requested_time_change": "08:55:00",
+      "processed_time": "2025-03-32 15:33:16",
+      "reason": "개인사유",
+      "rejection_reason": null
+    },
+    {
+      "id": 26,
+      "employeeId": "1826058",
+      "employeeName": "김완형",
+      "approval_status": "반려",
+      "request_time": "2025-03-32 09:15:28",
+      "check_in_time": "09:12",
+      "requested_time_change": "08:55:00",
+      "processed_time": "2025-03-32 15:33:16",
+      "reason": "개인사유",
+      "rejection_reason": "사유 불명확"
+    },
+    {
+      "id": 25,
+      "employeeId": "1826058",
+      "employeeName": "김완형",
+      "approval_status": "반려",
+      "request_time": "2025-03-32 09:15:28",
+      "check_in_time": "09:12",
+      "requested_time_change": "08:55:00",
+      "processed_time": "2025-03-32 15:33:16",
+      "reason": "개인사유",
+      "rejection_reason": "사유 불명확"
+    },
+    {
+      "id": 24,
+      "employeeId": "1826058",
+      "employeeName": "김완형",
+      "approval_status": "반려",
+      "request_time": "2025-03-32 09:15:28",
+      "check_in_time": "09:12",
+      "requested_time_change": "08:55:00",
+      "processed_time": "2025-03-32 15:33:16",
+      "reason": "개인사유",
+      "rejection_reason": "사유 불명확"
+    }
+  ],
+
+  "all_correction_regist": [
+    {
+      "id": 12,
+      "employeeId": "1826058",
+      "employeeName": "김완형",
+      "approval_status": "대기중",
+      "request_time": "2025-03-32 09:15:28",
+      "check_in_time": "09:12",
+      "requested_time_change": "08:55:00",
+      "processed_time": "2025-03-32 15:33:16",
+      "reason": "개인사유",
+      "rejection_reason": null
+    },
+    {
+      "id": 11,
+      "employeeId": "1830059",
+      "employeeName": "박지민",
+      "approval_status": "대기중",
+      "request_time": "2025-03-32 09:15:28",
+      "check_in_time": "09:12",
+      "requested_time_change": "08:55:00",
+      "processed_time": "2025-03-32 15:33:16",
+      "reason": "개인사유",
+      "rejection_reason": null
+    },
+    {
+      "id": 10,
+      "employeeId": "1830088",
+      "employeeName": "이준호",
+      "approval_status": "대기중",
+      "request_time": "2025-03-32 09:15:28",
+      "check_in_time": "09:12",
+      "requested_time_change": "08:55:00",
+      "processed_time": "2025-03-32 15:33:16",
+      "reason": "개인사유",
+      "rejection_reason": null
+    }
+  ],
+
   "schedule": [
     {
       "work_date": "2025-05-01",
@@ -157,6 +451,511 @@
       "meeting_title": "평가 회의",
       "meeting_time": "15:30"
     }
+  ],
+
+  "commute": [
+      {
+    "work_date": "2025-05-01",
+    "work_status_id": "결근",
+    "check_in_time": null,
+    "check_out_time": null,
+    "work_duration": 0,
+    "over_work": 0,
+    "night_work": 0,
+    "holiday_work": 0,
+    "work_sum": 0
+  },
+  {
+    "work_date": "2025-05-02",
+    "work_status_id": "오전반차",
+    "check_in_time": "13:00",
+    "check_out_time": "18:00",
+    "work_duration": 5,
+    "over_work": 0,
+    "night_work": 0,
+    "holiday_work": 0,
+    "work_sum": 5
+  },
+  {
+    "work_date": "2025-05-03",
+    "work_status_id": "휴일",
+    "check_in_time": null,
+    "check_out_time": null,
+    "work_duration": 0,
+    "over_work": 0,
+    "night_work": 0,
+    "holiday_work": 0,
+    "work_sum": 0
+  },
+  {
+    "work_date": "2025-05-04",
+    "work_status_id": "휴일",
+    "check_in_time": null,
+    "check_out_time": null,
+    "work_duration": 0,
+    "over_work": 0,
+    "night_work": 0,
+    "holiday_work": 0,
+    "work_sum": 0
+  },
+  {
+    "work_date": "2025-05-05",
+    "work_status_id": "오전반차",
+    "check_in_time": "13:00",
+    "check_out_time": "18:00",
+    "work_duration": 5,
+    "over_work": 0,
+    "night_work": 0,
+    "holiday_work": 0,
+    "work_sum": 5
+  },
+  {
+    "work_date": "2025-05-06",
+    "work_status_id": "결근",
+    "check_in_time": null,
+    "check_out_time": null,
+    "work_duration": 0,
+    "over_work": 0,
+    "night_work": 0,
+    "holiday_work": 0,
+    "work_sum": 0
+  },
+  {
+    "work_date": "2025-05-07",
+    "work_status_id": "오전반차",
+    "check_in_time": "13:00",
+    "check_out_time": "18:00",
+    "work_duration": 5,
+    "over_work": 0,
+    "night_work": 0,
+    "holiday_work": 0,
+    "work_sum": 5
+  },
+  {
+    "work_date": "2025-05-08",
+    "work_status_id": "야간근무",
+    "check_in_time": "22:00",
+    "check_out_time": "06:00",
+    "work_duration": 0,
+    "over_work": 0,
+    "night_work": 8,
+    "holiday_work": 0,
+    "work_sum": 8
+  },
+  {
+    "work_date": "2025-05-09",
+    "work_status_id": "결근",
+    "check_in_time": null,
+    "check_out_time": null,
+    "work_duration": 0,
+    "over_work": 0,
+    "night_work": 0,
+    "holiday_work": 0,
+    "work_sum": 0
+  },
+  {
+    "work_date": "2025-05-10",
+    "work_status_id": "휴일",
+    "check_in_time": null,
+    "check_out_time": null,
+    "work_duration": 0,
+    "over_work": 0,
+    "night_work": 0,
+    "holiday_work": 0,
+    "work_sum": 0
+  },
+  {
+    "work_date": "2025-05-11",
+    "work_status_id": "휴일",
+    "check_in_time": null,
+    "check_out_time": null,
+    "work_duration": 0,
+    "over_work": 0,
+    "night_work": 0,
+    "holiday_work": 0,
+    "work_sum": 0
+  },
+  {
+    "work_date": "2025-05-12",
+    "work_status_id": "오전반차",
+    "check_in_time": "13:00",
+    "check_out_time": "18:00",
+    "work_duration": 5,
+    "over_work": 0,
+    "night_work": 0,
+    "holiday_work": 0,
+    "work_sum": 5
+  },
+  {
+    "work_date": "2025-05-13",
+    "work_status_id": "정상출근",
+    "check_in_time": "09:00",
+    "check_out_time": "18:00",
+    "work_duration": 8,
+    "over_work": 2,
+    "night_work": 0,
+    "holiday_work": 0,
+    "work_sum": 10
+  },
+  {
+    "work_date": "2025-05-14",
+    "work_status_id": "정상출근",
+    "check_in_time": "09:00",
+    "check_out_time": "18:00",
+    "work_duration": 8,
+    "over_work": 1,
+    "night_work": 0,
+    "holiday_work": 0,
+    "work_sum": 9
+  },
+  {
+    "work_date": "2025-05-15",
+    "work_status_id": "정상출근",
+    "check_in_time": "09:00",
+    "check_out_time": "18:00",
+    "work_duration": 8,
+    "over_work": 0,
+    "night_work": 0,
+    "holiday_work": 0,
+    "work_sum": 8
+  },
+  {
+    "work_date": "2025-05-16",
+    "work_status_id": "결근",
+    "check_in_time": null,
+    "check_out_time": null,
+    "work_duration": 0,
+    "over_work": 0,
+    "night_work": 0,
+    "holiday_work": 0,
+    "work_sum": 0
+  },
+  {
+    "work_date": "2025-05-17",
+    "work_status_id": "휴일근무",
+    "check_in_time": "10:00",
+    "check_out_time": "16:00",
+    "work_duration": 6,
+    "over_work": 0,
+    "night_work": 0,
+    "holiday_work": 6,
+    "work_sum": 6
+  },
+  {
+    "work_date": "2025-05-18",
+    "work_status_id": "휴일",
+    "check_in_time": null,
+    "check_out_time": null,
+    "work_duration": 0,
+    "over_work": 0,
+    "night_work": 0,
+    "holiday_work": 0,
+    "work_sum": 0
+  },
+  {
+    "work_date": "2025-05-19",
+    "work_status_id": "정상출근",
+    "check_in_time": "09:00",
+    "check_out_time": "18:00",
+    "work_duration": 8,
+    "over_work": 1,
+    "night_work": 0,
+    "holiday_work": 0,
+    "work_sum": 9
+  },
+  {
+    "work_date": "2025-05-20",
+    "work_status_id": "정상출근",
+    "check_in_time": "09:00",
+    "check_out_time": "18:00",
+    "work_duration": 8,
+    "over_work": 1,
+    "night_work": 0,
+    "holiday_work": 0,
+    "work_sum": 9
+  },
+  {
+    "work_date": "2025-05-21",
+    "work_status_id": "정상출근",
+    "check_in_time": "09:00",
+    "check_out_time": "18:00",
+    "work_duration": 8,
+    "over_work": 2,
+    "night_work": 0,
+    "holiday_work": 0,
+    "work_sum": 10
+  },
+  {
+    "work_date": "2025-05-22",
+    "work_status_id": "오후반차",
+    "check_in_time": "09:00",
+    "check_out_time": "13:00",
+    "work_duration": 4,
+    "over_work": 0,
+    "night_work": 0,
+    "holiday_work": 0,
+    "work_sum": 4
+  },
+  {
+    "work_date": "2025-05-23",
+    "work_status_id": "정상출근",
+    "check_in_time": "09:00",
+    "check_out_time": "18:00",
+    "work_duration": 8,
+    "over_work": 2,
+    "night_work": 0,
+    "holiday_work": 0,
+    "work_sum": 10
+  },
+  {
+    "work_date": "2025-05-24",
+    "work_status_id": "휴일",
+    "check_in_time": null,
+    "check_out_time": null,
+    "work_duration": 0,
+    "over_work": 0,
+    "night_work": 0,
+    "holiday_work": 0,
+    "work_sum": 0
+  },
+  {
+    "work_date": "2025-05-25",
+    "work_status_id": "휴일",
+    "check_in_time": null,
+    "check_out_time": null,
+    "work_duration": 0,
+    "over_work": 0,
+    "night_work": 0,
+    "holiday_work": 0,
+    "work_sum": 0
+  },
+  {
+    "work_date": "2025-05-26",
+    "work_status_id": "정상출근",
+    "check_in_time": "09:00",
+    "check_out_time": "18:00",
+    "work_duration": 8,
+    "over_work": 2,
+    "night_work": 0,
+    "holiday_work": 0,
+    "work_sum": 10
+  },
+  {
+    "work_date": "2025-05-27",
+    "work_status_id": "정상출근",
+    "check_in_time": "09:00",
+    "check_out_time": "18:00",
+    "work_duration": 8,
+    "over_work": 1,
+    "night_work": 0,
+    "holiday_work": 0,
+    "work_sum": 9
+  },
+  {
+    "work_date": "2025-05-28",
+    "work_status_id": "결근",
+    "check_in_time": null,
+    "check_out_time": null,
+    "work_duration": 0,
+    "over_work": 0,
+    "night_work": 0,
+    "holiday_work": 0,
+    "work_sum": 0
+  },
+  {
+    "work_date": "2025-05-29",
+    "work_status_id": "결근",
+    "check_in_time": null,
+    "check_out_time": null,
+    "work_duration": 0,
+    "over_work": 0,
+    "night_work": 0,
+    "holiday_work": 0,
+    "work_sum": 0
+  },
+  {
+    "work_date": "2025-05-30",
+    "work_status_id": "오전반차",
+    "check_in_time": "13:00",
+    "check_out_time": "18:00",
+    "work_duration": 5,
+    "over_work": 0,
+    "night_work": 0,
+    "holiday_work": 0,
+    "work_sum": 5
+  }
+  ],
+
+  "work_status_summary": [
+    { "work_date": "2025-05-01", "work_status_id": "정상출근" },
+  { "work_date": "2025-05-02", "work_status_id": "초과" },
+  { "work_date": "2025-05-03", "work_status_id": "지각" },
+  { "work_date": "2025-05-04", "work_status_id": "연차" },
+  { "work_date": "2025-05-05", "work_status_id": "연차" },
+  { "work_date": "2025-05-06", "work_status_id": "외근" },
+  { "work_date": "2025-05-07", "work_status_id": "초과" },
+  { "work_date": "2025-05-01", "work_status_id": "정상출근" },
+  { "work_date": "2025-05-02", "work_status_id": "초과" },
+  { "work_date": "2025-05-03", "work_status_id": "반차" },
+  { "work_date": "2025-05-04", "work_status_id": "연차" },
+  { "work_date": "2025-05-05", "work_status_id": "반차" },
+  { "work_date": "2025-05-06", "work_status_id": "외근" },
+  { "work_date": "2025-05-07", "work_status_id": "초과" }
+  ],
+
+  "all_commute": [
+    {
+    "id": 1,
+    "employeeId": "E2025001",
+    "employeeName": "홍길동1",
+    "leave": 5,
+    "half": 0,
+    "trip": 2,
+    "out": 3,
+    "over_time": 10,
+    "late": 0,
+    "absent": 2,
+    "worked_days": 18,
+    "work_time_sum": "145시간"
+  },
+  {
+    "id": 2,
+    "employeeId": "E2025002",
+    "employeeName": "홍길동2",
+    "leave": 3,
+    "half": 1,
+    "trip": 3,
+    "out": 1,
+    "over_time": 8,
+    "late": 1,
+    "absent": 2,
+    "worked_days": 16,
+    "work_time_sum": "140시간"
+  },
+  {
+    "id": 3,
+    "employeeId": "E2025003",
+    "employeeName": "홍길동3",
+    "leave": 3,
+    "half": 0,
+    "trip": 1,
+    "out": 0,
+    "over_time": 6,
+    "late": 1,
+    "absent": 1,
+    "worked_days": 22,
+    "work_time_sum": "157시간"
+  },
+  {
+    "id": 4,
+    "employeeId": "E2025004",
+    "employeeName": "홍길동4",
+    "leave": 2,
+    "half": 3,
+    "trip": 1,
+    "out": 0,
+    "over_time": 0,
+    "late": 1,
+    "absent": 1,
+    "worked_days": 15,
+    "work_time_sum": "168시간"
+  },
+  {
+    "id": 5,
+    "employeeId": "E2025005",
+    "employeeName": "홍길동5",
+    "leave": 4,
+    "half": 2,
+    "trip": 1,
+    "out": 2,
+    "over_time": 10,
+    "late": 3,
+    "absent": 2,
+    "worked_days": 17,
+    "work_time_sum": "148시간"
+  },
+  {
+    "id": 6,
+    "employeeId": "E2025006",
+    "employeeName": "홍길동6",
+    "leave": 5,
+    "half": 2,
+    "trip": 1,
+    "out": 3,
+    "over_time": 5,
+    "late": 0,
+    "absent": 0,
+    "worked_days": 21,
+    "work_time_sum": "161시간"
+  },
+  {
+    "id": 7,
+    "employeeId": "E2025007",
+    "employeeName": "홍길동7",
+    "leave": 1,
+    "half": 2,
+    "trip": 0,
+    "out": 1,
+    "over_time": 8,
+    "late": 2,
+    "absent": 2,
+    "worked_days": 17,
+    "work_time_sum": "120시간"
+  },
+  {
+    "id": 8,
+    "employeeId": "E2025008",
+    "employeeName": "홍길동8",
+    "leave": 1,
+    "half": 3,
+    "trip": 2,
+    "out": 0,
+    "over_time": 7,
+    "late": 3,
+    "absent": 2,
+    "worked_days": 18,
+    "work_time_sum": "144시간"
+  },
+  {
+    "id": 9,
+    "employeeId": "E2025009",
+    "employeeName": "홍길동9",
+    "leave": 1,
+    "half": 2,
+    "trip": 3,
+    "out": 3,
+    "over_time": 6,
+    "late": 0,
+    "absent": 1,
+    "worked_days": 22,
+    "work_time_sum": "129시간"
+  },
+  {
+    "id": 10,
+    "employeeId": "E2025010",
+    "employeeName": "홍길동10",
+    "leave": 5,
+    "half": 2,
+    "trip": 1,
+    "out": 1,
+    "over_time": 3,
+    "late": 3,
+    "absent": 2,
+    "worked_days": 17,
+    "work_time_sum": "163시간"
+  }
+  ],
+
+  "employee_info": [
+    {
+  "employeeId": "E2025001",
+  "employeeName": "김지원",
+  "headName": "개발본부",
+  "departmentName": "플랫폼개발부서",
+  "teamName": "백엔드팀",
+  "rankName": "대리"
+}
+
   ],
   
 "employees": [
