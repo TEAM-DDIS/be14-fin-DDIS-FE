@@ -63,7 +63,7 @@
 
 <script setup>
 import { ref, computed } from 'vue'
-import { useRouter } from 'vue-router'             // ← import useRouter
+import { useRouter } from 'vue-router' 
 import { AgGridVue } from 'ag-grid-vue3'
 import {
   ModuleRegistry,
