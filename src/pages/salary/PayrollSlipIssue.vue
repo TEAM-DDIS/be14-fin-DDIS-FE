@@ -162,7 +162,7 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import axios from 'axios'
 import AgGrid from '@/components/grid/BaseGrid.vue'
-import Modal from '@/components/salary/payroll/PayrollModal.vue'
+import Modal from '@/components/salary/PayrollModal.vue'
 
 // 모달 표시 여부 상태
 const showModal = ref(false)
