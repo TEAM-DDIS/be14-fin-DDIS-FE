@@ -109,36 +109,36 @@ const router = createRouter({
         // 조직 구성 조회
         {
             path: '/org/structure',
-            component: () => import('@/components/org/structure/Structure.vue')
+            component: () => import('@/pages/org/StructurePage.vue')
         },
 
         // 조직 및 직무 소개
         {
             path: '/org/structure/edit',
-            component: () => import('@/components/org/structure/EditStructure.vue')
+            component: () => import('@/pages/org/EditStructurePage.vue')
         },
         {
             path: '/org/introduction',
-            component: () => import('@/components/org/introduction/Introduction.vue')
+            component: () => import('@/pages/org/IntroductionPage.vue')
         },
 
         {
             path: '/jobdetail/:teamId',
-            component: () => import('@/components/org/introduction/JobDetail.vue')
+            component: () => import('@/pages/org/JobDetailPage.vue')
         },
 
         // 인사발령
         {
             path: '/org/appointment',
-            component: () => import('@/components/org/appointment/Appointment.vue')
+            component: () => import('@/pages/org/AppointmentPage.vue')
         },
         {
             path: '/org/appointment/register',
-            component: () => import('@/components/org/appointment/RegisterAppointment.vue')
+            component: () => import('@/pages/org/RegisterAppointmentPage.vue')
         },
         {
             path: '/org/appointment/:appointmentId',
-            component: () => import('@/components/org/appointment/AppointmentDetail.vue')
+            component: () => import('@/pages/org/AppointmentDetailPage.vue')
         },
 
 
@@ -147,53 +147,48 @@ const router = createRouter({
         // 기안 작성
         {
             path: '/draftdoc/draftcreate',
-            component: () => import('@/components/draftdoc/draftcreate/DraftTemplateList.vue')
+            component: () => import('@/pages/eapproval/DraftTemplateList.vue')
         },
 
         // 임시저장함
-        // {
-        //     path: '/draftdoc/temporarydoc',
-        //     component: () => import('@/components/draftdoc/draftcreate/TemporaryDoc.vue')
-        // },
+        {
+            path: '/draftdoc/temporarydoc',
+            component: () => import('@/pages/eapproval/TemporaryDoc.vue')
+        },
 
-        //기안함
-        // {
-        //     path: '/draftdoc/mydraft',
-        //     component: () => import('@/')
-        // },
+        // 기안함
+        {
+            path: '/draftdoc/mydraft',
+            component: () => import('@/pages/eapproval/MyDraft.vue')
+        },
 
         // 결재함
-        // {
-        //     path: '/draftdoc/approve',
-        //     component: () => import('@/')
-        // },
+        {
+            path: '/draftdoc/approve',
+            component: () => import('@/pages/eapproval/ApproveDoc.vue')
+        },
 
         // 수신함 
-        // {
-        //     path: '/draftdoc/inbox',
-        //     component: () => import('@/')
-        // },
+        {
+            path: '/draftdoc/inbox',
+            component: () => import('@/pages/eapproval/InBox.vue')
+        },
 
         // 참조함
+        {
+            path: '/draftdoc/reference',
+            component: () => import('@/pages/eapproval/ReferenceDoc.vue')
+        },
+
+        // 기안양식
         // {
-        //     path: '/draftdoc/reference',
-        //     component: () => import('@/')
+        //     path: '/org/draftlis/formA',
+        //     component: () => import('@/pages/eapproval/DraftFormA.vue')
         // },
-
-        {
-            path: '/org/draftlis/formA',
-            component: () => import('@/components/draftdoc/forms/DraftFormA.vue')
-        },
-        {
-            path: '/org/draftlis/formB',
-            component: () => import('@/components/draftdoc/forms/DraftFormB.vue')
-        },
         // {
-        //     path: '/draftdoc/mydraft/submitted',
-        //     component: () => import('@/components/draftdoc/mydraft/Submitted.vue')
-        // }
-        
-
+        //     path: '/org/draftlis/formB',
+        //     component: () => import('@/pages/eapproval/DraftFormB.vue')
+        // },        
 
         // =============== 급여 관리 ===============
 
@@ -221,7 +216,6 @@ const router = createRouter({
             component: () => import('@/pages/salary/RetirementPaymentStatus.vue')
         },
 
-
         // =============== 평가 및 성과 ===============
 
         // 평가
@@ -245,7 +239,6 @@ const router = createRouter({
 
         // =============== 공지사항 ===============
 
-
         // 공지사항 목록 조회
         {
             path: '/post',
@@ -265,7 +258,6 @@ const router = createRouter({
             name : 'PostDetail',
             component: () => import('@/components/post/PostDetailPage.vue')
         },
-
 
         // =============== 용어사전 ===============
 

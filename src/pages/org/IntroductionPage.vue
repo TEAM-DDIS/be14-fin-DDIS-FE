@@ -50,7 +50,7 @@
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import EditDeptModal from './EditDeptModal.vue'
+import EditDeptModal from '@/components/org/introduction/EditDeptModal.vue'
 
 const orgData = ref({ introduction: [], team: [] })
 const introductions = computed(() => orgData.value.introduction)
@@ -119,13 +119,14 @@ onMounted(async () => {
 <style scoped>
   .page-title {
     margin-left: 20px;
-    margin-bottom: 50px;
+    margin-bottom: 30px;
     color: #00a8e8;
   }
   .desc {
     display: block;
     margin-left: 20px;
     margin-bottom: 10px;
+    font-size: 18px;
   }
   
 .content-box {
@@ -136,11 +137,6 @@ onMounted(async () => {
   margin: 24px;
   max-width: 100%;
   overflow-x: auto;
-}
-
-.page-title {
-  margin-left: 20px;
-  margin-bottom: 50px;
 }
 
 .division-container {
