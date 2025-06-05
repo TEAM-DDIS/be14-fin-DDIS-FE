@@ -319,7 +319,8 @@ async function selectSlip(e) {
     selectedSlip.rankName = emp.rankName
     selectedSlip.yearMonth = salary.salaryDate.slice(0, 7)
     selectedSlip.salaryDate = salary.salaryDate
-
+    selectedSlip.netSalary = salary.netSalary 
+    
     selectedSlip.pays = [
       { label: '기본급', amount: salary.salaryBasic },
       { label: '연장수당', amount: salary.salaryOvertime },

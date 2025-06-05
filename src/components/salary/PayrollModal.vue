@@ -6,28 +6,32 @@
       <h2 class="modal-title">급여명세서</h2>
 
       <table class="info-table bordered">
-        <tr>
-          <th>사번</th>
-          <td>{{ slip.employeeId || '-' }}</td>
-          <th>성명</th>
-          <td>{{ slip.employeeName || '-' }}</td>
-        </tr>
-        <tr>
-          <th>본부</th>
-          <td>{{ slip.headName || '-' }}</td>
-          <th>부서</th>
-          <td>{{ slip.departmentName || '-' }}</td>
-        </tr>
-        <tr>
-          <th>팀</th>
-          <td>{{ slip.teamName || '-' }}</td>
-          <th>직급</th>
-          <td>{{ slip.rankName || '-' }}</td>
-        </tr>
-      </table>
+        <tbody>
+          <tr>
+            <th>사번</th>
+            <td>{{ slip.employeeId || '-' }}</td>
+            <th>성명</th>
+            <td>{{ slip.employeeName || '-' }}</td>
+          </tr>
+          <tr>
+            <th>본부</th>
+            <td>{{ slip.headName || '-' }}</td>
+            <th>부서</th>
+            <td>{{ slip.departmentName || '-' }}</td>
+          </tr>
+          <tr>
+            <th>팀</th>
+            <td>{{ slip.teamName || '-' }}</td>
+            <th>직급</th>
+            <td>{{ slip.rankName || '-' }}</td>
+          </tr>
+        </tbody>
+    </table>
 
       <table class="section-title-table">
-        <tr><td>세부 내역</td></tr>
+      <tbody>
+        <tr><td>세부 내역</td></tr> 
+      </tbody>
       </table>
 
       <div class="slip-tables">
@@ -65,7 +69,7 @@
       </div>
 
       <div class="summary-row gray-row">
-        <span>실 수령액(월)</span>
+        <span>실 수령액(원)</span>
         <span class="highlight">{{ formatCurrency(slip.netSalary || netPay) }}</span>
       </div>
 
