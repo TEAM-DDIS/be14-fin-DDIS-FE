@@ -200,13 +200,13 @@ const router = createRouter({
         // 내  급여 명세서 조회
         {
             path: '/salary/payroll/slip',
-            component: () => import('@/components/salary/payroll/PayrollSlip.vue')
+            component: () => import('@/pages/salary/PayrollSlip.vue')
         },
 
         // 급여명세서 발급
         {
             path: '/salary/payroll/issue',
-            component: () => import('@/components/salary/payroll/PayrollSlipIssue.vue')
+            component: () => import('@/pages/salary/PayrollSlipIssue.vue')
         },
 
         // 예상 퇴직금 조회
@@ -216,10 +216,10 @@ const router = createRouter({
         // },
 
         // 퇴직금 지급 현황
-        // {
-        //     path: '/salary/retirement/status',
-        //     component: () => import('@/components/salary/retirement/RetirementPaymentStatus.vue')
-        // },
+        {
+            path: '/salary/retirement/status',
+            component: () => import('@/pages/salary/RetirementPaymentStatus.vue')
+        },
 
 
         // =============== 평가 및 성과 ===============
