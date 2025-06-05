@@ -70,7 +70,7 @@
   .weekly-overtime-card {
     background: white;
     padding: 18px;
-    border-radius: 20px;
+    border-radius: 12px;
     box-shadow: 1px 1px 20px 1px rgba(0, 0, 0, 0.05);
     font-family: 'Pretendard', sans-serif;
   }
@@ -139,18 +139,17 @@
   /* Apply Button */
   .apply-btn {
     display: block;
-    width: 93px;
-    height: 37px;
-    background-color: #00A8E8;
+    background-color: #00a8e8;
     color: white;
-    font-size: 14px;
     font-weight: bold;
     border: 1px solid transparent;
     border-radius: 10px;
-    cursor: pointer;
+    padding: 10px 30px;
     margin: 16px 0 0 auto;
+    cursor: pointer;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
     transition: background-color 0.2s, box-shadow 0.2s;
+    box-sizing: border-box;
   }
   .apply-btn:hover {
     background-color: white;

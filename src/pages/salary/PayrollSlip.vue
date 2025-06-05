@@ -299,13 +299,17 @@ input[type="month"] {
 
 /* 페이지 제목 스타일 */
 .page-title {
-  margin: 20px;
+  margin-left: 20px;
+  margin-bottom: 30px;
   color: #00a8e8;
 }
 
 /* 소제목 설명 */
 .desc {
+  display: block;
   margin-left: 20px;
+  margin-bottom: 10px;
+  font-size: 18px;
 }
 
 /* 박스형 섹션 공통 스타일 */

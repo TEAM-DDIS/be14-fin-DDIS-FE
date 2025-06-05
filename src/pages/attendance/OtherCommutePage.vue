@@ -51,7 +51,7 @@ function handleSearch(range) {
 <style scoped>
     .page-title {
         margin-left: 20px;
-        margin-bottom: 50px;
+        margin-bottom: 30px;
         color: #00a8e8;
     }
 
@@ -64,8 +64,8 @@ function handleSearch(range) {
 
     .desc {
         display: block;
-        margin-left: 20px;
         margin-bottom: 10px;
+        font-size: 18px;
     }
 
     .all-leave-page {
