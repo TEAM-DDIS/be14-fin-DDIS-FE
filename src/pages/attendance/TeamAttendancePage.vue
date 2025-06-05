@@ -19,22 +19,22 @@
 </template>
 
 <script setup>
-    import TeamCalendar from '../components/calendar/TeamCalendar.vue'
-    import TeamWorkStatusCard from '../components/attendance/TeamWorkStatusCard.vue'
-    import TodayMeetingCard from '../components/attendance/TodayMeetingCard.vue'
+    import TeamCalendar from '@/components/calendar/TeamCalendar.vue'
+    import TeamWorkStatusCard from '@/components/attendance/TeamWorkStatusCard.vue'
+    import TodayMeetingCard from '@/components/attendance/TodayMeetingCard.vue'
 </script>
 
 <style scoped>
     .page-title {
         margin-left: 20px;
-        margin-bottom: 50px;
+        margin-bottom: 30px;
         color: #00a8e8;
     }
 
     .desc {
         display: block;
-        margin-left: 20px;
         margin-bottom: 10px;
+        font-size: 18px;
     }
 
     .team-attendance-page {

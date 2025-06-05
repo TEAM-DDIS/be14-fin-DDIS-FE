@@ -43,9 +43,9 @@
         background: #fff;
         box-shadow: 1px 1px 20px 1px rgba(0, 0, 0, 0.05);
         padding: 30px;
-        border-radius: 20px;
+        border-radius: 12px;
         flex-wrap: wrap;
-        gap: 16px;
+        gap: 13px;
     }
 
     .inputs {
@@ -62,7 +62,7 @@
         border: 1px solid #ccc;
         border-radius: 8px;
         padding: 6px 8px;
-        height: 32px;
+        height: 22px;
         color: #000;
     }
 

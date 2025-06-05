@@ -72,7 +72,7 @@
     const columnDefs = [
         { headerName: '번호', field: 'id'},
         { headerName: '사번', field: 'employeeId' },
-        { headerName: '이름', field: 'employeeName' },
+        { headerName: '성명', field: 'employeeName' },
         { headerName: '연차', field: 'leave' },
         { headerName: '반차', field: 'half' },
         { headerName: '출장', field: 'trip' },
@@ -111,7 +111,7 @@
     .all-leave-used-card {
         background: #fff;
         padding: 30px;
-        border-radius:20px;
+        border-radius:12px;
         box-shadow: 1px 1px 20px 1px rgba(0, 0, 0, 0.05);
         flex-wrap: wrap;
     }
@@ -121,7 +121,7 @@
         justify-content: space-between;
         flex-wrap: wrap;
         gap: 10px;
-        margin-bottom: 10px;
+        margin-bottom: 15px;
     }
 
     .search-bar {

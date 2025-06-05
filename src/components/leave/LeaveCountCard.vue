@@ -58,7 +58,7 @@
     background: #fff;
     padding-top: 30px;
     padding-bottom: 30px;
-    border-radius: 20px;
+    border-radius: 12px;
       box-shadow: 1px 1px 20px 1px rgba(0, 0, 0, 0.05);
     flex-wrap: wrap;
   }
