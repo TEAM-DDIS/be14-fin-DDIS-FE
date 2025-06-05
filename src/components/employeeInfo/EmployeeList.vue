@@ -19,6 +19,7 @@
     <div class="ag-theme-alpine ag-grid-box">
       <AgGridVue
         class="ag-theme-alpine custom-theme"
+        :gridOptions="{ theme: 'legacy' }"
         :style="`width: 100%; height: 500px;`"
         :columnDefs="columnDefs"
         :rowData="filteredData"
