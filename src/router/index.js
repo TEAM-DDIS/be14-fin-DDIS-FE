@@ -24,7 +24,7 @@ const router = createRouter({
         // 내 인사 정보
         {
             path: '/employeeInfo/myInfo',
-            component: () => import('@/components/employeeInfo/EmployeeSearchPage.vue')
+            component: () => import('@/components/employeeInfo/EmployeeEnroll.vue')
         },
 
         // 사원 목록 조회
@@ -33,6 +33,7 @@ const router = createRouter({
             component: () => import('@/components/employeeInfo/EmployeeList.vue')
         },
 
+        // 사원 등록 
         {
             path: '/employeeInfo/employeeEnroll',
             component: () => import('@/components/employeeInfo/EmployeeEnroll.vue')
