@@ -33,6 +33,11 @@ const router = createRouter({
             component: () => import('@/components/employeeInfo/EmployeeList.vue')
         },
 
+        {
+            path: '/employeeInfo/employeeEnroll',
+            component: () => import('@/components/employeeInfo/EmployeeEnroll.vue')
+        },
+
         // 계약서/법정서류 관리
         // {
         //     path: '/employeeInfo/Contract',
