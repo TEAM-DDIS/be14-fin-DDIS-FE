@@ -83,7 +83,7 @@
 <script setup>
 import { ref, computed, onMounted, reactive } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import EditJobModal from './EditJobModal.vue'
+import EditJobModal from '@/components/org/introduction/EditJobModal.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -193,7 +193,7 @@ const selectedJobs = computed(() => {
 <style scoped>
     .page-title{
     margin-left: 20px;
-    margin-bottom: 50px;
+    margin-bottom: 30px;
     color: #00a8e8;
     }
     .back-btn {
@@ -206,6 +206,7 @@ const selectedJobs = computed(() => {
     display: block;
     margin-left: 20px;
     margin-bottom: 10px;
+    font-size: 18px;
     }
 
 .content-box {

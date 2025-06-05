@@ -123,13 +123,31 @@ function onSave() {
   box-sizing: border-box;
 }
 
-.btn-save:hover,
-.btn-cancel:hover {
+.btn-save:hover {
   background-color: white;
   color: #00a8e8;
   border-color: #00a8e8;
   box-shadow:
   inset 1px 1px 10px rgba(0, 0, 0, 0.25);
+}
+
+.btn-cancel {
+  font-size: 14px;
+  font-weight: bold;
+  background-color: #D3D3D3;
+  color: #000;
+  border: none;
+  border-radius: 10px;
+  padding: 10px 30px;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: background-color 0.2s, box-shadow 0.2s;
+  box-sizing: border-box;
+}
+.btn-cancel:hover {
+  background-color: #000;
+  color: #fff;
 }
 
 /* 모달 전체에 같은 서체 적용 */
@@ -165,12 +183,4 @@ function onSave() {
     outline: none;
     border: 1px solid black;
 }
-
-/* 버튼 텍스트 스타일 */
-.btn-cancel,
-.btn-save {
-  font-size: 14px;
-  font-weight: 600;
-}
-
 </style>
