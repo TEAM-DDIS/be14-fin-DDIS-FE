@@ -1,172 +1,237 @@
 <template>
   <div class="evaluation-page">
     <main class="main-content">
-      <header class="header">
-        <h1>평가</h1>
-      </header>
+      <h1 class="page-title">평가</h1>
+
       <div class="content-panels">
         <!-- 1) 평가 대상자 리스트 -->
-        <img class="arrows" src="@/assets/icons/Polygon-2.svg"> 
-        <section class="panel people-panel">
-          <ul class="people-list">
-            <li
-              v-for="p in people"
-              :key="p.id"
-              :class="{ selected: selectedPerson === p.id }"
-              @click="selectPerson(p)"
-            >
-              <img :src="p.avatar" alt="avatar" class="avatar" />
-              <div class="info">
-                <strong class="name">{{ p.name }}</strong>
-                <span class="role">{{ p.role }}</span>
-              </div>
-              <span class="dept">{{ p.dept }}</span>
-            </li>
-          </ul>
-        </section>
+        <div class="block">
+          <p class="desc">팀원 목록</p>
+          <section class="panel people-panel">
+            <ul class="people-list">
+              <li
+                v-for="p in people"
+                :key="p.id"
+                :class="{ selected: selectedEmployee === p.id }"
+                @click="selectEmployee(p)"
+              >
+                <img :src="p.avatar || '/avatars/default.jpg'" alt="avatar" class="avatar" />
+                <div class="info">
+                  <strong class="name">{{ p.name }}</strong>
+                  <span class="role">{{ p.role }}</span>
+                </div>
+                <span class="dept">{{ p.dept }}</span>
+              </li>
+            </ul>
+          </section>
+        </div>
 
         <!-- 2) 목표 카드 리스트 -->
-        <section class="panel goals-panel">
-          <div class="goals-list">
-            <div
-              v-for="goal in filteredGoals"
-              :key="goal.id"
-              class="goal-card"
-              :class="{ selected: selectedGoal?.id === goal.id }"
-              @click="selectGoal(goal)"
-            >
-              <div class="card-top">
-                <span class="date">{{ goal.date }}</span>
-                <span class="author">{{ goal.owner }}</span>
-              </div>
-              <h4 class="card-title">{{ goal.title }}</h4>
-              <div class="card-bottom">
-                <div class="progress-group">
-                  <span class="label">달성률</span>
-                  <div class="progress-bar">
-                    <div class="progress-fill" :style="{ width: goal.progress + '%' }"></div>
-                  </div>
-                  <span class="progress-text">{{ goal.progress }}%</span>
+        <div class="block">
+          <p class="desc">평가 목록</p>
+          <img class="arrows" src="@/assets/icons/Polygon-2.svg" />
+          <section class="panel goals-panel">
+            <div class="goals-list">
+              <div
+                v-for="goal in filteredGoals"
+                :key="goal.id"
+                class="goal-card"
+                :class="{ selected: selectedGoal?.id === goal.id }"
+                @click="selectGoal(goal)"
+              >
+                <div class="card-top">
+                  <span class="date">{{ goal.date }}</span>
+                  <span class="author">{{ goal.owner }}</span>
                 </div>
-                <div class="pill-group">
-                  <span class="pill weight">가중치 {{ goal.weight }}%</span>
-                  <span class="pill target">목표치 {{ goal.target }}</span>
+                <h4 class="card-title">{{ goal.title }}</h4>
+                <div class="card-bottom">
+                  <div class="progress-group">
+                    <span class="label">달성률</span>
+                    <div class="progress-bar">
+                      <div class="progress-fill" :style="{ width: goal.progress + '%' }"></div>
+                    </div>
+                    <span class="progress-text">{{ goal.progress }}%</span>
+                  </div>
+                  <div class="pill-group">
+                    <span class="pill weight">가중치 {{ goal.weight }}%</span>
+                    <span class="pill target">목표치 {{ goal.target }}</span>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        </section>
+          </section>
+        </div>    
 
         <!-- 3) 평가 입력 패널 -->
-        <section class="panel perf-panel">
-          <div v-if="!selectedGoal" class="empty">
-            <p class="empty-text">평가할 목표를 선택하세요.</p>
-          </div>
-          <div v-else class="perf-content">
-            <!-- 목표명 -->
-            <div class="detail-header">
-              <div class="label">목표명</div>
-              <div class="title">{{ selectedGoal.title }}</div>
+        <div class="block perf-block">
+          <p class="desc">평가 내용</p>
+          <section class="panel perf-panel hide-scrollbar">
+            <div v-if="!selectedGoal" class="empty">
+              <p class="empty-text">평가할 목표를 선택하세요.</p>
             </div>
-
-            <!-- 상세 내용 레이블 -->
-            <div class="detail-subheader">상세 내용</div>
-
-            <!-- 상세 정보 테이블 -->
-            <div class="detail-info">
-              <table class="detail-table">
-                <tbody>
-                  <tr>
-                    <th>담당자</th>
-                    <td>{{ selectedGoal.owner }} 대리</td>
-                  </tr>
-                  <tr>
-                    <th>가중치</th>
-                    <td>{{ selectedGoal.weight }}%</td>
-                  </tr>
-                  <tr>
-                    <th>등록일</th>
-                    <td>{{ selectedGoal.date }}</td>
-                  </tr>
-                  <tr>
-                    <th>목표수치</th>
-                    <td>{{ selectedGoal.target }}</td>
-                  </tr>
-                  <tr class="subheader">
-                    <td colspan="2">목표내용</td>
-                  </tr>
-                  <tr>
-                    <td colspan="2" class="description">
-                      {{ selectedGoal.description }}
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-
-            <!-- 입력 폼 -->
-            <div class="perf-form-fields">
-              <div class="form-group">
-                <label for="score">평가 점수</label>
-                <select id="score" v-model="evalForm.score">
-                  <option disabled value="">선택</option>
-                  <option v-for="n in 5" :key="n" :value="n">{{ n }}점</option>
-                </select>
+            <div v-else class="perf-content">
+              <!-- 목표명 -->
+              <div class="detail-header">
+                <div class="label">목표명</div>
+                <div class="title">{{ selectedGoal.title }}</div>
               </div>
 
-              <div class="form-group">
-                <label for="comment">평가 의견</label>
-                <textarea
-                  id="comment"
-                  v-model="evalForm.comment"
-                  placeholder="의견을 입력하세요"
-                ></textarea>
+              <!-- 상세 내용 레이블 -->
+              <div class="detail-subheader">상세 내용</div>
+
+              <!-- 상세 정보 테이블 -->
+              <div class="detail-info">
+                <table class="detail-table">
+                  <tbody>
+                    <tr>
+                      <th>담당자</th>
+                      <td>{{ selectedGoal.owner }} 대리</td>
+                    </tr>
+                    <tr>
+                      <th>가중치</th>
+                      <td>{{ selectedGoal.weight }}%</td>
+                    </tr>
+                    <tr>
+                      <th>등록일</th>
+                      <td>{{ selectedGoal.date }}</td>
+                    </tr>
+                    <tr>
+                      <th>목표수치</th>
+                      <td>{{ selectedGoal.target }}</td>
+                    </tr>
+                    <tr class="subheader">
+                      <td colspan="2">목표내용</td>
+                    </tr>
+                    <tr>
+                      <td colspan="2" class="description">
+                        {{ selectedGoal.description }}
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
               </div>
 
-              <div class="btn-save-wrap">
-                <button class="btn-save" @click="submitEval">저장</button>
+              <!-- 입력 폼 -->
+              <div class="perf-form-fields">
+                <div class="form-group">
+                  <label for="score">평가 점수</label>
+                  <select id="score" v-model="evalForm.score">
+                    <option disabled value="">선택</option>
+                    <option v-for="n in 5" :key="n" :value="n">{{ n }}점</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label for="comment">평가 의견</label>
+                  <textarea
+                    id="comment"
+                    v-model="evalForm.comment"
+                    placeholder="의견을 입력하세요"
+                  ></textarea>
+                </div>
+
+                <div class="btn-save-wrap">
+                  <button class="btn-save" @click="submitEval">저장</button>
+                </div>
               </div>
             </div>
-          </div>
-        </section>
+          </section>
+        </div>
       </div>
     </main>
   </div>
 </template>
 
 <script setup>
-import { ref, reactive, computed } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 
-const people = [
-  { id: 1, name: '이병현', role: '팀장', dept: 'PC개발팀', avatar: '/avatars/1.jpg' },
-  { id: 2, name: '추하루', role: '대리', dept: 'PC개발팀', avatar: '/avatars/2.jpg' },
-  { id: 3, name: '고문지', role: '사원', dept: 'PC개발팀', avatar: '/avatars/3.jpg' },
-  { id: 4, name: '강동룡', role: '사원', dept: 'PC개발팀', avatar: '/avatars/4.jpg' },
-  { id: 5, name: '강병탁', role: '사원', dept: 'PC개발팀', avatar: '/avatars/5.jpg' },
-  { id: 6, name: '한도이', role: '사원', dept: 'PC개발팀', avatar: '/avatars/6.jpg' },
-]
-const goals = ref([
-  { id: 1, ownerId: 2, owner: '추하루', date: '2025-05-22', title: '신규 고객 20명을 확보한다.', target: 20, weight: 30, progress: 30, description: '월별 신규 고객 유지 활동을 통해 리드 전환을 유도함', evaluation: null },
-  { id: 2, ownerId: 3, owner: '고문지', date: '2025-05-20', title: '블로그 포스팅 5개 작성', target: 5, weight: 20, progress: 40, description: '제품 사용 사례 위주의 블로그 포스트 작성', evaluation: null },
-  { id: 3, ownerId: 4, owner: '강동룡', date: '2025-05-18', title: '고객 문의 100건 처리', target: 100, weight: 50, progress: 80, description: 'CS 시스템을 통한 문의 대응 완료', evaluation: null }
-])
-const selectedPerson = ref(null)
+// ===(A) 로컬스토리지에 저장된 JWT 토큰 가져오기 ===
+function getJwtPayload() {
+  const token = localStorage.getItem('accessToken')  // 키 이름은 실제 프로젝트에 맞춰 변경
+  if (!token) return null
+
+  try {
+    const base64Url = token.split('.')[1]
+    const base64   = base64Url.replace(/-/g, '+').replace(/_/g, '/')
+    const payload  = JSON.parse(atob(base64))
+    return payload
+  } catch {
+    return null
+  }
+}
+
+const payload = getJwtPayload()
+const teamId = payload?.teamId  // JWT 페이로드에 teamId 클레임이 있어야 함
+
+
+// ===(1) 데이터 상태 정의===
+const employees = ref([])       // 백엔드에서 받아온 전체 직원+목표 데이터
+const selectedEmployee = ref(null)
 const selectedGoal = ref(null)
 const evalForm = reactive({ score: '', comment: '' })
 
-const filteredGoals = computed(() =>
-  goals.value.filter(g => g.ownerId === selectedPerson.value)
+
+// ===(3) 페이지 초기 로드: 직원+목표 데이터 fetch===
+onMounted(async () => {
+  try {
+     const res = await fetch(`http://localhost:8080/review/${teamId}`, {
+      headers: { Authorization: `Bearer ${localStorage.getItem('accessToken')}` }
+    })
+    if (!res.ok) throw new Error('직원 목록 조회 실패')
+    employees.value = await res.json()
+  } catch (err) {
+    console.error(err)
+    alert('팀원 데이터를 불러오는 중 오류가 발생했습니다.')
+  }
+})
+
+// ===(4) people 배열: employees → 화면용 사람 목록으로 변환===
+const people = computed(() =>
+  employees.value.map(emp => ({
+    id: emp.employeeId,
+    name: emp.employeeName,
+    role: emp.positionName,
+    dept: emp.teamName,
+    avatar: emp.avatarUrl || ''  // 백엔드에 avatarUrl이 없다면 빈 문자열로
+  }))
 )
 
-function selectPerson(p) {
-  selectedPerson.value = p.id
+// ===(5) filteredGoals: 선택된 직원의 목표 목록으로 변환===
+const filteredGoals = computed(() => {
+  const emp = employees.value.find(e => e.employeeId === selectedEmployee.value)
+  if (!emp || !emp.goals) return []
+  return emp.goals.map(goal => ({
+    id: goal.goalId,
+    ownerId: emp.employeeId,
+    owner: emp.employeeName,
+    date: goal.goalCreatedAt.split('T')[0],  // 'YYYY-MM-DD' 형식
+    title: goal.goalTitle,
+    target: goal.goalValue,
+    weight: goal.goalWeight,
+    progress: goal.progress ?? 0,            // progress 필드가 없다면 0
+    description: goal.goalContent,
+    evaluation: goal.performances            // 예시: performances가 있으면 그대로 바인딩
+      ? { score: '', comment: '' }
+      : null
+  }))
+})
+
+// ===(6) 직원 선택 시===
+function selectEmployee(p) {
+  selectedEmployee.value = p.id
   selectedGoal.value = null
+  evalForm.score = ''
+  evalForm.comment = ''
 }
+
+// ===(7) 목표 선택 시===
 function selectGoal(g) {
   selectedGoal.value = g
   evalForm.score = g.evaluation?.score || ''
   evalForm.comment = g.evaluation?.comment || ''
 }
+
+// ===(8) 평가 저장 (더미 로직)===
 function submitEval() {
   if (!selectedGoal.value || !evalForm.score) return
   selectedGoal.value.evaluation = { ...evalForm }
@@ -176,18 +241,38 @@ function submitEval() {
 
 <style scoped>
 /* 전체 레이아웃 */
+ .page-title {
+    margin-left: 20px;
+    margin-bottom: 30px;
+    color: #00a8e8;
+  }
+  .desc {
+    display: block;
+    /* margin-left: 20px; */
+    margin-bottom: 10px;
+    font-size: 18px;
+  }
+  .block {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+  }
+  .perf-block {
+    /* padding: -20px; */
+    margin-left: -40px;
+    flex: 1;
+    min-height: 0;
+  }
+  
+  .hide-scrollbar {
+    overflow: auto;
+    scrollbar-width: none;
+  }
+
 .evaluation-page {
   height: 100vh;
   display: flex;
   font-family: 'Noto Sans KR', sans-serif;
-}
-.header {
-  padding: 16px 24px;
-}
-.header h1 {
-  margin: 0;
-  font-size: 1.5rem;
-  color: #333;
 }
 .main-content {
   flex: 1;
@@ -198,13 +283,15 @@ function submitEval() {
 .content-panels {
   display: flex;
   flex: 1;
-  padding: 24px;
   overflow: hidden;
+  position: relative;
 }
 .arrows {
   position:absolute;
-  left:55%;
-  z-index: 2;
+  top: 25%;              /* 패널 높이 중간(필요 시 조정) */
+  left: 52%;
+  /* margin-left: 180px; */
+  transform: translateY(-50%);
 }
 
 /* 1) 평가 대상자 리스트 */
@@ -249,6 +336,9 @@ function submitEval() {
 
 /* 2) 목표 카드 리스트 */
 .goals-panel {
+  position: relative;
+  width: 350px;
+  min-height: 360px;
   flex: 1;
   background: #fff;
   border-radius: 12px;
@@ -338,6 +428,8 @@ function submitEval() {
 
 /* 3) 평가 입력 패널 */
 .perf-panel {
+  width: 450px;
+  min-height: 330px;
   flex: 1;
   background: #F8F9FA;
   border-radius: 12px;
@@ -457,12 +549,24 @@ function submitEval() {
   margin-top: 8px;
 }
 .btn-save {
-  background: #4096ff;
-  color: #fff;
-  border: none;
-  padding: 10px 24px;
-  border-radius: 6px;
-  font-size: 1rem;
+  font-size: 14px;
+  font-weight: bold;
+  background-color: #00a8e8;
+  color: white;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  padding: 10px 30px;
   cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: background-color 0.2s, box-shadow 0.2s;
+  box-sizing: border-box;
+}
+
+.btn-save:hover {
+  background-color: white;
+  color: #00a8e8;
+  border-color: #00a8e8;
+  box-shadow:
+  inset 1px 1px 10px rgba(0, 0, 0, 0.25);
 }
 </style>
