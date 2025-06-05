@@ -27,16 +27,18 @@
         </table>
 
         <!-- AG Grid 로 대체된 상세 정보 -->
-        <div class="grid-wrapper ag-theme-alpine">
-          <AgGridVue
-              class="ag-theme-alpine custom-theme"
-              :gridOptions="{ theme: 'legacy' }"
-              :columnDefs="detailColumnDefs"
-              :rowData="rowDataDetail"
-              :defaultColDef="defaultColDef"
-              animateRows
-              rowSelection="single"
-              style="width:100%; height:300px;"
+        <div class="grid-wrapper">
+          <BaseGrid
+            class="ag-theme-alpine custom-theme"
+            :gridOptions="{ theme: 'legacy' }"
+            :columnDefs="detailColumnDefs"
+            :rowData="rowDataDetail"
+            width="100%"
+            height="300px"
+            :pagination="false"
+            :pageSize="10"
+            @row-click="onRowClick"
+            @cell-click="onCellClick"
           />
         </div>
       </div>
@@ -55,8 +57,7 @@
     // AG Grid import
     import { AgGridVue } from 'ag-grid-vue3'
     import { ModuleRegistry, AllCommunityModule } from 'ag-grid-community'
-    import 'ag-grid-community/styles/ag-grid.css'
-    import 'ag-grid-community/styles/ag-theme-alpine.css'
+    import BaseGrid from '@/components/grid/BaseGrid.vue'
 
     // AG Grid 모듈 등록
     ModuleRegistry.registerModules([AllCommunityModule])
@@ -85,12 +86,40 @@
 
     // AG Grid 컬럼 정의 (상세 테이블용)
     const detailColumnDefs = [
-    { headerName: '번호',            valueGetter: 'node.rowIndex + 1', width: 100, sortable: true },
-    { headerName: '발령유형',       field: 'appointment_type',         flex: 1, sortable: true, filter: true },
-    { headerName: '사원명',         field: 'employee_name',           flex: 1, sortable: true, filter: true },
-    { headerName: '소속부서',       field: 'department_name',         flex: 1, sortable: true, filter: true },
-    { headerName: '소속팀',         field: 'team_name',               flex: 1, sortable: true, filter: true },
-    { headerName: '발령 후 직급',    field: 'new_rank',                flex: 1, sortable: true, filter: true }
+      { headerName: '번호',
+        valueGetter: 'node.rowIndex + 1',
+        width: 100, 
+        sortable: true
+      },
+      { headerName: '발령유형',
+        field: 'appointment_type',
+        flex: 1, 
+        sortable: true, 
+        filter: true 
+      },
+      { headerName: '사원명',
+        field: 'employee_name',
+        flex: 1, sortable: true, 
+        filter: true 
+      },
+      { headerName: '소속부서', 
+        field: 'department_name', 
+        flex: 1, 
+        sortable: true, 
+        filter: true
+      },
+      { headerName: '소속팀',
+        field: 'team_name', 
+        flex: 1, 
+        sortable: true, 
+        filter: true 
+      },
+      { headerName: '발령 후 직급',
+        field: 'new_rank',
+        flex: 1, 
+        sortable: true, 
+        filter: true 
+      }
     ]
 
     // 공통 컬럼 설정
@@ -103,12 +132,20 @@
 
     // rowDataDetail: details 가 준비되면 그 배열을 바인딩
     const rowDataDetail = computed(() => appointmentDetail.value?.details || [])
+
+    // 그리드의 이벤트를 받아 처리
+    function onRowClick(event) {
+      console.log('행 클릭:', event)
+    }
+    function onCellClick(event) {
+      console.log('셀 클릭:', event)
+    }
 </script>
 
 <style scoped>
     .page-title{
     margin-left: 20px;
-    margin-bottom: 50px;
+    margin-bottom: 30px;
     color: #00a8e8;
     }
     .back-btn {
@@ -120,6 +157,7 @@
     display: block;
     margin-left: 20px;
     margin-bottom: 10px;
+    font-size: 18px;
     }
 
     .content-box {

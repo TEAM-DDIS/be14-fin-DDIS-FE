@@ -19,6 +19,7 @@
     <div class="ag-theme-alpine ag-grid-box">
       <AgGridVue
         class="ag-theme-alpine custom-theme"
+        :gridOptions="{ theme: 'legacy' }"
         :style="`width: 100%; height: 500px;`"
         :columnDefs="columnDefs"
         :rowData="filteredData"
@@ -37,7 +38,7 @@
   <div class="pagination-control">
     <div class="button-group">
       <button class="btn-delete" @click="onDeleteClick">삭제</button>
-      <button class="btn-save" @click="onRegister">등록</button>
+      <button class="btn-save"   @click="onRegister">등록</button>
     </div>
   </div>
 
@@ -207,7 +208,7 @@ const rowData = ref([
   { id: 17, name: '김소연', employeeNumber: 'EMP017', division: '경영지원본부', department: '인사팀', team: '인사팀', position: '인사담당', role: '과장', grade: '과장' },
   { id: 18, name: '박준서', employeeNumber: 'EMP018', division: '서비스본부', department: '고객지원팀', team: '고객지원팀', position: '고객지원', role: '사원', grade: '사원' },
   { id: 19, name: '장하늘', employeeNumber: 'EMP019', division: '개발본부', department: '개발팀', team: '인프라팀', position: '서버엔지니어', role: '사원', grade: '사원' },
-  { id: 20, name: '이수빈', employeeNumber: 'EMP020', division: '영업본부', department: '영업팀', team: '영업1팀', position: '영업사원', role: '사원', grade: '사원' }
+  { id: 20, name: '이수빈',employeeNumber: 'EMP020', division: '영업본부', department: '영업팀', team: '영업1팀', position: '영업사원', role: '사원', grade: '사원' }
 ])
 
 const searchText = ref('')
@@ -237,9 +238,7 @@ function onGridReady(params) {
 // 5) 사원명 클릭 시 상세 페이지 이동
 function onCellClick(e) {
   if (e.colDef.field === 'name') {
-    const empNo = e.data.employeeNumber
-    // empNo를 활용해 원하는 URL로 이동
-    router.push(`/employeeInfo/myInfo`)
+    router.push(`/employeeInfo/employeeEnroll`)
   }
 }
 
@@ -267,11 +266,10 @@ function confirmDelete() {
   alert('삭제가 완료되었습니다.')
 }
 
-// 7) 등록 버튼 클릭
+// 7) 등록 버튼 클릭 → “사원 등록” 화면으로 이동
 function onRegister() {
-  router.push('/employee/register')
+  router.push('/employeeInfo/employeeEnroll')
 }
-
 </script>
 
 <style scoped>
