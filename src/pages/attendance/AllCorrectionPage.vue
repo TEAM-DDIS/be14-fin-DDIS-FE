@@ -1,6 +1,6 @@
 <template>
     <div>
-        <h1 class="page-title">전체 연차 관리</h1>
+        <h1 class="page-title">전체 출근 정정 관리</h1>
         <div class="all-leave-page">
             <!-- 날짜 필터 -->
             <div class="date-filter">
@@ -26,8 +26,8 @@
             </div>
             <!-- 탭 내용 -->
             <div class="tab-content">
-                <AllLeaveUsedCard v-if="activeTab === 'used'" />
-                <AllLeaveRegistCard v-if="activeTab === 'regist'" />
+                <AllCorrectionUsedCard v-if="activeTab === 'used'" />
+                <AllCorrectionRegistCard v-if="activeTab === 'regist'" />
             </div>
         </div>
     </div>
@@ -36,8 +36,8 @@
 <script setup>
     import { ref } from 'vue'
     import DateFilter from '@/components/leave/DateFilter.vue'
-    import AllLeaveUsedCard from '@/components/leave/AllLeaveUsedCard.vue'
-    import AllLeaveRegistCard from '@/components/leave/AllLeaveRegistCard.vue'
+    import AllCorrectionUsedCard from '@/components/correction/AllCorrectionUsedCard.vue'
+    import AllCorrectionRegistCard from '@/components/correction/AllCorrectionRegistCard.vue'
 
     const activeTab = ref('used')
 
@@ -49,14 +49,14 @@
 <style scoped>
     .page-title {
         margin-left: 20px;
-        margin-bottom: 50px;
+        margin-bottom: 30px;
         color: #00a8e8;
     }
 
     .desc {
         display: block;
-        margin-left: 20px;
         margin-bottom: 10px;
+        font-size: 18px;
     }
 
     .all-leave-page {

@@ -33,11 +33,11 @@
             </div>
         </div>
         <Teleport to="body">
-            <div v-if="show" class="overlay" @click.self="show=false">
+            <div v-if="show" class="overlay">
                 <div class="modal">
-                    <span class="desc">개인 일정 등록</span>
+                    <span class="modal-desc">개인 일정 등록</span>
                     <!-- PersonalEventCard 삽입 -->
-                    <PersonalEventCard @add="onAdd" />
+                    <PersonalEventCard @add="onAdd" @cancel="show = false" />
                 </div>
             </div>
         </Teleport>
@@ -142,7 +142,7 @@
     /* 캘린더 박스 */
     .personal-calendar {
         background-color: #ffffff;
-        border-radius: 20px;
+        border-radius: 12px;
         box-shadow: 1px 1px 20px 1px rgba(0, 0, 0, 0.05);
         padding-left: 25px;
         padding-top: 25px;
@@ -220,9 +220,17 @@
     .modal {
         background: white;
         padding: 30px;
-        border-radius: 20px;
+        border-radius: 12px;
         width: 420px;
         box-shadow: 0 2px 12px rgba(0,0,0,0.2);
+    }
+
+    .modal-desc {
+        display: block;
+        text-align: center;
+        font-weight: bold;
+        font-size: 20px;
+        margin-bottom: 20px;
     }
 
     .desc {

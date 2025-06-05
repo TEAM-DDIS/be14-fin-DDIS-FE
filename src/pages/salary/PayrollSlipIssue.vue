@@ -418,13 +418,17 @@ ag-grid 헤더 색상 커스터마이징
 
 /* 페이지 제목 스타일 */
 .page-title {
-  margin: 20px;
+  margin-left: 20px;
+  margin-bottom: 30px;
   color: #00a8e8;
 }
 
 /* 소제목 설명 */
 .desc {
+  display: block;
   margin-left: 20px;
+  margin-bottom: 10px;
+  font-size: 18px;
 }
 
 /* 박스형 섹션 공통 스타일 */
@@ -435,7 +439,7 @@ ag-grid 헤더 색상 커스터마이징
   margin: 0 20px 24px;
   border-radius: 8px;
   box-shadow: 1px 1px 20px 1px rgba(0, 0, 0, 0.05);
-}
+} 
 
 /* 검색바 영역 스타일 */
 .search-bar {
@@ -605,5 +609,10 @@ ag-grid 헤더 색상 커스터마이징
   padding-left: 4px;
   text-align: center;
   padding-top: 200px;
+}
+.btn-area {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 16px;
 }
 </style>
