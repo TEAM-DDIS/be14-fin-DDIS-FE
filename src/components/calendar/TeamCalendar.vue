@@ -122,18 +122,25 @@
         }
     })
 
-    // JSON 데이터 로드
     onMounted(async () => {
-    const res = await fetch('/attendance.json')
-    const { schedule } = await res.json()
-    calendarOptions.events = schedule.map(item => ({
-            title: '', // 직접 렌더링 하므로 필요 없음
-            start: item.work_date,
-            className: convertStatusToClass(item.work_status_id),
-            extendedProps: {
-                status: item.work_status_id,
-                employee: item.employee_name
-            }
+        const token = localStorage.getItem('token')
+
+        if (!token) {
+            console.error('토큰이 없습니다. 로그인 후 다시 시도하세요.')
+            return
+        }
+
+        const res = await fetch('http://localhost:8000/attendance/calendar/team', {
+            headers: { Authorization: `Bearer ${token}` }
+        })
+
+        const data = await res.json()
+
+        calendarOptions.events = data.map(item => ({
+            title: '',
+            start: item.date,
+            className: item.type === 'meeting' ? 'event-meeting' : convertStatusToClass(item.status),
+            extendedProps: item
         }))
     })
 </script>
