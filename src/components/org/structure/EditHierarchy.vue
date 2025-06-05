@@ -1,6 +1,7 @@
+<!-- src/components/org/structure/Hierarchy.vue -->
 <template>
   <div class="org-container">
-    <!-- 최상위 회사 노드 -->
+    <!-- 1) 최상위 회사 노드 -->
     <div
       class="node head-root"
       @click="toggleRoot"
@@ -10,29 +11,29 @@
       DDIS <span class="rep">{{ getCompanyRep() }}</span>
     </div>
 
-    <!-- DDIS가 펼쳐져 있을 때 본부 목록 표시 -->
+    <!-- 2) DDIS가 펼쳐져 있을 때 본부 목록 표시 -->
     <ul v-show="expandedRoot" class="org-list">
-      <li v-for="hq in headquarters" :key="hq.head_code">
+      <li v-for="hq in headquarters" :key="hq.headCode">
         <!-- 본부 노드 -->
         <div
           class="node head"
-          @click="toggleHead(hq.head_code)"
+          @click="toggleHead(hq.headCode)"
           @dragover.prevent="onDragOver"
           @dragleave="onDragLeave"
           @drop="onDrop('head', hq, $event)"
         >
-          <i :class="expanded[hq.head_code] ? 'fa fa-chevron-down' : 'fa fa-chevron-right'" />
-          {{ hq.head_name }}
-          <small>(본부장: {{ getHeadRep(hq.head_code) }})</small>
+          <i :class="expanded[hq.headCode] ? 'fa fa-chevron-down' : 'fa fa-chevron-right'" />
+          {{ hq.headName }}
+          <small>(본부장: {{ getHeadRep(hq.headCode) }})</small>
         </div>
 
         <!-- 본부가 펼쳐져 있을 때 하위 부서 목록 표시 -->
-        <ul v-show="expanded[hq.head_code]">
+        <ul v-show="expanded[hq.headCode]">
           <li
-            v-for="dept in getDepartments(hq.head_id)"
-            :key="dept.department_code"
+            v-for="dept in getDepartments(hq.headId)"
+            :key="dept.departmentCode"
           >
-            <!-- 부서 노드: 클릭 시 토글/emit, draggable -->
+            <!-- 부서 노드: 클릭 시 토글, 드래그 가능 -->
             <div
               class="node dept"
               @click.stop="selectDepartment(dept)"
@@ -43,21 +44,21 @@
               @drop="onDrop('department', dept, $event)"
             >
               <i
-                :class="expanded[dept.department_code]
+                :class="expanded[dept.departmentCode]
                   ? 'fa fa-chevron-down'
                   : 'fa fa-chevron-right'"
               />
-              {{ dept.department_name }}
-              <small>(부서장: {{ getDeptRep(dept.department_code) }})</small>
+              {{ dept.departmentName }}
+              <small>(부서장: {{ getDeptRep(dept.departmentCode) }})</small>
             </div>
 
-            <!-- 부서가 펼쳐져 있을 때 하위 팀 표시 -->
-            <ul v-show="expanded[dept.department_code]">
+            <!-- 부서가 펼쳐졌을 때 하위 팀 표시 -->
+            <ul v-show="expanded[dept.departmentCode]">
               <li
-                v-for="team in getTeams(dept.department_id)"
-                :key="team.team_code"
+                v-for="team in getTeams(dept.departmentId)"
+                :key="team.teamCode"
               >
-                <!-- 팀 노드: 클릭 시 토글/emit, draggable -->
+                <!-- 팀 노드: 클릭 시 토글, 드래그 가능 -->
                 <div
                   class="node team"
                   @click.stop="selectTeam(team)"
@@ -68,19 +69,22 @@
                   @drop="onDrop('team', team, $event)"
                 >
                   <i
-                    :class="expanded[team.team_code]
+                    :class="expanded[team.teamCode]
                       ? 'fa fa-chevron-down'
                       : 'fa fa-chevron-right'"
                   />
-                  {{ team.team_name }}
-                  <small>(팀장: {{ getTeamRep(team.team_code) }})</small>
+                  {{ team.teamName }}
+                  <small>(팀장: {{ getTeamRep(team.teamCode) }})</small>
                 </div>
 
                 <!-- 팀이 펼쳐졌을 때 직원 표시 -->
-                <ul v-show="expanded[team.team_code]">
-                  <li v-for="emp in getEmployeesByTeam(team.team_code)" :key="emp.employee_id">
+                <ul v-show="expanded[team.teamCode]">
+                  <li
+                    v-for="emp in getEmployeesByTeam(team.teamCode)"
+                    :key="emp.employeeId"
+                  >
                     <div class="node emp">
-                      {{ emp.rank_name }} {{ emp.position_name }}: {{ emp.employee_name }}
+                      {{ emp.rankName }} {{ emp.positionName }}: {{ emp.employeeName }}
                     </div>
                   </li>
                 </ul>
@@ -96,77 +100,137 @@
 <script setup>
 import { reactive, ref, onMounted } from 'vue'
 
-// 부모 컴포넌트로 이벤트 전달(dept-selected, team-selected)
+// --- 1) Drag & Drop 시 임시로 담아둘 데이터 구조 ---
+const dragData = ref({ type: null, item: null }) 
+//   type: 'department' | 'team', item: 해당 객체
+
+// --- 2) 컴포넌트 내부 상태 ---
+const headquarters = ref([]) 
+//   [{ headId, headName, headCode, departments: [ DepartmentQueryDTO, ... ] }]
+
+const departments = ref([]) 
+//   [{ departmentId, departmentName, departmentCode, headId }]
+
+const teams = ref([]) 
+//   [{ teamId, teamName, teamCode, departmentId }]
+
+const employees = ref([]) 
+//   [{ employeeId, employeeName, positionCode, positionName, rankCode, rankName, headCode, departmentCode, teamCode, email, birthdate }]
+
+const positions = ref([]) // 별도 API가 있으면 onMounted에서 fetch
+const ranks = ref([])     // 별도 API가 있으면 onMounted에서 fetch
+
+// 최상위 “DDIS” 노드 펼침 상태
+const expandedRoot = ref(true)
+
+// 본부/부서/팀 각각 펼침 상태 저장용
+const expanded = reactive({}) 
+// ex) expanded['H01']=true, expanded['D03']=false
+
+// 부모 컴포넌트로 이벤트 전달
 const emit = defineEmits(['dept-selected', 'team-selected'])
 
-// props로 전달받는 데이터
-const props = defineProps({
-  headquarters: {
-    type: Array,
-    required: true
-  },
-  departments: {
-    type: Array,
-    required: true
-  },
-  teams: {
-    type: Array,
-    required: true
-  },
-  employees: {
-    type: Array,
-    required: true
-  },
-  positions: {
-    type: Array,
-    required: true
-  },
-  ranks: {
-    type: Array,
-    required: true
+// --- 3) Mounted 시점에 백엔드에서 조직 계층과 사원 정보 가져오기 ---
+onMounted(async () => {
+  try {
+    // 1) 본부→부서→팀→사원 계층 전체 조회
+    const res = await fetch('http://localhost:8000/structure/hierarchy')
+    if (!res.ok) throw new Error(`HTTP ${res.status}`)
+    const data = await res.json()
+    // data: HeadQueryDTO[] 형태
+    // HeadQueryDTO { headId, headName, headCode, departments: [DepartmentQueryDTO,…] }
+    // DepartmentQueryDTO { departmentId, departmentName, departmentCode, headId, teams: [TeamQueryDTO,…] }
+    // TeamQueryDTO { teamId, teamName, teamCode, departmentId, members: [EmployeeQueryDTO,…] }
+    // EmployeeQueryDTO { employeeId, employeeName, positionCode, positionName, rankCode, rankName, headCode, departmentCode, teamCode, email, birthdate }
+
+    // 3-1) 본부 목록만 저장
+    headquarters.value = data.map(h => ({
+      headId: h.headId,
+      headName: h.headName,
+      headCode: h.headCode || '',
+      departments: h.departments 
+    }))
+
+    // 3-2) departments, teams, employees 배열을 분리하여 보관
+    const deptList = []
+    const teamList = []
+    const empList = []
+
+    data.forEach(hq => {
+      hq.departments.forEach(d => {
+        deptList.push({
+          departmentId: d.departmentId,
+          departmentName: d.departmentName,
+          departmentCode: d.departmentCode,
+          headId: hq.headId
+        })
+        d.teams.forEach(t => {
+          teamList.push({
+            teamId: t.teamId,
+            teamName: t.teamName,
+            teamCode: t.teamCode,
+            departmentId: d.departmentId
+          })
+          t.members.forEach(e => {
+            empList.push({
+              employeeId:   e.employeeId,
+              employeeName: e.employeeName,
+              positionCode: e.positionCode,
+              positionName: e.positionName,
+              rankCode:     e.rankCode,
+              rankName:     e.rankName,
+              headCode:     e.headCode || '',
+              departmentCode: e.departmentCode || '',
+              teamCode:     e.teamCode || '',
+              email:        e.email || '',
+              birthdate:    e.birthdate || ''
+            })
+          })
+        })
+      })
+    })
+
+    departments.value = deptList
+    teams.value       = teamList
+    employees.value   = empList
+
+    // 2) position / rank 데이터가 별도 API가 있으면 여기서 fetch하여 저장
+    // positions.value = [...]
+    // ranks.value     = [...]
+
+  } catch (err) {
+    console.error('❌ 조직 계층 로드 실패:', err)
   }
 })
 
-// 1) 최상위 “DDIS” 노드 펼침 상태
-const expandedRoot = ref(true) // 기본값을 true로 두어 처음에 본부가 보이도록 함
-
-// 2) 각 본부/부서/팀 펼침 상태 저장용
-const expanded = reactive({})
-
-// 3) 드래그 중인 객체 정보 (type: 'department'|'team', item: 객체)
-const dragData = ref({ type: null, item: null })
-
-// 최상위 “DDIS” 토글
+// --- 4) 트리 토글 함수들 ---
 function toggleRoot() {
   expandedRoot.value = !expandedRoot.value
 }
-
-// 본부 토글
 function toggleHead(headCode) {
   expanded[headCode] = !expanded[headCode]
 }
-// 부서 토글
 function toggleDept(deptCode) {
   expanded[deptCode] = !expanded[deptCode]
 }
-// 팀 토글
 function toggleTeam(teamCode) {
   expanded[teamCode] = !expanded[teamCode]
 }
 
-// 부서 선택 시 토글 후 이벤트 emit
+// 부서 선택 시 (DeptQueryDTO 전체 객체)
 function selectDepartment(dept) {
-  toggleDept(dept.department_code)
+  toggleDept(dept.departmentCode)
   emit('dept-selected', dept)
 }
 
-// 팀 선택 시 토글 후 이벤트 emit
+// 팀 선택 시 (TeamQueryDTO 전체 객체)
 function selectTeam(team) {
-  toggleTeam(team.team_code)
+  toggleTeam(team.teamCode)
   emit('team-selected', team)
 }
 
-// 드래그 시작: type과 해당 아이템을 저장
+// --- 5) 드래그 & 드롭 이벤트 처리 ---
+// 드래그 시작 → 어떤 객체를 드래그했는지 저장
 function onDragStart(type, item) {
   dragData.value = { type, item }
 }
@@ -182,62 +246,102 @@ function onDragLeave(event) {
 }
 
 // 드롭 처리: 부서→본부, 팀→부서 이동
-function onDrop(targetType, targetItem, event) {
+async function onDrop(targetType, targetItem, event) {
   const node = event.currentTarget.querySelector('.node')
   if (node) node.classList.remove('drag-over')
 
   const { type, item } = dragData.value
+  try {
+    if (type === 'department' && targetType === 'head') {
+      // 1) 로컬 상태 업데이트
+      item.headId = targetItem.headId
+      console.log('부서 이동 → departmentId:', item.departmentId, '새 headId:', item.headId)
 
-  if (type === 'department' && targetType === 'head') {
-    // 부서를 새로운 본부로 이동: head_id 갱신
-    item.head_id = targetItem.head_id
-  } else if (type === 'team' && targetType === 'department') {
-    // 팀을 새로운 부서로 이동: department_id 갱신
-    item.department_id = targetItem.department_id
+      // 2) 백엔드 호출: PUT /org/update/department/{departmentId}
+      const payload = {
+        departmentName: item.departmentName,
+        headId: item.headId
+      }
+      const res = await fetch(`http://localhost:8000/org/update/department/${item.departmentId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      })
+      console.log('부서 이동 PUT 응답 상태:', res.status)
+      if (!res.ok) {
+        const errText = await res.text()
+        console.error('부서 이동 실패 응답:', errText)
+      }
+    }
+    else if (type === 'team' && targetType === 'department') {
+      // 1) 로컬 상태 업데이트
+      item.departmentId = targetItem.departmentId
+      console.log('팀 이동 → teamId:', item.teamId, '새 departmentId:', item.departmentId)
+
+      // 2) 백엔드 호출: PUT /org/update/team/{teamId} (가정된 엔드포인트)
+      const payload = {
+        teamName: item.teamName,
+        departmentId: item.departmentId
+      }
+      const res = await fetch(`http://localhost:8000/org/update/team/${item.teamId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      })
+      console.log('팀 이동 PUT 응답 상태:', res.status)
+      if (!res.ok) {
+        const errText = await res.text()
+        console.error('팀 이동 실패 응답:', errText)
+      }
+    }
+  } catch (err) {
+    console.error('❌ 이동 처리 중 오류 발생:', err)
+  } finally {
+    // 드래그 데이터 초기화
+    dragData.value = { type: null, item: null }
   }
-
-  // 드래그 데이터 초기화
-  dragData.value = { type: null, item: null }
 }
 
-// 본부 ID로 해당 본부의 부서 목록을 반환
+// --- 6) 트리에서 필요한 데이터 조회 헬퍼 함수들 ---
+// headId → 본부 소속 부서 목록 반환
 function getDepartments(headId) {
-  return props.departments.filter(d => d.head_id === headId)
+  return departments.value.filter(d => d.headId === headId)
 }
-// 부서 ID로 해당 부서의 팀 목록을 반환
+// departmentId → 부서 소속 팀 목록 반환
 function getTeams(departmentId) {
-  return props.teams.filter(t => t.department_id === departmentId)
+  return teams.value.filter(t => t.departmentId === departmentId)
 }
-// 팀 코드로 해당 팀에 속한 직원 목록을 반환
+// teamCode → 해당 팀 소속 직원 목록 반환
 function getEmployeesByTeam(teamCode) {
-  return props.employees.filter(e => e.team_code === teamCode)
+  return employees.value.filter(e => e.teamCode === teamCode)
 }
 
-// “회사 대표” (position_code = 'P005') 조회
+// --- 7) 사원 정보 조회 헬퍼 함수들 ---
+// “회사 대표” (positionCode = 'P005')
 function getCompanyRep() {
-  const ceo = props.employees.find(e => e.position_code === 'P005')
-  return ceo ? ceo.employee_name : ''
+  const ceo = employees.value.find(e => e.positionCode === 'P005')
+  return ceo ? ceo.employeeName : ''
 }
-// 해당 본부의 “본부장” (position_code = 'P004') 조회
+// 해당 본부의 “본부장” (positionCode = 'P004')
 function getHeadRep(headCode) {
-  const h = props.employees.find(
-    e => e.head_code === headCode && e.position_code === 'P004'
+  const h = employees.value.find(
+    e => e.headCode === headCode && e.positionCode === 'P004'
   )
-  return h ? h.employee_name : ''
+  return h ? h.employeeName : ''
 }
-// 해당 부서의 “부서장” (position_code = 'P003') 조회
+// 해당 부서의 “부서장” (positionCode = 'P003')
 function getDeptRep(deptCode) {
-  const d = props.employees.find(
-    e => e.department_code === deptCode && e.position_code === 'P003'
+  const d = employees.value.find(
+    e => e.departmentCode === deptCode && e.positionCode === 'P003'
   )
-  return d ? d.employee_name : ''
+  return d ? d.employeeName : ''
 }
-// 해당 팀의 “팀장” (position_code = 'P002') 조회
+// 해당 팀의 “팀장” (positionCode = 'P002')
 function getTeamRep(teamCode) {
-  const t = props.employees.find(
-    e => e.team_code === teamCode && e.position_code === 'P002'
+  const t = employees.value.find(
+    e => e.teamCode === teamCode && e.positionCode === 'P002'
   )
-  return t ? t.employee_name : ''
+  return t ? t.employeeName : ''
 }
 </script>
 
@@ -262,7 +366,7 @@ function getTeamRep(teamCode) {
   font-size: 12px;
   color: #00a8e8;
 }
-/* “EXPANDED” 상태도 강조 표시 */
+/* “EXPANDED” 상태 강조 */
 .expanded-root {
   background-color: #f0f8ff;
   border-radius: 4px;
@@ -280,7 +384,6 @@ function getTeamRep(teamCode) {
   position: relative;
   padding-left: 24px;
 }
-
 /* 세로 라인 */
 .org-list li::before {
   content: '';
