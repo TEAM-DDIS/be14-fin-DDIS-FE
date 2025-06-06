@@ -163,6 +163,7 @@ const rowData = ref([
     name: '김철수',
     employeeNumber: 'EMP001',
     disciplinary: '경고장',
+    documentUrl: '/images/disciplinary.png',
     disciplinarydescrip: '근태 불량',
     disciplinarydate: '2025-06-01'
   },
