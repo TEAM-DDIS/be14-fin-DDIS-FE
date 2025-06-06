@@ -39,22 +39,36 @@
   const todayMeetings = ref([])
 
   onMounted(async () => {
-    try {
-      // public/attendance.json 안의 meetings 배열을 불러옵니다.
-      const res = await fetch('/attendance.json')
-      const obj = await res.json()
-      allMeetings.value = obj.meetings || []
-      const todayStr = getTodayString()
+  try {
+    const token = localStorage.getItem('accessToken')
+    const res = await fetch('http://localhost:8000/attendance/calendar/team', {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    })
 
-      // meetings 중 오늘 날짜에 해당하는 것만 필터링
-      todayMeetings.value = allMeetings.value.filter(item => item.meeting_date === todayStr)
-    } catch (err) {
-      console.error('attendance.json의 meetings 로드 실패:', err)
-      todayMeetings.value = []
-    } finally {
-      loading.value = false
+    if (!res.ok) {
+      throw new Error(`HTTP ${res.status} - ${res.statusText}`)
     }
-  })
+
+    const data = await res.json()
+
+    if (!Array.isArray(data)) {
+      throw new Error('API 응답이 배열이 아닙니다.')
+    }
+
+    const meetings = data.filter(item => item.type === 'meeting')
+    allMeetings.value = meetings
+
+    const todayStr = getTodayString()
+    todayMeetings.value = meetings.filter(m => m.date === todayStr)
+  } catch (err) {
+    console.error('회의 일정 API 호출 실패:', err)
+    todayMeetings.value = []
+  } finally {
+    loading.value = false
+  }
+})
 </script>
 
 <style scoped>
