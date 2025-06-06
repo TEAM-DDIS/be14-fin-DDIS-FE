@@ -127,7 +127,7 @@ import { ref, reactive, onMounted } from 'vue'
 import { useUserStore } from '@/stores/user'
 import axios from 'axios'
 import AgGrid from '@/components/grid/BaseGrid.vue'
-import Modal from '@/components/salary/payroll/PayrollModal.vue'
+import Modal from '@/components/salary/PayrollModal.vue'
 const salarySection = ref(null)
 const userStore = useUserStore()
 const employee = ref(null)

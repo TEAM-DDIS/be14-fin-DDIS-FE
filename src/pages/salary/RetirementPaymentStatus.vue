@@ -1,21 +1,16 @@
 <!-- 퇴직 > 퇴직금 지급 현황 -->
-<!-- 퇴직 > 퇴직금 지급 현황 -->
 <template>
   <div class="retirement-page">
     <h1 class="page-title">퇴직금 지급 현황</h1>
 
-    <!-- 조회 필터 영역 -->
+    <!-- 조회 필터 -->
     <p class="desc">조회 필터</p>
     <div class="section filters-row justify-between">
-      <!-- 라디오 버튼 + 기간 입력 -->
       <div class="filters-left" style="display: flex; align-items: center; gap: 20px;">
-        <!-- 날짜 기준 선택 -->
         <div class="date-type-toggle">
           <label><input type="radio" value="retire" v-model="filterMode" /><strong>퇴직일자</strong></label>
           <label><input type="radio" value="provision" v-model="filterMode" /><strong>지급일자</strong></label>
         </div>
-
-        <!-- 기간 입력 -->
         <div class="inputs">
           <label>기간</label>
           <input type="month" v-model="dateRange.start" />
@@ -23,78 +18,66 @@
           <input type="month" v-model="dateRange.end" />
         </div>
       </div>
-
-      <!-- 조회 버튼 -->
       <div>
         <button class="search-btn" @click="fetchRetirements">조회</button>
       </div>
     </div>
 
-    <!-- 퇴직금 지급 목록 영역 -->
+    <!-- 목록 -->
     <p class="desc">퇴직금 지급 현황 목록</p>
     <div class="section">
+      <div class="filters-row" style="margin-bottom: 12px;">
+        <div class="search-bar">
+          <img src="@/assets/icons/search.svg" class="search" />
+          <input v-model="searchKeyword" placeholder="사번 또는 성명 검색" />
+        </div>
+        <div class="filters">
+          <select v-model="provisionSituation">
+            <option value="">지급현황 전체</option>
+            <option value="미지급">미지급</option>
+            <option value="지급완료">지급완료</option>
+            <option value="지연">지연</option>
+          </select>
+        </div>
+      </div>
 
-      <!-- 검색창 + 지급현황 필터 -->
-			<div class="filters-row" style="margin-bottom: 12px;">
-				<div class="search-bar">
-					<img src="@/assets/icons/search.svg" class="search" />
-					<input v-model="searchKeyword" placeholder="사번 또는 성명 검색" />
-				</div>
-				<div class="filters">
-					<select v-model="provisionSituation">
-						<option value="">지급현황 전체</option>
-						<option value="미지급">미지급</option>
-						<option value="지급완료">지급완료</option>
-						<option value="지연">지연</option>
-					</select>
-				</div>
-			</div>
-
-      <!-- 퇴직금 목록 테이블 -->
       <AgGrid
         class="ag-theme-alpine custom-theme"
-        :gridOptions="{ theme: 'legacy' }"
+        :gridOptions="{ theme: 'legacy', rowSelection: 'single' }"
         :columnDefs="columnDefs"
         :rowData="filteredData"
         height="400px"
         :pagination="true"
         :paginationPageSize="10"
-        @row-click="openModal"
+        @row-click="onRowClicked"
+        @grid-ready="onGridReady"
       />
 
-      <!-- 상세보기 버튼 -->
       <div class="btn-area mt-2 right-align">
-        <button class="search-btn" @click="openModal({ data: filteredData[0] })">상세보기</button>
+        <button class="search-btn" :disabled="!selectedSlip" @click="openModal">상세보기</button>
       </div>
     </div>
-  </div>
 
-  <!-- 퇴직금 상세 모달 (현재 주석 처리됨) -->
-  <!-- <Modal v-if="showModal" :employeeId="selectedEmployeeId" @close="showModal = false" /> -->
+    <!-- 상세 모달 -->
+    <RetirementModal v-if="showModal && selectedSlip" :slip="selectedSlip" @close="showModal = false" />
+  </div>
 </template>
 
-
 <script setup>
-// 상태 관리 및 API 요청용
 import { ref, computed, watch } from 'vue'
 import axios from 'axios'
 import AgGrid from '@/components/grid/BaseGrid.vue'
-// import Modal from '@/components/retirement/RetirementDetailModal.vue' // 상세 모달 컴포넌트
+import RetirementModal from '@/components/salary/RetirementModal.vue'
 
-// 검색/필터 관련 상태
 const searchKeyword = ref('')
 const provisionSituation = ref('')
 const dateRange = ref({ start: '', end: '' })
-const filterMode = ref('retire') // 'retire' = 퇴직일자 기준, 'provision' = 지급일자 기준
-
-// 조회된 데이터
+const filterMode = ref('retire')
 const retirements = ref([])
-
-// 상세 모달 관련
 const showModal = ref(false)
-const selectedEmployeeId = ref(null)
+const selectedSlip = ref(null)
+const gridApi = ref(null)
 
-// 테이블 컬럼 정의
 const columnDefs = [
   { headerName: '사번', field: 'employeeId' },
   { headerName: '성명', field: 'employeeName' },
@@ -107,10 +90,8 @@ const columnDefs = [
   { headerName: '실지급액', field: 'provisionActual', valueFormatter: formatCurrency }
 ]
 
-// 필터링된 테이블 데이터 계산
 const filteredData = computed(() => {
-  const rows = Array.isArray(retirements.value) ? retirements.value : []
-  return rows.filter(row => {
+  return retirements.value.filter(row => {
     const keyword = searchKeyword.value.toLowerCase()
     const matchKeyword =
       !keyword ||
@@ -122,56 +103,67 @@ const filteredData = computed(() => {
   })
 })
 
-// 백엔드에서 퇴직금 현황 데이터 조회
 async function fetchRetirements() {
   if (!dateRange.value.start || !dateRange.value.end) {
     alert('기간을 입력해주세요.')
     return
   }
 
-  const params = {
-    ...(filterMode.value === 'retire'
-      ? {
-          retireMonthFrom: dateRange.value.start,
-          retireMonthTo: dateRange.value.end
-        }
-      : {
-          provisionMonthFrom: dateRange.value.start,
-          provisionMonthTo: dateRange.value.end
-        }),
-    provisionSituation: provisionSituation.value || '',
-    keyword: searchKeyword.value || ''
-  }
+  const params = filterMode.value === 'retire'
+    ? { retireMonthFrom: dateRange.value.start, retireMonthTo: dateRange.value.end }
+    : { provisionMonthFrom: dateRange.value.start, provisionMonthTo: dateRange.value.end }
 
   try {
-    const { data } = await axios.get('http://localhost:8000/payroll/retirements', { params })
+    const { data } = await axios.get('http://localhost:8000/payroll/retirements', {
+      params: {
+        ...params,
+        provisionSituation: provisionSituation.value || '',
+        keyword: searchKeyword.value || ''
+      }
+    })
     retirements.value = Array.isArray(data) ? data : []
+    selectedSlip.value = null
   } catch (e) {
     console.error('퇴직금 현황 조회 실패:', e)
   }
 }
 
-// 날짜 기준 변경 시 기간 초기화
-watch(filterMode, () => {
-  dateRange.value.start = ''
-  dateRange.value.end = ''
-})
-
-// 금액 포맷 함수 (3자리 쉼표)
 function formatCurrency(params) {
   return params.value ? params.value.toLocaleString() : ''
 }
 
-// 상세보기 모달 열기
-function openModal(event) {
-  const data = event?.data || filteredData.value[0]
-  if (data) {
-    selectedEmployeeId.value = data.employeeId
+function onGridReady(params) {
+    console.log('🟢 그리드 준비 완료')
+  gridApi.value = params.api
+}
+
+function onRowClicked(event) {
+  selectedSlip.value = event.data
+  console.log('✅ 선택된 행:', selectedSlip.value)
+}
+
+async function openModal() {
+  if (!selectedSlip.value?.employeeId) {
+    alert('먼저 행을 선택해주세요.')
+    return
+  }
+
+  try {
+    const { data } = await axios.get(`http://localhost:8000/payroll/retirements/${selectedSlip.value.employeeId}`)
+    selectedSlip.value = data // 상세 데이터로 덮어쓰기
     showModal.value = true
+  } catch (e) {
+    console.error('상세정보 불러오기 실패:', e)
+    alert('상세 정보를 불러올 수 없습니다.')
   }
 }
 
+watch(filterMode, () => {
+  dateRange.value.start = ''
+  dateRange.value.end = ''
+})
 </script>
+
 
 <style scoped>	
 /* 전체 페이지 제목 */
