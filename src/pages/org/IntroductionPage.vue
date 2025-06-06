@@ -1,4 +1,4 @@
-<!-- 조직 및 직무 > 조직 및 직무 소개 -->
+<!-- src/views/IntroductionPage.vue -->
 <template>
   <div class="org-page">
     <h1 class="page-title">조직 및 직무 소개</h1>
@@ -9,35 +9,50 @@
         <div
           class="division-section"
           v-for="division in divisionsWithDepartments"
-          :key="division.name"
+          :key="division.id"
         >
           <h2 class="division-title">{{ division.name }}</h2>
           <div class="department-grid">
             <div
               class="department-card"
               v-for="dept in division.departments"
-              :key="dept.introduction_id"
+              :key="dept.departmentId"
             >
-              <h3 class="department-name">{{ dept.introduction_name }}</h3>
-              <p class="description">{{ dept.introduction_context }}</p>
+              <!-- 부서 이름 -->
+              <h3 class="department-name">{{ dept.departmentName }}</h3>
+              <!-- 부서 소개 내용 -->
+              <p class="description">{{ dept.introductionContext }}</p>
+
+              <!-- 팀 목록: 태그(# teamName) 형태 -->
               <div class="tags">
                 <span
                   v-for="team in dept.teams"
-                  :key="team.team_id"
+                  :key="team.teamId"
                   class="tag"
-                  @click="goToJob(team.team_id)"
+                  @click="goToTeam(team.teamId)"
                 >
-                  # {{ team.team_name }}
+                  # {{ team.teamName }}
                 </span>
               </div>
+
+              <!-- 각 부서마다 편집 버튼을 개별로 두고 싶다면 여기에 배치 가능 -->
+              <!--
+              <button class="mini-edit-button" @click="openEditModal(dept)">
+                ✏️
+              </button>
+              -->
             </div>
           </div>
         </div>
       </div>
     </div>
 
-    <button class="edit-button" @click="openEditModal">편집</button>
-    <!-- 모달 컴포넌트 -->
+    <!-- 최상단 편집 버튼: 첫 번째 본부의 첫 번째 부서를 초기값으로 열어 줌 -->
+    <button class="edit-button" @click="openEditModal()">
+      편집
+    </button>
+
+    <!-- EditDeptModal: showEditModal이 true일 때만 렌더링 -->
     <EditDeptModal
       v-if="showEditModal"
       :initial="currentDept"
@@ -52,10 +67,13 @@ import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import EditDeptModal from '@/components/org/introduction/EditDeptModal.vue'
 
-const orgData = ref({ introduction: [], team: [] })
-const introductions = computed(() => orgData.value.introduction)
-const teams = computed(() => orgData.value.team)
+// 1) orgData에 department 배열을 담습니다.
+const orgData = ref({
+  introduction: []  // DepartmentIntroductionQueryDTO[]
+})
 
+// 2) divisions: 하드코딩된 본부 정보 (부서 ID 매핑용)
+//    실제로는 이 배열을 API로 받아오거나, 데이터베이스에 맞춰 바꿔도 됩니다.
 const divisions = [
   { id: 1, name: '개발본부', departmentIds: [1, 2] },
   { id: 2, name: '경영지원본부', departmentIds: [3, 4] },
@@ -64,71 +82,120 @@ const divisions = [
 
 const router = useRouter()
 
+// 3) divisionsWithDepartments: divisions 배열을 순회하며,
+//    orgData.introduction에서 해당 본부에 속하는 부서들만 걸러서 반환
 const divisionsWithDepartments = computed(() =>
   divisions.map(div => {
-    const departmentList = introductions.value.filter(
-      intro => intro.introduction_type === '부서' && div.departmentIds.includes(intro.department_id)
+    // 이 본부에 속하는 부서들만 필터
+    const departmentList = orgData.value.introduction.filter(
+      intro => div.departmentIds.includes(intro.departmentId)
     )
-    const departmentsWithTeams = departmentList.map(dept => {
-      const deptTeams = teams.value.filter(team => team.department_id === dept.department_id)
-      return { ...dept, teams: deptTeams }
-    })
-    return { ...div, departments: departmentsWithTeams }
+
+    // 각 dept 객체 안에 { departmentId, departmentName, introductionContext, teams } 형태로 매핑
+    const departmentsWithTeams = departmentList.map(dept => ({
+      departmentId: dept.departmentId,
+      departmentName: dept.departmentName,
+      introductionContext: dept.introductionContext,
+      teams: Array.isArray(dept.teams) ? dept.teams : []
+    }))
+
+    return {
+      id: div.id,
+      name: div.name,
+      departments: departmentsWithTeams
+    }
   })
 )
 
-function goToJob(teamId) {
+function goToTeam(teamId) {
   router.push({ path: `/jobdetail/${teamId}` })
 }
 
-// --- 모달 제어 ---
+// ─── 모달 제어 로직 ────────────────────────────────────────────────
+// showEditModal: 모달 표시 여부
 const showEditModal = ref(false)
-const currentDept = reactive({ introduction_id: null, introduction_name: '', introduction_context: '' })
+// currentDept: EditDeptModal에 뿌려줄 현재 부서 정보
+const currentDept = reactive({
+  departmentId: null,
+  introductionContext: ''
+})
 
-function openEditModal() {
+// openEditModal: 모달을 열 때 호출
+// 만약 특정 부서를 넘기고 싶으면 openEditModal(dept) 형태로 사용 가능
+function openEditModal(dept) {
   showEditModal.value = true
-  const firstDept = divisionsWithDepartments.value[0]?.departments[0]
-  if (firstDept) {
-    currentDept.introduction_id = firstDept.introduction_id
-    currentDept.introduction_name = firstDept.introduction_name
-    currentDept.introduction_context = firstDept.introduction_context
+
+  if (dept) {
+    // 특정 dept 객체를 넘긴 경우 해당 dept 값으로 세팅
+    currentDept.departmentId = dept.departmentId
+    currentDept.introductionContext = dept.introductionContext
+  } else {
+    // 파라미터가 없는 경우(최상단 버튼 클릭 시), 첫 번째 본부의 첫 번째 부서를 기본으로 세팅
+    const firstDept = divisionsWithDepartments.value[0]?.departments[0]
+    if (firstDept) {
+      currentDept.departmentId = firstDept.departmentId
+      currentDept.introductionContext = firstDept.introductionContext
+    }
   }
 }
+
+// closeEditModal: 모달을 닫을 때 호출
 function closeEditModal() {
   showEditModal.value = false
 }
+
+// saveEdit: 모달 내부에서 “저장” 버튼을 눌러 전달된 값을 반영
 function saveEdit(updated) {
-  const idx = orgData.value.introduction.findIndex(d => d.introduction_id === updated.introduction_id)
+  // updated: { departmentId, introductionContext }
+  const idx = orgData.value.introduction.findIndex(
+    d => d.departmentId === updated.departmentId
+  )
   if (idx !== -1) {
-    orgData.value.introduction[idx].introduction_context = updated.introduction_context
+    // 로컬 상태에 바로 반영 (화면 갱신)
+    orgData.value.introduction[idx].introductionContext =
+      updated.introductionContext
+    // (선택) 실제 서버에 PUT 요청을 보내 저장하고 싶다면 여기서 fetch 호출
+    // 예:
+    // await fetch(`http://localhost:8000/org/update/department/${updated.departmentId}`, {
+    //   method: 'PUT',
+    //   headers: { 'Content-Type': 'application/json' },
+    //   body: JSON.stringify({ introductionContext: updated.introductionContext })
+    // })
   }
+
   closeEditModal()
 }
+// ────────────────────────────────────────────────────────────────────────
 
+// 부트스트랩: 컴포넌트 마운트 시 백엔드에서 부서 목록을 가져옵니다.
 onMounted(async () => {
   try {
-    const res = await fetch('/org.json')
-    if (!res.ok) throw new Error(res.statusText)
-    orgData.value = await res.json()
+    // 실제 백엔드 주소에 맞춰 수정하세요 (예: http://localhost:8000)
+    const BASE = 'http://localhost:8000/introduction'
+    const res = await fetch(`${BASE}/department`)
+    if (!res.ok) throw new Error(`HTTP ${res.status}`)
+    const data = await res.json()
+    // data 형식: DepartmentIntroductionQueryDTO[] 배열
+    orgData.value.introduction = data
   } catch (e) {
-    console.error('org.json load failed:', e)
+    console.error('❌ 부서 조회 실패:', e)
   }
 })
 </script>
 
 <style scoped>
-  .page-title {
-    margin-left: 20px;
-    margin-bottom: 30px;
-    color: #00a8e8;
-  }
-  .desc {
-    display: block;
-    margin-left: 20px;
-    margin-bottom: 10px;
-    font-size: 18px;
-  }
-  
+.page-title {
+  margin-left: 20px;
+  margin-bottom: 30px;
+  color: #00a8e8;
+}
+.desc {
+  display: block;
+  margin-left: 20px;
+  margin-bottom: 10px;
+  font-size: 18px;
+}
+
 .content-box {
   background: #ffffff;
   border-radius: 12px;
@@ -179,7 +246,8 @@ onMounted(async () => {
   border-radius: 12px;
   padding: 20px;
   width: 240px;
-  height: 240px;
+  /* 높이를 고정할 필요가 없으면 height 속성을 제거하세요 */
+  /* height: 240px; */
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
@@ -221,8 +289,7 @@ onMounted(async () => {
   background-color: white;
   color: #3f3f3f;
   border-color: #3f3f3f;
-  box-shadow:
-  inset 1px 1px 10px rgba(0, 0, 0, 0.25);
+  box-shadow: inset 1px 1px 10px rgba(0, 0, 0, 0.25);
 }
 
 .edit-button {
@@ -238,7 +305,6 @@ onMounted(async () => {
   border: 1px solid transparent;
   border-radius: 10px;
   padding: 10px 30px;
-  cursor: pointer;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   transition: background-color 0.2s, box-shadow 0.2s;
   box-sizing: border-box;
@@ -248,8 +314,7 @@ onMounted(async () => {
   background-color: white;
   color: #00a8e8;
   border-color: #00a8e8;
-  box-shadow:
-  inset 1px 1px 10px rgba(0, 0, 0, 0.25);
+  box-shadow: inset 1px 1px 10px rgba(0, 0, 0, 0.25);
 }
 
 @media (max-width: 768px) {

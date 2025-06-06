@@ -24,7 +24,7 @@ const router = createRouter({
         // 내 인사 정보
         {
             path: '/employeeInfo/myInfo',
-            component: () => import('@/components/employeeInfo/EmployeeSearchPage.vue')
+            component: () => import('@/components/employeeInfo/EmployeeEnroll.vue')
         },
 
         // 사원 목록 조회
@@ -33,22 +33,34 @@ const router = createRouter({
             component: () => import('@/components/employeeInfo/EmployeeList.vue')
         },
 
+        // 사원 등록 
         {
             path: '/employeeInfo/employeeEnroll',
             component: () => import('@/components/employeeInfo/EmployeeEnroll.vue')
         },
 
         // 계약서/법정서류 관리
-        // {
-        //     path: '/employeeInfo/Contract',
-        //     component: () => import('@/')
-        // },
+        {
+            path: '/employeeInfo/Contract',
+            component: () => import('@/components/employeeInfo/ContractList.vue')
+        },
+        // 계약서/법정서류 등록
+        {
+            path: '/employeeInfo/Contract/ContractEnroll',
+            component: () => import('@/components/employeeInfo/ContractEnroll.vue')
+        },
 
         // 징계 관리
-        // {
-        //     path: '/employeeInfo/disciplinary',
-        //     component: () => import('@/')
-        // },
+        {
+            path: '/employeeInfo/disciplinary',
+            component: () => import('@/components/employeeInfo/disciplinaryList.vue')
+        },
+
+        // 징계 등록
+        {
+            path: '/employeeInfo/disciplinary/disciplinaryEnroll',
+            component: () => import('@/components/employeeInfo/disciplinaryEnroll.vue')
+        },
 
 
         // =============== 근태 관리 ===============
