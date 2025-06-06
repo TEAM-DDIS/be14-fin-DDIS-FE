@@ -40,10 +40,15 @@ const router = createRouter({
         },
 
         // 계약서/법정서류 관리
-        // {
-        //     path: '/employeeInfo/Contract',
-        //     component: () => import('@/')
-        // },
+        {
+            path: '/employeeInfo/Contract',
+            component: () => import('@/components/employeeInfo/ContractList.vue')
+        },
+        // 계약서/법정서류 등록
+        {
+            path: '/employeeInfo/Contract/ContractEnroll',
+            component: () => import('@/components/employeeInfo/ContractEnroll.vue')
+        },
 
         // 징계 관리
         // {
