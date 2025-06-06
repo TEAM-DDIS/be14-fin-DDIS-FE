@@ -15,7 +15,9 @@
           style="display: none"
         />
         <template v-if="!previewUrl">
-          <span class="placeholder-text">계약서/법정서류 이미지를 업로드 해주세요.</span>
+          <span class="placeholder-text">
+            계약서/법정서류 이미지를 업로드 해주세요.
+          </span>
         </template>
         <template v-else>
           <img :src="previewUrl" alt="계약서 미리보기" class="preview-img" />
@@ -26,16 +28,40 @@
       <div class="form-area">
         <table class="info-table">
           <colgroup>
-            <col style="width: 100px;" />
+            <col style="width: 120px" />
             <col />
           </colgroup>
           <tbody>
+            <!-- 새로 추가: 사원명 -->
+            <tr>
+              <th>사원명</th>
+              <td>
+                <input
+                  type="text"
+                  v-model="form.employeeName"
+                  placeholder="사원명 입력"
+                />
+              </td>
+            </tr>
+            <!-- 새로 추가: 사원번호 -->
+            <tr>
+              <th>사원번호</th>
+              <td>
+                <input
+                  type="text"
+                  v-model="form.employeeNumber"
+                  placeholder="사원번호 입력"
+                />
+              </td>
+            </tr>
+            <!-- 기존 항목: 요청일자 -->
             <tr>
               <th>요청일자</th>
               <td>
                 <input type="date" v-model="form.requestDate" />
               </td>
             </tr>
+            <!-- 기존 항목: 계약서명/법정서류 -->
             <tr>
               <th>계약서명/법정서류</th>
               <td>
@@ -46,12 +72,14 @@
                 />
               </td>
             </tr>
+            <!-- 기존 항목: 계약일자 -->
             <tr>
               <th>계약일자</th>
               <td>
                 <input type="date" v-model="form.contractDate" />
               </td>
             </tr>
+            <!-- 기존 항목: 만료일자 -->
             <tr>
               <th>만료일자</th>
               <td>
@@ -62,7 +90,8 @@
         </table>
 
         <p class="warning-text">
-          계약서를 무단 복제하거나 유출 시 1년 이하의 징역 또는 10억 원의 벌금이 부과됩니다.
+          계약서를 무단 복제하거나 유출 시 1년 이하의 징역 또는 10억 원의 벌금이
+          부과됩니다.
         </p>
       </div>
     </div>
@@ -83,8 +112,10 @@ const router = useRouter()
 const fileInput = ref(null)
 const previewUrl = ref('')
 
-// 입력 폼 데이터
+// 입력 폼 데이터에 사원명/사원번호 추가
 const form = reactive({
+  employeeName: '',
+  employeeNumber: '',
   requestDate: '',
   contractName: '',
   contractDate: '',
@@ -199,17 +230,16 @@ function onSave() {
   display: flex;
   flex-direction: column;
   justify-content: center; /* 세로 중앙 정렬 */
-  align-items: flex-start;  /* 왼쪽 정렬 유지 */
+  align-items: flex-start; /* 왼쪽 정렬 유지 */
   margin-left: 50px;
 }
 .info-table {
-  /* 테이블 너비를 100% 그대로 유지 */
   width: 100%;
   border-collapse: collapse;
 }
 .info-table th,
 .info-table td {
-  /* 세로 패딩을 10px → 20px 로 늘려서 행 높이를 넓혔습니다 */
+  /* 세로 패딩을 넉넉히 둡니다 */
   border: 1px solid #d1d5db;
   padding: 20px 12px;
   font-size: 0.95rem;
@@ -225,7 +255,7 @@ function onSave() {
   width: 100%;
   border: 1px solid #ccc;
   border-radius: 4px;
-  padding: 12px 8px;
+  padding: 10px 8px;
   font-size: 0.9rem;
   box-sizing: border-box;
 }
@@ -258,38 +288,20 @@ function onSave() {
   cursor: pointer;
 }
 .btn-cancel {
-    background-color: #d3d3d3;
-    color: #000;
-    border: none;
-    border-radius: 10px;
-    padding: 10px 30px;
-    font-weight: bold;
-    cursor: pointer;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-    transition: background-color 0.2s, box-shadow 0.2s;
-    box-sizing: border-box;
+  background-color: #e5e7eb;
+  color: #374151;
+  transition: background-color 0.2s;
 }
 .btn-cancel:hover {
-    background-color: #000;
-    color: #fff;
+  background-color: #d1d5db;
 }
 .btn-save {
   background-color: #00a8e8;
-  color: white;
-  font-weight: bold;
-  border: 1px solid transparent;
-  border-radius: 10px;
-  padding: 10px 30px;
-  cursor: pointer;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  transition: background-color 0.2s, box-shadow 0.2s;
-  box-sizing: border-box;
+  color: #ffffff;
+  transition: background-color 0.2s;
 }
 .btn-save:hover {
-  background-color: white;
-  color: #00a8e8;
-  border-color: #00a8e8;
-  box-shadow: inset 1px 1px 10px rgba(0, 0, 0, 0.25);
+  background-color: #008bb7;
 }
 
 /* 반응형 간단 예시 */
