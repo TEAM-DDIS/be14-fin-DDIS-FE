@@ -1,7 +1,7 @@
 <template>
   <!-- 상단 헤더 -->
-  <h1 class="page-title">계약서/법정서류 관리</h1>
-  <p class="desc">계약서/법정서류 등록</p>
+  <h1 class="page-title">징계 관리</h1>
+  <p class="desc">징계 등록</p>
 
   <div class="card">
     <div class="content">
@@ -16,11 +16,11 @@
         />
         <template v-if="!previewUrl">
           <span class="placeholder-text">
-            계약서/법정서류 이미지를 업로드 해주세요.
+            징계서류 이미지를 업로드 해주세요.
           </span>
         </template>
         <template v-else>
-          <img :src="previewUrl" alt="계약서 미리보기" class="preview-img" />
+          <img :src="previewUrl" alt="징계서류 미리보기" class="preview-img" />
         </template>
       </div>
 
@@ -32,7 +32,6 @@
             <col />
           </colgroup>
           <tbody>
-            <!-- 새로 추가: 사원명 -->
             <tr>
               <th>사원명</th>
               <td>
@@ -43,7 +42,6 @@
                 />
               </td>
             </tr>
-            <!-- 새로 추가: 사원번호 -->
             <tr>
               <th>사원번호</th>
               <td>
@@ -54,45 +52,34 @@
                 />
               </td>
             </tr>
-            <!-- 기존 항목: 요청일자 -->
             <tr>
-              <th>요청일자</th>
-              <td>
-                <input type="date" v-model="form.requestDate" />
-              </td>
-            </tr>
-            <!-- 기존 항목: 계약서명/법정서류 -->
-            <tr>
-              <th>계약서명/법정서류</th>
+              <th>징계서류</th>
               <td>
                 <input
                   type="text"
-                  v-model="form.contractName"
-                  placeholder="계약서명 또는 법정서류 입력"
+                  v-model="form.disciplinary"
+                  placeholder="징계서류 입력"
                 />
               </td>
             </tr>
-            <!-- 기존 항목: 계약일자 -->
             <tr>
-              <th>계약일자</th>
+              <th>징계내용</th>
               <td>
-                <input type="date" v-model="form.contractDate" />
+                <input 
+                  type="text" 
+                  v-model="form.disciplinarydescrip"
+                  placeholder="징계내용 입력" 
+                />
               </td>
             </tr>
-            <!-- 기존 항목: 만료일자 -->
             <tr>
-              <th>만료일자</th>
+              <th>징계일자</th>
               <td>
-                <input type="date" v-model="form.endDate" />
+                <input type="date" v-model="form.disciplinarydate" />
               </td>
             </tr>
           </tbody>
         </table>
-
-        <p class="warning-text">
-          계약서를 무단 복제하거나 유출 시 1년 이하의 징역 또는 10억 원의 벌금이
-          부과됩니다.
-        </p>
       </div>
     </div>
   </div>
@@ -116,10 +103,9 @@ const previewUrl = ref('')
 const form = reactive({
   employeeName: '',
   employeeNumber: '',
-  requestDate: '',
-  contractName: '',
-  contractDate: '',
-  endDate: ''
+  disciplinary: '',
+  disciplinarydescrip: '',
+  disciplinarydate: ''
 })
 
 // 파일 선택 창 열기
@@ -143,27 +129,25 @@ function onCancel() {
   router.back()
 }
 
-// 저장 버튼 클릭 시 처리 (필수 입력값 검사 추가)
+// 저장 버튼 클릭 시 처리 (유효성 검사 추가)
 function onSave() {
-  // 필수 입력값이 모두 채워졌는지 확인
+  // 1) 필수 입력값 모두 채워졌는지 확인
   if (
     !form.employeeName.trim() ||
     !form.employeeNumber.trim() ||
-    !form.requestDate ||
-    !form.contractName.trim() ||
-    !form.contractDate ||
-    !form.endDate ||
+    !form.disciplinary.trim() ||
+    !form.disciplinarydescrip.trim() ||
+    !form.disciplinarydate ||
     !previewUrl.value
   ) {
-    alert('모든 항목(사원명, 사원번호, 요청일자, 계약서명/법정서류, 계약일자, 만료일자)과 이미지를 입력해야 저장할 수 있습니다.')
+    alert('모든 항목을 입력하고 이미지를 업로드해야 저장할 수 있습니다.')
     return
   }
 
-  // 실제 저장 로직 수행
+  // 2) 실제 저장 로직 (예: API 호출) 수행
   console.log('저장할 데이터:', { ...form, image: previewUrl.value })
   alert('저장되었습니다.')
-  // 저장 후 이동
-  router.push('/employeeInfo/Contract')
+  router.push('/employeeInfo/disciplinary')
 }
 </script>
 
@@ -266,14 +250,6 @@ function onSave() {
   color: #bbb;
 }
 
-/* 경고문 */
-.warning-text {
-  margin-top: 16px;
-  font-size: 0.85rem;
-  color: #6b7280;
-  line-height: 1.4;
-}
-
 /* 하단 버튼 행 */
 .button-row {
   display: flex;
@@ -304,7 +280,7 @@ function onSave() {
 }
 .btn-cancel:hover {
   background-color: #000;
-  color: #fff;
+  color: #fff;;
 }
 .btn-save {
   background-color: #00a8e8;

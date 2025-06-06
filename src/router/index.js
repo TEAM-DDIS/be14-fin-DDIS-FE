@@ -51,10 +51,16 @@ const router = createRouter({
         },
 
         // 징계 관리
-        // {
-        //     path: '/employeeInfo/disciplinary',
-        //     component: () => import('@/')
-        // },
+        {
+            path: '/employeeInfo/disciplinary',
+            component: () => import('@/components/employeeInfo/disciplinaryList.vue')
+        },
+
+        // 징계 등록
+        {
+            path: '/employeeInfo/disciplinary/disciplinaryEnroll',
+            component: () => import('@/components/employeeInfo/disciplinaryEnroll.vue')
+        },
 
 
         // =============== 근태 관리 ===============
