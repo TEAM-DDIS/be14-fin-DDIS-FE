@@ -89,7 +89,7 @@
     <!-- 4) 하단 버튼 -->
     <div class="action-footer">
       <!-- 취소 버튼에 동일한 btn-save 스타일을 주고, 클릭 시 목록 페이지로 이동 -->
-      <button type="button" class="btn-save" @click="onCancel">
+      <button type="button" class="btn-delete" @click="onCancel">
         취소
       </button>
       <button type="button" class="btn-save" @click="onSubmit">

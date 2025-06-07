@@ -1,30 +1,36 @@
 <template>
   <h1 class="page-title">조직 구성</h1>
   <p class="desc">조직도 조회</p>
+
   <div class="content-box">
     <div class="org-dashboard">
-      <!-- Left: Org Hierarchy -->
+      <!-- Left: Org Hierarchy 트리 영역 -->
       <div class="left">
         <h2>조직도</h2>
-        <OrgHierarchy @team-selected="onTeamSelected" />
+        <!-- Hierarchy 컴포넌트를 통해 트리 전체를 렌더링 -->
+        <Hierarchy @team-selected="onTeamSelected" :hierarchy="hierarchy" />
       </div>
 
       <!-- Middle: Team Members List -->
       <div class="team-panel">
         <template v-if="selectedTeam">
-          <h2>{{ selectedTeam.team_name }} 팀원</h2>
+          <h2>{{ selectedTeam.teamName }} 팀원</h2>
           <ul class="member-list">
             <li
               v-for="emp in teamMembers"
-              :key="emp.employee_id"
+              :key="emp.employeeId"
               @click="onEmployeeSelected(emp)"
-              :class="{ active: emp.employee_id === selectedEmployee?.employee_id }"
+              :class="{ active: emp.employeeId === selectedEmployee?.employeeId }"
             >
-              <img src="@/assets/icons/profile_img.svg" alt="profile" class="profile" />
+              <img
+                src="@/assets/icons/profile_img.svg"
+                alt="profile"
+                class="profile"
+              />
               <div class="member-info">
-                <strong>{{ emp.employee_name }}</strong>
-                <span>{{ emp.position_name }}</span>
-                <small>/ {{ emp.rank_name }}</small>
+                <strong>{{ emp.employeeName }}</strong>
+                <span>{{ emp.positionName }}</span>
+                <small>/ {{ emp.rankName }}</small>
               </div>
             </li>
           </ul>
@@ -34,14 +40,21 @@
         </template>
       </div>
 
-      <!-- Right: Employee Profile -->
+      <!-- Right: Employee Profile 상세 정보 -->
       <div class="profile-panel">
         <template v-if="selectedEmployee">
           <h2>프로필 정보</h2>
           <div class="profile-top">
             <div class="profile-card">
-              <img src="@/assets/icons/profile_img.svg" alt="profile" class="profile2" />
-              <h4>{{ selectedEmployee.rank_name }} {{ selectedEmployee.employee_name }}</h4>
+              <img
+                src="@/assets/icons/profile_img.svg"
+                alt="profile"
+                class="profile2"
+              />
+              <h4>
+                {{ selectedEmployee.rankName }}
+                {{ selectedEmployee.employeeName }}
+              </h4>
             </div>
             <!-- Profile Table -->
             <table class="profile-table">
@@ -73,121 +86,140 @@
       </div>
     </div>
   </div>
+
   <button class="edit-button" @click="onEdit">편집</button>
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, computed } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import OrgHierarchy from '@/components/org/structure/Hierarchy.vue'
+import Hierarchy from '@/components/org/structure/Hierarchy.vue'
 
-// 선택된 팀, 사원
-const selectedTeam = ref(null)
-const selectedEmployee = ref(null)
-const teamMembers = ref([])
+// --- 상태 정의 ---
+const hierarchy = ref([])          // HeadQueryDTO[] 전체 조직 계층
+const selectedTeam = ref(null)      // { teamId, teamName, members: [...] }
+const teamMembers = ref([])         // 팀원 리스트: { employeeId, employeeName, positionName, rankName }
+const selectedEmployee = ref(null)  // 사원 상세: { employeeId, employeeName, positionName, rankName, headId, departmentId, teamId, birthdate, email }
 
-// 공통 데이터 저장소
-const dataStore = reactive({
-  employees: [],
-  positions: [],
-  ranks: [],
-  departments: [],
-  headquarters: []
-})
+// Vue 라우터
+const router = useRouter()
 
-// org.json에서 데이터 로드
+// 1) 초기 로딩: 조직 계층 가져오기 (한 번만 호출)
 onMounted(async () => {
   try {
-    const res = await fetch('/org.json')
-    const oData = await res.json()
-    dataStore.positions = oData.position
-    dataStore.ranks = oData.rank
-    dataStore.departments = oData.department
-    dataStore.headquarters = oData.headquarters
-    dataStore.employees = oData.employees.map(e => ({
-      ...e,
-      position_name:
-        oData.position.find(p => p.position_code === e.position_code)?.position_name ||
-        '',
-      rank_name:
-        oData.rank.find(r => r.rank_code === e.rank_code)?.rank_name || ''
-    }))
-  } catch (err) {
-    console.error('org.json 로드 실패:', err)
+    const url = 'http://localhost:8000/structure/hierarchy'
+    console.log('📥 조직 계층 호출 URL:', url)
+    const res = await fetch(url)
+    if (!res.ok) throw new Error(`HTTP ${res.status}`)
+    hierarchy.value = await res.json()
+  } catch (e) {
+    console.error('❌ 조직 계층 로드 실패:', e)
+    hierarchy.value = []
   }
 })
 
-// OrgHierarchy.vue에서 팀 선택 시
+// 2) 팀(node) 클릭 시: selectedTeam 세팅 & teamMembers에 팀원 목록 채우기
 function onTeamSelected(team) {
   selectedTeam.value = team
   selectedEmployee.value = null
-  teamMembers.value = dataStore.employees.filter(
-    e => e.team_code === team.team_code
-  )
+
+  // 이미 받아온 hierarchy에서 해당 팀의 members를 꺼내서 팀원 목록에 할당
+  // team.members에는 { employeeId, employeeName, positionName, rankName } 형태의 배열
+  teamMembers.value = (team.members || []).map(e => ({
+    employeeId: e.employeeId,
+    employeeName: e.employeeName,
+    positionName: e.positionName,
+    rankName: e.rankName,
+  }))
 }
 
-// 팀원 클릭
-function onEmployeeSelected(emp) {
-  selectedEmployee.value = emp
+// 3) 팀원 클릭 시: 사원 상세 조회
+async function onEmployeeSelected(emp) {
+  try {
+    const url = `http://localhost:8000/structure/employee/${emp.employeeId}`
+    console.log('📥 사원 상세 호출 URL:', url)
+    const res = await fetch(url)
+    if (!res.ok) throw new Error(`HTTP ${res.status}`)
+    const data = await res.json()
+    // data: EmployeeQueryDTO 형태
+    selectedEmployee.value = {
+      employeeId: data.employeeId,
+      employeeName: data.employeeName,
+      positionName: data.positionName,
+      rankName: data.rankName,
+      // jobName: data.jobName,
+      headId: data.headId,
+      departmentId: data.departmentId,
+      teamId: data.teamId,
+      birthdate: data.birthdate,
+      email: data.email,
+      jobCode: data.jobCode || ''
+    }
+  } catch (e) {
+    console.error('❌ 사원 상세 조회 실패:', e)
+    selectedEmployee.value = null
+  }
 }
 
-// "편집" 버튼 클릭 시
-const router = useRouter()
+// 4) 편집 버튼 클릭 시: route 변경
 function onEdit() {
   router.push('/org/structure/edit')
 }
 
-// AG Grid 대신 사용했던 데이터 컴퓨티드
+// 프로필 테이블 데이터 (이름, 생년월일, 직급, 사번)
 const profileRowData = computed(() => {
   if (!selectedEmployee.value) return []
   const e = selectedEmployee.value
   return [
-    { label: '이름', value: e.employee_name },
+    { label: '이름', value: e.employeeName },
     { label: '생년월일', value: e.birthdate || '-' },
-    { label: '직급', value: e.rank_name },
-    { label: '사번', value: e.employee_id }
+    { label: '직급', value: e.rankName },
+    { label: '사번', value: e.employeeId }
   ]
 })
 
+// 상세 정보 테이블 데이터 (본부, 부서, 팀, 직책, 직급, 직무코드, 이메일)
 const detailsRowData = computed(() => {
   if (!selectedEmployee.value) return []
   const e = selectedEmployee.value
-  const lookup = (arr, codeField, codeValue, nameField) =>
-    (dataStore[arr].find(x => x[codeField] === codeValue) || {})[nameField] ||
-    ''
   return [
-    {
-      label: '소속 본부',
-      value: lookup('headquarters', 'head_code', e.head_code, 'head_name')
-    },
-    {
-      label: '소속 부서',
-      value: lookup(
-        'departments',
-        'department_code',
-        e.department_code,
-        'department_name'
-      )
-    },
-    { label: '소속 팀', value: selectedTeam.value.team_name },
-    { label: '직책', value: e.position_name },
-    { label: '직급', value: e.rank_name },
-    { label: '직무', value: e.job_code },
+    { label: '소속 본부', value: findHeadName(e.headId) },
+    { label: '소속 부서', value: findDeptName(e.departmentId) },
+    { label: '소속 팀', value: selectedTeam.value.teamName },
+    { label: '직책', value: e.positionName },
+    { label: '직급', value: e.rankName },
+    { label: '직무', value: e.jobName || '-' },
     { label: '이메일', value: e.email || '-' }
   ]
 })
+
+// helper: headId → headName 찾기
+function findHeadName(headId) {
+  const head = hierarchy.value.find(h => h.headId === headId)
+  return head ? head.headName : ''
+}
+
+// helper: departmentId → departmentName 찾기
+function findDeptName(deptId) {
+  for (const head of hierarchy.value) {
+    const dept = head.departments.find(d => d.departmentId === deptId)
+    if (dept) return dept.departmentName
+  }
+  return ''
+}
 </script>
 
 <style scoped>
 .page-title {
   margin-left: 20px;
-  margin-bottom: 50px;
+  margin-bottom: 30px;
   color: #00a8e8;
 }
 .desc {
   display: block;
   margin-left: 20px;
   margin-bottom: 10px;
+  font-size: 18px;
 }
 .content-box {
   background: #ffffff;

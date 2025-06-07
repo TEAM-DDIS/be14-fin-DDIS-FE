@@ -2,7 +2,7 @@
   <div class="page-container">
     <h1 class="page-title">조직 구성</h1>
 
-    <!-- ① 조직도 편집 툴바 -->
+    <!-- ① 조직도 편집 툴바 (기존과 동일) -->
     <div class="section">
       <p class="desc">조직도 편집</p>
       <div class="toolbar-card">
@@ -20,7 +20,11 @@
 
         <!-- 검색 입력란: 엔터 키 누르면 searchOrg 호출 -->
         <div class="search">
-          <img src="@/assets/icons/search.svg" alt="search" class="search-img" />
+          <img
+            src="@/assets/icons/search.svg"
+            alt="search"
+            class="search-img"
+          />
           <input
             type="text"
             v-model="searchKeyword"
@@ -33,7 +37,7 @@
     </div>
 
     <div class="content-grid">
-      <!-- ② 조직도 조회 패널 (트리) -->
+      <!-- ② 조직도 조회 패널 (Tree) -->
       <div class="section">
         <p class="desc">조직도 조회</p>
         <div class="card tree-panel">
@@ -44,7 +48,6 @@
               :headquarters="dataStore.headquarters"
               :departments="dataStore.departments"
               :teams="dataStore.teams"
-              :employees="dataStore.employees"
               :positions="dataStore.position"
               :ranks="dataStore.rank"
               @dept-selected="onDeptSelected"
@@ -63,26 +66,48 @@
 
           <!-- 1) 부서가 선택된 경우 -->
           <div v-if="selectedDept" class="info-content">
+
+            <!-- ★ 부서 이동 / 부서원 이동 버튼 추가 ★ -->
             <div class="button-group">
-              <button class="btn-dept" @click="showMovePanel = true">부서 이동</button>
-              <button class="btn-employee" @click="showMovePanel = true">부서원 이동</button>
+              <button class="btn-dept" @click="showMovePanel = true">
+                부서 이동
+              </button>
+              <button class="btn-employee" @click="showMovePanel = true">
+                부서원 이동
+              </button>
             </div>
+
             <ul class="info-list">
               <h3 class="section-title">부서 정보</h3>
-              <li><strong>부서명: </strong> {{ selectedDept.department_name }}</li>
-              <li><strong>부서 코드: </strong> {{ selectedDept.department_code }}</li>
               <li>
-                <strong>상위 본부명: </strong>{{ getHeadNameById(selectedDept.head_id) }}
+                <strong>부서명: </strong>
+                {{ selectedDept.departmentName }}
               </li>
               <li>
-                <strong>관련 팀: </strong>
-                <span v-for="(tag, idx) in deptIntroduction.tags" :key="idx">
-                  {{ tag }}<span v-if="idx < deptIntroduction.tags.length - 1">, </span>
+                <strong>부서 코드: </strong>
+                {{ selectedDept.departmentCode }}
+              </li>
+              <li>
+                <strong>상위 본부명: </strong>
+                {{ getHeadNameById(selectedDept.headId) }}
+              </li>
+              <li>
+                <strong>상위 본부 코드: </strong>
+                {{ getHeadCodeById(selectedDept.headId) }}
+              </li>
+              <li>
+                <strong>소속 팀 명칭: </strong>
+                <span
+                  v-for="(t, idx) in teamNamesOfDept"
+                  :key="idx"
+                >
+                  {{ t }}<span v-if="idx < teamNamesOfDept.length - 1">, </span>
                 </span>
               </li>
             </ul>
+
             <div class="member-section">
-              <h3 class="section-title">직원 목록</h3>
+              <h3 class="section-title">소속 직원 목록</h3>
               <table class="member-table">
                 <thead>
                   <tr>
@@ -90,22 +115,26 @@
                     <th>이름</th>
                     <th>직책</th>
                     <th>직급</th>
+                    <th>이메일</th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr
-                    v-for="emp in employeesByDept(selectedDept.department_code)"
-                    :key="emp.employee_id"
+                    v-for="emp in deptMembers"
+                    :key="emp.employeeId"
                     @click="onEmployeeClick(emp)"
-                    :class="{ active: emp.employee_id === selectedEmployee?.employee_id }"
+                    :class="{ active: emp.employeeId === selectedEmployee?.employeeId }"
                   >
-                    <td>{{ emp.employee_id }}</td>
-                    <td>{{ emp.employee_name }}</td>
-                    <td>{{ emp.position_name }}</td>
-                    <td>{{ emp.rank_name }}</td>
+                    <td>{{ emp.employeeId }}</td>
+                    <td>{{ emp.employeeName }}</td>
+                    <td>{{ emp.positionName }}</td>
+                    <td>{{ emp.rankName }}</td>
+                    <td>{{ emp.email || '-' }}</td>
                   </tr>
-                  <tr v-if="employeesByDept(selectedDept.department_code).length === 0">
-                    <td colspan="4" class="no-data">해당 부서에 직원이 없습니다.</td>
+                  <tr v-if="deptMembers.length === 0">
+                    <td colspan="5" class="no-data">
+                      해당 부서에 직원이 없습니다.
+                    </td>
                   </tr>
                 </tbody>
               </table>
@@ -114,23 +143,47 @@
 
           <!-- 2) 팀이 선택된 경우 -->
           <div v-else-if="selectedTeam" class="info-content">
+
+            <!-- ★ 팀 이동 / 팀원 이동 버튼 추가 ★ -->
+            <div class="button-group">
+              <button class="btn-dept" @click="showMovePanel = true">
+                팀 이동
+              </button>
+              <button class="btn-employee" @click="showMovePanel = true">
+                팀원 이동
+              </button>
+            </div>
+
             <ul class="info-list">
-              <div class="button-group">
-                <button class="btn-dept" @click="showMovePanel = true">팀 이동</button>
-                <button class="btn-employee" @click="showMovePanel = true">팀원 이동</button>
-              </div>
               <h3 class="section-title">팀 정보</h3>
-              <li><strong>팀명: </strong> {{ selectedTeam.team_name }}</li>
-              <li><strong>팀 코드: </strong> {{ selectedTeam.team_code }}</li>
               <li>
-                <strong>상위 부서명: </strong>{{ getDeptNameById(selectedTeam.department_id) }}
+                <strong>팀명: </strong>
+                {{ selectedTeam.teamName }}
               </li>
               <li>
-                <strong>상위 본부명: </strong>{{ getHeadNameByDept(selectedTeam.department_id) }}
+                <strong>팀 코드: </strong>
+                {{ selectedTeam.teamCode }}
+              </li>
+              <li>
+                <strong>상위 부서명: </strong>
+                {{ getDeptNameById(selectedTeam.departmentId) }}
+              </li>
+              <li>
+                <strong>상위 부서 코드: </strong>
+                {{ getDeptCodeById(selectedTeam.departmentId) }}
+              </li>
+              <li>
+                <strong>상위 본부명: </strong>
+                {{ getHeadNameByDept(selectedTeam.departmentId) }}
+              </li>
+              <li>
+                <strong>상위 본부 코드: </strong>
+                {{ getHeadCodeByDept(selectedTeam.departmentId) }}
               </li>
             </ul>
+
             <div class="member-section">
-              <h3 class="section-title">직원 목록</h3>
+              <h3 class="section-title">팀원 목록</h3>
               <table class="member-table">
                 <thead>
                   <tr>
@@ -138,22 +191,26 @@
                     <th>이름</th>
                     <th>직책</th>
                     <th>직급</th>
+                    <th>이메일</th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr
-                    v-for="emp in employeesByTeam(selectedTeam.team_code)"
-                    :key="emp.employee_id"
+                    v-for="emp in teamMembers"
+                    :key="emp.employeeId"
                     @click="onEmployeeClick(emp)"
-                    :class="{ active: emp.employee_id === selectedEmployee?.employee_id }"
+                    :class="{ active: emp.employeeId === selectedEmployee?.employeeId }"
                   >
-                    <td>{{ emp.employee_id }}</td>
-                    <td>{{ emp.employee_name }}</td>
-                    <td>{{ emp.position_name }}</td>
-                    <td>{{ emp.rank_name }}</td>
+                    <td>{{ emp.employeeId }}</td>
+                    <td>{{ emp.employeeName }}</td>
+                    <td>{{ emp.positionName }}</td>
+                    <td>{{ emp.rankName }}</td>
+                    <td>{{ emp.email || '-' }}</td>
                   </tr>
-                  <tr v-if="employeesByTeam(selectedTeam.team_code).length === 0">
-                    <td colspan="4" class="no-data">해당 팀에 직원이 없습니다.</td>
+                  <tr v-if="teamMembers.length === 0">
+                    <td colspan="5" class="no-data">
+                      해당 팀에 직원이 없습니다.
+                    </td>
                   </tr>
                 </tbody>
               </table>
@@ -172,7 +229,9 @@
         <p class="desc">조직 구조 이동</p>
         <div class="card move-panel">
           <h2 class="card-title">조직 이동</h2>
-          <p class="move-instruction">이동할 부서를 드래그하여 편집하세요.</p>
+          <p class="move-instruction">
+            이동할 부서를 드래그하여 편집하세요.
+          </p>
 
           <div class="move-tree-container">
             <EditHierarchy
@@ -180,7 +239,7 @@
               :headquarters="dataStore.headquarters"
               :departments="dataStore.departments"
               :teams="dataStore.teams"
-              :employees="dataStore.employees"
+              :employees="[]"
               :positions="dataStore.position"
               :ranks="dataStore.rank"
               @dept-selected="onDeptSelectedForMove"
@@ -223,26 +282,35 @@ import EditHierarchy from '@/components/org/structure/EditHierarchy.vue'
 import AddModal from '@/components/org/structure/AddModal.vue'
 import DeleteModal from '@/components/org/structure/DeleteModal.vue'
 
+// --- 데이터 스토어 정의 ---
+// 백엔드 /structure/hierarchy 에서 받아온 본부→부서→팀 계층을 저장합니다.
 const dataStore = reactive({
-  introduction: [],
-  job: [],
-  headquarters: [],   // { head_id, head_code, head_name }
-  departments: [],    // { department_id, department_code, department_name, head_id }
-  teams: [],          // { team_id, team_code, team_name, department_id }
-  position: [],
-  rank: [],
-  employees: []
+  headquarters: [],   // [{ headId, headName, headCode, departments: [...]}]
+  departments: [],    // [{ departmentId, departmentName, departmentCode, headId }]
+  teams: [],          // [{ teamId, teamName, teamCode, departmentId }]
+  position: [],       // 추후 API가 있으면 채워 주세요
+  rank: []            // 추후 API가 있으면 채워 주세요
 })
 
+// 로딩 여부
 const dataLoaded = ref(false)
+
+// 검색어
 const searchKeyword = ref('')
 
-const selectedDept     = ref(null)  // 선택된 부서 객체
-const selectedTeam     = ref(null)  // 선택된 팀 객체
-const selectedEmployee = ref(null)  // 선택된 직원 객체
+// 선택된 부서/팀/사원
+const selectedDept     = ref(null)
+const selectedTeam     = ref(null)
+const selectedEmployee = ref(null)
 
+// “부서에 속한 직원 목록” & “팀에 속한 직원 목록”용
+const deptMembers = ref([])  // Department 단위
+const teamMembers = ref([])  // Team 단위
+
+// 이동 패널 표시 여부
 const showMovePanel = ref(false)
 
+// Add/Delete 모달 표시 여부
 const showAddModal    = ref(false)
 const showDeleteModal = ref(false)
 
@@ -253,115 +321,183 @@ const orgOptions = [
   { id: 'team', name: '팀' }
 ]
 
+// 삭제 모달 관련
 const deleteType = ref('')
-// deleteListAll: dataStore 값이 바뀔 때마다 자동 업데이트
 const deleteListAll = computed(() => {
   return {
     head: dataStore.headquarters.map(hq => ({
-      value: hq.head_id,
-      label: `${hq.head_name} (코드: ${hq.head_code})`
+      value: hq.headId,
+      label: `${hq.headName} (코드: ${hq.headCode || ''})`
     })),
     dept: dataStore.departments.map(dept => ({
-      value: dept.department_id,
-      label: `${dept.department_name} (코드: ${dept.department_code})`
+      value: dept.departmentId,
+      label: `${dept.departmentName} (코드: ${dept.departmentCode})`
     })),
     team: dataStore.teams.map(tm => ({
-      value: tm.team_id,
-      label: `${tm.team_name} (코드: ${tm.team_code})`
+      value: tm.teamId,
+      label: `${tm.teamName} (코드: ${tm.teamCode})`
     }))
   }
 })
-// 실제 DeleteModal에 넘길 deleteList (선택 조직 종류별 필터링 결과)
 const deleteList = computed(() => {
   return deleteListAll.value[ deleteType.value ] || []
 })
 
+// Vue Router (필요 시 사용)
+import { useRouter } from 'vue-router'
+const router = useRouter()
 
-const deptIntroduction = computed(() => {
-  if (!selectedDept.value) return { tags: [] }
-  return (
-    dataStore.introduction.find(i => i.introduction_type === '부서' && i.department_id === selectedDept.value.department_id)
-    || { introduction_context: '', tags: [] }
-  )
-})
-const teamIntroduction = computed(() => {
-  if (!selectedTeam.value) return { tags: [] }
-  return (
-    dataStore.introduction.find(i => i.introduction_type === '팀' && i.team_id === selectedTeam.value.team_id)
-    || { introduction_context: '', tags: [] }
-  )
-})
-
+// --- 페이지 로딩 시: 백엔드에서 “본부→부서→팀” 계층만 가져오기 ---
 onMounted(async () => {
   try {
-    const res   = await fetch('/org.json')
-    const oData = await res.json()
-    dataStore.introduction = oData.introduction
-    dataStore.job          = oData.job
-    dataStore.headquarters = oData.headquarters
-    dataStore.departments  = oData.department
-    dataStore.teams        = oData.team
-    dataStore.position     = oData.position
-    dataStore.rank         = oData.rank
-    dataStore.employees    = oData.employees.map(e => ({
-      ...e,
-      position_name: oData.position.find(p => p.position_code === e.position_code)?.position_name || '',
-      rank_name:     oData.rank.find(r => r.rank_code === e.rank_code)?.rank_name || ''
+    // 1) 조직 계층 조회 (GET /structure/hierarchy)
+    const urlHierarchy = 'http://localhost:8000/structure/hierarchy'
+    console.log('📥 조직 계층 호출:', urlHierarchy)
+    const resHier = await fetch(urlHierarchy)
+    if (!resHier.ok) throw new Error(`HTTP ${resHier.status}`)
+    const hierarchyData = await resHier.json()
+    // HeadQueryDTO[] 형태
+    dataStore.headquarters = hierarchyData.map(h => ({
+      headId:   h.headId,
+      headName: h.headName,
+      headCode: h.headCode || '',
+      departments: h.departments    // DepartmentQueryDTO[]
     }))
+
+    // 2) hierarchyData 순회하며 departments, teams 배열 채우기
+    const deptList = []
+    const teamList = []
+    hierarchyData.forEach(h => {
+      h.departments.forEach(d => {
+        deptList.push({
+          departmentId:   d.departmentId,
+          departmentName: d.departmentName,
+          departmentCode: d.departmentCode,
+          headId:         h.headId
+        })
+        d.teams.forEach(t => {
+          teamList.push({
+            teamId:       t.teamId,
+            teamName:     t.teamName,
+            teamCode:     t.teamCode,
+            departmentId: d.departmentId
+          })
+        })
+      })
+    })
+    dataStore.departments = deptList
+    dataStore.teams       = teamList
+
+    // 3) position / rank 데이터는 API가 없으므로 빈 배열로 둡니다.
+    dataStore.position = []
+    dataStore.rank     = []
+
     dataLoaded.value = true
   } catch (err) {
-    console.error('org.json 로드 실패:', err)
+    console.error('❌ 초기 데이터 로드 실패:', err)
   }
 })
 
-function onDeptSelected(dept) {
+// --- 부서 선택 핸들러 ---
+// OrgHierarchyAll 컴포넌트에서 @dept-selected="onDeptSelected"
+async function onDeptSelected(dept) {
+  // dept: DepartmentQueryDTO { departmentId, departmentName, departmentCode, headId, teams: [...] }
   selectedDept.value     = dept
   selectedTeam.value     = null
   selectedEmployee.value = null
+  teamMembers.value      = []    // 팀원 목록 초기화
+  deptMembers.value      = []    // 부서원 목록 초기화
+
+  // “소속된 팀” 목록 각각의 teamId로 /structure/teams/{teamId}/members 호출 후 합치기
+  const promises = dept.teams.map(teamObj => {
+    const url = `http://localhost:8000/structure/teams/${teamObj.teamId}/members`
+    return fetch(url).then(res => {
+      if (!res.ok) throw new Error(`HTTP ${res.status}`)
+      return res.json()
+    })
+  })
+
+  try {
+    // Promise.all로 모든 팀원 목록을 배열로 받고 평탄화(flatten)
+    const results = await Promise.all(promises)
+    const flattened = results.flat()
+    deptMembers.value = flattened
+  } catch (e) {
+    console.error('❌ 부서원 조회 실패:', e)
+    deptMembers.value = []
+  }
 }
-function onTeamSelected(team) {
+
+// --- 팀 선택 핸들러 ---
+// OrgHierarchyAll 컴포넌트에서 @team-selected="onTeamSelected"
+async function onTeamSelected(team) {
+  // team: TeamQueryDTO { teamId, teamName, teamCode, departmentId, members: [...] }
   selectedTeam.value     = team
   selectedDept.value     = null
   selectedEmployee.value = null
+  deptMembers.value      = []
+  teamMembers.value      = []
+
+  // “해당 팀에 속한 직원만” 가져오기 (GET /structure/teams/{teamId}/members)
+  try {
+    const url = `http://localhost:8000/structure/teams/${team.teamId}/members`
+    console.log('📥 팀원 조회 호출:', url)
+    const res = await fetch(url)
+    if (!res.ok) throw new Error(`HTTP ${res.status}`)
+    const data = await res.json()
+    teamMembers.value = data   // EmployeeQueryDTO[]
+  } catch (e) {
+    console.error('❌ 팀원 조회 실패:', e)
+    teamMembers.value = []
+  }
 }
+
+// 사원 클릭 시
 function onEmployeeClick(emp) {
   selectedEmployee.value = emp
 }
 
-function onDeptSelectedForMove(dept) {
-  console.log('이동용 부서 선택 ▶', dept)
-}
-function onTeamSelectedForMove(team) {
-  console.log('이동용 팀 선택 ▶', team)
-}
-
-function cancelMove() {
-  showMovePanel.value = false
-}
-function confirmMove() {
-  showMovePanel.value = false
-}
-
+// --- 헬퍼 함수들 ---
+// headId → headName 조회
 function getHeadNameById(headId) {
-  const h = dataStore.headquarters.find(hq => hq.head_id === headId)
-  return h ? h.head_name : ''
+  const h = dataStore.headquarters.find(hq => hq.headId === headId)
+  return h ? h.headName : ''
 }
-function getDeptNameById(departmentId) {
-  const d = dataStore.departments.find(d => d.department_id === departmentId)
-  return d ? d.department_name : ''
-}
-function getHeadNameByDept(departmentId) {
-  const d = dataStore.departments.find(d => d.department_id === departmentId)
-  return d ? getHeadNameById(d.head_id) : ''
+// headId → headCode 조회
+function getHeadCodeById(headId) {
+  const h = dataStore.headquarters.find(hq => hq.headId === headId)
+  return h ? h.headCode : ''
 }
 
-function employeesByDept(deptCode) {
-  return dataStore.employees.filter(e => e.department_code === deptCode)
+// departmentId → departmentName 조회
+function getDeptNameById(deptId) {
+  const d = dataStore.departments.find(x => x.departmentId === deptId)
+  return d ? d.departmentName : ''
 }
-function employeesByTeam(teamCode) {
-  return dataStore.employees.filter(e => e.team_code === teamCode)
+// departmentId → departmentCode 조회
+function getDeptCodeById(deptId) {
+  const d = dataStore.departments.find(x => x.departmentId === deptId)
+  return d ? d.departmentCode : ''
 }
 
+// departmentId → 상위 headName 조회
+function getHeadNameByDept(deptId) {
+  const d = dataStore.departments.find(x => x.departmentId === deptId)
+  return d ? getHeadNameById(d.headId) : ''
+}
+// departmentId → 상위 headCode 조회
+function getHeadCodeByDept(deptId) {
+  const d = dataStore.departments.find(x => x.departmentId === deptId)
+  return d ? getHeadCodeById(d.headId) : ''
+}
+
+// departmentId → 소속 팀 이름 배열
+const teamNamesOfDept = computed(() => {
+  if (!selectedDept.value) return []
+  return selectedDept.value.teams.map(t => t.teamName)
+})
+
+// --- 검색 기능 (“부서명/부서코드”, “팀명/팀코드”) ---
 function searchOrg() {
   const key = searchKeyword.value.trim().toLowerCase()
   if (!key) {
@@ -369,61 +505,83 @@ function searchOrg() {
     return
   }
 
-  // 부서명 또는 부서코드 검색
+  // 부서 찾기: departmentName 또는 departmentCode
   const foundDept = dataStore.departments.find(
     d =>
-      d.department_name.toLowerCase().includes(key) ||
-      d.department_code.toLowerCase().includes(key)
+      d.departmentName.toLowerCase().includes(key) ||
+      d.departmentCode.toLowerCase().includes(key)
   )
   if (foundDept) {
-    onDeptSelected(foundDept)
-    return
+    // dataStore.headquarters 내부 departments 배열에서 동일한 departmentId 객체를 찾아서 onDeptSelected 호출
+    for (const h of dataStore.headquarters) {
+      const match = h.departments.find(dd => dd.departmentId === foundDept.departmentId)
+      if (match) {
+        onDeptSelected(match)
+        return
+      }
+    }
   }
 
-  // 팀명 또는 팀코드 검색
+  // 팀 찾기: teamName 또는 teamCode
   const foundTeam = dataStore.teams.find(
     t =>
-      t.team_name.toLowerCase().includes(key) ||
-      t.team_code.toLowerCase().includes(key)
+      t.teamName.toLowerCase().includes(key) ||
+      t.teamCode.toLowerCase().includes(key)
   )
   if (foundTeam) {
-    onTeamSelected(foundTeam)
-    return
+    for (const h of dataStore.headquarters) {
+      for (const d of h.departments) {
+        const matchTeam = d.teams.find(tt => tt.teamId === foundTeam.teamId)
+        if (matchTeam) {
+          onTeamSelected(matchTeam)
+          return
+        }
+      }
+    }
   }
 
   alert('검색 결과가 없습니다.')
 }
 
-// AddModal / DeleteModal: 열기/닫기/처리 로직
+// --- AddModal / DeleteModal 제어 로직 ---
 function openAddModal() {
   showAddModal.value = true
 }
-// AddModal 닫기
 function closeAddModal() {
   showAddModal.value = false
 }
-
 function handleAddOrg(payload) {
   console.log('신규 조직 등록 →', payload)
-  // TODO: 실제 등록 API 호출 또는 dataStore 갱신 로직 추가
+  // TODO: 실제 등록 API 호출 후 dataStore 갱신
   showAddModal.value = false
 }
 
-// “－” 버튼 클릭 → DeleteModal 열기
 function openDeleteModal() {
-  deleteType.value = ''       // 모달 열 때 초기화
+  deleteType.value = ''
   showDeleteModal.value = true
 }
-// DeleteModal 닫기
 function closeDeleteModal() {
   showDeleteModal.value = false
 }
-
 function handleDeleteOrg(payload) {
   console.log('삭제할 조직 종류:', payload.type)
   console.log('선택된 ID들:', payload.ids)
-  // TODO: 실제 삭제 API 호출 또는 dataStore 갱신 로직 추가
+  // TODO: 실제 삭제 API 호출 후 dataStore 갱신
   showDeleteModal.value = false
+}
+
+// --- 부서/팀 이동용 핸들러 ---
+function onDeptSelectedForMove(dept) {
+  console.log('이동용 부서 선택 ▶', dept)
+}
+function onTeamSelectedForMove(team) {
+  console.log('이동용 팀 선택 ▶', team)
+}
+function cancelMove() {
+  showMovePanel.value = false
+}
+function confirmMove() {
+  showMovePanel.value = false
 }
 </script>
 
@@ -444,7 +602,8 @@ function handleDeleteOrg(payload) {
 .desc {
   display: block;
   margin-left: 20px;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
+  font-size: 18px;
 }
 
 .page-container {
@@ -463,13 +622,11 @@ function handleDeleteOrg(payload) {
   margin-bottom: 50px;
   gap: 15px;
 }
-
 .toolbar-label {
   font-weight: bold;
   font-size: 20px;
   margin-right: 12px;
 }
-
 .toolbar-btn {
   width: 40px;
   height: 40px;
@@ -484,31 +641,25 @@ function handleDeleteOrg(payload) {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   transition: background-color 0.2s, box-shadow 0.2s;
 }
-
 .toolbar-btn:hover {
   background-color: #fff;
   color: #00a8e8;
   border: 1px solid #00a8e8;
 }
-
 .toolbar-btn-detail {
   margin-bottom: 2px;
   line-height: 1;
 }
-
-/* 검색 입력란 */
 .search {
   display: flex;
   align-items: center;
   margin-left: auto;
   gap: 8px;
 }
-
 .search-img {
   width: 25px;
   height: 25px;
 }
-
 .toolbar-search {
   padding: 6px 12px;
   border: 1px solid #dddddd;
@@ -517,10 +668,9 @@ function handleDeleteOrg(payload) {
   width: 310px;
   height: 50%;
 }
-
 .toolbar-search:focus {
-    outline: none;
-    border: 1px solid black;
+  outline: none;
+  border: 1px solid black;
 }
 
 /* 3열 레이아웃 */
@@ -530,7 +680,6 @@ function handleDeleteOrg(payload) {
   gap: 24px;
   align-items: stretch;
 }
-
 .section {
   display: flex;
   flex-direction: column;
@@ -548,7 +697,6 @@ function handleDeleteOrg(payload) {
   min-height: 0;
   overflow: hidden;
 }
-
 .card-title {
   font-weight: bold;
   margin-bottom: 12px;
@@ -558,13 +706,11 @@ function handleDeleteOrg(payload) {
 .tree-panel {
   overflow-y: auto;
 }
-
 .tree-container {
   flex: 1;
   overflow-y: auto;
   padding-right: 8px;
 }
-
 .loading {
   text-align: center;
   color: #888;
@@ -580,55 +726,45 @@ function handleDeleteOrg(payload) {
   padding-bottom: 2px;
   margin-bottom: 12px;
 }
-
 .info-panel {
   overflow-y: auto;
   overflow-x: auto;
   padding: 30px 40px;
 }
-
 .info-list {
   list-style: none;
   font-size: 18px;
-  margin-bottom: 40px;
+  margin-bottom: 20px;
 }
-
 .info-list li {
   margin-bottom: 6px;
 }
-
 .member-section {
   margin-top: 16px;
 }
-
 .member-table {
   width: 100%;
   border-collapse: collapse;
   font-size: 14px;
   margin-bottom: 20px;
 }
-
 .member-table th,
 .member-table td {
   border: 1px solid #ddd;
   padding: 6px;
   text-align: left;
 }
-
 .member-table th {
   background: #f9fafb;
   font-weight: 500;
 }
-
 .member-table tr.active {
   background: #ececec;
 }
-
 .no-data {
   text-align: center;
   color: #888;
 }
-
 .placeholder-info {
   color: #00a8e8;
   font-size: 18px;
@@ -645,7 +781,6 @@ function handleDeleteOrg(payload) {
   margin-bottom: 20px;
   justify-content: flex-end;
 }
-
 .btn-dept,
 .btn-employee {
   font-size: 14px;
@@ -660,7 +795,6 @@ function handleDeleteOrg(payload) {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   transition: background-color 0.2s, box-shadow 0.2s;
 }
-
 .btn-dept:hover,
 .btn-employee:hover {
   background-color: #fff;
@@ -674,26 +808,22 @@ function handleDeleteOrg(payload) {
   flex-direction: column;
   padding: 30px 40px;
 }
-
 .move-instruction {
   font-size: 16px;
   color: #555;
   margin-bottom: 12px;
 }
-
 .move-tree-container {
   flex: 1;
   overflow-y: auto;
   padding-right: 8px;
 }
-
 .move-buttons {
   display: flex;
   justify-content: flex-end;
   margin-top: 12px;
   gap: 16px;
 }
-
 .btn-cancel,
 .btn-confirm {
   font-size: 14px;
@@ -708,7 +838,6 @@ function handleDeleteOrg(payload) {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   transition: background-color 0.2s, box-shadow 0.2s;
 }
-
 .btn-cancel:hover,
 .btn-confirm:hover {
   background-color: #fff;
