@@ -226,7 +226,7 @@ function onSubmit() {
 /* page-title, desc (카드 밖) */
 .page-title {
   margin-left: 20px;
-  margin-bottom: 50px;
+  margin-bottom: 30px;
   color: #00a8e8;
 }
 .desc {
