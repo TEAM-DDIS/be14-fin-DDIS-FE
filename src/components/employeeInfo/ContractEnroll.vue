@@ -281,15 +281,6 @@ function onSave() {
   gap: 12px;
   margin-top: 30px;
 }
-.btn {
-  min-width: 100px;
-  padding: 10px 20px;
-  border: none;
-  border-radius: 20px;
-  font-size: 0.95rem;
-  font-weight: 500;
-  cursor: pointer;
-}
 .btn-cancel {
   background-color: #d3d3d3;
   color: #000;
