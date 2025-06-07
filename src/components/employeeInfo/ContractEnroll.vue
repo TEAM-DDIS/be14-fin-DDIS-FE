@@ -278,30 +278,39 @@ function onSave() {
   gap: 12px;
   margin-top: 30px;
 }
-.btn {
-  min-width: 100px;
-  padding: 10px 20px;
-  border: none;
-  border-radius: 20px;
-  font-size: 0.95rem;
-  font-weight: 500;
-  cursor: pointer;
-}
 .btn-cancel {
-  background-color: #e5e7eb;
-  color: #374151;
-  transition: background-color 0.2s;
+  background-color: #d3d3d3;
+  color: #000;
+  border: none;
+  border-radius: 10px;
+  padding: 10px 30px;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: background-color 0.2s, box-shadow 0.2s;
+  box-sizing: border-box;
 }
 .btn-cancel:hover {
-  background-color: #d1d5db;
+  background-color: #000;
+  color: #fff;
 }
 .btn-save {
   background-color: #00a8e8;
-  color: #ffffff;
-  transition: background-color 0.2s;
+  color: white;
+  font-weight: bold;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  padding: 10px 30px;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: background-color 0.2s, box-shadow 0.2s;
+  box-sizing: border-box;
 }
 .btn-save:hover {
-  background-color: #008bb7;
+  background-color: white;
+  color: #00a8e8;
+  border-color: #00a8e8;
+  box-shadow: inset 1px 1px 10px rgba(0, 0, 0, 0.25);
 }
 
 /* 반응형 간단 예시 */
