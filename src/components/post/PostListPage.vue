@@ -63,7 +63,7 @@
 
 <script setup>
 import { ref, computed } from 'vue'
-import { useRouter } from 'vue-router'             // ← import useRouter
+import { useRouter } from 'vue-router' 
 import { AgGridVue } from 'ag-grid-vue3'
 import {
   ModuleRegistry,
@@ -218,7 +218,7 @@ function onCellClick(e) {
 <style scoped>
 .page-title {
   margin-left: 20px;
-  margin-bottom: 50px;
+  margin-bottom: 30px;
   color: #00a8e8;
 }
 

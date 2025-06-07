@@ -197,7 +197,7 @@ function onConfirm() {
   gap: 12px;
   margin-top: 20px;
 }
-.modal-btn-cancel,
+
 .modal-btn-delete {
   font-size: 14px;
   font-weight: bold;
@@ -211,10 +211,29 @@ function onConfirm() {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   transition: background-color 0.2s, box-shadow 0.2s;
 }
-.modal-btn-cancel:hover,
+
 .modal-btn-delete:hover {
   background-color: #fff;
   color: #00a8e8;
   border: 1px solid #00a8e8;
+}
+
+.modal-btn-cancel {
+  font-size: 14px;
+  font-weight: bold;
+  background-color: #D3D3D3;
+  color: #000;
+  border: none;
+  border-radius: 10px;
+  padding: 10px 30px;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: background-color 0.2s, box-shadow 0.2s;
+  box-sizing: border-box;
+}
+.modal-btn-cancel:hover {
+  background-color: #000;
+  color: #fff;
 }
 </style>

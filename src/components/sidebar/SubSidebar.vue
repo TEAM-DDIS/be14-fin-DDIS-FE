@@ -31,7 +31,7 @@
             </li>
         </ul>
     </div>
-  </aside>
+   </aside>
 </template>
 
 
@@ -242,14 +242,13 @@
             }
         },
     }
-
     const subSections = computed(() => subMenuMap[props.menu] || null)
 </script>
 
 <style scoped>
     .sub-sidebar {
         margin-top: -6px;
-  box-shadow: 2px 0 5px rgba(0,0,0,0.05);
+        box-shadow: 2px 0 5px rgba(0,0,0,0.05);
 
         width: 180px;
         padding: 20px 12px;

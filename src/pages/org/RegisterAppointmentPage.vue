@@ -440,13 +440,14 @@ const orgFields = {
 <style scoped>
 .page-title {
   margin-left: 20px;
-  margin-bottom: 50px;
+  margin-bottom: 30px;
   color: #00a8e8;
 }
 .desc {
   display: block;
   margin-left: 20px;
   margin-bottom: 10px;
+  font-size: 18px;
 }
 
 /* 전체 컨테이너 */
@@ -518,8 +519,7 @@ const orgFields = {
   margin-top: 40px;
   margin-bottom: 20px;
 }
-.btn-save,
-.btn-cancel {
+.btn-save {
   font-size: 14px;
   font-weight: bold;
   background-color: #00a8e8;
@@ -531,11 +531,29 @@ const orgFields = {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   transition: background-color 0.2s, box-shadow 0.2s;
 }
-.btn-save:hover,
-.btn-cancel:hover {
+.btn-save:hover {
   background-color: white;
   color: #00a8e8;
   border-color: #00a8e8;
   box-shadow: inset 1px 1px 10px rgba(0, 0, 0, 0.25);
+}
+
+.btn-cancel {
+  font-size: 14px;
+  font-weight: bold;
+  background-color: #D3D3D3;
+  color: #000;
+  border: none;
+  border-radius: 10px;
+  padding: 10px 30px;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: background-color 0.2s, box-shadow 0.2s;
+  box-sizing: border-box;
+}
+.btn-cancel:hover {
+  background-color: #000;
+  color: #fff;
 }
 </style>

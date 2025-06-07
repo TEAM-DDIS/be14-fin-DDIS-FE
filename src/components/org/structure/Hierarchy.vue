@@ -4,27 +4,52 @@
       DDIS <span class="rep">{{ getCompanyRep() }}</span>
     </h3>
     <ul class="org-list">
-      <li v-for="hq in headquarters" :key="hq.head_code">
-        <div class="node head" @click="toggle(hq.head_code)">
-          <i :class="expanded[hq.head_code] ? 'fa fa-chevron-down' : 'fa fa-chevron-right'" />
-          {{ hq.head_name }} <small>(본부장: {{ getHeadRep(hq.head_code) }})</small>
+      <li v-for="head in hierarchy" :key="head.headId">
+        <div class="node head" @click="toggle('h' + head.headId)">
+          <i
+            :class="
+              expanded['h' + head.headId]
+                ? 'fa fa-chevron-down'
+                : 'fa fa-chevron-right'
+            "
+          />
+          {{ head.headName }}
+          <!-- <small>(본부장: {{ getHeadRep(head.headId) }})</small> -->
         </div>
-        <ul v-show="expanded[hq.head_code]">
-          <li v-for="dept in getDepartments(hq.head_code)" :key="dept.department_code">
-            <div class="node dept" @click="toggle(dept.department_code)">
-              <i :class="expanded[dept.department_code] ? 'fa fa-chevron-down' : 'fa fa-chevron-right'" />
-              {{ dept.department_name }} <small>(부서장: {{ getDeptRep(dept.department_code) }})</small>
+        <ul v-show="expanded['h' + head.headId]">
+          <li v-for="dept in head.departments" :key="dept.departmentId">
+            <div class="node dept" @click="toggle('d' + dept.departmentId)">
+              <i
+                :class="
+                  expanded['d' + dept.departmentId]
+                    ? 'fa fa-chevron-down'
+                    : 'fa fa-chevron-right'
+                "
+              />
+              {{ dept.departmentName }}
+              <!-- <small>(부서장: {{ getDeptRep(dept.departmentId) }})</small> -->
             </div>
-            <ul v-show="expanded[dept.department_code]">
-              <li v-for="team in getTeams(dept.department_code)" :key="team.team_code">
+            <ul v-show="expanded['d' + dept.departmentId]">
+              <li v-for="team in dept.teams" :key="team.teamId">
                 <div class="node team" @click.stop="selectTeam(team)">
-                  <i :class="expanded[team.team_code] ? 'fa fa-chevron-down' : 'fa fa-chevron-right'" />
-                  {{ team.team_name }} <small>(팀장: {{ getTeamRep(team.team_code) }})</small>
+                  <i
+                    :class="
+                      expanded['t' + team.teamId]
+                        ? 'fa fa-chevron-down'
+                        : 'fa fa-chevron-right'
+                    "
+                  />
+                  {{ team.teamName }}
+                  <!-- <small>(팀장: {{ getTeamRep(team.teamId) }})</small> -->
                 </div>
-                <ul v-show="expanded[team.team_code]">
-                  <li v-for="emp in getEmployees(team.team_code)" :key="emp.employee_id">
+                <ul v-show="expanded['t' + team.teamId]">
+                  <li
+                    v-for="emp in team.members"
+                    :key="emp.employeeId"
+                  >
                     <div class="node emp">
-                      {{ emp.rank_name }} {{ emp.position_name }}: {{ emp.employee_name }}
+                      {{ emp.rankName }} {{ emp.positionName }}:
+                      {{ emp.employeeName }}
                     </div>
                   </li>
                 </ul>
@@ -40,84 +65,97 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 
-// 팀 선택 이벤트 emit 정의
 const emit = defineEmits(['team-selected'])
+const hierarchy = ref([])    // HeadQueryDTO[] 배열
+const expanded = reactive({}) // 펼침/접힘 상태: keys = 'h'+headId, 'd'+deptId, 't'+teamId
 
-const headquarters = ref([])
-const departments  = ref([])
-const teams        = ref([])
-const employees    = ref([])
-const positions    = ref([])
-const ranks        = ref([])
-const expanded     = reactive({})
-
+// 트리 항목 클릭 시 토글
 function toggle(key) {
   expanded[key] = !expanded[key]
 }
 
+// 팀을 클릭하면 이벤트 발행
 function selectTeam(team) {
-  toggle(team.team_code)
+  toggle('t' + team.teamId)
   emit('team-selected', team)
+}
+
+// 회사 대표(CEO)를 찾기: positionCode === 'P005'인 사원 이름 반환
+function getCompanyRep() {
+  for (const head of hierarchy.value) {
+    for (const dept of head.departments) {
+      for (const team of dept.teams) {
+        for (const emp of team.members) {
+          if (emp.positionCode === 'P005') {
+            return emp.employeeName
+          }
+        }
+      }
+    }
+  }
+  return ''
+}
+
+// 해당 본부장의 사원(직급 P004) 찾아서 이름 반환
+function getHeadRep(headId) {
+  const head = hierarchy.value.find(h => h.headId === headId)
+  if (!head) return ''
+  for (const dept of head.departments) {
+    for (const team of dept.teams) {
+      for (const emp of team.members) {
+        if (emp.positionCode === 'P004' && emp.headId === headId) {
+          return emp.employeeName
+        }
+      }
+    }
+  }
+  return ''
+}
+
+// 해당 부서장의 사원(직급 P003) 찾아서 이름 반환
+function getDeptRep(deptId) {
+  for (const head of hierarchy.value) {
+    const dept = head.departments.find(d => d.departmentId === deptId)
+    if (!dept) continue
+    for (const team of dept.teams) {
+      for (const emp of team.members) {
+        if (emp.positionCode === 'P003' && emp.departmentId === deptId) {
+          return emp.employeeName
+        }
+      }
+    }
+  }
+  return ''
+}
+
+// 해당 팀장의 사원(직급 P002) 찾아서 이름 반환
+function getTeamRep(teamId) {
+  for (const head of hierarchy.value) {
+    for (const dept of head.departments) {
+      const team = dept.teams.find(t => t.teamId === teamId)
+      if (!team) continue
+      for (const emp of team.members) {
+        if (emp.positionCode === 'P002' && emp.teamId === teamId) {
+          return emp.employeeName
+        }
+      }
+    }
+  }
+  return ''
 }
 
 onMounted(async () => {
   try {
-    const res = await fetch('/org.json')
-    const oData = await res.json()
-    headquarters.value = oData.headquarters
-    departments.value  = oData.department
-    teams.value        = oData.team
-    positions.value    = oData.position
-    ranks.value        = oData.rank
-    employees.value    = oData.employees.map(e => ({
-      ...e,
-      position_name: oData.position.find(p => p.position_code === e.position_code)?.position_name || '',
-      rank_name:     oData.rank.find(r => r.rank_code     === e.rank_code    )?.rank_name     || ''
-    }))
+    const url = 'http://localhost:8000/structure/hierarchy'
+    console.log('📥 조직 계층 호출 URL:', url)
+    const res = await fetch(url)
+    if (!res.ok) throw new Error(`HTTP ${res.status}`)
+    hierarchy.value = await res.json()
   } catch (err) {
-    console.error('org.json 로드 실패:', err)
+    console.error('❌ 조직 계층 로드 실패:', err)
+    hierarchy.value = []
   }
 })
-
-function getDepartments(headCode) {
-  const headId = Number(headCode.slice(1))
-  return departments.value.filter(d => d.head_id === headId)
-}
-
-function getTeams(deptCode) {
-  const deptId = Number(deptCode.slice(1))
-  return teams.value.filter(t => t.department_id === deptId)
-}
-
-function getEmployees(teamCode) {
-  return employees.value.filter(e => e.team_code === teamCode)
-}
-
-function getCompanyRep() {
-  const ceo = employees.value.find(e => e.position_code === 'P005')
-  return ceo ? ceo.employee_name : ''
-}
-
-function getHeadRep(headCode) {
-  const h = employees.value.find(
-    e => e.head_code === headCode && e.position_code === 'P004'
-  )
-  return h ? h.employee_name : ''
-}
-
-function getDeptRep(deptCode) {
-  const d = employees.value.find(
-    e => e.department_code === deptCode && e.position_code === 'P003'
-  )
-  return d ? d.employee_name : ''
-}
-
-function getTeamRep(teamCode) {
-  const t = employees.value.find(
-    e => e.team_code === teamCode && e.position_code === 'P002'
-  )
-  return t ? t.employee_name : ''
-}
 </script>
 
 <style scoped>
@@ -143,7 +181,6 @@ function getTeamRep(teamCode) {
   position: relative;
   padding-left: 30px;
 }
-
 .org-list li::before {
   content: '';
   position: absolute;
@@ -178,16 +215,16 @@ function getTeamRep(teamCode) {
 }
 .node.dept {
   font-size: 18px;
-  font-weight:bold;
+  font-weight: bold;
   margin-bottom: 12px;
 }
 .node.team {
-  font-size: 17px;
-  font-weight:bold;
-  margin-bottom: 10px;
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 12px;
 }
 .node.emp {
-  font-size: 14px;
+  font-size: 16px;
   margin-bottom: 8px;
   color: #555;
   cursor: default;

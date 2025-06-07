@@ -1,3 +1,5 @@
+<!-- 전자결재 > 문서함 > 기안함 -->
+ 
 <template>
   <!-- 1. 상단: 페이지 제목 -->
   <h1 class="page-title">기안함</h1>
@@ -12,7 +14,6 @@
 
     <!-- 3. 메인 컨텐츠 박스 (검색 + 테이블) -->
     <div class="main-box">
-
       <!-- 3-1. 검색 영역 -->
       <div class="search-row">
           <!-- 검색: 상신일 -->
@@ -44,26 +45,22 @@
 </template>
 
 <script setup>
-/**
- * 1. Composition API import 및 ag-grid 관련 모듈 등록
- */
+// Composition API import 및 ag-grid 관련 모듈 등록
 import { ref, computed } from 'vue'
 import { AgGridVue } from 'ag-grid-vue3'
 import { ModuleRegistry, AllCommunityModule } from 'ag-grid-community'
 ModuleRegistry.registerModules([AllCommunityModule])
 
-/**
- * 2. 상태 변수 및 검색 조건 등
- */
+
+// 상태 변수 및 검색 조건 등
 const tab = ref('상신');   // 현재 선택된 탭 (상신/완료/반려/회수)
 const search = ref({
   date: '',
   title: '',
 });
 
-/**
- * 3. 문서 데이터 (실제 서비스에서는 API로 대체)
- */
+
+  // 문서 데이터 (실제 서비스에서는 API로 대체)
 const docs = ref([
   // 샘플 데이터: 실제론 API로 불러옴
   {
@@ -122,9 +119,7 @@ const docs = ref([
   }
 ]);
 
-/**
- * 4. 탭별 컬럼(ag-grid 테이블 헤더) 정의
- */
+  // 탭별 컬럼(ag-grid 테이블 헤더) 정의
 const columnDefsByTab = {
   '상신': [
     { headerName: "번호", field: "no", width: 100 },
@@ -155,15 +150,13 @@ const columnDefsByTab = {
   ],
 };
 
-/**
- * 5. 현재 탭에 맞는 컬럼 반환 (computed)
- */
+// 현재 탭에 맞는 컬럼 반환 (computed)
+
 const currentColumnDefs = computed(() => columnDefsByTab[tab.value]);
 
-/**
- * 6. 탭/검색 조건에 맞는 데이터만 추출해 테이블에 표시
- *    - 최신순 번호(내림차순) 재정렬
- */
+  // 탭/검색 조건에 맞는 데이터만 추출해 테이블에 표시
+  // - 최신순 번호(내림차순) 재정렬
+
 const filteredForms = computed(() => {
   const filtered = docs.value.filter(doc => {
     // 현재 탭(상신/완료/반려/회수)에 해당하는 문서만 필터링
@@ -177,29 +170,24 @@ const filteredForms = computed(() => {
       const docDate = doc.date?.substring(0, 10);  // 'YYYY-MM-DD'
       if (docDate !== search.value.Date) return false;
     }
-
-    // 모든 조건을 통과한 문서만 결과에 포함
+  // 모든 조건을 통과한 문서만 결과에 포함
     return true;
   });
-  // 2) 번호 필드 재생성
+  // 번호 필드 재생성
   return filtered.map((doc, idx) => ({
     ...doc,
     no: filtered.length - idx, // 최신순: 1,2,3...
   }));
 });
 
-/**
- * 7. 행 클릭시 이벤트
- */
+// 행 클릭시 이벤트
 function handleFormRowClick(params) {
   // params.data에 선택된 행 데이터가 담김
   console.log('선택된 행:', params.data);
 }
 
-/**
- * 8. 검색 버튼 클릭
- *    (실제 API 연동시 이 함수에서 서버에 요청)
- */
+// 검색 버튼 클릭
+// (실제 API 연동시 이 함수에서 서버에 요청)
 function onSearch() {
   // API 연동 등 실제 로직 위치
 }
@@ -222,21 +210,18 @@ function onSearch() {
 
 /* 페이지 타이틀 */
 .page-title {
-  margin-left: 36px;
-  margin-bottom: 44px;
+  margin-left: 20px;
+  margin-bottom: 30px;
   color: #00a8e8;
-  font-size: 2.1rem;
-  font-weight: bold;
 }
 
 /* 탭 영역 */
 .tabs {
   display: flex;
   gap: 36px;           /* 탭 사이 간격 */
-  font-size: 20px;
+  font-size: 1.2em;
   font-weight: 500;
   margin-left: 4px;
-  margin-top: 2px;
 }
 .tabs span {
   color: #8b95a1;
