@@ -1,7 +1,7 @@
 <!-- EmployeeList.vue -->
 <template>
-  <h1 class="page-title">사원조회</h1>
-  <p class="desc">사원 목록 조회</p>
+  <h1 class="page-title">징계 관리</h1>
+  <p class="desc">징계 목록</p>
 
   <div class="card">
     <!-- 1) 검색창 -->
@@ -38,18 +38,28 @@
   <div class="pagination-control">
     <div class="button-group">
       <button class="btn-delete" @click="onDeleteClick">삭제</button>
-      <button class="btn-save"   @click="onRegister">등록</button>
+      <button class="btn-save" @click="onRegister">등록</button>
     </div>
   </div>
 
   <!-- 4) 삭제 확인 모달 -->
   <div v-if="showDeleteModal" class="modal-overlay">
     <div class="modal-content">
-      <p>정말로 선택된 사원을 삭제하시겠습니까?</p>
+      <p>정말로 선택된 항목을 삭제하시겠습니까?</p>
       <div class="modal-buttons">
         <button class="btn-delete cancel" @click="cancelDelete">취소</button>
         <button class="btn-save confirm" @click="confirmDelete">확인</button>
       </div>
+    </div>
+  </div>
+
+  <!-- 5) 징계서류 이미지 미리보기 모달 (▼ 추가된 부분) -->
+  <div v-if="showImageModal" class="modal-overlay">
+    <div class="modal-content image-modal">
+      <!-- 닫기 버튼 -->
+      <button class="close-btn" @click="closeImageModal">✕</button>
+      <!-- 실제 이미지 -->
+      <img :src="selectedImageUrl" alt="징계서류 이미지" class="preview-image" />
     </div>
   </div>
 </template>
@@ -105,7 +115,7 @@ const columnDefs = ref([
   {
     headerName: '사원명',
     field: 'name',
-    flex: 1,
+    width: 150,
     // cellRenderer로 <span>을 감싸서 렌더링
     cellRenderer: (params) => {
       return `<span class="clickable-name">${params.value}</span>`
@@ -115,105 +125,130 @@ const columnDefs = ref([
   {
     headerName: '사원번호',
     field: 'employeeNumber',
-    width: 120,
+    flex: 1.5,
     cellClass: 'center-align',
     headerClass: 'header-employeeNumber'
   },
   {
-    headerName: '본부',
-    field: 'division',
-    flex: 1,
-    cellEditor: 'agSelectCellEditor',
-    cellEditorParams: {
-      values: ['경영지원본부', '개발본부', '영업본부', '서비스본부']
+    headerName: '징계 서류',
+    field: 'disciplinary',
+    flex: 1.7,
+    // ▼ 텍스트만 렌더링하고 클릭 시 onCellClick에서 처리
+    cellRenderer: (params) => {
+      return `<span class="clickable-contract">${params.value}</span>`
     },
     cellClass: 'center-align',
-    headerClass: 'header-division'
+    headerClass: 'disciplinarydescrip'
   },
   {
-    headerName: '부서',
-    field: 'department',
-    flex: 1,
-    cellEditor: 'agSelectCellEditor',
-    cellEditorParams: {
-      values: ['인사팀', '회계팀', '개발팀', '영업팀', '고객지원팀']
-    },
+    headerName: '징계 내용',
+    field: 'disciplinarydescrip',
+    flex: 1.5,
     cellClass: 'center-align',
-    headerClass: 'header-department'
+    headerClass: 'header-disciplinarydescrip'
   },
   {
-    headerName: '팀',
-    field: 'team',
+    headerName: '징계일자',
+    field: 'disciplinarydate',
     flex: 1,
-    cellEditor: 'agSelectCellEditor',
-    cellEditorParams: {
-      values: ['웹개발팀', '앱개발팀', '인프라팀', '영업1팀', '영업2팀']
-    },
     cellClass: 'center-align',
-    headerClass: 'header-team'
-  },
-  {
-    headerName: '직무',
-    field: 'position',
-    flex: 1,
-    cellEditor: 'agSelectCellEditor',
-    cellEditorParams: {
-      values: ['개발자', '디자이너', '기획자', '영업사원', '고객지원']
-    },
-    cellClass: 'center-align',
-    headerClass: 'header-position'
-  },
-  {
-    headerName: '직책',
-    field: 'role',
-    flex: 1,
-    cellEditor: 'agSelectCellEditor',
-    cellEditorParams: {
-      values: ['팀장', '과장', '대리', '사원']
-    },
-    cellClass: 'center-align',
-    headerClass: 'header-role'
-  },
-  {
-    headerName: '직급',
-    field: 'grade',
-    flex: 1,
-    cellEditor: 'agSelectCellEditor',
-    cellEditorParams: {
-      values: ['사원', '대리', '과장', '차장', '부장']
-    },
-    cellClass: 'center-align',
-    headerClass: 'header-grade'
+    headerClass: 'header-disciplinarydate'
   }
 ])
 
 // 2) 예시 더미 데이터
 const rowData = ref([
-  { id: 1,  name: '홍길동', employeeNumber: 'EMP001', division: '개발본부', department: '개발팀', team: '웹개발팀', position: '개발자', role: '사원', grade: '사원' },
-  { id: 2,  name: '김철수', employeeNumber: 'EMP002', division: '영업본부', department: '영업팀', team: '영업1팀', position: '영업사원', role: '대리', grade: '대리' },
-  { id: 3,  name: '이영희', employeeNumber: 'EMP003', division: '경영지원본부', department: '회계팀', team: '회계팀', position: '회계사', role: '과장', grade: '과장' },
-  { id: 4,  name: '박민준', employeeNumber: 'EMP004', division: '서비스본부', department: '고객지원팀', team: '고객지원팀', position: '고객지원', role: '차장', grade: '차장' },
-  { id: 5,  name: '최수진', employeeNumber: 'EMP005', division: '개발본부', department: '디자인팀', team: '웹개발팀', position: '디자이너', role: '사원', grade: '사원' },
-  { id: 6,  name: '강민호', employeeNumber: 'EMP006', division: '개발본부', department: '개발팀', team: '앱개발팀', position: '개발자', role: '사원', grade: '사원' },
-  { id: 7,  name: '윤지혜', employeeNumber: 'EMP007', division: '경영지원본부', department: '인사팀', team: '인사팀', position: '인사담당', role: '사원', grade: '사원' },
-  { id: 8,  name: '이준호', employeeNumber: 'EMP008', division: '영업본부', department: '영업팀', team: '영업2팀', position: '영업사원', role: '사원', grade: '사원' },
-  { id: 9,  name: '정예진', employeeNumber: 'EMP009', division: '서비스본부', department: '고객지원팀', team: '고객지원팀', position: '고객지원', role: '사원', grade: '사원' },
-  { id: 10, name: '한승우', employeeNumber: 'EMP010', division: '영업본부', department: '영업팀', team: '영업1팀', position: '영업사원', role: '대리', grade: '대리' },
-  { id: 11, name: '송다은', employeeNumber: 'EMP011', division: '개발본부', department: '개발팀', team: '인프라팀', position: '서버엔지니어', role: '과장', grade: '과장' },
-  { id: 12, name: '박하늘', employeeNumber: 'EMP012', division: '경영지원본부', department: '회계팀', team: '회계팀', position: '회계사', role: '사원', grade: '사원' },
-  { id: 13, name: '최민성', employeeNumber: 'EMP013', division: '서비스본부', department: '고객지원팀', team: '고객지원팀', position: '고객지원', role: '대리', grade: '대리' },
-  { id: 14, name: '오승아', employeeNumber: 'EMP014', division: '개발본부', department: '디자인팀', team: '웹개발팀', position: '디자이너', role: '사원', grade: '사원' },
-  { id: 15, name: '허준혁', employeeNumber: 'EMP015', division: '영업본부', department: '영업팀', team: '영업2팀', position: '영업사원', role: '과장', grade: '과장' },
-  { id: 16, name: '이태훈', employeeNumber: 'EMP016', division: '개발본부', department: '개발팀', team: '앱개발팀', position: '개발자', role: '대리', grade: '대리' },
-  { id: 17, name: '김소연', employeeNumber: 'EMP017', division: '경영지원본부', department: '인사팀', team: '인사팀', position: '인사담당', role: '과장', grade: '과장' },
-  { id: 18, name: '박준서', employeeNumber: 'EMP018', division: '서비스본부', department: '고객지원팀', team: '고객지원팀', position: '고객지원', role: '사원', grade: '사원' },
-  { id: 19, name: '장하늘', employeeNumber: 'EMP019', division: '개발본부', department: '개발팀', team: '인프라팀', position: '서버엔지니어', role: '사원', grade: '사원' },
-  { id: 20, name: '이수빈',employeeNumber: 'EMP020', division: '영업본부', department: '영업팀', team: '영업1팀', position: '영업사원', role: '사원', grade: '사원' }
+  {
+    id: 1,
+    name: '김철수',
+    employeeNumber: 'EMP001',
+    disciplinary: '경고장',
+    documentUrl: '/images/disciplinary.png',
+    disciplinarydescrip: '근태 불량',
+    disciplinarydate: '2025-06-01'
+  },
+  {
+    id: 2,
+    name: '이영희',
+    employeeNumber: 'EMP002',
+    disciplinary: '근신명령서',
+    disciplinarydescrip: '무단 결근',
+    disciplinarydate: '2025-05-20'
+  },
+  {
+    id: 3,
+    name: '박민수',
+    employeeNumber: 'EMP003',
+    disciplinary: '정직처분서',
+    disciplinarydescrip: '업무 태만',
+    disciplinarydate: '2025-04-15'
+  },
+  {
+    id: 4,
+    name: '최수진',
+    employeeNumber: 'EMP004',
+    disciplinary: '감봉 통지서',
+    disciplinarydescrip: '보고 누락',
+    disciplinarydate: '2025-03-30'
+  },
+  {
+    id: 5,
+    name: '정다은',
+    employeeNumber: 'EMP005',
+    disciplinary: '경고장',
+    disciplinarydescrip: '지각 지속',
+    disciplinarydate: '2025-02-10'
+  },
+  {
+    id: 6,
+    name: '오준호',
+    employeeNumber: 'EMP006',
+    disciplinary: '근신명령서',
+    disciplinarydescrip: '업무 지연',
+    disciplinarydate: '2025-01-25'
+  },
+  {
+    id: 7,
+    name: '한지혜',
+    employeeNumber: 'EMP007',
+    disciplinary: '정직처분서',
+    disciplinarydescrip: '보안 위반',
+    disciplinarydate: '2024-12-05'
+  },
+  {
+    id: 8,
+    name: '유민호',
+    employeeNumber: 'EMP008',
+    disciplinary: '감봉 통지서',
+    disciplinarydescrip: '비용 부당 청구',
+    disciplinarydate: '2024-11-18'
+  },
+  {
+    id: 9,
+    name: '강예린',
+    employeeNumber: 'EMP009',
+    disciplinary: '경고장',
+    disciplinarydescrip: '불성실 근무',
+    disciplinarydate: '2024-10-02'
+  },
+  {
+    id: 10,
+    name: '서동혁',
+    employeeNumber: 'EMP010',
+    disciplinary: '근신명령서',
+    disciplinarydescrip: '회의 불참',
+    disciplinarydate: '2024-09-14'
+  }
 ])
+
 
 const searchText = ref('')
 const pageSize = ref(20)
 const showDeleteModal = ref(false)
+
+// ▼ 이미지 미리보기 모달 상태 변수 (추가)
+const showImageModal = ref(false)
+const selectedImageUrl = ref('')
 
 const defaultColDef = {
   sortable: true,
@@ -235,18 +270,31 @@ function onGridReady(params) {
   gridApi = params.api
 }
 
-// 5) 사원명 클릭 시 상세 페이지 이동
+// 5) 셀 클릭 이벤트
 function onCellClick(e) {
+  // 사원명 클릭 → 상세 페이지
   if (e.colDef.field === 'name') {
     router.push(`/employeeInfo/employeeEnroll`)
+    return
   }
+  // 징계서류 클릭 → 이미지 모달 띄우기
+  if (e.colDef.field === 'disciplinary') {
+    selectedImageUrl.value = e.data.documentUrl
+    showImageModal.value = true
+  }
+}
+
+// ▼ 이미지 모달 닫기 함수 (추가)
+function closeImageModal() {
+  showImageModal.value = false
+  selectedImageUrl.value = ''
 }
 
 // 6) 삭제 로직
 function onDeleteClick() {
   const selectedRows = gridApi.getSelectedRows()
   if (selectedRows.length === 0) {
-    alert('삭제할 사원을 선택하세요.')
+    alert('삭제할 문서를 선택하세요.')
     return
   }
   showDeleteModal.value = true
@@ -266,9 +314,9 @@ function confirmDelete() {
   alert('삭제가 완료되었습니다.')
 }
 
-// 7) 등록 버튼 클릭 → “사원 등록” 화면으로 이동
+// 7) 등록 버튼 클릭 → “징계 등록” 화면으로 이동
 function onRegister() {
-  router.push('/employeeInfo/employeeEnroll')
+  router.push('/employeeInfo/disciplinary/disciplinaryEnroll')
 }
 </script>
 
@@ -425,6 +473,16 @@ function onRegister() {
   color: #00a8e8;
   text-decoration: underline;
 }
+/* ★ 클릭 가능한 계약서 텍스트 스타일 (추가) */
+.clickable-contract {
+  cursor: pointer;
+  color: #2563EB;
+  transition: color 0.2s;
+}
+.clickable-contract:hover {
+  color: #1D4ED8;
+  text-decoration: underline;
+}
 /* AG Grid 커스텀 테마 */
 .custom-theme {
   --ag-background-color: #ffffff;
@@ -449,5 +507,28 @@ function onRegister() {
 }
 .custom-theme .ag-body-viewport::-webkit-scrollbar-track {
   background: transparent;
+}
+
+/* ▼ 이미지 미리보기 모달 전용 스타일 추가 */
+.image-modal {
+  width: auto;
+  max-width: 90%;
+  max-height: 90%;
+  padding: 0;
+}
+.image-modal .close-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: transparent;
+  border: none;
+  font-size: 1.2rem;
+  cursor: pointer;
+}
+.image-modal .preview-image {
+  display: block;
+  max-width: 100%;
+  max-height: 100%;
+  border-radius: 4px;
 }
 </style>
