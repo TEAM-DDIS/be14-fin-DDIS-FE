@@ -4,9 +4,8 @@
       DDIS <span class="rep">{{ getCompanyRep() }}</span>
     </h3>
     <ul class="org-list">
-      <!-- 1) 본부(Head) 반복 -->
+      <!-- 1) 본부 반복 -->
       <li v-for="head in hierarchy" :key="head.headId">
-        <!-- 본부 노드: 클릭하면 펼침/접힘 -->
         <div class="node head" @click="toggle('h' + head.headId)">
           <i
             :class="
@@ -19,10 +18,9 @@
           <small>(본부장: {{ head.headManager?.employeeName || '-' }})</small>
         </div>
 
-        <!-- 본부가 펼쳐졌을 때 하위 부서(Department) 표시 -->
-        <ul v-show="expanded['h' + head.headId]">
+        <!-- 본부가 펼쳐졌을 때 부서 표시 -->
+        <ul v-show="expanded['h' + head.headId]" class="org-list">
           <li v-for="dept in head.departments" :key="dept.departmentId">
-            <!-- 부서 노드: 클릭하면 ① 펼침/접힘 ② selectDepartment 이벤트 emit -->
             <div
               class="node dept"
               @click.stop="onDepartmentClick(dept)"
@@ -38,17 +36,22 @@
               <small>(부서장: {{ dept.deptManager?.employeeName || '-' }})</small>
             </div>
 
-            <!-- 부서가 펼쳐졌을 때 부장 + 팀·팀원 표시 -->
-            <div v-show="expanded['d' + dept.departmentId]" class="dept-children">
-              <!-- 부장 노드 -->
-              <div v-if="dept.deptManager" class="node emp emp-manager">
+            <!-- 부서가 펼쳐졌을 때 하위 표시 -->
+            <div
+              v-show="expanded['d' + dept.departmentId]"
+              class="dept-children"
+            >
+              <!-- 부서장 노드 -->
+              <div
+                v-if="dept.deptManager"
+                class="node emp emp-manager"
+              >
                 부장: {{ dept.deptManager.employeeName }}
               </div>
 
               <!-- 팀 리스트 -->
               <ul class="team-list">
                 <li v-for="team in dept.teams" :key="team.teamId">
-                  <!-- 팀 노드: 클릭하면 ① 펼침/접힘 ② selectTeam 이벤트 emit -->
                   <div
                     class="node team"
                     @click.stop="onTeamClick(team)"
@@ -64,9 +67,15 @@
                     <small>(팀장: {{ team.teamManager?.employeeName || '-' }})</small>
                   </div>
 
-                  <!-- 팀이 펼쳐졌을 때, 팀원 표시 -->
-                  <ul v-show="expanded['t' + team.teamId]" class="member-list">
-                    <li v-for="emp in team.members" :key="emp.employeeId">
+                  <!-- 팀원이 펼쳐졌을 때 표시 (부서장은 제외) -->
+                  <ul
+                    v-show="expanded['t' + team.teamId]"
+                    class="member-list"
+                  >
+                    <li
+                      v-for="emp in filteredTeamMembers(team)"
+                      :key="emp.employeeId"
+                    >
                       <div class="node emp">
                         {{ emp.rankName }} {{ emp.positionName }}: {{ emp.employeeName }}
                       </div>
@@ -85,16 +94,15 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 
-// 상위 컴포넌트로 이벤트를 내보낼 때: 'dept-selected', 'team-selected'
+// 상위로 이벤트 발송
 const emit = defineEmits(['dept-selected', 'team-selected'])
 
-// 전체 조직 계층(본부→부서(+부장)→팀(+팀장)→팀원)을 담을 배열
+// 전체 계층 데이터
 const hierarchy = ref([])
 
-// 펼침/접힘 상태 저장 객체
+// 펼침/접힘 상태
 const expanded = reactive({})
 
-// 컴포넌트 마운트 시 전체 계층 한번에 호출
 onMounted(async () => {
   try {
     const res = await fetch('http://localhost:8000/structure/hierarchy')
@@ -106,24 +114,21 @@ onMounted(async () => {
   }
 })
 
-// 토글 함수: key 예시 'h'+headId, 'd'+deptId, 't'+teamId
 function toggle(key) {
   expanded[key] = !expanded[key]
 }
 
-// 부서 노드를 클릭했을 때: 펼침/접힘 + 이벤트 emit
 function onDepartmentClick(dept) {
   toggle('d' + dept.departmentId)
   emit('dept-selected', dept)
 }
 
-// 팀 노드를 클릭했을 때: 펼침/접힘 + 이벤트 emit
 function onTeamClick(team) {
   toggle('t' + team.teamId)
   emit('team-selected', team)
 }
 
-// “회사 대표(CEO)” 헬퍼: positionCode === 'P005'
+// 회사 대표 찾기 (positionCode === 'P005')
 function getCompanyRep() {
   for (const head of hierarchy.value) {
     if (head.headManager?.positionCode === 'P005') {
@@ -131,6 +136,16 @@ function getCompanyRep() {
     }
   }
   return ''
+}
+
+// 부서장 필터링 헬퍼
+function isDeptManager(emp) {
+  return emp.rankName === '부장' && emp.positionName === '부서장'
+}
+
+// 팀원 리스트에서 부서장만 제외
+function filteredTeamMembers(team) {
+  return team.members.filter(emp => !isDeptManager(emp))
 }
 </script>
 
@@ -158,7 +173,6 @@ function getCompanyRep() {
   position: relative;
   padding-left: 24px;
 }
-/* 세로 라인 */
 .org-list li::before {
   content: '';
   position: absolute;
@@ -168,7 +182,6 @@ function getCompanyRep() {
   height: 100%;
   background: #ccc;
 }
-/* 가로 라인 */
 .org-list li::after {
   content: '';
   position: absolute;
@@ -212,7 +225,6 @@ function getCompanyRep() {
   color: #555;
   cursor: default;
 }
-/* 부장 강조 */
 .node.emp-manager {
   font-size: 16px;
   margin-bottom: 8px;
@@ -228,12 +240,10 @@ function getCompanyRep() {
   border-radius: 4px;
 }
 
-/* 부서 내부(부장 + 팀) 여백 */
 .dept-children {
   margin-left: 8px;
 }
 
-/* 팀 리스트 */
 .team-list {
   list-style: none;
   margin: 0;
@@ -244,7 +254,6 @@ function getCompanyRep() {
   padding-left: 24px;
 }
 
-/* 팀원 리스트 */
 .member-list {
   list-style: none;
   margin: 0;

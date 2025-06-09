@@ -68,9 +68,6 @@
               <button class="btn-dept" @click="showMovePanel = true">
                 부서 이동
               </button>
-              <button class="btn-employee" @click="showMovePanel = true">
-                부서원 이동
-              </button>
             </div>
 
             <ul class="info-list">
@@ -143,9 +140,6 @@
             <div class="button-group">
               <button class="btn-dept" @click="showMovePanel = true">
                 팀 이동
-              </button>
-              <button class="btn-employee" @click="showMovePanel = true">
-                팀원 이동
               </button>
             </div>
 
