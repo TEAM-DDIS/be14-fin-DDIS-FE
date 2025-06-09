@@ -54,7 +54,7 @@
 
 <script setup>
   import { ModuleRegistry, AllCommunityModule } from 'ag-grid-community'
-  import { ref, computed, onMounted } from 'vue'
+  import { ref, computed, onMounted, watch } from 'vue'
   import { useRouter } from 'vue-router'
 
   import BaseGrid from '@/components/grid/BaseGrid.vue'
@@ -65,94 +65,91 @@
   // AG Grid 모듈 등록
   ModuleRegistry.registerModules([AllCommunityModule])
 
-  // 필터 상태
-  const selectedType = ref('')
-  const filterEmployee = ref('')
+// API 베이스 URL
+const API_BASE = 'http://localhost:8000/appointment-history'
 
-  // 로우 데이터 저장
-  const rowData = ref([])
-  let gridApi = null
+// 필터 상태
+const selectedType    = ref('')
+const filterEmployee = ref('')
 
-  // 등록 페이지로 이동
-  function goToRegister() {
-    router.push('/org/appointment/register')
+// 그리드 로우 데이터 저장
+const rowData = ref([])
+let gridApi = null
+
+// 등록 페이지로 이동
+function goToRegister() {
+  router.push('/org/appointment/register')
+}
+
+// AG Grid 컬럼 정의 (변경 없음)
+const columnDefs = [
+  { headerName: '번호', field: 'appointment_id', width: 90, checkboxSelection: true },
+  { headerName: '사원번호', field: 'employee_id', flex: 1 },
+  { headerName: '발령사유', field: 'appointment_reason', flexed:1},
+  { headerName: '발령유형', field: 'appointment_type', flex: 1 },
+  { headerName: '발령일자', field: 'appointment_effective_date', flex: 1 },
+  {
+    headerName: '상세',
+    field: 'detail',
+    width: 80,
+    cellRenderer: () => `<img src="${detailIconUrl}" class="detail-btn"/>`
   }
+]
 
-
-  // AG Grid 컬럼 정의
-  const columnDefs = [
-    { headerName: '번호', 
-      field: 'appointment_id', 
-      width: 90, 
-      checkboxSelection: true 
-    },
-    { headerName: '사원번호', 
-      field: 'employee_id', 
-      flex: 1 
-    },
-    { headerName: '발령유형', 
-      field: 'appointment_type', 
-      flex: 1 
-    },
-    { headerName: '발령일자', 
-      field: 'appointment_effective_date', 
-      flex: 1 
-    },
-    { headerName: '상태', 
-      field: 'appointment_status', 
-      flex: 1 
-    },
-    {
-      headerName: '상세',
-      field: 'detail',
-      width: 80,
-      cellRenderer: () => `
-        <img src="${detailIconUrl}" class="detail-btn"/>`
-    }
-  ]
-
-  // 필터링된 데이터
-  const filteredData = computed(() =>
-    rowData.value.filter(item => {
-      const matchType = 
-        !selectedType.value || item.appointment_type === selectedType.value
-      const matchEmp  = 
-        !filterEmployee.value || 
-        item.employee_id.toString().includes(filterEmployee.value)
-      return matchType && matchEmp
-    })
-  )
-
-  // 그리드 준비 시 API 보관
-  function onGridReady(params) {
-    gridApi = params.api
+// 서버에서 데이터 불러오는 함수
+async function loadData(endpoint = 'approved') {
+  try {
+    const res = await fetch(`${API_BASE}/${endpoint}`)
+    if (!res.ok) throw new Error(res.statusText)
+    rowData.value = await res.json()
+  } catch (err) {
+    console.error('데이터 로딩 실패', err)
   }
+}
 
-  // 행 삭제
-  function onDelete() {
-    const selected = gridApi.getSelectedRows()
-    alert(`${selected.length}건 삭제 예정`)
+// onMounted 시 기본 approved 목록 로드
+onMounted(loadData)
+
+// 필터가 바뀔 때마다 적절한 엔드포인트로 다시 호출
+watch([selectedType, filterEmployee], ([type, emp]) => {
+  if (type) {
+    loadData(`type/${encodeURIComponent(type)}`)
   }
-
-  // 상세 버튼 클릭
-  function onCellClick(e) {
-    if (e.colDef.field === 'detail') {
-      router.push(`/org/appointment/${e.data.appointment_id}`)
-    }
+  else if (emp) {
+    loadData(`employee/${emp}`)
   }
-
-  // org.json 안의 appointment 데이터 로드
-  async function loadData() {
-    try {
-      const res   = await fetch('/org.json')
-      const oData = await res.json()
-      rowData.value = oData.appointment || []
-    } catch (err) {
-      console.error('데이터 로딩 실패', err)
-    }
+  else {
+    loadData('approved')
   }
+})
 
-  onMounted(loadData)
+const filteredData = computed(() =>
+  rowData.value.filter(item => {
+    const matchType = !selectedType.value || item.appointment_type === selectedType.value
+    const matchEmp  = !filterEmployee.value || 
+                      item.employee_id.toString().includes(filterEmployee.value)
+    return matchType && matchEmp
+  })
+)
+
+// AG Grid 준비 시 API 저장
+function onGridReady(params) {
+  gridApi = params.api
+}
+
+// 행 삭제 (예시)
+function onDelete() {
+  const selected = gridApi.getSelectedRows()
+  alert(`${selected.length}건 삭제 예정`)
+}
+
+// 상세 버튼 클릭
+function onCellClick(e) {
+  if (e.colDef.field === 'detail') {
+    router.push(`/org/appointment/${e.data.appointment_id}`)
+  }
+}
+
 </script>
 
 <style scoped>
