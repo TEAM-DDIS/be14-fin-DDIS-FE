@@ -1,7 +1,7 @@
 <template>
   <div class="team-work-status">
     <img
-      :src="profileImg || '/images/erpizza_profile.svg'"
+      :src="employeePhotoUrl || '/images/erpizza_profile.svg'"
       alt="프로필"
       class="avatar"
       @error="onImageError"
@@ -20,7 +20,7 @@
 import { computed } from 'vue'
 
 const props = defineProps({
-  profileImg: String,
+  employeePhotoUrl: String,
   name: String,
   role: String,
   status: String

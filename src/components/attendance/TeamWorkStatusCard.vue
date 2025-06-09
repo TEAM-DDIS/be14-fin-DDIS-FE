@@ -9,7 +9,7 @@
       <TeamWorkStatus
         v-for="(user, idx) in statuses"
         :key="user.employeeId"
-        :profileImg="user.profileImage"
+        :profileImg="user.employeePhotoUrl"
         :name="user.employeeName"
         :role="user.positionName"
         :status="user.workStatusName"
