@@ -443,7 +443,7 @@ function confirmDelete(id) {
 async function deleteGoals(id) {
   try {
     const token = localStorage.getItem('token')
-    const res = await fetch(`http://localhost:8000/goals/${id}`, {
+    const res = await fetch(`http://localhost:8000/goalsperf/${id}`, {
       method: 'DELETE',
       headers: {
         Authorization: `Bearer ${token}`,
@@ -562,7 +562,7 @@ async function deletePerf() {
   const token = localStorage.getItem('token')
   try {
     const res = await fetch(
-      `http://localhost:8000/goals/${g.goalId}/performance/${form.performanceId}`,
+      `http://localhost:8000/goalsperf/${g.goalId}/performance/${form.performanceId}`,
       {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` }
