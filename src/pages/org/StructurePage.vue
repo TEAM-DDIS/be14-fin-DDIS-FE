@@ -172,7 +172,6 @@ const profileRowData = computed(() => {
   const e = selectedEmployee.value
   return [
     { label: '이름', value: e.employeeName },
-    { label: '생년월일', value: e.birthdate || '-' },
     { label: '직급', value: e.rankName },
     { label: '사번', value: e.employeeId }
   ]
@@ -250,15 +249,11 @@ function findDeptName(deptId) {
   padding: 16px;
 }
 
-h2 {
-  margin-top: 20px;
-}
-
 /* placeholder */
 .placeholder {
   color: #00a8e8;
-  font-size: 18px;
-  font-weight: bold;
+  font-size: 15px;
+  /* font-weight: bold; */
   padding: 32px;
   text-align: center;
 }

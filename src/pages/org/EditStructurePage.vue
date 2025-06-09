@@ -43,13 +43,10 @@
         <div class="card tree-panel">
           <h2 class="card-title">조직도</h2>
           <div class="tree-container">
+            <!-- OrgHierarchyAll 컴포넌트: :headquarters 하나만 넘겨줍니다 -->
             <OrgHierarchyAll
               v-if="dataLoaded"
               :headquarters="dataStore.headquarters"
-              :departments="dataStore.departments"
-              :teams="dataStore.teams"
-              :positions="dataStore.position"
-              :ranks="dataStore.rank"
               @dept-selected="onDeptSelected"
               @team-selected="onTeamSelected"
             />
@@ -66,14 +63,10 @@
 
           <!-- 1) 부서가 선택된 경우 -->
           <div v-if="selectedDept" class="info-content">
-
             <!-- ★ 부서 이동 / 부서원 이동 버튼 추가 ★ -->
             <div class="button-group">
               <button class="btn-dept" @click="showMovePanel = true">
                 부서 이동
-              </button>
-              <button class="btn-employee" @click="showMovePanel = true">
-                부서원 이동
               </button>
             </div>
 
@@ -143,14 +136,10 @@
 
           <!-- 2) 팀이 선택된 경우 -->
           <div v-else-if="selectedTeam" class="info-content">
-
             <!-- ★ 팀 이동 / 팀원 이동 버튼 추가 ★ -->
             <div class="button-group">
               <button class="btn-dept" @click="showMovePanel = true">
                 팀 이동
-              </button>
-              <button class="btn-employee" @click="showMovePanel = true">
-                팀원 이동
               </button>
             </div>
 
@@ -276,7 +265,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, computed } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import OrgHierarchyAll from '@/components/org/structure/HierarchyAll.vue'
 import EditHierarchy from '@/components/org/structure/EditHierarchy.vue'
 import AddModal from '@/components/org/structure/AddModal.vue'
@@ -285,7 +274,7 @@ import DeleteModal from '@/components/org/structure/DeleteModal.vue'
 // --- 데이터 스토어 정의 ---
 // 백엔드 /structure/hierarchy 에서 받아온 본부→부서→팀 계층을 저장합니다.
 const dataStore = reactive({
-  headquarters: [],   // [{ headId, headName, headCode, departments: [...]}]
+  headquarters: [],   // HeadQueryDTO[] 전체 구조(각 head 안에 departments, deptManager, teams, teamManager, members 포함)
   departments: [],    // [{ departmentId, departmentName, departmentCode, headId }]
   teams: [],          // [{ teamId, teamName, teamCode, departmentId }]
   position: [],       // 추후 API가 있으면 채워 주세요
@@ -303,7 +292,7 @@ const selectedDept     = ref(null)
 const selectedTeam     = ref(null)
 const selectedEmployee = ref(null)
 
-// “부서에 속한 직원 목록” & “팀에 속한 직원 목록”용
+// 부서/팀별 직원 목록
 const deptMembers = ref([])  // Department 단위
 const teamMembers = ref([])  // Team 단위
 
@@ -356,13 +345,8 @@ onMounted(async () => {
     const resHier = await fetch(urlHierarchy)
     if (!resHier.ok) throw new Error(`HTTP ${resHier.status}`)
     const hierarchyData = await resHier.json()
-    // HeadQueryDTO[] 형태
-    dataStore.headquarters = hierarchyData.map(h => ({
-      headId:   h.headId,
-      headName: h.headName,
-      headCode: h.headCode || '',
-      departments: h.departments    // DepartmentQueryDTO[]
-    }))
+    // HeadQueryDTO[] 형태로 들어옴
+    dataStore.headquarters = hierarchyData
 
     // 2) hierarchyData 순회하며 departments, teams 배열 채우기
     const deptList = []
@@ -401,12 +385,12 @@ onMounted(async () => {
 // --- 부서 선택 핸들러 ---
 // OrgHierarchyAll 컴포넌트에서 @dept-selected="onDeptSelected"
 async function onDeptSelected(dept) {
-  // dept: DepartmentQueryDTO { departmentId, departmentName, departmentCode, headId, teams: [...] }
+  // dept: DepartmentQueryDTO { departmentId, departmentName, departmentCode, headId, deptManager, teams: [...] }
   selectedDept.value     = dept
   selectedTeam.value     = null
   selectedEmployee.value = null
-  teamMembers.value      = []    // 팀원 목록 초기화
-  deptMembers.value      = []    // 부서원 목록 초기화
+  teamMembers.value      = []
+  deptMembers.value      = []
 
   // “소속된 팀” 목록 각각의 teamId로 /structure/teams/{teamId}/members 호출 후 합치기
   const promises = dept.teams.map(teamObj => {
@@ -431,7 +415,7 @@ async function onDeptSelected(dept) {
 // --- 팀 선택 핸들러 ---
 // OrgHierarchyAll 컴포넌트에서 @team-selected="onTeamSelected"
 async function onTeamSelected(team) {
-  // team: TeamQueryDTO { teamId, teamName, teamCode, departmentId, members: [...] }
+  // team: TeamQueryDTO { teamId, teamName, teamCode, departmentId, teamManager, members: [...] }
   selectedTeam.value     = team
   selectedDept.value     = null
   selectedEmployee.value = null
