@@ -1,56 +1,57 @@
 <template>
   <div class="team-work-status">
-    <!-- 1) 프로필 이미지 -->
     <img
-      :src="profileImg"
+      :src="profileImg || '/images/erpizza_profile.svg'"
       alt="프로필"
       class="avatar"
       @error="onImageError"
     />
-
-    <!-- 2) 사원 이름 / 직책 -->
     <div class="info">
-        <div class="role">{{ role }}</div>
-        <div class="name">{{ name }}</div>
+      <div class="role">{{ role }}</div>
+      <div class="name">{{ name }}</div>
     </div>
-
-        <!-- 3) 근무 상태 (badge) : 동적으로 클래스 추가 -->
-    <div :class="['status', statusClass]">
-      {{ status }}
+    <div :class="['status', badgeClass]">
+      {{ displayStatus }}
     </div>
   </div>
 </template>
 
 <script setup>
-  import { computed } from 'vue';
+import { computed } from 'vue'
 
-  const props = defineProps({
-    profileImg: { type: String, default: '' },
-    name:       { type: String, required: true },
-    role:       { type: String, required: true },
-    status:     { type: String, required: true }
-  });
+const props = defineProps({
+  profileImg: String,
+  name: String,
+  role: String,
+  status: String
+})
 
-  // 이미지 로딩에 실패할 경우, 기본(빈) 이미지로 대체하고자 한다면 아래처럼 작성할 수 있습니다.
-  //function onImageError(e) {
-  //e.target.src = '/img/default-profile.png'; // public 폴더에 적당한 기본 이미지 경로
-  //}
+const badgeClass = computed(() => {
+  switch (props.status) {
+    case '정상근무': return 'badge-근무중'
+    case '연차': return 'badge-연차'
+    case '오전반차':
+    case '오후반차': return 'badge-반차'
+    case '출장': return 'badge-출장'
+    case '외근': return 'badge-외근'
+    case '지각': return 'badge-지각'
+    case '결근': return 'badge-결근'
+    case '-': return 'badge-출근전'
+    default: return ''
+  }
+})
 
-  // status 값에 따라 badge용 클래스를 리턴
-  const statusClass = computed(() => {
-    switch (props.status) {
-      case '근무 중':       return 'badge-근무중';
-      case '연차':       return 'badge-연차';
-      case '오전반차':
-      case '오후반차':   return 'badge-반차';
-      case '출장':       return 'badge-출장';
-      case '외근':       return 'badge-외근';
-      case '지각':       return 'badge-지각';
-      case '결근':       return 'badge-결근';
-      case '-':       return 'badge-출근전';
-      default:           return '';
-    }
-  });
+const displayStatus = computed(() => {
+  switch (props.status) {
+    case '정상근무': return '근무 중'
+    default: return props.status
+  }
+})
+
+
+function onImageError(e) {
+  e.target.src = '/images/erpizza_profile.svg'
+}
 </script>
 
 <style scoped>

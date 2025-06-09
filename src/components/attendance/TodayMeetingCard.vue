@@ -14,8 +14,8 @@
       <tbody>
         <!-- 오늘 날짜에 해당되는 회의만 반복 렌더링 -->
         <tr v-for="(meeting, idx) in todayMeetings" :key="idx">
-          <td>{{ meeting.meeting_title }}</td>
-          <td>{{ meeting.meeting_time }}</td>
+          <td>{{ meeting.meetingTitle }}</td>
+          <td>{{ meeting.meetingTime }}</td>
         </tr>
       </tbody>
     </table>
@@ -23,28 +23,31 @@
 </template>
 
 <script setup>
-  import { ref, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 
-  // 오늘 날짜를 "YYYY-MM-DD" 형식으로 반환하는 헬퍼 함수
-  function getTodayString() {
-    const today = new Date()
-    const yyyy = today.getFullYear()
-    const mm = String(today.getMonth() + 1).padStart(2, '0')
-    const dd = String(today.getDate()).padStart(2, '0')
-    return `${yyyy}-${mm}-${dd}`
+const loading = ref(true)
+const todayMeetings = ref([])
+
+function getTodayString() {
+  const today = new Date()
+  const yyyy = today.getFullYear()
+  const mm = String(today.getMonth() + 1).padStart(2, '0')
+  const dd = String(today.getDate()).padStart(2, '0')
+  return `${yyyy}-${mm}-${dd}`
+}
+
+onMounted(async () => {
+  const token = localStorage.getItem('token')
+
+  if (!token) {
+    console.error('토큰이 없습니다. 로그인 후 다시 시도하세요.')
+    loading.value = false
+    return
   }
 
-  const loading = ref(true)
-  const allMeetings = ref([])
-  const todayMeetings = ref([])
-
-  onMounted(async () => {
   try {
-    const token = localStorage.getItem('accessToken')
-    const res = await fetch('http://localhost:8000/attendance/calendar/team', {
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
+    const res = await fetch('http://localhost:8000/attendance/meeting/today', {
+      headers: { Authorization: `Bearer ${token}` }
     })
 
     if (!res.ok) {
@@ -57,19 +60,16 @@
       throw new Error('API 응답이 배열이 아닙니다.')
     }
 
-    const meetings = data.filter(item => item.type === 'meeting')
-    allMeetings.value = meetings
-
-    const todayStr = getTodayString()
-    todayMeetings.value = meetings.filter(m => m.date === todayStr)
+    todayMeetings.value = data
   } catch (err) {
-    console.error('회의 일정 API 호출 실패:', err)
+    console.error('오늘 회의 일정 API 호출 실패:', err)
     todayMeetings.value = []
   } finally {
     loading.value = false
   }
 })
 </script>
+
 
 <style scoped>
   .meeting-event-card {
