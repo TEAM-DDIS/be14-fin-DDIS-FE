@@ -319,4 +319,16 @@ function downloadPDF() {
 @media print {
   .no-print { display: none !important; }
 }
+
+/* 항목 열 너비 고정 */
+.table th:first-child,
+.table td:first-child {
+  width: 50%;
+}
+
+/* 금액 열 우측 정렬 및 너비 고정 */
+.table th:last-child,
+.table td:last-child {
+  width: 50%;
+}
 </style>

@@ -25,7 +25,7 @@
 
     <!-- 목록 -->
     <p class="desc">퇴직금 지급 현황 목록</p>
-    <div class="section">
+    <div class="section" ref="listSection">
       <div class="filters-row" style="margin-bottom: 12px;">
         <div class="search-bar">
           <img src="@/assets/icons/search.svg" class="search" />
@@ -69,6 +69,7 @@ import axios from 'axios'
 import AgGrid from '@/components/grid/BaseGrid.vue'
 import RetirementModal from '@/components/salary/RetirementModal.vue'
 
+const listSection = ref(null)
 const searchKeyword = ref('')
 const provisionSituation = ref('')
 const dateRange = ref({ start: '', end: '' })
@@ -123,9 +124,15 @@ async function fetchRetirements() {
     })
     retirements.value = Array.isArray(data) ? data : []
     selectedSlip.value = null
+    scrollToList()
   } catch (e) {
     console.error('퇴직금 현황 조회 실패:', e)
   }
+}
+
+// 스크롤을 급여 내역 섹션으로 이동
+function scrollToList() {
+  listSection.value?.scrollIntoView({ behavior: 'smooth' })
 }
 
 function formatCurrency(params) {

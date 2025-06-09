@@ -221,11 +221,11 @@ const router = createRouter({
             component: () => import('@/pages/salary/PayrollSlipIssue.vue')
         },
 
-        // 예상 퇴직금 조회
-        // {
-        //     path: '/salary/retirement/estimate',
-        //     component: () => import('@/components/salary/retirement/RetirementEstimate.vue')
-        // },
+        // 예상 퇴직금 계산
+        {
+            path: '/salary/retirement/estimate',
+            component: () => import('@/pages/salary/RetirementEstimate.vue')
+        },
 
         // 퇴직금 지급 현황
         {
