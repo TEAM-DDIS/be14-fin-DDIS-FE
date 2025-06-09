@@ -82,6 +82,7 @@ async function onLogin() {
       throw new Error('아이디 또는 비밀번호를 확인하세요.')
     }
 
+
     // 3) 토큰 저장
     userStore.setAccessToken(token)
     localStorage.setItem('token', token)
