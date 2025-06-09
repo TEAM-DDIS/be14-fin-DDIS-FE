@@ -241,6 +241,12 @@ const router = createRouter({
             component: () => import('@/components/Evaluation/EvaluationPage.vue')
         },
 
+         // 내가 쓴 평가
+        {
+            path: '/org/myevaluation',
+            component: () => import('@/components/Evaluation/MyEvalsPage.vue')
+        },
+
         // 목표 설정
         {
             path: '/org/goals',
@@ -252,6 +258,9 @@ const router = createRouter({
             path: '/org/achievment',
             component: () => import('@/pages/achievment/AchievmentPage.vue')
         },
+
+
+       
         
 
         // =============== 공지사항 ===============

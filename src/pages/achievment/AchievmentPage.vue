@@ -85,8 +85,7 @@
       </div>
     </div>
   </div>
-
-  <button class="edit-button" @click="onEdit">편집</button>
+  
 </template>
 
 <script setup>
@@ -154,10 +153,6 @@ async function onEmployeeSelected(emp) {
   }
 }
 
-// 4) 편집
-function onEdit() {
-  router.push('/org/structure/edit')
-}
 
 // 프로필 테이블 데이터
 const profileRowData = computed(() => {
