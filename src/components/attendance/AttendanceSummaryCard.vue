@@ -18,8 +18,8 @@
     </p>
 
     <div class="time-info">
-      <p>출근 : {{ checkIn || '-' }}</p>
-      <p>퇴근 : {{ checkOut || '-' }}</p>
+      <p>출근 : {{ checkIn ? checkIn : '-' }}</p>
+      <p>퇴근 : {{ checkOut ? checkOut : '-' }}</p>
     </div>
 
     <div class="circle-box">
@@ -57,73 +57,146 @@
   </div>
 </template>
 
+
 <script setup>
-  import { ref, computed, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 
-  const props = defineProps({
-    name: { type: String, default: '김랑랑' },
-    position: { type: String, default: '사원' }
-  })
+// 상태
+const name = ref('')
+const position = ref('')
+const status = ref('')
+const checkIn = ref(null)
+const checkOut = ref(null)
+const isCheckedIn = ref(false)
+const workSeconds = ref(0)
+let timer = null
 
-  const checkIn = ref('')
-  const checkOut = ref('')
-  const isCheckedIn = ref(false)
-  const workSeconds = ref(0)
-  let timer = null
+// 현재 시각
+const now = () => new Date()
 
-  const formatTime = () => {
-    const now = new Date()
-    const pad = n => n.toString().padStart(2, '0')
-    return `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`
+// 서버 시간 받아오기 (출근/퇴근 기록 기반)
+onMounted(async () => {
+  const token = localStorage.getItem('token')
+  if (!token) {
+    console.error('토큰이 없습니다. 로그인 후 다시 시도하세요.')
+    return
   }
 
-  const formattedWorkTime = computed(() => {
-    const h = Math.floor(workSeconds.value / 3600)
-    const m = Math.floor((workSeconds.value % 3600) / 60)
-    const s = workSeconds.value % 60
-    const pad = n => n.toString().padStart(2, '0')
-    return `${pad(h)}:${pad(m)}:${pad(s)}`
-  })
+  try {
+    const res = await fetch('http://localhost:8000/attendance/status/me', {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    })
+    const data = await res.json()
 
-  const percent = computed(() => {
-    const base = 10 //8 * 3600  // 8시간 = 28800초
-    return Math.min((workSeconds.value / base) * 100, 100)
-  })
+    name.value = data.employeeName
+    position.value = data.rankName
+    status.value = convertStatusName(data.workStatusName)
+    checkIn.value = data.checkInTime
+    checkOut.value = data.checkOutTime
 
-  const status = computed(() => {
-    if (!isCheckedIn.value && !checkOut.value) return '출근 전'
-    if (isCheckedIn.value) return '근무 중'
-    return '근무 종료'
-  })
+    // 출근 상태면 타이머 시작
+    if (data.checkInTime && !data.checkOutTime) {
+      const [h, m, s] = data.checkInTime.split(':').map(Number)
+      const checkInTime = new Date()
+      checkInTime.setHours(h, m, s, 0)
 
-  const startTimer = () => {
-    timer = setInterval(() => {
-      workSeconds.value++
-    }, 1000)
-  }
-  const stopTimer = () => {
-    clearInterval(timer)
-    timer = null
-  }
+      const nineAM = new Date(checkInTime)
+      nineAM.setHours(9, 0, 0, 0)
 
-  const handleClick = () => {
-    const now = formatTime()
-    if (!isCheckedIn.value) {
-      checkIn.value = now
-      isCheckedIn.value = true
-      workSeconds.value = 0
-      startTimer()
-    } else {
-      checkOut.value = now
-      isCheckedIn.value = false
-      stopTimer()
+      const startTime = checkInTime < nineAM ? nineAM : checkInTime
+      const diffSec = Math.floor((now() - startTime) / 1000)
+
+      if (diffSec >= 0) {
+        workSeconds.value = diffSec
+        isCheckedIn.value = true
+        startTimer()
+      }
     }
-  }
 
-  onUnmounted(() => {
-    if (timer) stopTimer()
-  })
+  } catch (err) {
+    console.error('내 근무 현황 API 호출 실패:', err)
+  }
+})
+
+// 출근/퇴근 버튼
+const handleClick = () => {
+  const nowTime = now()
+  const hours = nowTime.getHours()
+  const minutes = nowTime.getMinutes()
+
+  if (!isCheckedIn.value) {
+    // 출근 제한 확인
+    if (hours > 11 || (hours === 11 && minutes >= 59)) {
+      alert('출근 가능 시간은 11:59까지입니다.')
+      return
+    }
+
+    checkIn.value = formatTime(nowTime)
+    isCheckedIn.value = true
+    status.value = '근무 중'
+    workSeconds.value = 0
+    startTimer()
+
+  } else {
+    // 퇴근 제한 확인
+    if (hours < 18) {
+      alert('퇴근은 18:00 이후에 가능합니다.')
+      return
+    }
+
+    checkOut.value = formatTime(nowTime)
+    isCheckedIn.value = false
+    stopTimer()
+    status.value = '근무 종료'
+  }
+}
+
+// 시간 포맷
+const formatTime = time => {
+  const pad = n => n.toString().padStart(2, '0')
+  return `${pad(time.getHours())}:${pad(time.getMinutes())}:${pad(time.getSeconds())}`
+}
+
+// 타이머
+const startTimer = () => {
+  timer = setInterval(() => {
+    workSeconds.value++
+  }, 1000)
+}
+
+const stopTimer = () => {
+  clearInterval(timer)
+  timer = null
+}
+
+onUnmounted(() => {
+  if (timer) stopTimer()
+})
+
+// 근무 시간
+const formattedWorkTime = computed(() => {
+  const h = Math.floor(workSeconds.value / 3600)
+  const m = Math.floor((workSeconds.value % 3600) / 60)
+  const s = workSeconds.value % 60
+  const pad = n => n.toString().padStart(2, '0')
+  return `${pad(h)}:${pad(m)}:${pad(s)}`
+})
+
+const percent = computed(() => {
+  const base = 8 * 3600
+  return Math.min((workSeconds.value / base) * 100, 100)
+})
+
+// 백엔드 status 값 → 프론트 표시값 변환
+function convertStatusName(status) {
+  if (status === '정상근무') return '근무 중'
+  if (status === null || status === '-') return '출근 전'
+  return status
+}
 </script>
+
 
 <style scoped>
   .attendance-summary-card {

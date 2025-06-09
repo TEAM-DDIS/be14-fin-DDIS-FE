@@ -4,7 +4,7 @@
         <div class="left-panel">
             <div class="team-work-status-card">
                 <span class="desc">팀 근무 현황</span>
-                <TeamWorkStatusCard teamName="PC개발팀"/>
+                <TeamWorkStatusCard/>
             </div>
             <div class="meeting-event-card">
                 <span class="desc">오늘 회의 일정</span>

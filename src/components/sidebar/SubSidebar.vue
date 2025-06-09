@@ -208,7 +208,7 @@
             '퇴직 관리': {
                 items: [
                     { 
-                        name: '예상 퇴직금 조회', 
+                        name: '예상 퇴직금 계산', 
                         path: '/salary/retirement/estimate' 
                     },
                     { 

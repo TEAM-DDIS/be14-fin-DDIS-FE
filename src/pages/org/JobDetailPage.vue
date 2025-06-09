@@ -316,7 +316,7 @@ function saveEdit(updated) {
 .job-card {
   background: #ffffff;
   max-width: 800px;
-  width: 100%;
+  width: 80%;
   border-radius: 12px;
   padding: 20px 30px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);

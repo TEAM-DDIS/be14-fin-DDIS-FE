@@ -1,7 +1,7 @@
 <!-- src/components/EditJobModal.vue -->
 <template>
   <div class="modal-overlay" @click.self="$emit('close')">
-    <div class="modal">
+    <div class="modal scrollbar">
       <h3>직무 정보 편집</h3>
       <div class="modal-content">
         <label>팀명</label>
@@ -109,7 +109,12 @@ function onSave() {
   border-radius: 8px;
   width: 480px;
   max-width: 90%;
+  height: 80%;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+  overflow-y: auto;
+}
+.scrollbar {
+  scrollbar-width: none;
 }
 .modal-content {
   display: flex;
