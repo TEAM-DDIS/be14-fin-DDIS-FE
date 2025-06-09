@@ -64,15 +64,22 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 // 상태
 const name = ref('')
 const position = ref('')
-const status = ref('')
 const checkIn = ref(null)
 const checkOut = ref(null)
 const isCheckedIn = ref(false)
 const workSeconds = ref(0)
 let timer = null
+let checkInDate = null
 
 // 현재 시각
 const now = () => new Date()
+
+// 테스트 시각
+// const now = () => {
+//   const test = new Date()
+//   test.setHours(12, 30, 0, 0)
+//   return test
+// }
 
 // 서버 시간 받아오기 (출근/퇴근 기록 기반)
 onMounted(async () => {
@@ -92,7 +99,6 @@ onMounted(async () => {
 
     name.value = data.employeeName
     position.value = data.rankName
-    status.value = convertStatusName(data.workStatusName)
     checkIn.value = data.checkInTime
     checkOut.value = data.checkOutTime
 
@@ -101,18 +107,28 @@ onMounted(async () => {
       const [h, m, s] = data.checkInTime.split(':').map(Number)
       const checkInTime = new Date()
       checkInTime.setHours(h, m, s, 0)
+      checkInDate = checkInTime
 
-      const nineAM = new Date(checkInTime)
+      const nowTime = now()
+      const nineAM = new Date()
       nineAM.setHours(9, 0, 0, 0)
 
       const startTime = checkInTime < nineAM ? nineAM : checkInTime
-      const diffSec = Math.floor((now() - startTime) / 1000)
+      let elapsed = Math.floor((nowTime - startTime) / 1000)
 
-      if (diffSec >= 0) {
-        workSeconds.value = diffSec
-        isCheckedIn.value = true
-        startTimer()
+      // 점심시간 제외 계산
+      const noonStart = new Date()
+      noonStart.setHours(12, 0, 0, 0)
+      const noonEnd = new Date()
+      noonEnd.setHours(13, 0, 0, 0)
+
+      if (checkInTime < noonStart && nowTime >= noonEnd) {
+        elapsed -= 3600
       }
+
+      workSeconds.value = Math.max(elapsed, 0)
+      isCheckedIn.value = true
+      startTimer()
     }
 
   } catch (err) {
@@ -127,7 +143,6 @@ const handleClick = () => {
   const minutes = nowTime.getMinutes()
 
   if (!isCheckedIn.value) {
-    // 출근 제한 확인
     if (hours > 11 || (hours === 11 && minutes >= 59)) {
       alert('출근 가능 시간은 11:59까지입니다.')
       return
@@ -135,12 +150,10 @@ const handleClick = () => {
 
     checkIn.value = formatTime(nowTime)
     isCheckedIn.value = true
-    status.value = '근무 중'
     workSeconds.value = 0
     startTimer()
 
   } else {
-    // 퇴근 제한 확인
     if (hours < 18) {
       alert('퇴근은 18:00 이후에 가능합니다.')
       return
@@ -149,7 +162,6 @@ const handleClick = () => {
     checkOut.value = formatTime(nowTime)
     isCheckedIn.value = false
     stopTimer()
-    status.value = '근무 종료'
   }
 }
 
@@ -159,10 +171,34 @@ const formatTime = time => {
   return `${pad(time.getHours())}:${pad(time.getMinutes())}:${pad(time.getSeconds())}`
 }
 
-// 타이머
+// 타이머 시작
 const startTimer = () => {
+  if (!checkIn.value) return
+
+  const [h, m, s] = checkIn.value.split(':').map(Number)
+  checkInDate = new Date()
+  checkInDate.setHours(h, m, s, 0)
+
   timer = setInterval(() => {
-    workSeconds.value++
+    const nowTime = now()
+
+    const noonStart = new Date()
+    noonStart.setHours(12, 0, 0, 0)
+    const noonEnd = new Date()
+    noonEnd.setHours(13, 0, 0, 0)
+
+    const nineAM = new Date()
+    nineAM.setHours(9, 0, 0, 0)
+    const startTime = checkInDate < nineAM ? nineAM : checkInDate
+
+    if (nowTime >= noonStart && nowTime < noonEnd) return
+
+    let elapsed = Math.floor((nowTime - startTime) / 1000)
+    if (checkInDate < noonStart && nowTime >= noonEnd) {
+      elapsed -= 3600
+    }
+
+    workSeconds.value = elapsed
   }, 1000)
 }
 
@@ -175,7 +211,25 @@ onUnmounted(() => {
   if (timer) stopTimer()
 })
 
-// 근무 시간
+// 근무 상태 계산 (점심시간 포함)
+const status = computed(() => {
+  const nowTime = now()
+
+  const noonStart = new Date()
+  noonStart.setHours(12, 0, 0, 0)
+  const noonEnd = new Date()
+  noonEnd.setHours(13, 0, 0, 0)
+
+  if (isCheckedIn.value && nowTime >= noonStart && nowTime < noonEnd) {
+    return '점심 시간'
+  }
+
+  if (!isCheckedIn.value && !checkOut.value) return '출근 전'
+  if (isCheckedIn.value) return '근무 중'
+  return '근무 종료'
+})
+
+// 근무 시간 포맷
 const formattedWorkTime = computed(() => {
   const h = Math.floor(workSeconds.value / 3600)
   const m = Math.floor((workSeconds.value % 3600) / 60)
@@ -184,19 +238,12 @@ const formattedWorkTime = computed(() => {
   return `${pad(h)}:${pad(m)}:${pad(s)}`
 })
 
+// 퍼센트 계산
 const percent = computed(() => {
   const base = 8 * 3600
   return Math.min((workSeconds.value / base) * 100, 100)
 })
-
-// 백엔드 status 값 → 프론트 표시값 변환
-function convertStatusName(status) {
-  if (status === '정상근무') return '근무 중'
-  if (status === null || status === '-') return '출근 전'
-  return status
-}
 </script>
-
 
 <style scoped>
   .attendance-summary-card {
