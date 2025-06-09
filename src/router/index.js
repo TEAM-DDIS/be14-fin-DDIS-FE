@@ -247,11 +247,11 @@ const router = createRouter({
             component: () => import('@/components/Goals/GoalListPage.vue')
         },
 
-        // 성과 이력
-        // {
-        //     path: '/org/achievment',
-        //     component: () => import('@/')
-        // },
+        //성과 이력
+        {
+            path: '/org/achievment',
+            component: () => import('@/pages/achievment/AchievmentPage.vue')
+        },
         
 
         // =============== 공지사항 ===============
