@@ -323,7 +323,10 @@ function generateMonthData(retireDateStr) {
   flex-direction: column;
   height: 100vh;
 }
-
+.month-days{
+  color: #666 !important;
+  font-size: 14px !important;
+}
 /* 상단 제목 스타일 */
 .total-title {
   margin-left: 20px;
@@ -355,7 +358,10 @@ function generateMonthData(retireDateStr) {
   font-size: 18px;
   display: block;
 }
-
+.highlight{
+  color: #00a8e8;
+  font-weight: bold;
+}
 /* 좌우 패널 전체 영역 */
 .panels {
   flex: 1;
@@ -496,7 +502,7 @@ label {
 .salary-row {
   display: flex;
   justify-content: space-between;
-  padding-bottom: 15px;
+  padding-bottom: 20px;
 }
 .month-info p {
   margin: 2px 0;
@@ -524,10 +530,10 @@ label {
   color: #444;
 }
 .total-days {
-  color: #888;
+  color: #00a8e8;
   font-size: 0.9rem;
-  margin-bottom: 4px;
-  margin-top: -20px;
+  margin-bottom: -30px;
+  margin-top: -30px;
 }
 .final-label {
   font-weight: bold;
