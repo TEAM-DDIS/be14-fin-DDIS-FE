@@ -14,8 +14,8 @@
       <tbody>
         <!-- 오늘 날짜에 해당되는 회의만 반복 렌더링 -->
         <tr v-for="(meeting, idx) in todayMeetings" :key="idx">
-          <td>{{ meeting.meeting_title }}</td>
-          <td>{{ meeting.meeting_time }}</td>
+          <td>{{ meeting.meetingTitle }}</td>
+          <td>{{ meeting.meetingTime }}</td>
         </tr>
       </tbody>
     </table>
@@ -23,39 +23,53 @@
 </template>
 
 <script setup>
-  import { ref, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 
-  // 오늘 날짜를 "YYYY-MM-DD" 형식으로 반환하는 헬퍼 함수
-  function getTodayString() {
-    const today = new Date()
-    const yyyy = today.getFullYear()
-    const mm = String(today.getMonth() + 1).padStart(2, '0')
-    const dd = String(today.getDate()).padStart(2, '0')
-    return `${yyyy}-${mm}-${dd}`
+const loading = ref(true)
+const todayMeetings = ref([])
+
+function getTodayString() {
+  const today = new Date()
+  const yyyy = today.getFullYear()
+  const mm = String(today.getMonth() + 1).padStart(2, '0')
+  const dd = String(today.getDate()).padStart(2, '0')
+  return `${yyyy}-${mm}-${dd}`
+}
+
+onMounted(async () => {
+  const token = localStorage.getItem('token')
+
+  if (!token) {
+    console.error('토큰이 없습니다. 로그인 후 다시 시도하세요.')
+    loading.value = false
+    return
   }
 
-  const loading = ref(true)
-  const allMeetings = ref([])
-  const todayMeetings = ref([])
+  try {
+    const res = await fetch('http://localhost:8000/attendance/meeting/today', {
+      headers: { Authorization: `Bearer ${token}` }
+    })
 
-  onMounted(async () => {
-    try {
-      // public/attendance.json 안의 meetings 배열을 불러옵니다.
-      const res = await fetch('/attendance.json')
-      const obj = await res.json()
-      allMeetings.value = obj.meetings || []
-      const todayStr = getTodayString()
-
-      // meetings 중 오늘 날짜에 해당하는 것만 필터링
-      todayMeetings.value = allMeetings.value.filter(item => item.meeting_date === todayStr)
-    } catch (err) {
-      console.error('attendance.json의 meetings 로드 실패:', err)
-      todayMeetings.value = []
-    } finally {
-      loading.value = false
+    if (!res.ok) {
+      throw new Error(`HTTP ${res.status} - ${res.statusText}`)
     }
-  })
+
+    const data = await res.json()
+
+    if (!Array.isArray(data)) {
+      throw new Error('API 응답이 배열이 아닙니다.')
+    }
+
+    todayMeetings.value = data
+  } catch (err) {
+    console.error('오늘 회의 일정 API 호출 실패:', err)
+    todayMeetings.value = []
+  } finally {
+    loading.value = false
+  }
+})
 </script>
+
 
 <style scoped>
   .meeting-event-card {
