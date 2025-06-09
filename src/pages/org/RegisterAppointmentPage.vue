@@ -96,6 +96,7 @@ const form = reactive({
     departmentId: null,
     teamId: null,
     jobId: null,
+    jobCode: null,
     positionCode: null,
     rankCode: null
   },
@@ -127,6 +128,9 @@ const jobsNew = ref([])
 const positionsNew = ref([])
 const ranksNew     = ref([])
 
+const employeeCache = reactive(new Map())
+
+
 // 초기 전체 계층 로드
 onMounted(async () => {
   const res = await axios.get('http://localhost:8000/structure/heads')
@@ -149,27 +153,38 @@ onMounted(async () => {
 // Employee 정보 로드
 async function loadEmployeeInfo() {
   if (!form.name) return
-  try {
-    const res = await axios.get(`http://localhost:8000/introduction/employee/${form.name}`)
-    const emp = res.data
-    // 조직 정보 채우기
-    form.currentOrg.headId        = emp.headId
-    form.currentOrg.departmentId  = emp.departmentId
-    form.currentOrg.teamId        = emp.teamId
-    form.currentOrg.jobId         = emp.jobId
-    form.currentOrg.positionCode  = emp.positionCode
-    form.currentOrg.rankCode      = emp.rankCode
-    // 리스트 항목 세팅
-    jobsCurrent.value = [{ jobId: emp.jobId, jobName: emp.jobName, jobCode: emp.jobCode }]
-    positionsCurrent.value = [{ positionCode: emp.positionCode, positionName: emp.positionName }]
-    ranksCurrent.value     = [{ rankCode: emp.rankCode, rankName: emp.rankName }]
-    // 그리드 리프레시
-    await nextTick()
-    gridApi.value.refreshCells({ columns: ['current'], force: true })
-  } catch (e) {
-    console.error('직원 정보 로드 실패', e)
+
+  const id = String(form.name)
+  let emp = employeeCache.get(id)
+
+  if (!emp) {
+    try {
+      const res = await axios.get(`http://localhost:8000/introduction/employee/${id}`)
+      emp = res.data
+      employeeCache.set(id, emp)     // 캐시에 저장
+    } catch {
+      alert('사원정보를 불러오는 중 오류가 발생했습니다.')
+      return
+    }
   }
+
+  // emp 가 확보됐으면, 기존 로직 수행
+  form.currentOrg.headId       = emp.headId
+  form.currentOrg.departmentId = emp.departmentId
+  form.currentOrg.teamId       = emp.teamId
+  form.currentOrg.jobId        = emp.jobId
+  form.currentOrg.jobCode      = emp.jobCode
+  form.currentOrg.positionCode = emp.positionCode
+  form.currentOrg.rankCode     = emp.rankCode
+
+  jobsCurrent.value = [{ jobId: emp.jobId, jobName: emp.jobName, jobCode: emp.jobCode }]
+  positionsCurrent.value = [{ positionCode: emp.positionCode, positionName: emp.positionName }]
+  ranksCurrent.value     = [{ rankCode: emp.rankCode, rankName: emp.rankName }]
+
+  await nextTick()
+  gridApi.value.refreshCells({ columns: ['current'], force: true })
 }
+
 
 const filteredDepartmentsCurrent = computed(() =>
   dataStore.department.filter(d => d.headId === form.currentOrg.headId)
@@ -343,10 +358,17 @@ function makeSelect(params, context) {
     const opt = new Option(item[labelKey], item[idKey])
     if (String(item[idKey]) === String(form[context][idKey])) opt.selected = true
     sel.appendChild(opt)
-  })
+  });
+
+  sel.value = form[context][idKey] || '';
 
   sel.onchange = e => {
-    form[context][idKey] = e.target.value ? e.target.value : null
+        form[context][idKey] = e.target.value || null
+    // **jobCode, positionCode, rankCode** 도 함께 세팅
+    if (context === 'currentOrg' && key === 'job') {
+      const chosen = list.find(x => String(x[idKey]) === e.target.value)
+      form.currentOrg.jobCode = chosen?.jobCode || null
+    }
     gridApi.value.refreshCells({ force: true })
   }
 
@@ -362,8 +384,112 @@ function onGridReady(params) {
 }
 
 async function submit() {
-  // ...
+  // 0) 직원 정보 준비 여부 확인
+  if (!form.currentOrg.jobId) {
+    alert('직원 정보가 아직 로드되지 않았습니다.\n사원번호 입력 후 잠시 기다려주세요.');
+    return;
+  }
+
+  try {
+    // --- 1) employeeId, 기본 정보 ---
+    const employeeId = Number(form.name);
+    const appointmentReason = form.title;
+    const appointmentType = form.type;
+    const appointmentEffectiveDate = form.effectiveDate;
+
+    // --- 2) helper: id → code ---
+    const findById = (arr, idKey, codeKey) => id => {
+      const it = arr.find(x => String(x[idKey]) === String(id));
+      return it ? it[codeKey] : null;
+    };
+
+    // currentOrg 코드 매핑 함수들
+    const headCodeFrom     = findById(dataStore.headquarters, 'headId', 'headCode');
+    const deptCodeFrom     = findById(dataStore.department,    'departmentId', 'departmentCode');
+    const teamCodeFrom     = findById(dataStore.team,          'teamId', 'teamCode');
+    const jobCodeFrom      = findById(jobsCurrent.value,       'jobId', 'jobCode');      // ← 여기!
+    const positionCodeFrom = findById(positionsCurrent.value,  'positionCode', 'positionCode');
+    const rankCodeFrom     = findById(ranksCurrent.value,      'rankCode', 'rankCode');
+
+    // org (to) 코드 매핑 함수들
+    const headCodeTo       = findById(orgHeads.value,         'headId', 'headCode');
+    const deptCodeTo       = findById(departmentsNew.value,   'departmentId', 'departmentCode');
+    const teamCodeTo       = findById(teamsNew.value,         'teamId', 'teamCode');
+    const jobCodeTo        = findById(jobsNew.value,          'jobId', 'jobCode');
+    const positionCodeTo   = findById(positionsNew.value,     'positionCode', 'positionCode');
+    const rankCodeTo       = findById(ranksNew.value,         'rankCode', 'rankCode');
+
+    // --- 3) payload 조립 ---
+    const payload = {
+      // employeeId,
+
+      // fromHeadCode:       headCodeFrom(form.currentOrg.headId),
+      // fromDepartmentCode: deptCodeFrom(form.currentOrg.departmentId),
+      // fromTeamCode:       teamCodeFrom(form.currentOrg.teamId),
+      // fromJobCode:        jobCodeFrom(form.currentOrg.jobId),         // ← 여기!
+      // fromPositionCode:   positionCodeFrom(form.currentOrg.positionCode),
+      // fromRankCode:       rankCodeFrom(form.currentOrg.rankCode),
+
+      // toHeadCode:         headCodeTo(form.org.headId),
+      // toDepartmentCode:   deptCodeTo(form.org.departmentId),
+      // toTeamCode:         teamCodeTo(form.org.teamId),
+      // toJobCode:          jobCodeTo(form.org.jobId),
+      // toPositionCode:     positionCodeTo(form.org.positionCode),
+      // toRankCode:         rankCodeTo(form.org.rankCode),
+
+      // appointmentReason,
+      // appointmentType,
+      // appointmentEffectiveDate,
+
+      // // NotNull 제약 채우기
+      // appointmentStatus: '대기',
+      // isApplied: false
+
+      employeeId: Number(form.name),
+      appointmentReason: form.title,
+      appointmentType: form.type,
+      appointmentEffectiveDate: form.effectiveDate,
+
+      // 3) “from” 조직 코드는 이미 로드 시점에 채워둔 jobCode, positionCode, rankCode를 바로 사용
+      fromHeadCode:       dataStore.headquarters.find(h => h.headId === form.currentOrg.headId)?.headCode     || null,
+      fromDepartmentCode: dataStore.department   .find(d => d.departmentId === form.currentOrg.departmentId)?.departmentCode || null,
+      fromTeamCode:       dataStore.team         .find(t => t.teamId === form.currentOrg.teamId)?.teamCode     || null,
+      fromJobCode:        form.currentOrg.jobCode,     // ← 여기만 직접 꺼내 쓰면 null 이 안 됩니다
+      fromPositionCode:   form.currentOrg.positionCode,
+      fromRankCode:       form.currentOrg.rankCode,
+
+      // 4) “to” 조직 코드는 findById 를 써도 좋습니다
+      toHeadCode:         orgHeads.value.find(h => h.headId === form.org.headId)?.headCode                 || null,
+      toDepartmentCode:   departmentsNew.value.find(d => d.departmentId === form.org.departmentId)?.departmentCode || null,
+      toTeamCode:         teamsNew.value.find(t => t.teamId === form.org.teamId)?.teamCode                 || null,
+      toJobCode:          jobsNew.value.find(j => j.jobId === form.org.jobId)?.jobCode                    || null,
+      toPositionCode:     form.org.positionCode,
+      toRankCode:         form.org.rankCode,
+
+      // 5) NotNull 제약 채우기
+      appointmentStatus: '대기',
+      isApplied: false
+    };
+
+    // --- 4) API 호출 ---
+    await axios.post('http://localhost:8000/appointment/create', payload);
+
+    alert('등록 성공!');
+    router.back();
+
+  } catch (err) {
+    console.error('등록 실패', err);
+    alert('등록 중 오류가 발생했습니다.');
+  }
 }
+
+
+// 코드 찾기 헬퍼
+const findCode = (arr, id, codeKey) => {
+  const it = arr.find(x => String(Object.values(x)[0]) === String(id))
+  return it ? it[codeKey] : null
+}
+
 
 function cancel() {
   router.back()
