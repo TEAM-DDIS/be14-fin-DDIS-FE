@@ -154,7 +154,7 @@ const router = createRouter({
             component: () => import('@/pages/org/RegisterAppointmentPage.vue')
         },
         {
-            path: '/org/appointment/:appointmentId',
+            path: '/org/appointment/:appointmentHistoryId',
             component: () => import('@/pages/org/AppointmentDetailPage.vue')
         },
 
