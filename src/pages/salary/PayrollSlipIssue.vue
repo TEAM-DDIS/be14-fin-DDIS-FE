@@ -616,4 +616,17 @@ ag-grid 헤더 색상 커스터마이징
   justify-content: flex-end;
   margin-top: 16px;
 }
+
+
+/* 항목 열 너비 고정 */
+.table th:first-child,
+.table td:first-child {
+  width: 50%;
+}
+
+/* 금액 열 우측 정렬 및 너비 고정 */
+.table th:last-child,
+.table td:last-child {
+  width: 50%;
+}
 </style>
