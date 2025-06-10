@@ -173,7 +173,8 @@ const profileRowData = computed(() => {
   return [
     { label: '이름', value: e.employeeName },
     { label: '직급', value: e.rankName },
-    { label: '사번', value: e.employeeId }
+    { label: '사번', value: e.employeeId },
+    { label: '생년월일', value: e.birthdate || '-' }
   ]
 })
 
