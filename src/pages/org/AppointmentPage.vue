@@ -21,16 +21,15 @@
           placeholder="사원번호"
           v-model="filterEmployee"
         />
-        <!-- <button class="action-btn primary" @click="onSearch">
-          <i class="fa fa-search"></i> 조회
-        </button> -->
       </div>
       <div class="actions">
-        <button class="action-btn secondary" @click="onDelete">
-          <i class="fa fa-trash"></i> 삭제
-        </button>
-        <button class="action-btn primary" @click="goToRegister">
-          <i class="fa fa-plus"></i> 등록
+        <!-- selectedCount가 0이면 등록, 아니면 삭제 -->
+        <button
+          :class="['action-btn', selectedCount > 0 ? 'delete' : 'register']"
+          @click="selectedCount > 0 ? onDelete() : goToRegister()"
+        >
+          <i :class="selectedCount > 0 ? 'fa fa-trash' : 'fa fa-plus'"></i>
+          {{ selectedCount > 0 ? '삭제' : '등록' }}
         </button>
       </div>
     </div>
@@ -38,7 +37,7 @@
     <div class="grid-wrapper">
       <BaseGrid
         class="ag-theme-alpine custom-theme"
-        :gridOptions="{ theme: 'legacy' }"
+        :gridOptions="gridOptions"
         :columnDefs="columnDefs"
         :rowData="filteredData"
         width="100%"
@@ -53,41 +52,35 @@
 </template>
 
 <script setup>
-  import { ModuleRegistry, AllCommunityModule } from 'ag-grid-community'
-  import { ref, computed, onMounted, watch } from 'vue'
-  import { useRouter } from 'vue-router'
+import { ModuleRegistry, AllCommunityModule } from 'ag-grid-community'
+import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import BaseGrid from '@/components/grid/BaseGrid.vue'
+import detailIconUrl from '@/assets/icons/detail_appointment.svg'
 
-  import BaseGrid from '@/components/grid/BaseGrid.vue'
-  import detailIconUrl from '@/assets/icons/detail_appointment.svg'
+ModuleRegistry.registerModules([AllCommunityModule])
 
-  const router = useRouter()
-
-  // AG Grid 모듈 등록
-  ModuleRegistry.registerModules([AllCommunityModule])
-
-// API 베이스 URL
-const API_BASE = 'http://localhost:8000/appointment-history'
-
-// 필터 상태
+const API_BASE        = 'http://localhost:8000/appointment-history'
 const selectedType    = ref('')
-const filterEmployee = ref('')
+const filterEmployee  = ref('')
+const rowData         = ref([])
+const selectedCount   = ref(0)      // ← 선택된 행 개수
+let gridApi           = null
+const router          = useRouter()
 
-// 그리드 로우 데이터 저장
-const rowData = ref([])
-let gridApi = null
-
-// 등록 페이지로 이동
-function goToRegister() {
-  router.push('/org/appointment/register')
+// 그리드 옵션 (checkbox 포함)
+const gridOptions = {
+  theme: 'legacy',
+  rowSelection: 'multiple',
+  // 체크박스는 컬럼 정의에서 checkboxSelection:true 로 처리
 }
 
-// AG Grid 컬럼 정의 (변경 없음)
 const columnDefs = [
-  { headerName: '번호', field: 'appointment_id', width: 90, checkboxSelection: true },
-  { headerName: '사원번호', field: 'employee_id', flex: 1 },
-  { headerName: '발령사유', field: 'appointment_reason', flexed:1},
-  { headerName: '발령유형', field: 'appointment_type', flex: 1 },
-  { headerName: '발령일자', field: 'appointment_effective_date', flex: 1 },
+  { headerName: '번호',     field: 'appointmentHistoryId', width: 90, checkboxSelection: true },
+  { headerName: '사원번호', field: 'employeeId',             flex: 1 },
+  { headerName: '발령사유', field: 'appointmentReason',      flex: 1 },
+  { headerName: '발령유형', field: 'appointmentType',        flex: 1 },
+  { headerName: '발령일자', field: 'appointmentEffectiveDate', flex: 1 },
   {
     headerName: '상세',
     field: 'detail',
@@ -96,7 +89,6 @@ const columnDefs = [
   }
 ]
 
-// 서버에서 데이터 불러오는 함수
 async function loadData(endpoint = 'approved') {
   try {
     const res = await fetch(`${API_BASE}/${endpoint}`)
@@ -107,49 +99,41 @@ async function loadData(endpoint = 'approved') {
   }
 }
 
-// onMounted 시 기본 approved 목록 로드
 onMounted(loadData)
 
-// 필터가 바뀔 때마다 적절한 엔드포인트로 다시 호출
-watch([selectedType, filterEmployee], ([type, emp]) => {
-  if (type) {
-    loadData(`type/${encodeURIComponent(type)}`)
-  }
-  else if (emp) {
-    loadData(`employee/${emp}`)
-  }
-  else {
-    loadData('approved')
-  }
-})
-
+// 필터링
 const filteredData = computed(() =>
-  rowData.value.filter(item => {
-    const matchType = !selectedType.value || item.appointment_type === selectedType.value
-    const matchEmp  = !filterEmployee.value || 
-                      item.employee_id.toString().includes(filterEmployee.value)
-    return matchType && matchEmp
-  })
+  rowData.value.filter(item =>
+    (!selectedType.value || item.appointmentType === selectedType.value) &&
+    (!filterEmployee.value || item.employeeId.toString().includes(filterEmployee.value))
+  )
 )
 
-// AG Grid 준비 시 API 저장
+// 그리드 준비 시 API 저장 및 selectionChanged 이벤트 등록
 function onGridReady(params) {
   gridApi = params.api
+  gridApi.addEventListener('selectionChanged', () => {
+    selectedCount.value = gridApi.getSelectedRows().length
+  })
 }
 
-// 행 삭제 (예시)
+// 삭제
 function onDelete() {
-  const selected = gridApi.getSelectedRows()
-  alert(`${selected.length}건 삭제 예정`)
+  const count = gridApi.getSelectedRows().length
+  alert(`${count}건 삭제 예정`)
+}
+
+// 등록 페이지로 이동
+function goToRegister() {
+  router.push('/org/appointment/register')
 }
 
 // 상세 버튼 클릭
 function onCellClick(e) {
   if (e.colDef.field === 'detail') {
-    router.push(`/org/appointment/${e.data.appointment_id}`)
+    router.push(`/org/appointment/${e.data.appointmentHistoryId}`)
   }
 }
-
 </script>
 
 <style scoped>
@@ -223,7 +207,7 @@ function onCellClick(e) {
   }
 
 
-  .action-btn.primary {
+  .action-btn.register {
   font-size: 14px;
   font-weight: bold;
   cursor: pointer;
@@ -239,30 +223,31 @@ function onCellClick(e) {
   box-sizing: border-box;
 }
 
-  .action-btn.primary:hover {
+  .action-btn.register:hover {
   background-color: white;
   color: #00a8e8;
   border-color: #00a8e8;
   box-shadow:
   inset 1px 1px 10px rgba(0, 0, 0, 0.25);
 }
-  .action-btn.secondary {
+  .action-btn.delete {
     background-color: #D3D3D3;
     color: #000;
-    border: none;
-    border-radius: 10px;
-    padding: 10px 30px;
+    font-size: 14px;
     font-weight: bold;
     cursor: pointer;
+    font-family: inherit;
+    border: 1px solid transparent;
+    border-radius: 10px;
+    padding: 10px 30px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
     transition: background-color 0.2s, box-shadow 0.2s;
     box-sizing: border-box;
   }
-  .action-btn.secondary:hover {
+  .action-btn.delete:hover {
     background-color: #000;
     color: #fff;
   }
-
 
   .detail-btn {
     background: none;

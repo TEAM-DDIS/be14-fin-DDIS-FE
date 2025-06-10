@@ -247,16 +247,18 @@
     <!-- 신규 조직 등록 모달 -->
     <AddModal
       v-if="showAddModal"
+      :show="showAddModal"
       :orgOptions="orgOptions"
-      @close="closeAddModal"
+      :headOptions="dataStore.headquarters"
+      :deptOptions="dataStore.departments"
       @submit="handleAddOrg"
+      @close="showAddModal = false"
     />
 
     <!-- 조직 삭제 모달 -->
     <DeleteModal
       v-if="showDeleteModal"
       :orgOptions="orgOptions"
-      :initialType="deleteType"
       :deleteListAll="deleteListAll"
       @close="closeDeleteModal"
       @confirm="handleDeleteOrg"
@@ -266,6 +268,8 @@
 
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
+import axios from 'axios'
+
 import OrgHierarchyAll from '@/components/org/structure/HierarchyAll.vue'
 import EditHierarchy from '@/components/org/structure/EditHierarchy.vue'
 import AddModal from '@/components/org/structure/AddModal.vue'
@@ -306,7 +310,7 @@ const showDeleteModal = ref(false)
 // 조직 종류 옵션 (“본부/부서/팀”)
 const orgOptions = [
   { id: 'head', name: '본부' },
-  { id: 'dept', name: '부서' },
+  { id: 'department', name: '부서' },
   { id: 'team', name: '팀' }
 ]
 
@@ -318,9 +322,9 @@ const deleteListAll = computed(() => {
       value: hq.headId,
       label: `${hq.headName} (코드: ${hq.headCode || ''})`
     })),
-    dept: dataStore.departments.map(dept => ({
-      value: dept.departmentId,
-      label: `${dept.departmentName} (코드: ${dept.departmentCode})`
+    department: dataStore.departments.map(department => ({
+      value: department.departmentId,
+      label: `${department.departmentName} (코드: ${department.departmentCode})`
     })),
     team: dataStore.teams.map(tm => ({
       value: tm.teamId,
@@ -385,7 +389,6 @@ onMounted(async () => {
 // --- 부서 선택 핸들러 ---
 // OrgHierarchyAll 컴포넌트에서 @dept-selected="onDeptSelected"
 async function onDeptSelected(dept) {
-  // dept: DepartmentQueryDTO { departmentId, departmentName, departmentCode, headId, deptManager, teams: [...] }
   selectedDept.value     = dept
   selectedTeam.value     = null
   selectedEmployee.value = null
@@ -415,7 +418,6 @@ async function onDeptSelected(dept) {
 // --- 팀 선택 핸들러 ---
 // OrgHierarchyAll 컴포넌트에서 @team-selected="onTeamSelected"
 async function onTeamSelected(team) {
-  // team: TeamQueryDTO { teamId, teamName, teamCode, departmentId, teamManager, members: [...] }
   selectedTeam.value     = team
   selectedDept.value     = null
   selectedEmployee.value = null
@@ -531,13 +533,46 @@ function searchOrg() {
 function openAddModal() {
   showAddModal.value = true
 }
-function closeAddModal() {
-  showAddModal.value = false
-}
-function handleAddOrg(payload) {
-  console.log('신규 조직 등록 →', payload)
-  // TODO: 실제 등록 API 호출 후 dataStore 갱신
-  showAddModal.value = false
+
+// 모달 submit 핸들러
+async function handleAddOrg({ type, name, parentId }) {
+  try {
+    let res
+    if (type === 'head') {
+      res = await axios.post('http://localhost:8000/org/create/head', { headName: name })
+      dataStore.headquarters.push(res.data)
+    }
+    else if (type === 'department') {
+      res = await axios.post('http://localhost:8000/org/create/department', {
+        departmentName: name,
+        headId: parentId
+      })
+      // 리스트에 추가
+      dataStore.departments.push(res.data)
+      // 트리에도 반영
+      const head = dataStore.headquarters.find(h => h.headId === parentId)
+      head && head.departments.push({ ...res.data, teams: [] })
+    }
+    else if (type === 'team') {
+      res = await axios.post('http://localhost:8000/org/create/team', {
+        teamName: name,
+        departmentId: parentId
+      })
+      dataStore.teams.push(res.data)
+      // 트리에도 반영
+      for (const h of dataStore.headquarters) {
+        const dept = h.departments.find(d => d.departmentId === parentId)
+        if (dept) {
+          dept.teams.push({ ...res.data, members: [] })
+          break
+        }
+      }
+    }
+    showAddModal.value = false
+  } catch (e) {
+    console.error('추가 실패', e)
+    alert('조직 추가 중 오류가 발생했습니다.')
+  }
 }
 
 function openDeleteModal() {
@@ -547,12 +582,61 @@ function openDeleteModal() {
 function closeDeleteModal() {
   showDeleteModal.value = false
 }
-function handleDeleteOrg(payload) {
-  console.log('삭제할 조직 종류:', payload.type)
-  console.log('선택된 ID들:', payload.ids)
-  // TODO: 실제 삭제 API 호출 후 dataStore 갱신
-  showDeleteModal.value = false
+async function handleDeleteOrg({ type, ids }) {
+  try {
+    // axios.delete 엔드포인트 매핑
+    const endpointMap = {
+      head: 'head',
+      department: 'department',
+      team: 'team'
+    }
+    const endpoint = endpointMap[type]
+    await Promise.all(
+      ids.map(id =>
+        axios.delete(`http://localhost:8000/org/delete/${endpoint}/${id}`)
+      )
+    )
+    alert('삭제 성공!')
+    showDeleteModal.value = false
+    await loadHierarchy()   // 삭제 후 트리 다시 로드
+  } catch (err) {
+    console.error('삭제 실패', err)
+    alert('삭제 중 오류가 발생했습니다.')
+  }
 }
+
+// 트리 전체를 다시 불러오는 유틸 (onMounted 로직 재사용)
+async function loadHierarchy() {
+  const res = await fetch('http://localhost:8000/structure/hierarchy')
+  const hierarchyData = await res.json()
+  dataStore.headquarters = hierarchyData
+
+  // departments/teams 배열도 재구성 …
+  const depts = []
+  const teams = []
+  hierarchyData.forEach(h => {
+    h.departments.forEach(d => {
+      depts.push({
+        departmentId: d.departmentId,
+        departmentName: d.departmentName,
+        departmentCode: d.departmentCode,
+        headId: h.headId
+      })
+      d.teams.forEach(t => {
+        teams.push({
+          teamId: t.teamId,
+          teamName: t.teamName,
+          teamCode: t.teamCode,
+          departmentId: d.departmentId
+        })
+      })
+    })
+  })
+  dataStore.departments = depts
+  dataStore.teams       = teams
+}
+
+onMounted(loadHierarchy)
 
 // --- 부서/팀 이동용 핸들러 ---
 function onDeptSelectedForMove(dept) {
