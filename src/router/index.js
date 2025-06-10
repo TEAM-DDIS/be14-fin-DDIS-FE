@@ -244,6 +244,7 @@ const router = createRouter({
          // 내가 쓴 평가
         {
             path: '/org/myevaluation',
+            name: 'MyEvaluations',
             component: () => import('@/components/Evaluation/MyEvalsPage.vue')
         },
 

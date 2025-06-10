@@ -1,7 +1,13 @@
 <template>
   <div class="evaluation-page">
     <main class="main-content">
-      <h1 class="page-title">평가</h1>
+      <div class="header-bar">
+        <h1 class="page-title">평가</h1>
+        <!-- 내가 쓴 평가 보기 버튼 -->
+        <button class="btn-my-reviews" @click="goToMyReviews">
+          내가 쓴 평가 보기
+        </button>
+      </div>
 
       <div class="content-panels">
         <!-- 1) 평가 대상자 리스트 -->
@@ -184,7 +190,13 @@
 
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'  // Pinia 스토어 경로에 맞춰 조정
+
+const router = useRouter()
+function goToMyReviews() {
+  router.push({ name: 'MyEvaluations' })
+}
 
 // ─────────────────────────────────────────────────────────────────
 // Pinia 스토어 인스턴스: 토큰과 현재 로그인된 유저 정보
@@ -467,6 +479,32 @@ async function submitManagerEval(decision) {
     display: flex;
     flex-direction: column;
   }
+  .header-bar {
+    display: flex;
+    align-items: center;
+    margin: 0 20px 10px;
+  }
+  .btn-my-reviews {
+    margin-left: auto;
+    font-size: 14px;
+    font-weight: bold;
+    background-color: #00a8e8;
+    color: white;
+    border: 1px solid transparent;
+    border-radius: 10px;
+    padding: 10px 30px;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    transition: background-color 0.2s, box-shadow 0.2s;
+    box-sizing: border-box;
+}
+.btn-my-reviews:hover {
+  background-color: white;
+  color: #00a8e8;
+  border-color: #00a8e8;
+  box-shadow:
+  inset 1px 1px 10px rgba(0, 0, 0, 0.25);
+}
   .perf-block {
     /* padding: -20px; */
     margin-left: -40px;
