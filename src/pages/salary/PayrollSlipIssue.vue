@@ -163,6 +163,8 @@ import { ref, reactive, computed, onMounted } from 'vue'
 import axios from 'axios'
 import AgGrid from '@/components/grid/BaseGrid.vue'
 import Modal from '@/components/salary/PayrollModal.vue'
+import { useUserStore } from '@/stores/user'
+
 
 // 모달 표시 여부 상태
 const showModal = ref(false)
@@ -277,7 +279,8 @@ async function fetchSalaryHistory() {
       while (current <= endMonth) {
         const yyyymm = current.getFullYear() + '-' + String(current.getMonth() + 1).padStart(2, '0')
         const { data } = await axios.get(`http://localhost:8000/payroll/salaries/${emp.employeeId}`, {
-          params: { month: yyyymm }
+          params: { month: yyyymm },
+          headers: { Authorization: `Bearer ${useUserStore.accessToken}` }
         })
         if (data && data.salaryDate) {
           results.push({
@@ -305,11 +308,13 @@ async function selectSlip(e) {
   const row = e.data
   try {
     const { data: salary } = await axios.get(`http://localhost:8000/payroll/salaries/${row.employeeId}`, {
-      params: { month: row.yearMonth }
+      params: { month: row.yearMonth },
+      headers: { Authorization: `Bearer ${useUserStore.accessToken}` }
     })
 
-    const { data: emp } = await axios.get(`http://localhost:8000/payroll/employees/${row.employeeId}`)
-
+    const { data: emp } = await axios.get(`http://localhost:8000/payroll/employees/${row.employeeId}`, {
+      headers: { Authorization: `Bearer ${useUserStore.accessToken}` }
+    })
     selectedSlip.employeeId = emp.employeeId
     selectedSlip.employeeEmail = emp.employeeEmail
     selectedSlip.employeeName = emp.employeeName
@@ -353,7 +358,9 @@ function formatCurrency(val) {
 
 // 컴포넌트 마운트 시 초기 데이터 세팅 (직원 목록, 기간 기본값)
 onMounted(async () => {
-  const res = await axios.get('http://localhost:8000/payroll/employees')
+  const res = await axios.get('http://localhost:8000/payroll/employees', {
+    headers: { Authorization: `Bearer ${useUserStore.accessToken}` }
+  })
   employees.value = res.data
 
   const today = new Date()
