@@ -273,11 +273,11 @@ import DeleteModal from '@/components/org/structure/DeleteModal.vue'
 // --- 데이터 스토어 정의 ---
 // 백엔드 /structure/hierarchy 에서 받아온 본부→부서→팀 계층을 저장합니다.
 const dataStore = reactive({
-  headquarters: [],   // HeadQueryDTO[] 전체 구조(각 head 안에 departments, deptManager, teams, teamManager, members 포함)
-  departments: [],    // [{ departmentId, departmentName, departmentCode, headId }]
-  teams: [],          // [{ teamId, teamName, teamCode, departmentId }]
-  position: [],       // 추후 API가 있으면 채워 주세요
-  rank: []            // 추후 API가 있으면 채워 주세요
+  headquarters: [],
+  departments: [],
+  teams: [],
+  position: [],
+  rank: []
 })
 
 // 로딩 여부
@@ -335,22 +335,16 @@ const deleteList = computed(() => {
 import { useRouter } from 'vue-router'
 const router = useRouter()
 
-// --- 페이지 로딩 시: 백엔드에서 “본부→부서→팀” 계층만 가져오기 ---
 onMounted(async () => {
   try {
     // 1) 조직 계층 조회 (GET /structure/hierarchy)
-    const urlHierarchy = 'http://localhost:8000/structure/hierarchy'
-    console.log('📥 조직 계층 호출:', urlHierarchy)
-    const resHier = await fetch(urlHierarchy)
-    if (!resHier.ok) throw new Error(`HTTP ${resHier.status}`)
-    const hierarchyData = await resHier.json()
-    // HeadQueryDTO[] 형태로 들어옴
-    dataStore.headquarters = hierarchyData
+    const res = await axios.get('http://localhost:8000/structure/hierarchy')
+    dataStore.headquarters = res.data
 
     // 2) hierarchyData 순회하며 departments, teams 배열 채우기
     const deptList = []
     const teamList = []
-    hierarchyData.forEach(h => {
+    res.data.forEach(h => {
       h.departments.forEach(d => {
         deptList.push({
           departmentId:   d.departmentId,
@@ -371,15 +365,12 @@ onMounted(async () => {
     dataStore.departments = deptList
     dataStore.teams       = teamList
 
-    // 3) position / rank 데이터는 API가 없으므로 빈 배열로 둡니다.
-    dataStore.position = []
-    dataStore.rank     = []
-
     dataLoaded.value = true
   } catch (err) {
     console.error('❌ 초기 데이터 로드 실패:', err)
   }
 })
+
 
 // --- 부서 선택 핸들러 ---
 // OrgHierarchyAll 컴포넌트에서 @dept-selected="onDeptSelected"
@@ -390,20 +381,12 @@ async function onDeptSelected(dept) {
   teamMembers.value      = []
   deptMembers.value      = []
 
-  // “소속된 팀” 목록 각각의 teamId로 /structure/teams/{teamId}/members 호출 후 합치기
-  const promises = dept.teams.map(teamObj => {
-    const url = `http://localhost:8000/structure/teams/${teamObj.teamId}/members`
-    return fetch(url).then(res => {
-      if (!res.ok) throw new Error(`HTTP ${res.status}`)
-      return res.json()
-    })
-  })
-
+  // GET /structure/departments/{deptId}/members
   try {
-    // Promise.all로 모든 팀원 목록을 배열로 받고 평탄화(flatten)
-    const results = await Promise.all(promises)
-    const flattened = results.flat()
-    deptMembers.value = flattened
+    const res = await axios.get(
+      `http://localhost:8000/structure/departments/${dept.departmentId}/members`
+    )
+    deptMembers.value = res.data
   } catch (e) {
     console.error('❌ 부서원 조회 실패:', e)
     deptMembers.value = []
@@ -419,14 +402,12 @@ async function onTeamSelected(team) {
   deptMembers.value      = []
   teamMembers.value      = []
 
-  // “해당 팀에 속한 직원만” 가져오기 (GET /structure/teams/{teamId}/members)
+  // GET /structure/teams/{teamId}/members
   try {
-    const url = `http://localhost:8000/structure/teams/${team.teamId}/members`
-    console.log('📥 팀원 조회 호출:', url)
-    const res = await fetch(url)
-    if (!res.ok) throw new Error(`HTTP ${res.status}`)
-    const data = await res.json()
-    teamMembers.value = data   // EmployeeQueryDTO[]
+    const res = await axios.get(
+      `http://localhost:8000/structure/teams/${team.teamId}/members`
+    )
+    teamMembers.value = res.data
   } catch (e) {
     console.error('❌ 팀원 조회 실패:', e)
     teamMembers.value = []
@@ -640,21 +621,11 @@ function onDeptSelectedForMove(dept) {
 function onTeamSelectedForMove(team) {
   console.log('이동용 팀 선택 ▶', team)
 }
-function cancelMove() {
-  showMovePanel.value = false
-}
-function confirmMove() {
-  showMovePanel.value = false
-}
 </script>
 
 <style scoped>
 /* 공통 리셋 */
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
+
 
 .page-title {
   margin-left: 20px;
@@ -669,9 +640,6 @@ function confirmMove() {
   font-size: 18px;
 }
 
-.page-container {
-  padding: 20px;
-}
 
 /* ① 조직도 편집 툴바 */
 .toolbar-card {
@@ -679,13 +647,12 @@ function confirmMove() {
   align-items: center;
   background: #fff;
   border-radius: 12px;
-  padding: 16px 24px;
+  padding: 10px 24px;
   height: 100px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
   margin-bottom: 50px;
   gap: 15px;
   margin-left: 20px;
-
 }
 .toolbar-label {
   font-weight: bold;
@@ -712,8 +679,8 @@ function confirmMove() {
   border: 1px solid #00a8e8;
 }
 .toolbar-btn-detail {
-  margin-bottom: 2px;
-  line-height: 1;
+  line-height: 0.000002;
+  padding-bottom: 15px;
 }
 .search {
   display: flex;
@@ -806,7 +773,7 @@ function confirmMove() {
   margin-bottom: 6px;
 }
 .member-section {
-  margin-top: 16px;
+  margin-top: 20px;
 }
 .member-table {
   width: 100%;
@@ -833,8 +800,7 @@ function confirmMove() {
 }
 .placeholder-info {
   color: #00a8e8;
-  font-size: 18px;
-  font-weight: bold;
+  font-size: 15px;
   text-align: center;
   margin-top: 40px;
 }
