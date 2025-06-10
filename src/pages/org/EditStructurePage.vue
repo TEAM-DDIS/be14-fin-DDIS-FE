@@ -235,11 +235,6 @@
               @team-selected="onTeamSelectedForMove"
             />
           </div>
-
-          <div class="move-buttons">
-            <button class="btn-cancel" @click="cancelMove">취소</button>
-            <button class="btn-confirm" @click="confirmMove">수정</button>
-          </div>
         </div>
       </div>
     </div>
@@ -689,6 +684,8 @@ function confirmMove() {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
   margin-bottom: 50px;
   gap: 15px;
+  margin-left: 20px;
+
 }
 .toolbar-label {
   font-weight: bold;
@@ -747,6 +744,7 @@ function confirmMove() {
   grid-template-columns: 0.8fr 1.2fr 1fr;
   gap: 24px;
   align-items: stretch;
+  margin-left: 20px;
 }
 .section {
   display: flex;
@@ -885,31 +883,5 @@ function confirmMove() {
   flex: 1;
   overflow-y: auto;
   padding-right: 8px;
-}
-.move-buttons {
-  display: flex;
-  justify-content: flex-end;
-  margin-top: 12px;
-  gap: 16px;
-}
-.btn-cancel,
-.btn-confirm {
-  font-size: 14px;
-  font-weight: bold;
-  cursor: pointer;
-  font-family: inherit;
-  background-color: #00a8e8;
-  color: white;
-  border: 1px solid transparent;
-  border-radius: 10px;
-  padding: 10px 20px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  transition: background-color 0.2s, box-shadow 0.2s;
-}
-.btn-cancel:hover,
-.btn-confirm:hover {
-  background-color: #fff;
-  color: #00a8e8;
-  border: 1px solid #00a8e8;
 }
 </style>

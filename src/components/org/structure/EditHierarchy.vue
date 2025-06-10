@@ -24,7 +24,7 @@
         >
           <i :class="expanded[hq.headCode] ? 'fa fa-chevron-down' : 'fa fa-chevron-right'" />
           {{ hq.headName }}
-          <small>(본부장: {{ getHeadRep(hq.headCode) }})</small>
+          
         </div>
 
         <!-- 본부가 펼쳐져 있을 때 하위 부서 목록 표시 -->
@@ -49,7 +49,7 @@
                   : 'fa fa-chevron-right'"
               />
               {{ dept.departmentName }}
-              <small>(부서장: {{ getDeptRep(dept.departmentCode) }})</small>
+              
             </div>
 
             <!-- 부서가 펼쳐졌을 때 하위 팀 표시 -->
@@ -74,7 +74,7 @@
                       : 'fa fa-chevron-right'"
                   />
                   {{ team.teamName }}
-                  <small>(팀장: {{ getTeamRep(team.teamCode) }})</small>
+                  
                 </div>
 
                 <!-- 팀이 펼쳐졌을 때 직원 표시 -->
@@ -94,38 +94,37 @@
         </ul>
       </li>
     </ul>
+    <!-- 저장/취소 버튼 -->
+    <div class="move-buttons">
+      <button class="btn-cancel" @click="cancelChanges">취소</button>
+      <button class="btn-confirm" :disabled="pendingMoves.length === 0" @click="saveChanges">
+        저장
+      </button>
+      <span v-if="pendingMoves.length">(총 {{ pendingMoves.length }}건 대기 중)</span>
+    </div>
   </div>
 </template>
 
 <script setup>
 import { reactive, ref, onMounted } from 'vue'
+import axios from 'axios'
 
-// --- 1) Drag & Drop 시 임시로 담아둘 데이터 구조 ---
 const dragData = ref({ type: null, item: null }) 
-//   type: 'department' | 'team', item: 해당 객체
+const pendingMoves = ref([])  
 
 // --- 2) 컴포넌트 내부 상태 ---
 const headquarters = ref([]) 
-//   [{ headId, headName, headCode, departments: [ DepartmentQueryDTO, ... ] }]
-
 const departments = ref([]) 
-//   [{ departmentId, departmentName, departmentCode, headId }]
-
 const teams = ref([]) 
-//   [{ teamId, teamName, teamCode, departmentId }]
-
 const employees = ref([]) 
-//   [{ employeeId, employeeName, positionCode, positionName, rankCode, rankName, headCode, departmentCode, teamCode, email, birthdate }]
 
-const positions = ref([]) // 별도 API가 있으면 onMounted에서 fetch
-const ranks = ref([])     // 별도 API가 있으면 onMounted에서 fetch
 
 // 최상위 “DDIS” 노드 펼침 상태
 const expandedRoot = ref(true)
 
 // 본부/부서/팀 각각 펼침 상태 저장용
 const expanded = reactive({}) 
-// ex) expanded['H01']=true, expanded['D03']=false
+
 
 // 부모 컴포넌트로 이벤트 전달
 const emit = defineEmits(['dept-selected', 'team-selected'])
@@ -137,11 +136,6 @@ onMounted(async () => {
     const res = await fetch('http://localhost:8000/structure/hierarchy')
     if (!res.ok) throw new Error(`HTTP ${res.status}`)
     const data = await res.json()
-    // data: HeadQueryDTO[] 형태
-    // HeadQueryDTO { headId, headName, headCode, departments: [DepartmentQueryDTO,…] }
-    // DepartmentQueryDTO { departmentId, departmentName, departmentCode, headId, teams: [TeamQueryDTO,…] }
-    // TeamQueryDTO { teamId, teamName, teamCode, departmentId, members: [EmployeeQueryDTO,…] }
-    // EmployeeQueryDTO { employeeId, employeeName, positionCode, positionName, rankCode, rankName, headCode, departmentCode, teamCode, email, birthdate }
 
     // 3-1) 본부 목록만 저장
     headquarters.value = data.map(h => ({
@@ -251,56 +245,35 @@ async function onDrop(targetType, targetItem, event) {
   if (node) node.classList.remove('drag-over')
 
   const { type, item } = dragData.value
-  try {
-    if (type === 'department' && targetType === 'head') {
-      // 1) 로컬 상태 업데이트
-      item.headId = targetItem.headId
-      console.log('부서 이동 → departmentId:', item.departmentId, '새 headId:', item.headId)
-
-      // 2) 백엔드 호출: PUT /org/update/department/{departmentId}
-      const payload = {
+  console.log('onDrop', type, '→', targetType, item, 'to', targetItem)
+  if (type === 'department' && targetType === 'head') {
+    item.headId = targetItem.headId
+    // 변경 이력을 남겨둡니다.
+    pendingMoves.value.push({
+      type: 'department',
+      itemId: item.departmentId,
+      newParentId: item.headId,
+      payload: {
         departmentName: item.departmentName,
         headId: item.headId
       }
-      const res = await fetch(`http://localhost:8000/org/update/department/${item.departmentId}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      })
-      console.log('부서 이동 PUT 응답 상태:', res.status)
-      if (!res.ok) {
-        const errText = await res.text()
-        console.error('부서 이동 실패 응답:', errText)
-      }
-    }
-    else if (type === 'team' && targetType === 'department') {
-      // 1) 로컬 상태 업데이트
-      item.departmentId = targetItem.departmentId
-      console.log('팀 이동 → teamId:', item.teamId, '새 departmentId:', item.departmentId)
-
-      // 2) 백엔드 호출: PUT /org/update/team/{teamId} (가정된 엔드포인트)
-      const payload = {
+    })
+  }
+  else if (type === 'team' && targetType === 'department') {
+    item.departmentId = targetItem.departmentId
+     pendingMoves.value.push({
+      type: 'team',
+      itemId: item.teamId,
+      newParentId: item.departmentId,
+      payload: {
         teamName: item.teamName,
         departmentId: item.departmentId
       }
-      const res = await fetch(`http://localhost:8000/org/update/team/${item.teamId}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      })
-      console.log('팀 이동 PUT 응답 상태:', res.status)
-      if (!res.ok) {
-        const errText = await res.text()
-        console.error('팀 이동 실패 응답:', errText)
-      }
-    }
-  } catch (err) {
-    console.error('❌ 이동 처리 중 오류 발생:', err)
-  } finally {
-    // 드래그 데이터 초기화
+    })
+  }
     dragData.value = { type: null, item: null }
   }
-}
+
 
 // --- 6) 트리에서 필요한 데이터 조회 헬퍼 함수들 ---
 // headId → 본부 소속 부서 목록 반환
@@ -343,6 +316,27 @@ function getTeamRep(teamCode) {
   )
   return t ? t.employeeName : ''
 }
+
+/** 변경 내역 서버에 한꺼번에 반영 */
+async function saveChanges() {
+  try {
+    for (const mv of pendingMoves.value) {
+      const url = `http://localhost:8000/org/update/${mv.type}/${mv.itemId}`
+      await axios.put(url, mv.payload)
+    }
+    alert('변경 사항이 저장되었습니다.')
+    pendingMoves.value = []
+  } catch (err) {
+    console.error(err)
+    alert('저장 중 오류가 발생했습니다.')
+  }
+}
+async function cancelChanges() {
+  if (!confirm('모든 변경을 취소하시겠습니까?')) return
+  await loadHierarchy()
+  pendingMoves.value = []
+}
+
 </script>
 
 <style scoped>
@@ -429,7 +423,7 @@ function getTeamRep(teamCode) {
   margin-bottom: 12px;
 }
 .node.dept {
-  font-size: 20px;
+  font-size: 19px;
   margin-bottom: 8px;
 }
 .node.team {
@@ -459,5 +453,51 @@ function getTeamRep(teamCode) {
 .drag-over {
   border: 1px solid #2f80ed !important;
   background-color: #eaf4ff !important;
+}
+
+.move-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 16px;
+  margin-top: 20px;
+}
+
+.btn-confirm {
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+  font-family: inherit;
+  background-color: #00a8e8;
+  color: white;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  padding: 10px 30px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: background-color 0.2s, box-shadow 0.2s;
+}
+
+.btn-confirm:hover {
+  background-color: #fff;
+  color: #00a8e8;
+  border: 1px solid #00a8e8;
+}
+
+.btn-cancel {
+  font-size: 14px;
+  font-weight: bold;
+  background-color: #D3D3D3;
+  color: #000;
+  border: none;
+  border-radius: 10px;
+  padding: 10px 30px;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: background-color 0.2s, box-shadow 0.2s;
+  box-sizing: border-box;
+}
+.btn-cancel:hover {
+  background-color: #000;
+  color: #fff;
 }
 </style>

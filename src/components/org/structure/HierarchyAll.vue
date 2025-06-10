@@ -15,7 +15,6 @@
             "
           />
           {{ head.headName }}
-          <small>(본부장: {{ head.headManager?.employeeName || '-' }})</small>
         </div>
 
         <!-- 본부가 펼쳐졌을 때 부서 표시 -->
@@ -33,7 +32,6 @@
                 "
               />
               {{ dept.departmentName }}
-              <small>(부서장: {{ dept.deptManager?.employeeName || '-' }})</small>
             </div>
 
             <!-- 부서가 펼쳐졌을 때 하위 표시 -->
@@ -64,7 +62,6 @@
                       "
                     />
                     {{ team.teamName }}
-                    <small>(팀장: {{ team.teamManager?.employeeName || '-' }})</small>
                   </div>
 
                   <!-- 팀원이 펼쳐졌을 때 표시 (부서장은 제외) -->
@@ -212,7 +209,7 @@ function filteredTeamMembers(team) {
   margin-bottom: 12px;
 }
 .node.dept {
-  font-size: 20px;
+  font-size: 19px;
   margin-bottom: 8px;
 }
 .node.team {
