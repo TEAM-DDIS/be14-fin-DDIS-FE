@@ -64,12 +64,13 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 // 상태
 const name = ref('')
 const position = ref('')
-const status = ref('')
 const checkIn = ref(null)
 const checkOut = ref(null)
 const isCheckedIn = ref(false)
 const workSeconds = ref(0)
 let timer = null
+let checkInDate = null
+let isLunchBreak = false // 점심시간 상태 저장
 
 // 현재 시각
 const now = () => new Date()
@@ -92,33 +93,97 @@ onMounted(async () => {
 
     name.value = data.employeeName
     position.value = data.rankName
-    status.value = convertStatusName(data.workStatusName)
-    checkIn.value = data.checkInTime
-    checkOut.value = data.checkOutTime
+    checkIn.value = data.checkInTime ? data.checkInTime.split('.')[0] : null
+    checkOut.value = data.checkOutTime ? data.checkOutTime.split('.')[0] : null
 
-    // 출근 상태면 타이머 시작
     if (data.checkInTime && !data.checkOutTime) {
       const [h, m, s] = data.checkInTime.split(':').map(Number)
-      const checkInTime = new Date()
+      const checkInTime = now()
       checkInTime.setHours(h, m, s, 0)
+      checkInDate = checkInTime
 
-      const nineAM = new Date(checkInTime)
+      const nowTime = now()
+      const nineAM = now()
       nineAM.setHours(9, 0, 0, 0)
 
       const startTime = checkInTime < nineAM ? nineAM : checkInTime
-      const diffSec = Math.floor((now() - startTime) / 1000)
+      let elapsed = Math.floor((nowTime - startTime) / 1000)
 
-      if (diffSec >= 0) {
-        workSeconds.value = diffSec
-        isCheckedIn.value = true
-        startTimer()
+      const noonStart = now()
+      noonStart.setHours(12, 0, 0, 0)
+      const noonEnd = now()
+      noonEnd.setHours(13, 0, 0, 0)
+
+      if (nowTime >= noonStart && nowTime < noonEnd) {
+        isLunchBreak = true
+        elapsed = Math.floor((noonStart - startTime) / 1000)
+      } else if (checkInTime < noonStart && nowTime >= noonEnd) {
+        elapsed -= 3600
       }
-    }
 
+      workSeconds.value = Math.max(elapsed, 0)
+      isCheckedIn.value = true
+      startTimer()
+    }
   } catch (err) {
     console.error('내 근무 현황 API 호출 실패:', err)
   }
 })
+
+// 출근 등록
+const postCheckIn = async () => {
+  const token = localStorage.getItem('token')
+  try {
+    const res = await fetch('http://localhost:8000/attendance/check-in', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    })
+
+    if (!res.ok) {
+      const errorText = await res.text()
+      throw new Error(errorText)
+    }
+
+    const nowTime = now()
+    checkIn.value = formatTime(nowTime)
+    isCheckedIn.value = true
+    workSeconds.value = 0
+    startTimer()
+  } catch (err) {
+    console.error('출근 등록 실패:', err.message)
+    alert('출근 등록 중 오류가 발생했습니다.\n' + err.message)
+  }
+}
+
+// 퇴근 등록
+const postCheckOut = async () => {
+  const token = localStorage.getItem('token')
+  try {
+    const res = await fetch('http://localhost:8000/attendance/check-out', {
+      method: 'PUT',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    })
+
+    if (!res.ok) {
+      const errorText = await res.text()
+      throw new Error(errorText)
+    }
+
+    const nowTime = now()
+    checkOut.value = formatTime(nowTime)
+    isCheckedIn.value = false
+    stopTimer()
+  } catch (err) {
+    console.error('퇴근 등록 실패:', err.message)
+    alert('퇴근 등록 중 오류가 발생했습니다.\n' + err.message)
+  }
+}
 
 // 출근/퇴근 버튼
 const handleClick = () => {
@@ -127,42 +192,75 @@ const handleClick = () => {
   const minutes = nowTime.getMinutes()
 
   if (!isCheckedIn.value) {
-    // 출근 제한 확인
     if (hours > 11 || (hours === 11 && minutes >= 59)) {
       alert('출근 가능 시간은 11:59까지입니다.')
       return
     }
-
     checkIn.value = formatTime(nowTime)
     isCheckedIn.value = true
-    status.value = '근무 중'
     workSeconds.value = 0
     startTimer()
-
+    postCheckIn()
   } else {
-    // 퇴근 제한 확인
     if (hours < 18) {
       alert('퇴근은 18:00 이후에 가능합니다.')
       return
     }
-
     checkOut.value = formatTime(nowTime)
     isCheckedIn.value = false
     stopTimer()
-    status.value = '근무 종료'
+    postCheckOut()
   }
 }
 
-// 시간 포맷
 const formatTime = time => {
   const pad = n => n.toString().padStart(2, '0')
   return `${pad(time.getHours())}:${pad(time.getMinutes())}:${pad(time.getSeconds())}`
 }
 
-// 타이머
 const startTimer = () => {
+  if (!checkIn.value) return
+
+  const [h, m, s] = checkIn.value.split(':').map(Number)
+  checkInDate = now()
+  checkInDate.setHours(h, m, s, 0)
+
   timer = setInterval(() => {
-    workSeconds.value++
+    const nowTime = now()
+    const noonStart = now()
+    noonStart.setHours(12, 0, 0, 0)
+    const noonEnd = now()
+    noonEnd.setHours(13, 0, 0, 0)
+
+    if (nowTime >= noonStart && nowTime < noonEnd) {
+      isLunchBreak = true
+      status.value = '점심 시간'
+      return
+    }
+
+    if (isLunchBreak && nowTime >= noonEnd) {
+      isLunchBreak = false
+      checkInDate.setHours(checkInDate.getHours() + 1) // 점심시간 보정
+    }
+
+    if (!isLunchBreak) {
+      const eighteenPM = now()
+      eighteenPM.setHours(18, 0, 0, 0)
+      if (nowTime >= eighteenPM) {
+        stopTimer()
+        isCheckedIn.value = false
+        status.value = '근무 종료'
+        return
+      }
+
+      const nineAM = now()
+      nineAM.setHours(9, 0, 0, 0)
+      const startTime = checkInDate < nineAM ? nineAM : checkInDate
+
+      let elapsed = Math.floor((nowTime - startTime) / 1000)
+      workSeconds.value = elapsed
+      status.value = '근무 중'
+    }
   }, 1000)
 }
 
@@ -175,7 +273,21 @@ onUnmounted(() => {
   if (timer) stopTimer()
 })
 
-// 근무 시간
+const status = computed(() => {
+  const nowTime = now()
+  const noonStart = now()
+  noonStart.setHours(12, 0, 0, 0)
+  const noonEnd = now()
+  noonEnd.setHours(13, 0, 0, 0)
+
+  if (isCheckedIn.value && nowTime >= noonStart && nowTime < noonEnd) {
+    return '점심 시간'
+  }
+  if (!isCheckedIn.value && !checkOut.value) return '출근 전'
+  if (isCheckedIn.value) return '근무 중'
+  return '근무 종료'
+})
+
 const formattedWorkTime = computed(() => {
   const h = Math.floor(workSeconds.value / 3600)
   const m = Math.floor((workSeconds.value % 3600) / 60)
@@ -188,13 +300,6 @@ const percent = computed(() => {
   const base = 8 * 3600
   return Math.min((workSeconds.value / base) * 100, 100)
 })
-
-// 백엔드 status 값 → 프론트 표시값 변환
-function convertStatusName(status) {
-  if (status === '정상근무') return '근무 중'
-  if (status === null || status === '-') return '출근 전'
-  return status
-}
 </script>
 
 
