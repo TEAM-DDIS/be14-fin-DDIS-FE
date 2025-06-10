@@ -58,21 +58,94 @@
     formattedTime.value = `${hours} : ${minutes} : ${seconds}`
     }
 
-    function handleCheck() {
+async function handleCheck() {
+  const token = localStorage.getItem('token')
+  if (!token) {
+    alert('로그인 정보가 없습니다.')
+    return
+  }
+
+  const now = new Date()
+  const hours = now.getHours()
+  const minutes = now.getMinutes()
+
+  try {
     if (!checkInTime.value) {
-        checkInTime.value = formattedTime.value
-        isCheckedIn.value = true
+      // 출근 등록
+      if (hours > 11 || (hours === 11 && minutes >= 59)) {
+        alert('출근 가능 시간은 11:59까지입니다.')
+        return
+      }
+
+      const res = await fetch('http://localhost:8000/attendance/check-in', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        }
+      })
+
+      if (!res.ok) throw new Error(await res.text())
+
+      const h = String(now.getHours()).padStart(2, '0')
+      const m = String(now.getMinutes()).padStart(2, '0')
+      const s = String(now.getSeconds()).padStart(2, '0')
+      checkInTime.value = `${h} : ${m} : ${s}`
+      isCheckedIn.value = true
+
     } else if (!checkOutTime.value) {
-        checkOutTime.value = formattedTime.value
+      // ✅ 퇴근 제한: 18시 이전이면 막기
+      if (hours < 18) {
+        alert('퇴근은 18:00 이후에 가능합니다.')
+        return
+      }
+
+      const res = await fetch('http://localhost:8000/attendance/check-out', {
+        method: 'PUT',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        }
+      })
+
+      if (!res.ok) throw new Error(await res.text())
+
+      const h = String(now.getHours()).padStart(2, '0')
+      const m = String(now.getMinutes()).padStart(2, '0')
+      const s = String(now.getSeconds()).padStart(2, '0')
+      checkOutTime.value = `${h} : ${m} : ${s}`
     }
-    }
+
+  } catch (err) {
+    alert('출퇴근 등록 실패: ' + err.message)
+    console.error(err)
+  }
+}
+
 
     let intervalId
-    onMounted(() => {
-    updateTime()
-    intervalId = setInterval(updateTime, 1000)
-    })
+    onMounted(async () => {
+  updateTime()
+  intervalId = setInterval(updateTime, 1000)
 
+  const token = localStorage.getItem('token')
+  if (!token) return
+
+  const res = await fetch('http://localhost:8000/attendance/status/me', {
+    headers: {
+      Authorization: `Bearer ${token}`
+    }
+  })
+  const data = await res.json()
+
+  checkInTime.value = data.checkInTime ? data.checkInTime.split('.')[0] : null
+  checkOutTime.value = data.checkOutTime ? data.checkOutTime.split('.')[0] : null
+
+  // ✅ 서버에 출근 기록은 있고 퇴근 기록은 없을 때 출근 상태로 판단
+  if (checkInTime.value && !checkOutTime.value) {
+    isCheckedIn.value = true
+  }
+})
     onBeforeUnmount(() => {
     clearInterval(intervalId)
     })

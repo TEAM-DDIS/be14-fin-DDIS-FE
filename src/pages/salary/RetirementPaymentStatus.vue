@@ -68,6 +68,7 @@ import { ref, computed, watch } from 'vue'
 import axios from 'axios'
 import AgGrid from '@/components/grid/BaseGrid.vue'
 import RetirementModal from '@/components/salary/RetirementModal.vue'
+import { useUserStore } from '@/stores/user'
 
 const listSection = ref(null)
 const searchKeyword = ref('')
@@ -120,7 +121,8 @@ async function fetchRetirements() {
         ...params,
         provisionSituation: provisionSituation.value || '',
         keyword: searchKeyword.value || ''
-      }
+      },
+      headers: { Authorization: `Bearer ${useUserStore.accessToken}` }
     })
     retirements.value = Array.isArray(data) ? data : []
     selectedSlip.value = null
@@ -156,7 +158,9 @@ async function openModal() {
   }
 
   try {
-    const { data } = await axios.get(`http://localhost:8000/payroll/retirements/${selectedSlip.value.employeeId}`)
+    const { data } = await axios.get(`http://localhost:8000/payroll/retirements/${selectedSlip.value.employeeId}`, {
+      headers: { Authorization: `Bearer ${useUserStore.accessToken}` }
+    })
     selectedSlip.value = data // 상세 데이터로 덮어쓰기
     showModal.value = true
   } catch (e) {

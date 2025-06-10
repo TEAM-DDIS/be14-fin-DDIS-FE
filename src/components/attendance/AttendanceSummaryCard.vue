@@ -123,7 +123,9 @@ onMounted(async () => {
 
       workSeconds.value = Math.max(elapsed, 0)
       isCheckedIn.value = true
-      startTimer()
+      if (!(nowTime >= noonStart && nowTime < noonEnd)) {
+        startTimer()
+      }
     }
   } catch (err) {
     console.error('내 근무 현황 API 호출 실패:', err)
@@ -221,48 +223,42 @@ const formatTime = time => {
 const startTimer = () => {
   if (!checkIn.value) return
 
+  // 출근 시간 기준 설정
   const [h, m, s] = checkIn.value.split(':').map(Number)
   checkInDate = now()
   checkInDate.setHours(h, m, s, 0)
 
   timer = setInterval(() => {
     const nowTime = now()
+
+    // 점심시간 체크
     const noonStart = now()
     noonStart.setHours(12, 0, 0, 0)
     const noonEnd = now()
     noonEnd.setHours(13, 0, 0, 0)
 
     if (nowTime >= noonStart && nowTime < noonEnd) {
-      isLunchBreak = true
       status.value = '점심 시간'
+      return // 점심시간 동안 타이머 멈춤
+    }
+
+    // 퇴근 시간 체크
+    const eighteenPM = now()
+    eighteenPM.setHours(18, 0, 0, 0)
+
+    if (nowTime >= eighteenPM) {
+      stopTimer()
+      isCheckedIn.value = false
+      status.value = '근무 종료'
       return
     }
 
-    if (isLunchBreak && nowTime >= noonEnd) {
-      isLunchBreak = false
-      checkInDate.setHours(checkInDate.getHours() + 1) // 점심시간 보정
-    }
-
-    if (!isLunchBreak) {
-      const eighteenPM = now()
-      eighteenPM.setHours(18, 0, 0, 0)
-      if (nowTime >= eighteenPM) {
-        stopTimer()
-        isCheckedIn.value = false
-        status.value = '근무 종료'
-        return
-      }
-
-      const nineAM = now()
-      nineAM.setHours(9, 0, 0, 0)
-      const startTime = checkInDate < nineAM ? nineAM : checkInDate
-
-      let elapsed = Math.floor((nowTime - startTime) / 1000)
-      workSeconds.value = elapsed
-      status.value = '근무 중'
-    }
+    // ✅ 점심도 아니고 퇴근도 아니면 1초씩 누적
+    workSeconds.value += 1
+    status.value = '근무 중'
   }, 1000)
 }
+
 
 const stopTimer = () => {
   clearInterval(timer)
