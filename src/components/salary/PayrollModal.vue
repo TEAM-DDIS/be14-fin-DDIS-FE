@@ -93,6 +93,7 @@ import { computed, ref } from 'vue'
 import { useDateFormat } from '@vueuse/core'
 import html2pdf from 'html2pdf.js'
 import axios from 'axios' // ✅ axios 추가
+import { useUserStore } from '@/stores/user'
 
 const props = defineProps({
   slip: Object,
@@ -138,7 +139,11 @@ async function sendMail() {
       deductions: props.slip.deductions
     }
 
-    await axios.post('http://localhost:8000/payroll/mail', payload)
+    await axios.post('http://localhost:8000/payroll/mail', payload, {
+      headers: {
+        Authorization: `Bearer ${useUserStore.accessToken}`
+      }
+    })
     alert('메일 전송이 완료되었습니다.')
   } catch (error) {
     console.error('메일 전송 실패', error)

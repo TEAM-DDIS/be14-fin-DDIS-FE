@@ -115,6 +115,7 @@
 import { computed, ref } from 'vue'
 import html2pdf from 'html2pdf.js'
 import axios from 'axios' // ✅ axios 추가
+import { useUserStore } from '@/stores/user'
 
 // Props 및 이벤트 정의
 const props = defineProps({ slip: Object })
@@ -200,7 +201,7 @@ const monthlySalaryRows = computed(() => {
 // 메일 전송 API 호출
 async function sendMail() {
   try {
-        await axios.post('http://localhost:8000/retirement/mail', {
+    await axios.post('http://localhost:8000/retirement/mail', {
       ...props.slip,
       totalYears: totalYears.value,
       averageDailySalary: averageDailySalary.value,
@@ -208,6 +209,8 @@ async function sendMail() {
         label: row.label,
         amount: row.amount
       }))
+    }, {
+      headers: { Authorization: `Bearer ${useUserStore.accessToken}` }
     })
     alert('메일 전송 완료')
   } catch (err) {
