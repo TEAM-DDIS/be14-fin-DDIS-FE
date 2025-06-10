@@ -77,7 +77,7 @@ const now = () => new Date()
 // 테스트 시각
 // const now = () => {
 //   const test = new Date()
-//   test.setHours(12, 30, 0, 0)
+//   test.setHours(18, 30, 0, 0)
 //   return test
 // }
 
@@ -99,8 +99,8 @@ onMounted(async () => {
 
     name.value = data.employeeName
     position.value = data.rankName
-    checkIn.value = data.checkInTime
-    checkOut.value = data.checkOutTime
+    checkIn.value = data.checkInTime ? data.checkInTime.split('.')[0] : null
+    checkOut.value = data.checkOutTime ? data.checkOutTime.split('.')[0] : null
 
     // 출근 상태면 타이머 시작
     if (data.checkInTime && !data.checkOutTime) {
@@ -136,6 +136,36 @@ onMounted(async () => {
   }
 })
 
+// 출근 등록
+const postCheckIn = async () => {
+  const token = localStorage.getItem('token')
+  try {
+    const res = await fetch('http://localhost:8000/attendance/check-in', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    })
+
+    if (!res.ok) {
+      const errorText = await res.text()
+      throw new Error(errorText)
+    }
+
+    // 출근 등록 성공 → checkIn 시간 현재 시각으로 설정
+    const nowTime = now()
+    checkIn.value = formatTime(nowTime)
+    isCheckedIn.value = true
+    workSeconds.value = 0
+    startTimer()
+  } catch (err) {
+    console.error('출근 등록 실패:', err.message)
+    alert('출근 등록 중 오류가 발생했습니다.\n' + err.message)
+  }
+}
+
+
 // 출근/퇴근 버튼
 const handleClick = () => {
   const nowTime = now()
@@ -152,7 +182,7 @@ const handleClick = () => {
     isCheckedIn.value = true
     workSeconds.value = 0
     startTimer()
-
+    postCheckIn()
   } else {
     if (hours < 18) {
       alert('퇴근은 18:00 이후에 가능합니다.')
@@ -175,25 +205,48 @@ const formatTime = time => {
 const startTimer = () => {
   if (!checkIn.value) return
 
+  // checkInDate 설정
   const [h, m, s] = checkIn.value.split(':').map(Number)
   checkInDate = new Date()
   checkInDate.setHours(h, m, s, 0)
 
   timer = setInterval(() => {
-    const nowTime = now()
+    const nowTime = new Date()
 
+    // 점심시간 정의
     const noonStart = new Date()
     noonStart.setHours(12, 0, 0, 0)
     const noonEnd = new Date()
     noonEnd.setHours(13, 0, 0, 0)
 
+    // 퇴근 시간 정의
+    const eighteenPM = new Date()
+    eighteenPM.setHours(18, 0, 0, 0)
+
+    // 18:00 이후면 타이머 종료
+    if (nowTime >= eighteenPM) {
+      stopTimer()
+      isCheckedIn.value = false
+      status.value = '근무 종료'
+      return
+    }
+
+    // 점심시간 중에는 타이머 증가 X
+    if (nowTime >= noonStart && nowTime < noonEnd) {
+      status.value = '점심 시간'
+      return
+    } else {
+      status.value = '근무 중'
+    }
+
+    // 타이머 정상 증가
     const nineAM = new Date()
     nineAM.setHours(9, 0, 0, 0)
     const startTime = checkInDate < nineAM ? nineAM : checkInDate
 
-    if (nowTime >= noonStart && nowTime < noonEnd) return
-
     let elapsed = Math.floor((nowTime - startTime) / 1000)
+
+    // 점심시간 포함 시 보정
     if (checkInDate < noonStart && nowTime >= noonEnd) {
       elapsed -= 3600
     }
@@ -201,6 +254,7 @@ const startTimer = () => {
     workSeconds.value = elapsed
   }, 1000)
 }
+
 
 const stopTimer = () => {
   clearInterval(timer)
