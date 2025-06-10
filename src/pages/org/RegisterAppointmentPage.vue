@@ -9,11 +9,24 @@
         <table class="info-table">
           <tr>
             <th>사원번호</th>
-            <td><input v-model="form.name" type="text" placeholder="사원번호를 입력하세요" /></td>
+            <td>
+              <input
+                v-model="form.name"
+                @blur="loadEmployeeInfo"
+                type="text"
+                placeholder="사원번호를 입력하세요"
+              />
+            </td>
           </tr>
           <tr>
             <th>발령제목</th>
-            <td><input v-model="form.title" type="text" placeholder="발령제목을 입력하세요" /></td>
+            <td>
+              <input
+                v-model="form.title"
+                type="text"
+                placeholder="발령제목을 입력하세요"
+              />
+            </td>
           </tr>
           <tr>
             <th>발령유형</th>
@@ -29,7 +42,12 @@
           </tr>
           <tr>
             <th>발령일자</th>
-            <td><input v-model="form.effectiveDate" type="date" /></td>
+            <td>
+              <input
+                v-model="form.effectiveDate"
+                type="date"
+              />
+            </td>
           </tr>
         </table>
       </div>
@@ -43,7 +61,7 @@
           :columnDefs="columnDefs"
           :defaultColDef="defaultColDef"
           @grid-ready="onGridReady"
-          style="width: 100%; height: 340px;"
+          style="width: 100%; height: 400px;"
         />
       </div>
 
@@ -57,376 +75,233 @@
 </template>
 
 <script setup>
-import { reactive, computed, onMounted, ref } from 'vue'
+import { reactive, ref, watch, onMounted, computed, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
 import { AgGridVue } from 'ag-grid-vue3'
 import { ModuleRegistry, AllCommunityModule } from 'ag-grid-community'
-
 ModuleRegistry.registerModules([AllCommunityModule])
 
-// ◼︎ 라우터
 const router = useRouter()
-
-// ◼︎ 그리드 API 레퍼런스 (필요 시 사용)
 const gridApi = ref(null)
 
-// ◼︎ 폼 초기값
+// 폼 상태
 const form = reactive({
   name: '',
   title: '',
   type: '승진',
   effectiveDate: '',
-  // “발령 조직” (new) 저장용
-  org: {
-    headId: null,
-    departmentId: null,
-    teamId: null,
-    jobId: null,
-    positionId: null,
-    rankId: null
-  },
-  // “현재 조직” (current) 저장용
   currentOrg: {
     headId: null,
     departmentId: null,
     teamId: null,
     jobId: null,
-    positionId: null,
-    rankId: null
+    jobCode: null,
+    positionCode: null,
+    rankCode: null
+  },
+  org: { 
+    headId: null, 
+    departmentId: null, 
+    teamId: null, 
+    jobId: null, 
+    positionCode: null,
+    rankCode: null
   }
 })
 
-// ◼︎ org.json 데이터 저장소
+// 데이터 저장소
 const dataStore = reactive({
-  headquarters: [], // { head_id, head_name, head_code }
-  department: [],  // { department_id, department_name, department_code, head_id }
-  team: [],        // { team_id, team_name, team_code, department_id }
-  job: [],         // { job_id, job_name, job_code, team_id }
-  position: [],    // { position_id, position_name, position_code }
-  rank: []         // { rank_id, rank_name, rank_code }
+  headquarters: [],
+  department: [],
+  team: [],
+  job: []
 })
+const currentHeads = ref([])
+const jobsCurrent = ref([])
+const positionsCurrent = ref([])
+const ranksCurrent = ref([])
+const orgHeads = ref([])
+const departmentsNew = ref([])
+const teamsNew = ref([])
+const jobsNew = ref([])
+const positionsNew = ref([])
+const ranksNew     = ref([])
 
-// ◼︎ “발령 조직” 드롭다운용 필터 (computed)
-const filteredDepartmentsForNew = computed(() =>
-  dataStore.department.filter(d => d.head_id === form.org.headId)
-)
-const filteredTeamsForNew = computed(() =>
-  dataStore.team.filter(t => t.department_id === form.org.departmentId)
-)
-const filteredJobsForNew = computed(() =>
-  dataStore.job.filter(j => j.team_id === form.org.teamId)
-)
+const employeeCache = reactive(new Map())
 
-// ◼︎ “현재 조직” 드롭다운용 필터 (computed)
-const filteredDepartmentsForCurrent = computed(() =>
-  dataStore.department.filter(d => d.head_id === form.currentOrg.headId)
-)
-const filteredTeamsForCurrent = computed(() =>
-  dataStore.team.filter(t => t.department_id === form.currentOrg.departmentId)
-)
-const filteredJobsForCurrent = computed(() =>
-  dataStore.job.filter(j => j.team_id === form.currentOrg.teamId)
-)
 
-// ◼︎ org.json 로드
+// 초기 전체 계층 로드
 onMounted(async () => {
+  const res = await axios.get('http://localhost:8000/structure/heads')
+  orgHeads.value = res.data
   try {
-    const res = await axios.get('/org.json')
-    Object.assign(dataStore, {
-      headquarters: res.data.headquarters,
-      department:   res.data.department,
-      team:         res.data.team,
-      job:          res.data.job,
-      position:     res.data.position,
-      rank:         res.data.rank
-    })
-    // (선택 사항) “현재 조직” 기본값으로 첫 번째 항목 세팅
-    // 예를 들어, 첫 번째 본부를 기본값으로 지정하고 싶으면 아래처럼 세팅 가능:
-    // if (dataStore.headquarters.length > 0) {
-    //   form.currentOrg.headId = dataStore.headquarters[0].head_id
-    // }
+    const resp = await axios.get('http://localhost:8000/structure/hierarchy')
+    const full = Array.isArray(resp.data) ? resp.data : []
+    dataStore.headquarters = full.map(h => ({ headId: h.headId, headName: h.headName, headCode: h.headCode }))
+    dataStore.department   = full.flatMap(h => (h.departments||[]).map(d => ({ departmentId: d.departmentId, departmentName: d.departmentName, departmentCode: d.departmentCode, headId: h.headId })))
+    dataStore.team         = full.flatMap(h => (h.departments||[]).flatMap(d => (d.teams||[]).map(t => ({ teamId: t.teamId, teamName: t.teamName, teamCode: t.teamCode, departmentId: d.departmentId }))))
+    dataStore.job          = full.flatMap(h => (h.departments||[]).flatMap(d => (d.teams||[]).flatMap(t => (t.jobs||[]).map(j => ({ jobId: j.jobId, jobName: j.jobName, jobCode: j.jobCode, teamId: t.teamId })))) )
+    currentHeads.value     = dataStore.headquarters
+    await nextTick()
+    gridApi.value?.refreshCells({ columns: ['current', 'new'], force: true })
   } catch (e) {
-    console.error('org.json 로딩 실패', e)
+    console.error('hierarchy 로드 실패', e)
   }
 })
 
-// ◼︎ 그리드 컬럼 정의
-const columnDefs = [
-  {
-    field: 'label',
-    headerName: '항목',
-    editable: false,
-    flex: 1
-  },
-  {
-    field: 'current',
-    headerName: '현재 소속 조직',
-    flex: 2,
-    // “현재 조직”을 드롭다운으로 렌더링하여 form.currentOrg에 바인딩
-    cellRenderer: params => {
-      const key = params.data.key
-      const select = document.createElement('select')
-      select.style.width = '100%'
+// Employee 정보 로드
+async function loadEmployeeInfo() {
+  if (!form.name) return
 
-      // 빈 옵션 추가 (필요 시)
-      const empty = document.createElement('option')
-      empty.value = ''
-      empty.text = '선택'
-      select.appendChild(empty)
+  const id = String(form.name)
+  let emp = employeeCache.get(id)
 
-      let options = []
-      // ◼︎ 본부
-      if (key === 'head') {
-        options = dataStore.headquarters.map(h => ({ label: h.head_name, id: h.head_id }))
-      }
-      // ◼︎ 부서 (현재 본부에 속한 부서만)
-      else if (key === 'department') {
-        options = filteredDepartmentsForCurrent.value.map(d => ({ label: d.department_name, id: d.department_id }))
-      }
-      // ◼︎ 팀 (현재 부서에 속한 팀만)
-      else if (key === 'team') {
-        options = filteredTeamsForCurrent.value.map(t => ({ label: t.team_name, id: t.team_id }))
-      }
-      // ◼︎ 직무 (현재 팀에 속한 직무만)
-      else if (key === 'job') {
-        options = filteredJobsForCurrent.value.map(j => ({ label: j.job_name, id: j.job_id }))
-      }
-      // ◼︎ 직책 (전체 목록)
-      else if (key === 'position') {
-        options = dataStore.position.map(p => ({ label: p.position_name, id: p.position_id }))
-      }
-      // ◼︎ 직급 (전체 목록)
-      else if (key === 'rank') {
-        options = dataStore.rank.map(r => ({ label: r.rank_name, id: r.rank_id }))
-      }
-
-      // 옵션 추가 & “현재값”이 있으면 selected 처리
-      let currentSelectedId = null
-      if (key === 'head') {
-        currentSelectedId = form.currentOrg.headId
-      } else if (key === 'department') {
-        currentSelectedId = form.currentOrg.departmentId
-      } else if (key === 'team') {
-        currentSelectedId = form.currentOrg.teamId
-      } else if (key === 'job') {
-        currentSelectedId = form.currentOrg.jobId
-      } else if (key === 'position') {
-        currentSelectedId = form.currentOrg.positionId
-      } else if (key === 'rank') {
-        currentSelectedId = form.currentOrg.rankId
-      }
-
-      options.forEach(opt => {
-        const option = document.createElement('option')
-        option.value = opt.id
-        option.text = opt.label
-        if (String(opt.id) === String(currentSelectedId)) {
-          option.selected = true
-        }
-        select.appendChild(option)
-      })
-
-      // ◼︎ 유저가 선택 변경 시
-      select.onchange = e => {
-        const selectedId = e.target.value === '' ? null : Number(e.target.value)
-        switch (key) {
-          case 'head':
-            form.currentOrg.headId = selectedId
-            // downstream(부서, 팀, 직무)를 초기화
-            form.currentOrg.departmentId = null
-            form.currentOrg.teamId = null
-            form.currentOrg.jobId = null
-            break
-          case 'department':
-            form.currentOrg.departmentId = selectedId
-            form.currentOrg.teamId = null
-            form.currentOrg.jobId = null
-            break
-          case 'team':
-            form.currentOrg.teamId = selectedId
-            form.currentOrg.jobId = null
-            break
-          case 'job':
-            form.currentOrg.jobId = selectedId
-            break
-          case 'position':
-            form.currentOrg.positionId = selectedId
-            break
-          case 'rank':
-            form.currentOrg.rankId = selectedId
-            break
-        }
-        // 변경 즉시 그리드 셀 새로고침 (하위 옵션 재로딩)
-        gridApi.value.refreshCells({ force: true })
-      }
-
-      return select
-    }
-  },
-  {
-    field: 'new',
-    headerName: '발령 조직',
-    flex: 3,
-    // “발령 조직”을 드롭다운으로 렌더링하여 form.org에 바인딩
-    cellRenderer: params => {
-      const key = params.data.key
-      const select = document.createElement('select')
-      select.style.width = '100%'
-
-      const empty = document.createElement('option')
-      empty.value = ''
-      empty.text = '선택'
-      select.appendChild(empty)
-
-      let options = []
-      // ◼︎ 본부
-      if (key === 'head') {
-        options = dataStore.headquarters.map(h => ({ label: h.head_name, id: h.head_id }))
-      }
-      // ◼︎ 부서 (선택된 발령 본부에 속한 부서만)
-      else if (key === 'department') {
-        options = filteredDepartmentsForNew.value.map(d => ({ label: d.department_name, id: d.department_id }))
-      }
-      // ◼︎ 팀 (선택된 발령 부서에 속한 팀만)
-      else if (key === 'team') {
-        options = filteredTeamsForNew.value.map(t => ({ label: t.team_name, id: t.team_id }))
-      }
-      // ◼︎ 직무 (선택된 발령 팀에 속한 직무만)
-      else if (key === 'job') {
-        options = filteredJobsForNew.value.map(j => ({ label: j.job_name, id: j.job_id }))
-      }
-      // ◼︎ 직책 (전체 목록)
-      else if (key === 'position') {
-        options = dataStore.position.map(p => ({ label: p.position_name, id: p.position_id }))
-      }
-      // ◼︎ 직급 (전체 목록)
-      else if (key === 'rank') {
-        options = dataStore.rank.map(r => ({ label: r.rank_name, id: r.rank_id }))
-      }
-
-      // “현재값”(selected) 세팅
-      let newSelectedId = null
-      if (key === 'head') {
-        newSelectedId = form.org.headId
-      } else if (key === 'department') {
-        newSelectedId = form.org.departmentId
-      } else if (key === 'team') {
-        newSelectedId = form.org.teamId
-      } else if (key === 'job') {
-        newSelectedId = form.org.jobId
-      } else if (key === 'position') {
-        newSelectedId = form.org.positionId
-      } else if (key === 'rank') {
-        newSelectedId = form.org.rankId
-      }
-
-      options.forEach(opt => {
-        const option = document.createElement('option')
-        option.value = opt.id
-        option.text = opt.label
-        if (String(opt.id) === String(newSelectedId)) {
-          option.selected = true
-        }
-        select.appendChild(option)
-      })
-
-      // ◼︎ 유저가 “발령 조직” 선택 시
-      select.onchange = e => {
-        const selectedId = e.target.value === '' ? null : Number(e.target.value)
-        switch (key) {
-          case 'head':
-            form.org.headId = selectedId
-            form.org.departmentId = null
-            form.org.teamId = null
-            form.org.jobId = null
-            break
-          case 'department':
-            form.org.departmentId = selectedId
-            form.org.teamId = null
-            form.org.jobId = null
-            break
-          case 'team':
-            form.org.teamId = selectedId
-            form.org.jobId = null
-            break
-          case 'job':
-            form.org.jobId = selectedId
-            break
-          case 'position':
-            form.org.positionId = selectedId
-            break
-          case 'rank':
-            form.org.rankId = selectedId
-            break
-        }
-        gridApi.value.refreshCells({ force: true })
-      }
-
-      return select
+  if (!emp) {
+    try {
+      const res = await axios.get(`http://localhost:8000/introduction/employee/${id}`)
+      emp = res.data
+      employeeCache.set(id, emp)     // 캐시에 저장
+    } catch {
+      alert('사원정보를 불러오는 중 오류가 발생했습니다.')
+      return
     }
   }
-]
 
-const defaultColDef = {
-  resizable: true
+  // emp 가 확보됐으면, 기존 로직 수행
+  form.currentOrg.headId       = emp.headId
+  form.currentOrg.departmentId = emp.departmentId
+  form.currentOrg.teamId       = emp.teamId
+  form.currentOrg.jobId        = emp.jobId
+  form.currentOrg.jobCode      = emp.jobCode
+  form.currentOrg.positionCode = emp.positionCode
+  form.currentOrg.rankCode     = emp.rankCode
+
+  jobsCurrent.value = [{ jobId: emp.jobId, jobName: emp.jobName, jobCode: emp.jobCode }]
+  positionsCurrent.value = [{ positionCode: emp.positionCode, positionName: emp.positionName }]
+  ranksCurrent.value     = [{ rankCode: emp.rankCode, rankName: emp.rankName }]
+
+  await nextTick()
+  gridApi.value.refreshCells({ columns: ['current'], force: true })
 }
 
-const rowData = reactive([])
 
-// ◼︎ 그리드 준비 완료 시
-function onGridReady(params) {
-  gridApi.value = params.api
-  rowData.length = 0
+const filteredDepartmentsCurrent = computed(() =>
+  dataStore.department.filter(d => d.headId === form.currentOrg.headId)
+)
+const filteredTeamsCurrent = computed(() =>
+  dataStore.team.filter(t => t.departmentId === form.currentOrg.departmentId)
+)
 
-  // orgFields 객체 순서대로 rowData에 밀어넣기
-  Object.entries(orgFields).forEach(([key, label]) => {
-    rowData.push({
-      key,
-      label,
-      // “current”, “new” 두 칼럼은 렌더러(cellRenderer)에서 직접 처리함
-      current: null,
-      new: null
-    })
-  })
-}
-
-// ◼︎ “저장” 클릭 시
-async function submit() {
-  try {
-    const headObj = dataStore.headquarters.find(h => h.head_id === form.org.headId)
-    const deptObj = dataStore.department.find(d => d.department_id === form.org.departmentId)
-    const teamObj = dataStore.team.find(t => t.team_id === form.org.teamId)
-    const jobObj = dataStore.job.find(j => j.job_id === form.org.jobId)
-    const posObj = dataStore.position.find(p => p.position_id === form.org.positionId)
-    const rankObj = dataStore.rank.find(r => r.rank_id === form.org.rankId)
-
-    const payload = {
-      employee_name: form.name,
-      title: form.title,
-      appointment_type: form.type,
-      appointment_effective_date: form.effectiveDate,
-      head_code: headObj?.head_code,
-      department_code: deptObj?.department_code,
-      team_code: teamObj?.team_code,
-      job_code: jobObj?.job_code,
-      position_code: posObj?.position_code,
-      rank_code: rankObj?.rank_code
-    }
-    await axios.post('/appointments', payload)
-    router.push('/appointment')
-  } catch (err) {
-    console.error('등록 실패', err)
-    alert('등록 중 오류가 발생했습니다.')
+// 워치로 각 선택 리셋
+watch(() => form.currentOrg.headId, () => {
+  form.currentOrg.departmentId = null; form.currentOrg.teamId = null; form.currentOrg.jobId = null;
+  jobsCurrent.value = []; positionsCurrent.value = []; ranksCurrent.value = [];
+  gridApi.value?.refreshCells({ columns: ['current'], force: true })
+})
+watch(() => form.currentOrg.departmentId, () => {
+  form.currentOrg.teamId = null; form.currentOrg.jobId = null;
+  jobsCurrent.value = [];
+  gridApi.value?.refreshCells({ columns: ['current'], force: true })
+})
+watch(() => form.currentOrg.teamId, async id => {
+  form.currentOrg.jobId = null; jobsCurrent.value = [];
+  if (id) {
+    const res = await axios.get(`http://localhost:8000/introduction/team/${id}/job`)
+    jobsCurrent.value = Array.isArray(res.data)
+      ? res.data.map(j => ({ jobId: j.jobId, jobName: j.jobName, jobCode: j.jobCode }))
+      : []
   }
-}
+  gridApi.value?.refreshCells({ columns: ['current'], force: true })
+})
+// 1) form.org.teamId 변경 시 직무 로드 (기존)
+watch(() => form.org.teamId, async teamId => {
+  jobsNew.value = []
+  form.org.jobId = null
+  if (teamId) {
+    const res = await axios.get(`http://localhost:8000/introduction/team/${teamId}/job`)
+    jobsNew.value = Array.isArray(res.data)
+      ? res.data.map(j => ({ jobId: j.jobId, jobName: j.jobName, jobCode: j.jobCode }))
+      : []
+  }
+  gridApi.value?.refreshCells({ columns:['new'], force:true })
+})
 
-// ◼︎ “취소” 클릭 시
-function cancel() {
-  router.back()
-}
+// → 여기에 이어서 “직책” 호출
+watch(() => form.org.jobId, async jobId => {
+  positionsNew.value = []
+  ranksNew.value     = []
+  form.org.positionCode = null
+  form.org.rankCode     = null
 
-// ◼︎ orgFields: 그리드 한 행마다 key-라벨 매핑
+  if (jobId) {
+    // 예: teamId → 가능한 직책·직급을 가져오는 API
+    const [posRes, rankRes] = await Promise.all([
+      axios.get(`http://localhost:8000/introduction/job/${jobId}/positions`),
+      axios.get(`http://localhost:8000/introduction/job/${jobId}/ranks`)
+    ])
+    positionsNew.value = Array.isArray(posRes.data)
+      ? posRes.data.map(p => ({ positionCode: p.positionCode, positionName: p.positionName }))
+      : []
+    ranksNew.value = Array.isArray(rankRes.data)
+      ? rankRes.data.map(r => ({ rankCode: r.rankCode, rankName: r.rankName }))
+      : []
+  }
+  gridApi.value?.refreshCells({ columns:['new'], force:true })
+})
+
+// 2) 본부 → 부서
+watch(() => form.org.headId, async headId => {
+  form.org.departmentId = form.org.teamId = form.org.jobId = form.org.positionCode = form.org.rankCode = null
+  departmentsNew.value = teamsNew.value = jobsNew.value = positionsNew.value = ranksNew.value = []
+  if (!headId) return gridApi.value.refreshCells({ columns:['new'], force:true })
+
+  const r = await axios.get(`http://localhost:8000/structure/heads/${headId}/departments`)
+  departmentsNew.value = r.data
+  gridApi.value.refreshCells({ columns:['new'], force:true })
+})
+
+// 3) 부서 → 팀
+watch(() => form.org.departmentId, async deptId => {
+  form.org.teamId = form.org.jobId = form.org.positionCode = form.org.rankCode = null
+  teamsNew.value = jobsNew.value = positionsNew.value = ranksNew.value = []
+  if (!deptId) return gridApi.value.refreshCells({ columns:['new'], force:true })
+
+  const r = await axios.get(`http://localhost:8000/structure/departments/${deptId}`)
+  teamsNew.value = r.data.teams
+  gridApi.value.refreshCells({ columns:['new'], force:true })
+})
+
+// 4) 팀 → 직무
+watch(() => form.org.teamId, async teamId => {
+  form.org.jobId = form.org.positionCode = form.org.rankCode = null
+  jobsNew.value = positionsNew.value = ranksNew.value = []
+  if (!teamId) return gridApi.value.refreshCells({ columns:['new'], force:true })
+
+  const r = await axios.get(`http://localhost:8000/introduction/team/${teamId}/job`)
+  jobsNew.value = r.data.map(j => ({
+    jobId: j.jobId, jobName: j.jobName, jobCode: j.jobCode
+  }))
+  gridApi.value.refreshCells({ columns:['new'], force:true })
+})
+
+// 5) 직무 → 직책·직급
+watch(() => form.org.jobId, async jobId => {
+  form.org.positionCode = form.org.rankCode = null
+  positionsNew.value = ranksNew.value = []
+  if (jobId) {
+    const [posRes, rankRes] = await Promise.all([
+      axios.get(`http://localhost:8000/introduction/job/${jobId}/positions`),
+      axios.get(`http://localhost:8000/introduction/job/${jobId}/ranks`)
+    ])
+    positionsNew.value = posRes.data
+    ranksNew.value = rankRes.data
+  }
+  gridApi.value?.refreshCells({ columns: ['new'], force: true })
+})
+
+
+// ag-Grid 설정: position, rank 칼럼 추가
 const orgFields = {
   head: '소속 본부',
   department: '소속 부서',
@@ -435,7 +310,193 @@ const orgFields = {
   position: '소속 직책',
   rank: '소속 직급'
 }
+const rowData = reactive([])
+const defaultColDef = { resizable: true, sortable: true }
+const columnDefs = [
+  { field: 'label', headerName: '항목', flex: 1, editable: false },
+  { field: 'current', headerName: '현재 소속 조직', flex: 3, cellRenderer: params => makeSelect(params, 'currentOrg') },
+  { field: 'new', headerName: '발령 조직', flex: 3, cellRenderer: params => makeSelect(params, 'org') }
+]
+
+function makeSelect(params, context) {
+  const key = params.data.key
+  const sel = document.createElement('select')
+  sel.style.width = '100%'
+  sel.appendChild(new Option('선택', ''))
+
+  let list = []
+  if (context === 'currentOrg') {
+    if (key === 'head') list = currentHeads.value
+    else if (key === 'department') list = filteredDepartmentsCurrent.value
+    else if (key === 'team') list = filteredTeamsCurrent.value
+    else if (key === 'job') list = jobsCurrent.value
+    else if (key === 'position') list = positionsCurrent.value
+    else if (key === 'rank') list = ranksCurrent.value
+  } else {
+    if (key==='head')       list = orgHeads.value
+    else if (key==='department') list = departmentsNew.value
+    else if (key==='team')       list = teamsNew.value
+    else if (key==='job')        list = jobsNew.value
+    else if (key==='position')   list = positionsNew.value
+    else if (key==='rank')       list = ranksNew.value
+  }
+
+  const idKey =
+    key === 'position'
+      ? 'positionCode'
+      : key === 'rank'
+      ? 'rankCode'
+      : key + 'Id'
+  const labelKey =
+    key === 'position'
+      ? 'positionName'
+      : key === 'rank'
+      ? 'rankName'
+      : key + 'Name'
+
+  list.forEach(item => {
+    const opt = new Option(item[labelKey], item[idKey])
+    if (String(item[idKey]) === String(form[context][idKey])) opt.selected = true
+    sel.appendChild(opt)
+  });
+
+  sel.value = form[context][idKey] || '';
+
+  sel.onchange = e => {
+        form[context][idKey] = e.target.value || null
+    // **jobCode, positionCode, rankCode** 도 함께 세팅
+    if (context === 'currentOrg' && key === 'job') {
+      const chosen = list.find(x => String(x[idKey]) === e.target.value)
+      form.currentOrg.jobCode = chosen?.jobCode || null
+    }
+    gridApi.value.refreshCells({ force: true })
+  }
+
+  return sel
+}
+
+function onGridReady(params) {
+  gridApi.value = params.api
+  rowData.length = 0
+  Object.entries(orgFields).forEach(([key, label]) =>
+    rowData.push({ key, label, current: null, new: null })
+  )
+}
+
+async function submit() {
+  // 0) 직원 정보 준비 여부 확인
+  if (!form.currentOrg.jobId) {
+    alert('직원 정보가 아직 로드되지 않았습니다.\n사원번호 입력 후 잠시 기다려주세요.');
+    return;
+  }
+
+  try {
+    // --- 1) employeeId, 기본 정보 ---
+    const employeeId = Number(form.name);
+    const appointmentReason = form.title;
+    const appointmentType = form.type;
+    const appointmentEffectiveDate = form.effectiveDate;
+
+    // --- 2) helper: id → code ---
+    const findById = (arr, idKey, codeKey) => id => {
+      const it = arr.find(x => String(x[idKey]) === String(id));
+      return it ? it[codeKey] : null;
+    };
+
+    // currentOrg 코드 매핑 함수들
+    const headCodeFrom     = findById(dataStore.headquarters, 'headId', 'headCode');
+    const deptCodeFrom     = findById(dataStore.department,    'departmentId', 'departmentCode');
+    const teamCodeFrom     = findById(dataStore.team,          'teamId', 'teamCode');
+    const jobCodeFrom      = findById(jobsCurrent.value,       'jobId', 'jobCode');      // ← 여기!
+    const positionCodeFrom = findById(positionsCurrent.value,  'positionCode', 'positionCode');
+    const rankCodeFrom     = findById(ranksCurrent.value,      'rankCode', 'rankCode');
+
+    // org (to) 코드 매핑 함수들
+    const headCodeTo       = findById(orgHeads.value,         'headId', 'headCode');
+    const deptCodeTo       = findById(departmentsNew.value,   'departmentId', 'departmentCode');
+    const teamCodeTo       = findById(teamsNew.value,         'teamId', 'teamCode');
+    const jobCodeTo        = findById(jobsNew.value,          'jobId', 'jobCode');
+    const positionCodeTo   = findById(positionsNew.value,     'positionCode', 'positionCode');
+    const rankCodeTo       = findById(ranksNew.value,         'rankCode', 'rankCode');
+
+    // --- 3) payload 조립 ---
+    const payload = {
+      // employeeId,
+
+      // fromHeadCode:       headCodeFrom(form.currentOrg.headId),
+      // fromDepartmentCode: deptCodeFrom(form.currentOrg.departmentId),
+      // fromTeamCode:       teamCodeFrom(form.currentOrg.teamId),
+      // fromJobCode:        jobCodeFrom(form.currentOrg.jobId),         // ← 여기!
+      // fromPositionCode:   positionCodeFrom(form.currentOrg.positionCode),
+      // fromRankCode:       rankCodeFrom(form.currentOrg.rankCode),
+
+      // toHeadCode:         headCodeTo(form.org.headId),
+      // toDepartmentCode:   deptCodeTo(form.org.departmentId),
+      // toTeamCode:         teamCodeTo(form.org.teamId),
+      // toJobCode:          jobCodeTo(form.org.jobId),
+      // toPositionCode:     positionCodeTo(form.org.positionCode),
+      // toRankCode:         rankCodeTo(form.org.rankCode),
+
+      // appointmentReason,
+      // appointmentType,
+      // appointmentEffectiveDate,
+
+      // // NotNull 제약 채우기
+      // appointmentStatus: '대기',
+      // isApplied: false
+
+      employeeId: Number(form.name),
+      appointmentReason: form.title,
+      appointmentType: form.type,
+      appointmentEffectiveDate: form.effectiveDate,
+
+      // 3) “from” 조직 코드는 이미 로드 시점에 채워둔 jobCode, positionCode, rankCode를 바로 사용
+      fromHeadCode:       dataStore.headquarters.find(h => h.headId === form.currentOrg.headId)?.headCode     || null,
+      fromDepartmentCode: dataStore.department   .find(d => d.departmentId === form.currentOrg.departmentId)?.departmentCode || null,
+      fromTeamCode:       dataStore.team         .find(t => t.teamId === form.currentOrg.teamId)?.teamCode     || null,
+      fromJobCode:        form.currentOrg.jobCode,     // ← 여기만 직접 꺼내 쓰면 null 이 안 됩니다
+      fromPositionCode:   form.currentOrg.positionCode,
+      fromRankCode:       form.currentOrg.rankCode,
+
+      // 4) “to” 조직 코드는 findById 를 써도 좋습니다
+      toHeadCode:         orgHeads.value.find(h => h.headId === form.org.headId)?.headCode                 || null,
+      toDepartmentCode:   departmentsNew.value.find(d => d.departmentId === form.org.departmentId)?.departmentCode || null,
+      toTeamCode:         teamsNew.value.find(t => t.teamId === form.org.teamId)?.teamCode                 || null,
+      toJobCode:          jobsNew.value.find(j => j.jobId === form.org.jobId)?.jobCode                    || null,
+      toPositionCode:     form.org.positionCode,
+      toRankCode:         form.org.rankCode,
+
+      // 5) NotNull 제약 채우기
+      appointmentStatus: '대기',
+      isApplied: false
+    };
+
+    // --- 4) API 호출 ---
+    await axios.post('http://localhost:8000/appointment/create', payload);
+
+    alert('등록 성공!');
+    router.back();
+
+  } catch (err) {
+    console.error('등록 실패', err);
+    alert('등록 중 오류가 발생했습니다.');
+  }
+}
+
+
+// 코드 찾기 헬퍼
+const findCode = (arr, id, codeKey) => {
+  const it = arr.find(x => String(Object.values(x)[0]) === String(id))
+  return it ? it[codeKey] : null
+}
+
+
+function cancel() {
+  router.back()
+}
 </script>
+
+
 
 <style scoped>
 .page-title {
