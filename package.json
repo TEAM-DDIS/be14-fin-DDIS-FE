@@ -20,6 +20,7 @@
     "element-plus": "^2.9.11",
     "express": "^4.19.2",
     "html2pdf.js": "^0.10.3",
+    "jwt-decode": "^4.0.0",
     "pinia": "^3.0.2",
     "primeicons": "^7.0.0",
     "primevue": "^4.3.4",
