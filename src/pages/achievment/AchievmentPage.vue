@@ -3,20 +3,56 @@
   <p class="desc">성과이력 조회</p>
 
   <div class="content-box">
+      <div class="global-search">
+        <img src="@/assets/icons/search.svg" class="search" />
+        <input
+          v-model="globalSearch"
+          type="text"
+          placeholder="사원 검색"
+          class="global-search-input"
+        />
+        <ul v-if="globalSearch" class="search-results">
+          <li
+            v-for="emp in filteredAllEmployees"
+            :key="emp.employeeId"
+            @click="onEmployeeSelected(emp)"
+            class="search-item"
+          >
+            {{ emp.rankName }} {{ emp.employeeName }} / {{ emp.teamName }}
+          </li>
+        </ul>
+      </div>
+
+
     <div class="org-dashboard">
+            
       <!-- Left: Org Hierarchy 트리 영역 -->
       <div class="left">
+       
         <h2>조직도</h2>
-        <Hierarchy @team-selected="onTeamSelected" :hierarchy="hierarchy" />
+        
+            <Hierarchy
+            :key="orgSearchQuery"
+      @team-selected="onTeamSelected"
+      :hierarchy="filteredHierarchy"
+    />
       </div>
 
       <!-- Middle: Team Members List -->
       <div class="team-panel">
         <template v-if="selectedTeam">
           <h2>{{ selectedTeam.teamName }} 팀원</h2>
+          <div class="search-box">
+            <input
+              v-model="memberSearch"
+              type="text"
+              placeholder="사원 이름으로 검색"
+              class="search-input"
+            />
+          </div>
           <ul class="member-list">
             <li
-              v-for="emp in teamMembers"
+              v-for="emp in filteredTeamMembers"
               :key="emp.employeeId"
               @click="onEmployeeSelected(emp)"
               :class="{ active: emp.employeeId === selectedEmployee?.employeeId }"
@@ -71,6 +107,7 @@
               <h3 class="detail-title">성과 이력</h3>
               <AgGrid
                 class="ag-theme-alpine custom-theme"
+                :gridOptions="{ theme: 'legacy' }"
                 :columnDefs="salaryColumnDefs"
                 :rowData="salaryHistory"
                 :pagination="true"
@@ -89,37 +126,117 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, watch  } from 'vue'
 import { useRouter } from 'vue-router'
 import Hierarchy from '@/components/org/structure/Hierarchy.vue'
 import AgGrid from '@/components/grid/BaseGrid.vue'
 
 // --- 상태 정의 ---
-const hierarchy = ref([])
-const selectedTeam = ref(null)
-const teamMembers = ref([])
+const hierarchy        = ref([])
+const employees        = ref([])  // 전체 사원 flat list
+const globalSearch     = ref('')
+const orgSearchQuery   = ref('')
+const memberSearch     = ref('')
+const selectedTeam     = ref(null)
+const teamMembers      = ref([])
 const selectedEmployee = ref(null)
-const salaryHistory = ref([])
+const salaryHistory    = ref([])
+
 
 // AG Grid 컬럼 정의
 const salaryColumnDefs = ref([
-  { headerName: '기간',             field: 'yearMonth',              sortable: true, filter: true },
-  { headerName: '성과 내용',        field: 'performanceDescription', sortable: false, filter: true },
-  { headerName: '결과',             field: 'performanceValue',       sortable: true, filter: true },
-  { headerName: '평가 점수',        field: 'reviewScore',            sortable: true, filter: true,
-    valueFormatter: params => params.value != null ? `${params.value} 점` : '-' 
+  { headerName: '기간', field: 'yearMonth', sortable: true, filter: true, width: 165 },
+  { headerName: '성과 내용', field: 'performanceDescription', sortable: false, filter: true, width: 140 },
+  { headerName: '결과', field: 'performanceValue', sortable: true, filter: true, width: 80 },
+  {
+    headerName: '평가 점수', field: 'reviewScore', sortable: true, filter: true, width: 105,
+    valueFormatter: params => params.value != null ? `${params.value} 점` : '-'
   },
 ])
 
 const router = useRouter()
 
+
 // 1) 조직 계층 로드
 onMounted(async () => {
   try {
     const res = await fetch('http://localhost:8000/structure/hierarchy')
-    hierarchy.value = res.ok ? await res.json() : []
+    const data = res.ok ? await res.json() : []
+      hierarchy.value = data
+    // flatten hierarchy to employees
+    const list = []
+    function collect(nodes, deptName, teamName) {
+      nodes.forEach(head => {
+        head.departments.forEach(dept => {
+          dept.teams.forEach(team => {
+            team.members.forEach(emp => {
+              list.push({
+                ...emp,
+                departmentName: dept.departmentName,
+                teamName: team.teamName
+              })
+            })
+          })
+          if (dept.teams) collect([], dept.departmentName)
+        })
+      })
+    }
+    collect(data)
+    employees.value = list
   } catch {
     hierarchy.value = []
+    employees.value = []
+  }
+})
+
+// Global search filter
+const filteredAllEmployees = computed(() => {
+  const q = globalSearch.value.trim().toLowerCase()
+  if (!q) return []
+  return employees.value.filter(emp => emp.employeeName.toLowerCase().includes(q))
+})
+
+// Org tree filter
+function filterTree(nodes, q) {
+  return nodes.reduce((acc, node) => {
+    const children = node.children ? filterTree(node.children, q) : []
+    const name = (node.teamName || node.departmentName || node.headName || '').toLowerCase()
+    if (name.includes(q) || children.length) acc.push({ ...node, children })
+    return acc
+  }, [])
+}
+const filteredHierarchy = computed(() => {
+  const q = orgSearchQuery.value.trim().toLowerCase()
+  return q ? filterTree(hierarchy.value, q) : hierarchy.value
+})
+
+// Team member filter
+const filteredTeamMembers = computed(() => {
+  const q = memberSearch.value.trim().toLowerCase()
+  if (!selectedTeam.value) return []
+  const list = selectedTeam.value.members.map(e => ({ ...e }))
+  return q
+    ? list.filter(emp => emp.employeeName.toLowerCase().includes(q))
+    : list
+})
+
+// 3) 트리에서 유일하게 하나만 매치되면 자동으로 선택
+watch(filteredHierarchy, tree => {
+  const q = orgSearchQuery.value.trim()
+  if (!q) return
+
+  const matches = []
+  // 리프 노드(멤버)만 수집
+  function collect(nodes) {
+    nodes.forEach(n => {
+      if (n.members) matches.push(...n.members)
+      if (n.children) collect(n.children)
+    })
+  }
+  collect(tree)
+
+  if (matches.length === 1) {
+    onEmployeeSelected(matches[0])
   }
 })
 
@@ -139,6 +256,7 @@ function onTeamSelected(team) {
 // 3) 사원 선택 & 성과 이력 조회
 async function onEmployeeSelected(emp) {
   selectedEmployee.value = null
+  globalSearch.value = ''
   try {
     const [resEmp, resHist] = await Promise.all([
       fetch(`http://localhost:8000/structure/employee/${emp.employeeId}`),
@@ -179,6 +297,44 @@ const profileRowData = computed(() => {
   margin-bottom: 10px;
   font-size: 18px;
 }
+
+.global-search { 
+  margin-bottom: 8px;
+  display: flex;
+  gap: 10px;
+  position: relative;
+  justify-content: flex-end;
+}
+.global-search-input{
+  width: 160px;
+  padding: 6px 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+.search {
+  width: 20px;
+}
+.search-input { 
+  width: 100%;
+  padding: 8px; 
+}
+.search-results { 
+  position: absolute;
+  top: 45%;
+  right: 0; 
+  background: #fff; border: 1px solid #ddd; 
+  width: 135px; 
+  max-height: 200px; 
+  overflow-y: auto; 
+  z-index: 10; 
+}
+.search-item { 
+  padding: 8px; 
+  cursor: pointer; 
+}
+.search-item:hover { 
+  background: #f0f0f0; 
+}
 .custom-grid :deep(.ag-header) {
   background-color: #f0f0f0 !important;
 }
@@ -197,7 +353,7 @@ const profileRowData = computed(() => {
 }
 .org-dashboard {
   display: grid;
-  grid-template-columns: 0.7fr 0.6fr 1fr;
+  grid-template-columns: 0.7fr 0.5fr 1.25fr;
   gap: 16px;
 }
 .left,
@@ -208,7 +364,7 @@ const profileRowData = computed(() => {
 }
 .left,
 .team-panel {
-  padding: 16px;
+  padding: 10px;
   border-right: 1px solid #ddd;
 }
 .profile-panel {
@@ -216,7 +372,7 @@ const profileRowData = computed(() => {
 }
 
 h2 {
-  margin-top: 20px;
+  margin-top: -10px;
 }
 
 /* placeholder */
