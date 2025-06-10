@@ -226,6 +226,10 @@
                         name: '평가', 
                         path: '/org/evaluation'
                     },
+                    {
+                        name: '내가 쓴 평가',
+                        path: '/org/myevaluation'
+                    }
                 ]
             },
             '성과 관리': {
