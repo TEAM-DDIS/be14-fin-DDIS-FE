@@ -1,7 +1,7 @@
 <template>
   <div class="goal-page">
     <h1 class="page-title">내가 쓴 평가</h1>
-    <p class="desc" style="margin-left:20px; margin-bottom:10px;">실적 목록</p>
+    <p class="desc">실적 목록</p>
 
     <div class="panels">
       <section class="panel goals-panel">
@@ -49,12 +49,16 @@
             <table class="detail-table-vertical">
               <tbody>
                 <tr>
+                  <th>목표수치</th>
+                  <td>{{ selectedGoal.goalValue }}</td>
+                </tr>
+                <tr>
                   <th>상사 평가 점수</th>
                   <td>{{ selectedGoal.performance.reviewerScore ?? '-' }}</td>
                 </tr>
                 <tr>
                   <th>상사 평가 의견</th>
-                  <td style="text-align:left; white-space:pre-wrap;">
+                  <td>
                     {{ selectedGoal.performance.reviewerContent || '없음' }}
                   </td>
                 </tr>
@@ -112,7 +116,10 @@ const userStore = useUserStore()
 
 // performance.reviewerScore 가 있는 목표만
 const evaluatedGoals = computed(() =>
-  goals.value.filter(g => g.performance?.reviewerScore != null)
+  goals.value.filter(g =>
+    g.performance &&
+    g.performance.employeeIdReviewer === userStore.employeeId     // 내가 리뷰어인 것만
+  )
 )
 // 선택된 목표
 const selectedGoal = computed(() =>
@@ -145,21 +152,39 @@ function formatDateTime(iso) {
 }
 
 async function fetchGoals() {
+  const reviewerId = userStore.user.employeeId
   const token = localStorage.getItem('token')
   try {
-    const res = await fetch('http://localhost:8000/goals', {
-      headers: { Authorization: `Bearer ${token}` }
-    })
-    if (!res.ok) throw new Error('목표 불러오기 실패')
+    const res = await fetch(
+      `http://localhost:8000/review/${reviewerId}/performance`,
+      { headers: { Authorization: `Bearer ${token}` } }
+    )
+    if (!res.ok) throw new Error('내가 쓴 평가 불러오기 실패')
     const data = await res.json()
-    goals.value = data.map(g => ({
-      ...g,
-      progress: g.performance
-        ? Math.min(100,
-            Math.round((g.performance.performanceValue || 0) / g.goalValue * 100))
+goals.value = data.map(dto => {
+      const perfValue = dto.performanceValue ?? 0
+      const goalValue = dto.goalValue ?? 0
+      const progress = goalValue > 0
+        ? Math.round((perfValue / goalValue) * 100)
         : 0
-    }))
-  } catch {
+
+      return {
+        goalId:        dto.goalId,
+        goalTitle:     dto.goalTitle,
+        goalValue,
+        goalCreatedAt: dto.reviewerCreatedAt,   // 원래 생성일이 필요하면 별도 필드로 담으세요
+        performance: {
+          performanceValue:  perfValue,
+          reviewerScore:     dto.reviewerScore,
+          reviewerContent:   dto.reviewerContent,
+          reviewerCreatedAt: dto.reviewerCreatedAt,
+          performanceId:     dto.performanceId
+        },
+        progress         // 달성률 추가
+      }
+    })
+  } catch (e) {
+    console.error(e)
     goals.value = []
   }
 }
@@ -223,7 +248,10 @@ onMounted(fetchGoals)
   color: #00a8e8;
 }
 .desc {
-  font-size: 18px;
+    display: block;
+    margin-left: 20px;
+    margin-bottom: 10px;
+    font-size: 18px;
 }
 .panels {
   display: flex;
@@ -261,27 +289,48 @@ onMounted(fetchGoals)
   flex-direction: column;
 }
 .goal-card {
+  position: relative;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   padding: 16px;
+  padding-bottom: 20px;
   margin-bottom: 12px;
-  border: 1px solid #ddd;
-  border-radius: 8px;
   cursor: pointer;
-  transition: background-color 0.2s, border-color 0.2s;
+  transition: transform 0.2s, box-shadow 0.2s;
 }
+.goal-card:active {
+  box-shadow:
+    inset 0 4px 8px rgba(0, 0, 0, 0.15),
+    0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* 선택(selected) 상태 */
 .goal-card.selected {
-  background: #eef;
-  border-color: #00a8e8;
+  box-shadow:
+    inset 0 4px 8px rgba(0, 0, 0, 0.15),
+    0 2px 8px rgba(0, 0, 0, 0.1);
+  transform: translateY(0);
+  background-color: #f7f7f7;
+}
+
+.goal-card:hover {
+  transform: translateY(-2px);
+  opacity: 1;
 }
 .card-top {
   display: flex;
   justify-content: space-between;
   color: #888;
   font-size: 0.85rem;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
+  margin-top: 10px;
 }
 .card-title {
   font-size: 1rem;
   font-weight: 600;
+  margin: 4px 0 12px;
+  line-height: 1.4;
 }
 .perf-content {
   margin-top: 16px;

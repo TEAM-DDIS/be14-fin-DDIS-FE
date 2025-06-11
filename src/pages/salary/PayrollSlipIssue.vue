@@ -172,6 +172,8 @@ const searchKeyword = ref('') // 검색어 상태
 const employees = ref([]) // 전체 사원 목록
 const salaryHistory = ref([]) // 급여 내역 목록
 const salarySection = ref(null) // 급여 내역 영역 ref
+const userStore = useUserStore()
+const token = localStorage.getItem('token')
 
 // 선택된 사원의 급여명세서 상세 정보
 const selectedSlip = reactive({
@@ -280,7 +282,7 @@ async function fetchSalaryHistory() {
         const yyyymm = current.getFullYear() + '-' + String(current.getMonth() + 1).padStart(2, '0')
         const { data } = await axios.get(`http://localhost:8000/payroll/salaries/${emp.employeeId}`, {
           params: { month: yyyymm },
-          headers: { Authorization: `Bearer ${useUserStore.accessToken}` }
+          headers: { Authorization: `Bearer ${token}` }
         })
         if (data && data.salaryDate) {
           results.push({
@@ -309,11 +311,11 @@ async function selectSlip(e) {
   try {
     const { data: salary } = await axios.get(`http://localhost:8000/payroll/salaries/${row.employeeId}`, {
       params: { month: row.yearMonth },
-      headers: { Authorization: `Bearer ${useUserStore.accessToken}` }
+      headers: { Authorization: `Bearer ${token}` }
     })
 
     const { data: emp } = await axios.get(`http://localhost:8000/payroll/employees/${row.employeeId}`, {
-      headers: { Authorization: `Bearer ${useUserStore.accessToken}` }
+      headers: { Authorization: `Bearer ${token}` }
     })
     selectedSlip.employeeId = emp.employeeId
     selectedSlip.employeeEmail = emp.employeeEmail
@@ -359,7 +361,7 @@ function formatCurrency(val) {
 // 컴포넌트 마운트 시 초기 데이터 세팅 (직원 목록, 기간 기본값)
 onMounted(async () => {
   const res = await axios.get('http://localhost:8000/payroll/employees', {
-    headers: { Authorization: `Bearer ${useUserStore.accessToken}` }
+    headers: { Authorization: `Bearer ${token}` }
   })
   employees.value = res.data
 

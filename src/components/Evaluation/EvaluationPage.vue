@@ -169,14 +169,12 @@
                   ></textarea>
                 </div>
 
-                <div class="btn-save-wrap">
-                  <button class="btn-save" @click="submitEval">저장</button>
-                </div>
-
-                <div class="btn-save-wrap" style="margin-top: 12px;">
+                <div class="btn-save-wrap" >
                   <button class="btn-save" @click="submitManagerEval('승인')">승인</button>
                   <button class="btn-save" @click="submitManagerEval('반려')" style="margin-left: 8px;">반려</button>
                 </div>
+
+            
 
 
               </div>
