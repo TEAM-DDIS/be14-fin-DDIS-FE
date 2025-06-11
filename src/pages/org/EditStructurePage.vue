@@ -39,7 +39,7 @@
     <div class="content-grid">
       <!-- ② 조직도 조회 패널 (Tree) -->
       <div class="section">
-        <p class="desc">조직도 조회</p>
+        <p class="desc2">조직도 조회</p>
         <div class="card tree-panel">
           <h2 class="card-title">조직도</h2>
           <div class="tree-container">
@@ -57,7 +57,7 @@
 
       <!-- ③ 부서/팀 정보 + 직원 목록 패널 -->
       <div class="section">
-        <p class="desc">조직 정보 조회</p>
+        <p class="desc2">조직 정보 조회</p>
         <div class="card info-panel">
           <h2 class="card-title">조직 정보</h2>
 
@@ -215,7 +215,7 @@
 
       <!-- ④ 부서 이동 (showMovePanel이 true일 때만 보여준다) -->
       <div class="section" v-if="showMovePanel">
-        <p class="desc">조직 구조 이동</p>
+        <p class="desc2">조직 구조 이동</p>
         <div class="card move-panel">
           <h2 class="card-title">조직 이동</h2>
           <p class="move-instruction">
@@ -640,6 +640,13 @@ function onTeamSelectedForMove(team) {
   font-size: 18px;
 }
 
+.desc2 {
+  display: block;
+  margin-left: 0;
+  margin-bottom: 10px;
+  font-size: 18px;
+}
+
 
 /* ① 조직도 편집 툴바 */
 .toolbar-card {
@@ -660,6 +667,9 @@ function onTeamSelectedForMove(team) {
   margin-right: 12px;
 }
 .toolbar-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center; 
   width: 40px;
   height: 40px;
   font-size: 24px;
@@ -679,8 +689,7 @@ function onTeamSelectedForMove(team) {
   border: 1px solid #00a8e8;
 }
 .toolbar-btn-detail {
-  line-height: 0.000002;
-  padding-bottom: 15px;
+  margin: 0;
 }
 .search {
   display: flex;
@@ -723,7 +732,7 @@ function onTeamSelectedForMove(team) {
   background: #fff;
   border-radius: 12px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-  padding: 24px;
+  padding: 20px 24px;
   display: flex;
   flex-direction: column;
   flex: 1;
@@ -762,18 +771,20 @@ function onTeamSelectedForMove(team) {
 .info-panel {
   overflow-y: auto;
   overflow-x: auto;
-  padding: 30px 40px;
+  padding: 20px 24px;
 }
 .info-list {
   list-style: none;
   font-size: 18px;
   margin-bottom: 20px;
+  padding-left: 24px; 
 }
 .info-list li {
   margin-bottom: 6px;
 }
 .member-section {
   margin-top: 20px;
+  padding: 24px;
 }
 .member-table {
   width: 100%;

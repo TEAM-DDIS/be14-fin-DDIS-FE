@@ -38,8 +38,7 @@
           :columnDefs="detailColumnDefs"
           :rowData="rowDataDetail"
           :pagination="false"
-
-          height="200px"
+          height="180px"
         />
       </div>
     </div>
@@ -123,7 +122,7 @@ const detailColumnDefs = [
 .header-table {
   width: 70%;
   border-collapse: collapse;
-  margin: 20px auto;
+  margin: 30px auto 40px;
 }
 .header-table th,
 .header-table td {
@@ -136,8 +135,8 @@ const detailColumnDefs = [
   text-align: left;
 }
 .grid-wrapper {
-  width: 100%;
-  margin: 20px auto;
+  width: 80%;
+  margin: 40px auto;
 }
 .loading {
   text-align: center;
