@@ -8,12 +8,7 @@
       </div>
       <div class="weekly-over-time-card">
         <span class="desc">주간 초과 근무 현황</span>
-        <WeeklyOvertimeCard
-          :extended="8"
-          :night="2"
-          :holiday="2"
-          @apply="onOvertimeApply"
-          />
+        <WeeklyOvertimeCard/>
       </div>
     </div>
     <div class="right-panel">
