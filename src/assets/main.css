@@ -66,3 +66,8 @@
 .ag-theme-alpine.custom-theme .ag-header-cell-text {
   min-width: 80px; /* 상황에 맞춰 조절 */
 }
+
+.ag-theme-alpine.custom-theme .ag-cell {
+  /* 말줄임 없애기 */
+  text-overflow: clip !important;
+}
