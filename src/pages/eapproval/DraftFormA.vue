@@ -25,12 +25,22 @@
             <td>기안자</td>
             <td><input v-model="form.drafter" type="text" /></td>
             <td>기안일자</td>
+            <!-- 화면에는 날짜만 보여주기 -->
+            <td>
             <input
-              type="date"
+              type="text"
               :value="form.draftDate"
               @input="updateDraftDate($event.target.value)"
+              placeholder="YYYY-MM-DD"
+              readonly
             />
-            <!-- <td><input v-model="form.draftDate" type="date" /></td> -->
+            <!-- 실제 저장용 (숨김 또는 v-if) -->
+            <input
+              type="datetime-local"
+              v-model="form.draftDate"
+              class="hidden-input"
+            />
+            </td>
           </tr>
           <tr>
             <td>문서번호</td>
@@ -202,11 +212,11 @@
     </div>
 
     <!-- DraftSaveModal 컴포넌트 -->
-     <DraftSaveModal
-     v-if="showDraftSaveModal"
-     @close="showDraftSaveModal = false"
-     @submit="confirmDraftSave"
-     />
+      <DraftSaveModal
+      v-if="showDraftSaveModal"
+      @close="showDraftSaveModal = false"
+      @submit="confirmDraftSave"
+      />
 
 
     <!-- SubmitModal 컴포넌트 -->
@@ -271,9 +281,16 @@ export default {
   },
   mounted() {
     this.loadDrafterInfo();
-    const today = new Date();
-    
-    this.form.draftDate = today.toISOString().slice(0, 10);
+    const now = new Date();
+    const yyyy = now.getFullYear();
+    const mm = String(now.getMonth() + 1).padStart(2, '0');
+    const dd = String(now.getDate()).padStart(2, '0');
+    const hh = String(now.getHours()).padStart(2, '0');
+    const min = String(now.getMinutes()).padStart(2, '0');
+    this.form.draftDate = `${yyyy}-${mm}-${dd}`; // datetime-local 초기값
+    },
+    formattedDraftDate() {
+    return this.form.draftDate?.slice(0, 10) || '';
   },
   methods: {
     async loadDrafterInfo() {
@@ -298,49 +315,55 @@ export default {
         alert(e.message);
       }
     },
+    updateDraftDate(val) {
+      this.form.draftDate = val;
+    },
+
+
     async fetchAutoApprovalLine(employeeId) {
       try {
         const response = await axios.get("http://localhost:8000/approval-line", {
-          params: {
-            employeeId,
-            formId: 1
-          },
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`
-          }
+          params: { employeeId, formId: 1 },
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
         });
 
-        console.log("📥 자동 결재선 응답 (원본):", response.data);
+        this.approvalLines = response.data.flatMap(step =>
+          step.approverList.map(approver => {
+            const lineType = approver.lineType || "ACTUAL";
+            // ★ stepNo 가 1 이면 '기안', 아니면 기존 INTERNAL/EXTERNAL 구분
+            const typeLabel = step.stepNo === 1
+              ? "기안"
+              : (approver.type === "INTERNAL" ? "결재" : approver.typeLabel || "");
 
-        this.approvalLines = response.data.flatMap((step) =>
-        step.approverList.map((approver) => {
-          const lineType = approver.lineType || "ACTUAL";
+            const lineTypeLabel = lineType === "ACTUAL"
+              ? "실제 결재선"
+              : "양식 결재선";
 
-          // ✅ 한글 라벨 처리
-          const type = approver.type === "INTERNAL" ? "결재" : "결재";
-          const lineTypeLabel = lineType === "ACTUAL" ? "실제 결재선" : "양식 결재선";
-
-          return {
-            step: step.stepNo,
-            name: approver.employeeName,
-            employeeId: approver.employeeId,
-            position: approver.positionName,
-            team: approver.teamName || "",
-            status: "대기중",
-            type,     // ✅ 추가
-            lineTypeLabel,       // ✅ 추가
-            viewedAt: null,
-            approvedAt: null,
-            comment: ""
-          };
-        })
-      );
+            return {
+              step:          step.stepNo,
+              name:          approver.employeeName,
+              employeeId:    approver.employeeId,
+              position:      approver.positionName,
+              team:          approver.teamName || "",
+              status:        "대기중",
+              type:          typeLabel,      // ← 여기서 기안/결재 구분
+              lineTypeLabel,                // ← 실제/양식 결재선
+              viewedAt:      null,
+              approvedAt:    null,
+              comment:       ""
+            };
+          })
+        );
 
         console.log("📋 화면에 출력될 결재선:", this.approvalLines);
 
       } catch (error) {
         console.error("❌ 자동 결재선 조회 실패:", error);
       }
+
+
+
+
     },
     openApprovalModal() { this.showApprovalModal = true; },
     openReceiverModal() { this.showReceiverModal = true; },
@@ -391,7 +414,7 @@ export default {
           position: line.position
         }))
       };
-      console.log("상신 데이터", submitData);
+       console.log("상신 데이터", JSON.stringify(submitData, null, 2));
       try {
         const res = await axios.post("http://localhost:8000/drafts/creation", submitData, {
           headers: {
@@ -712,6 +735,9 @@ textarea {
   border: 1px solid #ccc;
   border-radius: 8px;
   transition: border 0.2s ease;
+  height: 36px; /* ✅ 추가된 높이 조정 */
+  font-size: 14px; /* ✅ 추가된 글자 크기 조정 */
+  line-height: 1.5; /* ✅ 라인 정렬 */
 }
 
 input:focus,
@@ -891,4 +917,7 @@ textarea {
   border-radius: 0;              /* 둥근 모서리 제거 */
 }
 
+.hidden-input {
+  display: none;
+}
 </style>
