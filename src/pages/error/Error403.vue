@@ -83,8 +83,8 @@ p {
 }
 
 .btn-save {
-  margin-top: 20px;
-  font-size: 16px;
+  margin-top: 25px;
+  font-size: 18px;
   font-weight: bold;
   background-color: #00a8e8;
   color: white;
