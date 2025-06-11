@@ -33,22 +33,52 @@
 </template>
 
 <script setup>
-  import { ref, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 
-  const leaveData = ref({
-    total_days: 0,
-    used_days: 0,
-    remaining_days: 0,
-    pending_leave_days: 0,
-    first_notice_date: '',
-    second_notice_date: ''
-  })
+const leaveData = ref({
+  total_days: 0,
+  used_days: 0,
+  remaining_days: 0,
+  pending_leave_days: 0,
+  first_notice_date: '',
+  second_notice_date: ''
+})
 
-  onMounted(async () => {
-    const res = await fetch('/attendance.json')
+onMounted(async () => {
+  const token = localStorage.getItem('token')  // JWT 토큰
+
+  if (!token) {
+    console.error('로그인이 필요합니다.')
+    return
+  }
+
+  try {
+    const res = await fetch('http://localhost:8000/attendance/leave/status/me', {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    })
+
+    if (!res.ok) {
+      throw new Error('연차 정보 조회 실패')
+    }
+
     const json = await res.json()
-    leaveData.value = json.leave[0]
-  })
+
+    // camelCase → snake_case 매핑
+    leaveData.value = {
+      total_days: json.totalLeave,
+      used_days: json.usedLeave,
+      pending_leave_days: json.pendingLeave,
+      remaining_days: json.remainingLeave,
+      first_notice_date: json.firstPromotionDate,
+      second_notice_date: json.secondPromotionDate
+    }
+
+  } catch (err) {
+    console.error('API 오류:', err)
+  }
+})
 </script>
 
 <style scoped>
