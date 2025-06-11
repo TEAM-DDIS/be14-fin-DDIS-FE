@@ -190,23 +190,28 @@ const router = createRouter({
             path: '/draftdoc/inbox',
             component: () => import('@/pages/eapproval/InBox.vue')
         },
-
         // 참조함
         {
             path: '/draftdoc/reference',
             component: () => import('@/pages/eapproval/ReferenceDoc.vue')
         },
 
-        // 기안양식
-        // {
-        //     path: '/org/draftlis/formA',
-        //     component: () => import('@/pages/eapproval/DraftFormA.vue')
-        // },
-        // {
-        //     path: '/org/draftlis/formB',
-        //     component: () => import('@/pages/eapproval/DraftFormB.vue')
-        // },        
-
+        // 기안양식 (일반기안문서)
+        {
+            path: '/draft/formA',
+            component: () => import('@/pages/eapproval/DraftFormA.vue')
+        },
+        // 기안양식 (외근신청서)
+        {
+            path: '/draft/formB',
+            component: () => import('@/pages/eapproval/DraftFormB.vue')
+        },        
+         // 상세페이지
+        {
+            path: '/draft/:docId', // ← 기안 문서 ID에 따라 상세 조회
+            name: 'DraftDetail',
+            component: () => import('@/pages/eapproval/DetailTest.vue')        
+        },
         // =============== 급여 관리 ===============
 
         // 내  급여 명세서 조회

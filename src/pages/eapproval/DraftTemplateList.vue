@@ -42,12 +42,13 @@ const formSearchQuery = ref('')
 const formsExpanded = ref(true)
 
 const registeredForms = ref([
-  { id: 1, name: '일반사업기안', retention: '5년', manager: '인사팀 이쁜펭', path: '/org/draftlis/formA' },
-  { id: 2, name: '외근신청서', retention: '5년', manager: '인사팀 이쁜펭', path: '/org/draftlis/formB' },
+  { id: 1, name: '업무기안', retention: '5년', manager: '인사팀 이쁜펭', path: '/draft/formA' },
+  { id: 2, name: '외근신청서', retention: '5년', manager: '인사팀 이쁜펭', path: '/draft/formAB' },
   { id: 3, name: '출장신청서', retention: '5년', manager: '인사팀 이쁜펭', path: '/form/business-trip' },
   { id: 4, name: '인사발령 결재요청서', retention: '5년', manager: '인사팀 이쁜펭', path: '/form/promotion' },
   { id: 5, name: '초과근무신청서', retention: '5년', manager: '인사팀 이쁜펭', path: '/form/overtime' },
   { id: 6, name: '휴가신청서', retention: '5년', manager: '인사팀 이쁜펭', path: '/form/vacation' },
+  { id: 7, name: '테스트', retention: '5년', manager: '인사팀 이쁜펭', path: '/draft/test' }
 ])
 
 const formColumnDefs = [
