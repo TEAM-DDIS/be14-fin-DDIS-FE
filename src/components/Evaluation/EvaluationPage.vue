@@ -33,50 +33,50 @@
         </div>
 
         <!-- 2) 목표 카드 리스트 -->
-         <div class="block">
-        <p class="desc">평가 목록</p>
-        <img class="arrows" src="@/assets/icons/Polygon-2.svg" />
-        <section class="panel goals-panel">
-          <div class="goals-list">
-            <div
-              v-for="goal in filteredGoals"
-              :key="goal.id"
-              class="goal-card"
-              :class="{ selected: selectedGoal?.id === goal.id }"
-              @click="selectGoal(goal)"
-            >
-              <div class="card-top">
-                <span class="date">{{ goal.date }}</span>
-                <span class="author">{{ goal.owner }}</span>
-              </div>
-              <h4 class="card-title">{{ goal.title }}</h4>
-
-              <!-- ★ 목표수치 · 실적수치 표시 ★ -->
-              <div class="score-info" style="margin-bottom: 12px; display:flex; justify-content: space-between; font-size:0.9rem; color:#555;">
-                <span>목표수치: {{ goal.target }}</span>
-                <span>실적수치: {{ goal.performance }}</span>
-              </div>
-
-              <div class="card-bottom">
-                <div class="progress-group">
-                  <span class="label">달성률</span>
-                  <div class="progress-bar" style="margin: 0 8px 0 6px;">
-                    <!-- 게이지 너비: 달성률 % 만큼 -->
-                    <div
-                      class="progress-fill"
-                      :style="{ width: goal.progress + '%' }"
-                    ></div>
-                  </div>
-                  <span class="progress-text">{{ goal.progress }}%</span>
+        <div class="block">
+          <p class="desc">평가 목록</p>
+          <img class="arrows" src="@/assets/icons/Polygon-2.svg" />
+          <section class="panel goals-panel">
+            <div class="goals-list">
+              <div
+                v-for="goal in filteredGoals"
+                :key="goal.id"
+                class="goal-card"
+                :class="{ selected: selectedGoal?.id === goal.id }"
+                @click="selectGoal(goal)"
+              >
+                <div class="card-top">
+                  <span class="date">{{ goal.date }}</span>
+                  <span class="author">{{ goal.owner }}</span>
                 </div>
-                <div class="pill-group">
-                  <span class="pill weight">가중치 {{ goal.weight }}%</span>
-                  <span class="pill target">목표치 {{ goal.target }}</span>
+                <h4 class="card-title">{{ goal.title }}</h4>
+
+                <!-- ★ 목표수치 · 실적수치 표시 ★ -->
+                <div class="score-info" style="margin-bottom: 12px; display:flex; justify-content: space-between; font-size:0.9rem; color:#555;">
+                  <span>목표수치: {{ goal.target }}</span>
+                  <span>실적수치: {{ goal.performance }}</span>
+                </div>
+
+                <div class="card-bottom">
+                  <div class="progress-group">
+                    <span class="label">달성률</span>
+                    <div class="progress-bar" style="margin: 0 8px 0 6px;">
+                      <!-- 게이지 너비: 달성률 % 만큼 -->
+                      <div
+                        class="progress-fill"
+                        :style="{ width: goal.progress + '%' }"
+                      ></div>
+                    </div>
+                    <span class="progress-text">{{ goal.progress }}%</span>
+                  </div>
+                  <div class="pill-group">
+                    <span class="pill weight">가중치 {{ goal.weight }}%</span>
+                    <span class="pill target">목표치 {{ goal.target }}</span>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        </section>
+          </section>
       </div> 
 
         <!-- 3) 평가 입력 패널 -->
@@ -170,8 +170,8 @@
                 </div>
 
                 <div class="btn-save-wrap" >
-                  <button class="btn-save" @click="submitManagerEval('승인')">승인</button>
-                  <button class="btn-save" @click="submitManagerEval('반려')" style="margin-left: 8px;">반려</button>
+                  <button class="btn-save" @click="submitManagerEval('반려')">반려</button>
+                  <button class="btn-save" @click="submitManagerEval('승인')" style="margin-left: 8px;">승인</button>
                 </div>
 
             
@@ -535,20 +535,24 @@ async function submitManagerEval(decision) {
 .arrows {
   position:absolute;
   top: 25%;              /* 패널 높이 중간(필요 시 조정) */
-  left: 660px;
-  /* margin-left: 180px; */
+  left: 990px;
   transform: translateY(-50%);
 }
 
 /* 1) 평가 대상자 리스트 */
 .people-panel {
-  width: 200px;
+  position: relative;
+  width: 400px;
+  min-height: 360px;
+  flex: 1;
   background: #fff;
   border-radius: 12px;
   padding: 16px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  display: flex;
+  flex-direction: column;
   overflow-y: auto;
-  margin-right: 20px;
+  z-index: 3;
 }
 .people-list {
   list-style: none;
@@ -564,9 +568,17 @@ async function submitManagerEval(decision) {
   cursor: pointer;
   transition: background 0.2s;
 }
-.people-list li.selected,
-.people-list li:hover {
-  background: #eef3f8;
+.people-list li.selected
+ {
+    box-shadow:
+    inset 0 4px 8px rgba(0, 0, 0, 0.15),
+    0 2px 8px rgba(0, 0, 0, 0.1);
+  transform: translateY(0);
+  background-color: #f7f7f7;
+}
+.people-list li:hover{
+  transform: translateY(-2px);
+  opacity: 1;
 }
 .avatar {
   width: 36px;
@@ -583,7 +595,7 @@ async function submitManagerEval(decision) {
 /* 2) 목표 카드 리스트 */
 .goals-panel {
   position: relative;
-  width: 350px;
+  width: 500px;
   min-height: 360px;
   flex: 1;
   background: #fff;
@@ -698,7 +710,7 @@ async function submitManagerEval(decision) {
 .detail-header .title {
   font-size: 1.5rem;
   font-weight: 600;
-  color: #1890ff;
+  color: #00a8e8;
   line-height: 1.2;
 }
 

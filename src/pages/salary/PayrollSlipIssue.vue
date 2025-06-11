@@ -312,7 +312,11 @@ async function selectSlip(e) {
     const { data: salary } = await axios.get(`http://localhost:8000/payroll/salaries/${row.employeeId}`, {
       params: { month: row.yearMonth },
       headers: { Authorization: `Bearer ${token}` }
-    })
+    }) .catch(err => {
+    if (err.response?.status === 403) {
+      alert(err.response.data.message || "접근 권한이 없습니다.");
+    }
+  });
 
     const { data: emp } = await axios.get(`http://localhost:8000/payroll/employees/${row.employeeId}`, {
       headers: { Authorization: `Bearer ${token}` }
@@ -362,7 +366,11 @@ function formatCurrency(val) {
 onMounted(async () => {
   const res = await axios.get('http://localhost:8000/payroll/employees', {
     headers: { Authorization: `Bearer ${token}` }
-  })
+  }) .catch(err => {
+    if (err.response?.status === 403) {
+      alert(err.response.data.message || "접근 권한이 없습니다.");
+    }
+  });
   employees.value = res.data
 
   const today = new Date()

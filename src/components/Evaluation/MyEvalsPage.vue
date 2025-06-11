@@ -428,5 +428,6 @@ onMounted(fetchGoals)
 .detail-table-vertical th {
   background: #fafafa;
   font-weight: 600;
+  width:45%;
 }
 </style>

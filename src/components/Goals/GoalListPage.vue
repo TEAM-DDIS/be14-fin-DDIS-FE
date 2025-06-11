@@ -2,9 +2,9 @@
   <div class="goal-page">
     <h1 class="page-title">성과 관리</h1>
     <div class="labels-row">
-      <p class="desc">목표 관리</p>
+      <p class="section-title">목표 관리</p>
       <div class="label-spacer"></div>
-      <p class="desc">실적 관리</p>
+      <p class="section-title">실적 관리</p>
     </div>
     <div class="panels">
       <img class="arrows" src="@/assets/icons/Polygon-2.svg"> 
@@ -605,14 +605,18 @@ async function deletePerf() {
 }
 .labels-row {
   display: flex;
-  gap: 240px;
+  gap: 24px;
   margin-bottom: 8px;
   margin-top: -18px;
+  
   /* margin-left:20px; */
 }
 .section-title:first-child {
   width: 40%;
   margin-left: 20px;
+  margin-bottom: 10px;
+  font-size: 18px;
+  display: block;
 }
 .label-spacer {
   width: 20px;
@@ -620,6 +624,9 @@ async function deletePerf() {
 .section-title:last-child {
   margin-left: 20px;
   width: 55%;
+  margin-bottom: 10px;
+  font-size: 18px;
+  display: block;
 }
 .panels {
   flex: 1;
@@ -653,10 +660,10 @@ async function deletePerf() {
   display: none;
 }
 .placeholder {
-  flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
+  flex: 1;
 }
 .placeholder-text {
   color: #00a8e8;
