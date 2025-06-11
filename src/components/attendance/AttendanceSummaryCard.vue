@@ -121,6 +121,8 @@ onMounted(async () => {
         elapsed -= 3600
       }
 
+      elapsed = Math.min(elapsed, 8 * 3600)
+
       workSeconds.value = Math.max(elapsed, 0)
       isCheckedIn.value = true
       if (!(nowTime >= noonStart && nowTime < noonEnd)) {
@@ -221,6 +223,9 @@ const formatTime = time => {
 }
 
 const startTimer = () => {
+
+  const baseSeconds = 8 * 3600
+
   if (!checkIn.value) return
 
   // 출근 시간 기준 설정
@@ -246,9 +251,9 @@ const startTimer = () => {
     const eighteenPM = now()
     eighteenPM.setHours(18, 0, 0, 0)
 
-    if (nowTime >= eighteenPM) {
+    if (nowTime >= eighteenPM || workSeconds.value >= baseSeconds - 1) {
+      workSeconds.value = baseSeconds
       stopTimer()
-      isCheckedIn.value = false
       status.value = '근무 종료'
       return
     }

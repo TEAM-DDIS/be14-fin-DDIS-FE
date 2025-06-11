@@ -131,8 +131,8 @@
                 return {
                     html: `
                         <div class="event-label">
-                            <span class="event-status">${props.title}</span>
-                            <span class="event-employee">${props.time}</span>
+                            <span class="event-status-meeting">${props.title}</span>
+                            <span class="event-employee-meeting">${props.time}</span>
                         </div>
                     `
                 }
@@ -443,7 +443,20 @@
 
     /* 회의 라벨 색 */
     .event-meeting {
-        background-color: white !important;
-        border: 3.5px solid #c1c1c1 !important;
+        background-color: #2b2b2b !important;
+        border: 3.5px solid #2b2b2b !important;
+        opacity: 50% !important;
+    }
+
+    .event-status-meeting {
+        color: white;
+        font-weight: 600;
+        font-size: 18px;
+    }
+
+    .event-employee-meeting {
+        color: white;
+        font-weight: normal;
+        font-size: 16px;
     }
 </style>
