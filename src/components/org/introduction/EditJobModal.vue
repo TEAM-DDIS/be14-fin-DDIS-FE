@@ -113,6 +113,9 @@ function onSave() {
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
   overflow-y: auto;
 }
+h3 {
+  text-align: center;
+}
 .scrollbar {
   scrollbar-width: none;
 }

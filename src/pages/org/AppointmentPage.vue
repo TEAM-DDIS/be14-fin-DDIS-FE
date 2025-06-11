@@ -64,7 +64,7 @@ const API_BASE        = 'http://localhost:8000/appointment-history'
 const selectedType    = ref('')
 const filterEmployee  = ref('')
 const rowData         = ref([])
-const selectedCount   = ref(0)      // ← 선택된 행 개수
+const selectedCount   = ref(0)
 let gridApi           = null
 const router          = useRouter()
 
@@ -72,11 +72,14 @@ const router          = useRouter()
 const gridOptions = {
   theme: 'legacy',
   rowSelection: 'multiple',
-  // 체크박스는 컬럼 정의에서 checkboxSelection:true 로 처리
 }
 
 const columnDefs = [
-  { headerName: '번호',     field: 'appointmentHistoryId', width: 90, checkboxSelection: true },
+  { headerName: '번호',width: 90,
+    valueGetter: params => params.node.rowIndex + 1,
+    checkboxSelection: true,
+    sortable: false,
+    suppressMenu: true},
   { headerName: '사원번호', field: 'employeeId',             flex: 1 },
   { headerName: '발령사유', field: 'appointmentReason',      flex: 1 },
   { headerName: '발령유형', field: 'appointmentType',        flex: 1 },
