@@ -1,41 +1,49 @@
 <template>
-  <div class="app">
+  <div :class="['app', { 'no-header': hideLayout }]">
     <!-- 고정된 헤더 -->
-    <div class="header-wrapper">
+    <div class="header-wrapper" v-if="!hideLayout">
       <Header />
     </div>
 
-    <!-- 실제 콘텐츠 영역: 사이드바 + 서브사이드바 + 메인 -->
-    <div class="layout">
+    <!-- 사이드바 + 메인 레이아웃 -->
+    <div class="layout" v-if="!hideLayout">
       <Sidebar
         @menu-selected="selectedMenu = $event"
         :selected="selectedMenu"
       />
       <div class="content-area">
-        <!-- ✅ SubSidebar는 main 위에 겹쳐서 위치 -->
         <SubSidebar
           v-if="selectedMenu"
           :menu="selectedMenu"
           @clear-menu="clearSelectedMenu"
         />
-
         <main class="main-content">
           <RouterView />
         </main>
       </div>
     </div>
+
+    <!-- 레이아웃 없이 RouterView만 보여줌 (ex. 403 페이지) -->
+    <div v-else>
+      <RouterView />
+    </div>
   </div>
-  
 </template>
 
+
 <script setup>
-import { ref,  onMounted, onBeforeUnmount } from 'vue'
+import { useRoute } from 'vue-router'
+import { computed, ref, onMounted, onBeforeUnmount } from 'vue'
 import Header from './components/header/Header.vue'
 import Sidebar from './components/sidebar/Sidebar.vue'
 import SubSidebar from './components/sidebar/SubSidebar.vue'
-import { RouterView } from 'vue-router'
 
+const route = useRoute()
 const selectedMenu = ref(null)
+
+// meta에 hideLayout: true가 설정된 경우 헤더/사이드바 제거
+const hideLayout = computed(() => route.meta.hideLayout)
+
 onMounted(() => {
   window.addEventListener('wheel', preventZoom, { passive: false })
   window.addEventListener('keydown', preventKeyZoom)
@@ -49,7 +57,6 @@ onBeforeUnmount(() => {
 function preventZoom(e) {
   if (e.ctrlKey) e.preventDefault()
 }
-
 function preventKeyZoom(e) {
   if ((e.ctrlKey || e.metaKey) && ['+', '-', '=', '0'].includes(e.key)) {
     e.preventDefault()
@@ -57,9 +64,9 @@ function preventKeyZoom(e) {
 }
 function clearSelectedMenu() {
   selectedMenu.value = null
-
 }
 </script>
+
 
 <style>
 html, body {
@@ -136,5 +143,7 @@ html, body {
   box-sizing: border-box;
   overflow: hidden;
 }
-
+.app.no-header {
+  padding-top: 0;
+}
 </style>

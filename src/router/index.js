@@ -291,6 +291,26 @@ const router = createRouter({
             path: '/dictionary',
             component: () => import('@/components/dictionary/DictionaryPage.vue')
         },
+
+        // =============== 에러 페이지 ===============
+
+        // 403 페이지
+        {
+            path: '/error403',
+            component: () => import('@/pages/error/Error403.vue'),
+            meta: {
+            hideLayout: true
+            }
+        },
+    
+        // 404 페이지
+        {
+            path: '/error404',
+            component: () => import('@/pages/error/Error404.vue'),
+            meta: {
+            hideLayout: true
+            }
+        },
     ]
 })
 
