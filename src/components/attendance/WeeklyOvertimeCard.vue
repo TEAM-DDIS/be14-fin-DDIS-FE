@@ -38,32 +38,62 @@
   </div>
 </template>
 
-<script setup>
-  import { computed, defineEmits, defineProps } from 'vue'
+<script setup lang="ts">
+import { ref, onMounted, computed } from 'vue'
+import axios from 'axios'
 
-  const props = defineProps({
-    extended: { type: Number, default: 5 },  // 연장 근무 시간
-    night:    { type: Number, default: 2 },  // 야간 근무 시간
-    holiday:  { type: Number, default: 2 }   // 휴일 근무 시간
-  })
+const summary = ref({
+  regularOvertime: 0,
+  nightOvertime: 0,
+  holidayOvertime: 0,
+  totalOvertime: 0,
+})
 
-  const emits = defineEmits(['apply'])
+// 비율 계산
+const extendedPercent = computed(() =>
+  summary.value.totalOvertime === 0
+    ? 0
+    : (summary.value.regularOvertime / summary.value.totalOvertime) * 100
+)
+const nightPercent = computed(() =>
+  summary.value.totalOvertime === 0
+    ? 0
+    : (summary.value.nightOvertime / summary.value.totalOvertime) * 100
+)
+const holidayPercent = computed(() =>
+  summary.value.totalOvertime === 0
+    ? 0
+    : (summary.value.holidayOvertime / summary.value.totalOvertime) * 100
+)
 
-  const totalHours = computed(() => props.extended + props.night + props.holiday)
+// 총 시간 (시 단위, 반올림)
+const totalHours = computed(() =>
+  Math.round(summary.value.totalOvertime / 60)
+)
 
-  const extendedPercent = computed(() =>
-    totalHours.value > 0 ? (props.extended  / totalHours.value) * 100 : 0
-  )
-  const nightPercent = computed(() =>
-    totalHours.value > 0 ? (props.night     / totalHours.value) * 100 : 0
-  )
-  const holidayPercent = computed(() =>
-    totalHours.value > 0 ? (props.holiday   / totalHours.value) * 100 : 0
-  )
+const onApply = () => {
+  // 근무 신청 버튼 이벤트 핸들러 (추후 구현)
+  alert('근무 신청은 아직 구현되지 않았습니다.')
+}
 
-  function onApply() {
-    emits('apply')
+onMounted(async () => {
+  const token = localStorage.getItem('token')
+  if (!token) {
+    console.error('토큰이 없습니다. 로그인 후 다시 시도하세요.')
+    return
   }
+
+  try {
+    const res = await axios.get('http://localhost:8000/attendance/overtime-summary', {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+    summary.value = res.data
+  } catch (e) {
+    console.error('초과근무 요약 조회 실패:', e)
+  }
+})
 </script>
 
 <style scoped>
