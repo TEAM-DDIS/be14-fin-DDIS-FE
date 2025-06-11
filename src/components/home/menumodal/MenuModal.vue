@@ -1,12 +1,12 @@
 <template>
   <!-- 모달 전체를 감싸는 오버레이 (배경 클릭 시 모달 닫힘) -->
-  <div class="modal-overlay" @click.self="$emit('close')">
+  <div class="modal-overlay" @click.self="$emit('close', { updated: true })">
     <div class="modal-container">
       
       <!-- 모달 헤더: 제목과 닫기 버튼 -->
       <div class="modal-header">
         <span>메뉴 편집</span>
-        <button class="close-btn" @click="$emit('close')">×</button>
+        <button class="close-btn" @click="$emit('close', { updated: true })">×</button>
       </div>
 
       <!-- 모달 본문 -->
