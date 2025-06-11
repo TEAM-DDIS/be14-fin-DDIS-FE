@@ -147,7 +147,7 @@ async function onEmployeeSelected(emp) {
       employeeName: data.employeeName,
       positionName: data.positionName,
       rankName: data.rankName,
-      // jobName: data.jobName,
+      jobName: data.jobName,
       headId: data.headId,
       departmentId: data.departmentId,
       teamId: data.teamId,

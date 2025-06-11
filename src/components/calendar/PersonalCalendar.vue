@@ -131,8 +131,8 @@
                 return {
                     html: `
                         <div class="event-label">
-                            <span class="event-status">${props.title}</span>
-                            <span class="event-employee">${props.time}</span>
+                            <span class="event-status-schedule">${props.title}</span>
+                            <span class="event-employee-schedule">${props.time}</span>
                         </div>
                     `
                 }
@@ -445,7 +445,20 @@
 
     /* 개인 일정 라벨 색 */
     .event-personal {
-        background-color: white !important;
+        background-color: #AE8CFF !important;
         border: 3.5px solid #AE8CFF !important;
+        opacity: 50% !important;
+    }
+
+    .event-status-schedule {
+        color: white;
+        font-weight: 600;
+        font-size: 18px;
+    }
+
+    .event-employee-schedule {
+        color: white;
+        font-weight: normal;
+        font-size: 16px;
     }
 </style>
