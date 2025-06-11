@@ -12,7 +12,7 @@
             <td>
               <input
                 v-model="form.name"
-                @blur="loadEmployeeInfo"
+                @input="onNameInput"
                 type="text"
                 placeholder="사원번호를 입력하세요"
               />
@@ -180,7 +180,7 @@ async function loadEmployeeInfo() {
   form.currentOrg.departmentId = emp.departmentId
   form.currentOrg.teamId       = emp.teamId
   form.currentOrg.jobId        = emp.jobId
-  form.currentOrg.jobName     = emp.jobName
+  // form.currentOrg.jobName     = emp.jobName
   form.currentOrg.jobCode      = emp.jobCode
   form.currentOrg.positionCode = emp.positionCode
   form.currentOrg.rankCode     = emp.rankCode
@@ -194,7 +194,6 @@ async function loadEmployeeInfo() {
     jobName: emp.jobName,
     jobCode: emp.jobCode
   }]
-  form.currentOrg.jobCode = jobsCurrent.value[0]?.jobCode || null
 
   positionsCurrent.value = [{ positionCode: emp.positionCode, positionName: emp.positionName }]
   ranksCurrent.value     = [{ rankCode: emp.rankCode, rankName: emp.rankName }]
@@ -208,15 +207,6 @@ const debouncedLoad = debounce(loadEmployeeInfo, 300);
 function onNameInput() {
   if (form.name) debouncedLoad();
 }
-
-
-const filteredDepartmentsCurrent = computed(() =>
-  dataStore.department.filter(d => d.headId === form.currentOrg.headId)
-)
-const filteredTeamsCurrent = computed(() =>
-  dataStore.team.filter(t => t.departmentId === form.currentOrg.departmentId)
-)
-
 
 // 발령 조직 watch
 // 본부 → 부서
@@ -402,13 +392,6 @@ function onGridReady(params) {
 }
 
 async function submit() {
-  // 0) 직원 정보 준비 여부 확인
-  // await loadEmployeeInfo()
-  
-  if (!form.currentOrg.headId) {
-    alert('직원 정보가 아직 로드되지 않았습니다.\n사원번호 입력 후 잠시 기다려주세요.');
-    return;
-  }
 
     // --- helper: id → code 매핑 함수 추가 ---
   const findById = (arr, idKey, codeKey) => id => {
@@ -419,16 +402,11 @@ async function submit() {
   const headCodeFrom    = findById(dataStore.headquarters,'headId',   'headCode');
   const deptCodeFrom    = findById(dataStore.department,   'departmentId','departmentCode');
   const teamCodeFrom    = findById(dataStore.team,         'teamId',   'teamCode');
-  const jobCodeFrom     = findById(dataStore.job,         'jobId',    'jobCode');
-  const positionCodeFrom= findById(positionsCurrent.value,'positionCode','positionCode');
-  const rankCodeFrom    = findById(ranksCurrent.value,    'rankCode', 'rankCode');
 
   const headCodeTo      = findById(orgHeads.value,        'headId',   'headCode');
   const deptCodeTo      = findById(departmentsNew.value,  'departmentId','departmentCode');
   const teamCodeTo      = findById(teamsNew.value,        'teamId',   'teamCode');
   const jobCodeTo       = findById(jobsNew.value,         'jobId',    'jobCode');
-  const positionCodeTo  = findById(positionsNew.value,    'positionCode','positionCode');
-  const rankCodeTo      = findById(ranksNew.value,        'rankCode', 'rankCode');
 
   const payload = {
     employeeId: Number(form.name),
@@ -439,7 +417,7 @@ async function submit() {
     fromHeadCode:      headCodeFrom(form.currentOrg.headId),
     fromDepartmentCode:deptCodeFrom(form.currentOrg.departmentId),
     fromTeamCode:      teamCodeFrom(form.currentOrg.teamId),
-    fromJobCode:       jobCodeFrom(form.currentOrg.jobId),
+    fromJobCode:       form.currentOrg.jobCode,
     fromPositionCode:  form.currentOrg.positionCode,
     fromRankCode:      form.currentOrg.rankCode,
 
@@ -450,7 +428,6 @@ async function submit() {
     toPositionCode:    form.org.positionCode,
     toRankCode:        form.org.rankCode,
 
-    // 5) NotNull 제약 채우기
     appointmentStatus: '대기',
     isApplied: false
   };
@@ -464,11 +441,8 @@ async function submit() {
       { headers: { 'Content-Type': 'application/json' } }
     );
     alert('등록 성공!');
-    router.back();
+    router.push('/appointment');
   } catch (err) {
-    // 1) 네트워크 응답 바디 확인
-    console.error('▶ 서버 에러 응답 데이터:', err.response?.data);
-    // 2) 전체 에러 객체도 확인
     console.error('▶ AxiosError:', err);
     alert(
       `등록 중 오류가 발생했습니다.\n` +
@@ -476,8 +450,6 @@ async function submit() {
     );
   }
 }
-
-
 
 function cancel() {
   router.back()
