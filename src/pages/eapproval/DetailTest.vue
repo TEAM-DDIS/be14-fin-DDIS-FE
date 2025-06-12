@@ -1,15 +1,14 @@
-<!-- 기안 상세페이지 조회 테스트 -->
-
 <template>
-  <div class="business-draft-detail">
-    <!-- 상단 제목 및 삭제 버튼 -->
-    <div class="header-row">
-      <h2 class="center-title">사업기안</h2>
-      <button class="delete-btn">삭제</button>
-    </div>
+  <!-- ◆ 페이지 제목 및 설명 -->
+  <h1 class="page-title">결재함</h1>
+  <p class="desc">업무 기안 조회</p>
 
-    <!-- 기본 정보 테이블 -->
-    <table class="info-table" v-if="draftDetail">
+  <!-- draftDetail이 있을 때만 렌더링 -->
+  <div class="main-box" v-if="draftDetail">
+      <h2>업무 기안</h2>
+
+    <!-- 기본 정보 섹션 -->
+    <table class="info-table">
       <tr>
         <th>기안부서</th>
         <td>{{ draftDetail.team }}</td>
@@ -36,20 +35,24 @@
       </tr>
     </table>
 
-    <!-- 결재선 테이블 -->
-    <div class="section-title">결재선</div>
-    <table class="line-table" v-if="draftDetail && draftDetail.approvalLine">
+    <!-- 결재선 섹션 -->
+    <div class="approval-header">
+      <span class="section-title">결재선</span>
+      <button class="approval-button" @click="openApprovalModal">결재등록</button>
+    </div>
+    <!-- 결재등록 모달 -->
+      <ApproveModal
+        v-if="showApproveModal"
+        :docId="docId"
+        @close="showApproveModal = false"
+        @submitted="fetchDetail"  />
+
+    <table class="line-table" v-if="draftDetail.approvalLine.length">
       <thead>
         <tr>
-          <th>번호</th>
-          <th>성명</th>
-          <th>팀</th>
-          <th>직책</th>
-          <th>상태</th>
-          <th>종류</th>
-          <th>상신일시</th>
-          <th>결재일시</th>
-          <th>의견</th>
+          <th>번호</th><th>성명</th><th>팀</th><th>직책</th>
+          <th>상태</th><th>종류</th><th>상신일시</th>
+          <th>결재일시</th><th>의견</th>
         </tr>
       </thead>
       <tbody>
@@ -67,279 +70,238 @@
       </tbody>
     </table>
 
-    <!-- 기안내용 -->
-    <div class="section-title">기안내용</div>
-    <table class="content-table" v-if="draftDetail && draftDetail.content">
-      <tr>
-        <th>제목</th>
-        <td>{{ draftDetail.content.title }}</td>
-      </tr>
-      <tr>
-        <th>첨부파일</th>
-        <td>
-          <template v-if="draftDetail.content.refFile && draftDetail.content.refFile.length">
-            <div v-for="file in draftDetail.content.refFile" :key="file.name">
-              {{ file.name }} <span class="file-info">({{ file.size }}, {{ file.type }})</span>
-            </div>
-          </template>
-          <template v-else>-</template>
-        </td>
-      </tr>
+    <!-- 기안내용 섹션: 제목, 첨부파일, 본문을 하나의 테이블로 구성 -->
+    <table class="content-table">
+      <thead>
+        <tr>
+          <th>제목</th>
+          <td colspan="3">{{ draftDetail.content.title }}</td>
+        </tr>
+        <tr>
+          <th>첨부파일</th>
+          <td colspan="3">
+            <template v-if="draftDetail.content.refFile.length">
+              <div v-for="file in draftDetail.content.refFile" :key="file.name">
+                {{ file.name }} <span class="file-info">({{ file.size }}, {{ file.type }})</span>
+              </div>
+            </template>
+            <template v-else>-</template>
+          </td>
+        </tr>
+        <tr>
+          <th colspan="4">본문</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td colspan="4" class="content-body">{{ draftDetail.content.body }}</td>
+        </tr>
+      </tbody>
     </table>
+  </div>
 
-    <div class="main-content-box" v-if="draftDetail && draftDetail.content">
-      <div class="main-content-title">본문</div>
-      <div class="main-content-body">
-        {{ draftDetail.content.body }}
-      </div>
-    </div>
+  <!-- draftDetail이 없을 때: 로딩 상태 표시 -->
+  <div v-else class="loading">로딩 중입니다...</div>
 
-    <!-- 하단 버튼 -->
-    <div class="footer-btns">
-      <button class="cancel-btn">취소</button>
-      <button class="edit-btn">수정</button>
-    </div>
+  <!-- 하단 버튼 그룹 -->
+  <div class="button-group">
+    <button class="button gray">취소</button>
+    <button class="button">확인</button>
   </div>
 </template>
+
 
 <script setup>
 import { onMounted, ref } from 'vue'
 import axios from 'axios'
 import { useRoute } from 'vue-router'
+// 결재등록 모달 컴포넌트
+import ApproveModal from '@/components/eapproval/ApproveModal.vue'
 
-// 📌 현재 라우터에서 문서 ID 추출
+
+// 라우터에서 docId 추출
 const route = useRoute()
 const docId = route.params.docId
 
-// 📌 상태 변수들
-const draftDetail = ref(null)
-const isLoading = ref(true)
-const error = ref(null)
+// 상태
+const draftDetail     = ref(null)
+const isLoading       = ref(true)
+const error           = ref(null)
+const showApproveModal = ref(false)
 
-// 📌 컴포넌트 마운트 시 데이터 요청
-onMounted(() => {
-  axios.get(`http://localhost:8000/drafts/${docId}`)
-    .then(res => {
-      console.log('👉 백엔드 응답 원본:', res.data)
-      const data = res.data
+// API 호출
+async function fetchDetail() {
+  isLoading.value = true
+  try {
+    const { data } = await axios.get(`http://localhost:8000/drafts/${docId}`)
+    let parsed = {}
+    try {
+      const raw = data.contentDto || data.docContent || data.content
+      parsed = typeof raw === 'string' ? JSON.parse(raw) : raw || {}
+    } catch { console.warn('content 파싱 실패') }
 
-      // ✅ JSON 문자열 또는 파싱된 객체 처리
-      let parsedContent = {}
-      try {
-        const rawContent = data.contentDto || data.docContent || data.content || null
-
-        if (typeof rawContent === 'string') {
-          parsedContent = JSON.parse(rawContent)
-        } else if (typeof rawContent === 'object' && rawContent !== null) {
-          parsedContent = rawContent
-        } else {
-          console.warn('⚠️ contentDto / docContent / content 가 비어있거나 null입니다.')
-        }
-      } catch (e) {
-        console.warn('❌ content 파싱 실패', e)
+    draftDetail.value = {
+      docId: data.docId,
+      team: data.team,
+      position: data.position,
+      drafter: data.drafter,
+      date: data.submittedAt?.replace('T',' ').slice(0,16) || '',
+      keepYear: data.keepYear,
+      receiver: parsed.receiver?.join(', ') || '-',
+      referer: parsed.reference?.join(', ') || '-',
+      approvalLine: data.approvalLine || [],
+      content: {
+        title: parsed.title || '',
+        refFile: parsed.files || [],
+        body: parsed.body || ''
       }
+    }
+  } catch (e) {
+    error.value = e
+    console.error('기안 상세 조회 실패', e)
+  } finally {
+    isLoading.value = false
+  }
+}
 
-      // ✅ 프론트에서 쓰기 좋게 구조화
-      draftDetail.value = {
-        docId: data.docId,
-        team: data.team,
-        position: data.position,
-        drafter: data.drafter,
-        date: data.date?.replace('T', ' ').slice(0, 16),
-        keepYear: data.keepYear,
-        receiver: parsedContent.receiver?.join(', ') || '-',
-        referer: parsedContent.reference?.join(', ') || '-',
-        approvalLine: data.approvalLine || [],
-        content: {
-          title: parsedContent.title || '',
-          refFile: parsedContent.files || [],
-          body: parsedContent.body || ''
-        }
-      }
+// mounted 시 데이터 불러오기
+onMounted(fetchDetail)
 
-      console.log('📥 기안 상세 파싱 결과', draftDetail.value)
-    })
-    .catch(err => {
-      error.value = err
-      console.error('❌ 오류 발생', err)
-    })
-    .finally(() => {
-      isLoading.value = false
-    })
-})
+// 모달 열기
+function openApprovalModal() {
+  showApproveModal.value = true
+}
 </script>
 
-
-
 <style scoped>
-.business-draft-detail {
-  background: #ffffff;
-  min-height: 100vh;
-  border-radius: 15px;
+/* ==== 표 스타일: 헤더는 굵게, 본문은 일반체 ==== */
+.page-title {
+  margin-left: 20px;
+  margin-bottom: 30px;
+  color: #00a8e8;
 }
-.header-row {
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
+
+/* ✅ 메인 박스: 전체 레이아웃 래퍼 */
+.main-box {
+  max-width: 1500px;
+  margin: 20px auto;
   background: #fff;
-  border-radius: 12px 12px 0 0;
-  margin: 32px 32px 0 32px;
-  padding: 24px 32px 16px 32px;
-  position: relative;
+  padding: 18px;
+  box-shadow: 1px 1px 20px 1px rgba(0, 0, 0, 0.05);
+  border-radius: 12px;
 }
-.center-title {
-  font-family: Arial, sans-serif;
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  font-size: 20px;
-  font-weight: bold;
-  color: #000;
-  margin: 0;
+
+h2 {
+  text-align: center;
+  margin-bottom: 18px;
 }
-.delete-btn {
-  background: #1da1f2;
-  color: #fff;
-  border: none;
-  border-radius: 6px;
-  padding: 8px 24px;
-  font-size: 15px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-.delete-btn:hover {
-  background: #1976d2;
-}
-.info-table {
-  width: 90%;
-  margin: 0 auto 32px auto;
-  background: #fff;
-  border-collapse: collapse;
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-}
-.info-table th, .info-table td {
+
+th {
+  font-weight: 600;
+  background: #f7f8fa;
   border: 1px solid #e3e6ea;
-  padding: 10px 16px;
-  font-size: 15px;
+  padding: 8px;
   text-align: left;
 }
-.info-table th {
-  background: #f7f8fa;
-  color: #222;
-  font-weight: 600;
-  width: 120px;
+td {
+  font-weight: normal;
+  border: 1px solid #e3e6ea;
+  padding: 8px;
+  text-align: left;
+}
+
+/* 테이블 공통 */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 16px;
+}
+
+/* 결재선, 본문용 구조 */
+.approval-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 16px 0 8px;
 }
 .section-title {
   font-size: 16px;
   font-weight: 600;
-  margin: 24px 0 8px 5%;
-  color: #222;
 }
-.line-table {
-  width: 90%;
-  margin: 0 auto 32px auto;
-  background: #fff;
-  border-collapse: collapse;
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-}
-.line-table th, .line-table td {
-  border: 1px solid #e3e6ea;
-  padding: 8px 10px;
-  font-size: 14px;
-  text-align: center;
-}
-.line-table th {
-  background: #f7f8fa;
-  color: #222;
-  font-weight: 600;
-}
-.content-table {
-  width: 90%;
-  margin: 0 auto 0 auto;
-  background: #fff;
-  border-collapse: collapse;
-    border-radius: 15px;
-  overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-}
-.content-table th, .content-table td {
-  border: 1px solid #e3e6ea;
-  padding: 10px 16px;
-  font-size: 15px;
-  text-align: left;
-}
-.content-table th {
-  background: #f7f8fa;
-  color: #222;
-  font-weight: 600;
-  width: 120px;
-}
-.main-content-box {
-  width: 90%;
-  margin: 32px auto 32px auto;
-  background: #fff;
-  border-radius: 15px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-  border: 1px solid #e3e6ea;
-  border-top: none;
-}
-.main-content-title {
-  background: #f7f8fa;
-  padding: 10px 16px;
-  font-size: 15px;
-  font-weight: 600;
-  border-bottom: 1px solid #e3e6ea;
-}
-.main-content-body {
-  padding: 18px 20px;
-  font-size: 15px;
-  color: #222;
-  white-space: pre-wrap;
-  min-height: 220px;
-  overflow-wrap: break-word;
-  word-break: break-all;
-}
-.footer-btns {
+
+/* 하단 버튼 그룹 */
+.button-group {
   display: flex;
   justify-content: center;
-  gap: 16px;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+/* 버튼 기본 */
+.approval-button,
+.button {
+  font-size: 14px;
+  font-weight: bold;
+  background-color: #00a8e8;
+  color: white;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  padding: 10px 15px;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: background-color 0.2s, box-shadow 0.2s;
+  box-sizing: border-box;
+  margin-top: 80px;
+  margin-bottom: 5px;
+}
+
+.approval-button:hover {
+  background-color: white;
+  color: #00a8e8;
+  border-color: #00a8e8;
+  box-shadow:
+  inset 1px 1px 10px rgba(0, 0, 0, 0.25);
+}
+.button.gray {
+  font-size: 14px;
+  font-weight: bold;
+  background-color: #D3D3D3;
+  color: #000;
+  border: none;
+  border-radius: 10px;
+  padding: 10px 30px;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: background-color 0.2s, box-shadow 0.2s;
+  box-sizing: border-box;
+}
+.button.gray:hover {
+  background-color: #000;
+  color: #fff;
+} 
+/* 첨부파일 정보 */
+.file-info {
+  font-size: 13px;
+  color: #666;
+}
+
+/* 본문 내용 영역 */
+.content-body {
+  white-space: pre-wrap;
+}
+
+/* 로딩 상태 */
+.loading {
+  text-align: center;
+  margin: 32px 0;
+}
+
+.button-group {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
   margin-top: 24px;
 }
-.cancel-btn {
-  background: #bfc6ce;
-  color: #fff;
-  border: none;
-  border-radius: 6px;
-  padding: 8px 32px;
-  font-size: 15px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-.cancel-btn:hover {
-  background: #a0a7b0;
-}
-.edit-btn {
-  background: #1da1f2;
-  color: #fff;
-  border: none;
-  border-radius: 6px;
-  padding: 8px 32px;
-  font-size: 15px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-.edit-btn:hover {
-  background: #1976d2;
-}
-.file-info {
-  color: #888;
-  font-size: 13px;
-}
-</style> 
+
+</style>
