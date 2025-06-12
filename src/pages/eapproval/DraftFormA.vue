@@ -11,7 +11,6 @@
       <h2>업무 기안</h2>
       <!-- 굵은 구분선 -->
       <hr class="bold-divider" />
-
       <!-- ◆ 기본 정보 입력 테이블 (부서, 직책, 기안자 등) -->
       <table>
         <tbody>
@@ -27,19 +26,19 @@
             <td>기안일자</td>
             <!-- 화면에는 날짜만 보여주기 -->
             <td>
-            <input
-              type="text"
-              :value="form.draftDate"
-              @input="updateDraftDate($event.target.value)"
-              placeholder="YYYY-MM-DD"
-              readonly
-            />
-            <!-- 실제 저장용 (숨김 또는 v-if) -->
-            <input
-              type="datetime-local"
-              v-model="form.draftDate"
-              class="hidden-input"
-            />
+              <input
+                type="text"
+                :value="form.draftDate"
+                @input="updateDraftDate($event.target.value)"
+                placeholder="YYYY-MM-DD"
+                readonly
+              />
+              <!-- 실제 저장용 (숨김 또는 v-if) -->
+              <input
+                type="datetime-local"
+                v-model="form.draftDate"
+                class="hidden-input"
+              />
             </td>
           </tr>
           <tr>
@@ -48,21 +47,19 @@
             <td>보존연한</td>
             <td>
               <select v-model.number="form.retentionPeriod">
-                  <option :value="1">1년</option>
-                  <option :value="3">3년</option>
-                  <option :value="5">5년</option>
+                <option :value="1">1년</option>
+                <option :value="3">3년</option>
+                <option :value="5">5년</option>
               </select>
             </td>
           </tr>
           <tr>
             <td>수신자</td>
             <td class="flex-row">
-              <!-- 수신자 입력 + 추가 버튼 -->
               <input v-model="form.receiver" type="text" />
               <button class="button icon-button" @click="openReceiverModal">
                 <img src="@/assets/icons/person-add.svg" alt="수신자 추가" class="icon-img" />
               </button>
-              <!-- 수신자 선택 모달 컴포넌트 -->
               <SelectionModal
                 v-if="showReceiverModal"
                 mode="수신자"
@@ -73,12 +70,10 @@
             </td>
             <td>참조자</td>
             <td class="flex-row">
-              <!-- 참조자 입력 + 추가 버튼 -->
               <input v-model="form.reference" type="text" />
               <button class="button icon-button" @click="openReferenceModal">
                 <img src="@/assets/icons/person-add.svg" alt="참조자 추가" class="icon-img" />
               </button>
-              <!-- 참조자 선택 모달 컴포넌트 -->
               <SelectionModal
                 v-if="showReferenceModal"
                 mode="참조자"
@@ -90,28 +85,21 @@
           </tr>
         </tbody>
       </table>
-
       <!-- ◆ 결재선 설정 영역: 설정 버튼 -->
       <div class="approval-header">
         <span class="section-title">결재선</span>
-        <button class="approval-button" @click="openApprovalModal">
-          결재선 설정
-        </button>
+        <button class="approval-button" @click="openApprovalModal">결재선 설정</button>
       </div>
-
-      <!-- 구분선 -->
       <hr class="section-divider" />
-
       <!-- 결재선 설정 모달 -->
       <SelectionModal
         v-if="showApprovalModal"
-        mode="결재자"
-        :defaultList="approvalLines"
+        :hierarchy="hierarchy || []"
+        :initial-approvers="approvalLines"
         @submit="onApprovalLineSubmit"
         @close="showApprovalModal = false"
       />
-
-      <!-- ◆ 결재자 목록 테이블: 현재 등록된 결재 라인 표시 -->
+      <!-- ◆ 결재자 목록 테이블 -->
       <table>
         <thead>
           <tr>
@@ -127,7 +115,6 @@
           </tr>
         </thead>
         <tbody>
-          <!-- v-for로 결재라인 반복 렌더링 -->
           <tr v-for="(line, index) in approvalLines" :key="index">
             <td>{{ index + 1 }}</td>
             <td>{{ line.name }}</td>
@@ -141,11 +128,9 @@
           </tr>
         </tbody>
       </table>
-
       <!-- ◆ 기안 내용 작성 영역 -->
       <div class="section-title">기안내용</div>
       <hr class="section-divider" />
-
       <!-- 제목, 첨부파일 테이블 -->
       <table class="file-table">
         <tbody>
@@ -158,13 +143,11 @@
           <tr>
             <td class="label-cell"><strong>첨부파일</strong></td>
             <td colspan="2">
-              <!-- 파일 업로드 입력 + 추가/삭제 버튼 그룹 -->
               <div class="file-input-row">
                 <input type="file" @change="handleFileUpload" />
                 <button class="button" @click="addFile">추가</button>
                 <button class="button gray" @click="removeSelectedFiles">삭제</button>
               </div>
-              <!-- 업로드된 파일 리스트 -->
               <div class="file-list">
                 <div v-for="(file, idx) in uploadedFiles" :key="idx" class="file-item">
                   <input type="checkbox" v-model="file.selected" />
@@ -175,23 +158,18 @@
           </tr>
         </tbody>
       </table>
-
-      <!-- 첨부파일 안내 텍스트 -->
       <ul class="file-info-text">
         <li>20MB 미만의 이미지 또는 문서 파일만 첨부 가능합니다. (최대 5개)</li>
         <li>개인정보가 포함된 문서는 주의해주세요 (주민번호 뒷자리 마스킹 필수)</li>
         <li>특수기호 또는 이모지 포함 시 문자가 깨질 수 있습니다.</li>
       </ul>
-
       <!-- ◆ 본문 에디터 (Quill 사용) 영역 -->
       <table class="content-table">
         <div class="editor-wrapper">
-          <!-- 툴바 라벨 + 툴바 영역 -->
           <div class="editor-toolbar-row">
             <label class="editor-label">본문</label>
             <div id="custom-toolbar" />
           </div>
-          <!-- Quill 에디터 컴포넌트 바인딩 -->
           <QuillEditor
             v-model:content="form.body"
             contentType="html"
@@ -201,30 +179,22 @@
           />
         </div>
       </table>
-    </div> <!-- /.container -->
-  </div> <!-- /.main-box -->
-
-  <!-- ◆ 하단 버튼 그룹 (임시저장 / 상신하기) -->
+    </div>
+  </div>
   <div class="button-group">
     <button class="button gray" @click="showDraftSaveModal = true">임시저장</button>
-      <!-- 상신하기 버튼 클릭 시 모달 표시 -->
     <button class="button" @click="showSubmitModal = true">상신하기</button>
-    </div>
-
-    <!-- DraftSaveModal 컴포넌트 -->
-      <DraftSaveModal
-      v-if="showDraftSaveModal"
-      @close="showDraftSaveModal = false"
-      @submit="confirmDraftSave"
-      />
-
-
-    <!-- SubmitModal 컴포넌트 -->
-    <SubmitModal
-      v-if="showSubmitModal"
-      @close="showSubmitModal = false"
-      @submit="confirmSubmit"
-    />
+  </div>
+  <DraftSaveModal
+    v-if="showDraftSaveModal"
+    @close="showDraftSaveModal = false"
+    @submit="confirmDraftSave"
+  />
+  <SubmitModal
+    v-if="showSubmitModal"
+    @close="showSubmitModal = false"
+    @submit="confirmSubmit"
+  />
 </template>
 
 <script>
@@ -369,6 +339,7 @@ export default {
     openReceiverModal() { this.showReceiverModal = true; },
     openReferenceModal() { this.showReferenceModal = true; },
     onApprovalLineSubmit(lines) {
+      console.log('🟢 수신된 커스텀 결재선:', lines);
       this.approvalLines = lines;
       this.showApprovalModal = false;
     },
@@ -411,7 +382,8 @@ export default {
         approvalLines: this.approvalLines.map((line, index) => ({
           step: index + 1,
           employeeId: line.employeeId,
-          position: line.position
+          position: line.position,
+          type: line.type,
         }))
       };
        console.log("상신 데이터", JSON.stringify(submitData, null, 2));
