@@ -44,7 +44,7 @@
     <div class="login-right">
       <div class="branding">
         <img src="@/assets/icons/pizza-icon2.svg" alt="DDIS Logo" />
-        <h2>DDIS</h2>
+        <h2>ERPIZZA</h2>
       </div>
     </div>
   </div>

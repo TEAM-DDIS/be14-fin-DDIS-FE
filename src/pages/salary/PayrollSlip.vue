@@ -141,6 +141,7 @@ const salaryColumnDefs = [
   { headerName: '실지급', field: 'netSalary' }
 ]
 const showModal = ref(false)
+const token = localStorage.getItem('token')
 
 onMounted(async () => {
   await fetchEmployeeInfo()
@@ -157,7 +158,7 @@ function setDefaultDateRange() {
 
 async function fetchEmployeeInfo() {
   const { data } = await axios.get(`http://localhost:8000/payroll/employees/${userStore.user.employeeId}`, {
-    headers: { Authorization: `Bearer ${userStore.accessToken}` }
+    headers: { Authorization: `Bearer ${token}` }
   })
   employee.value = data
 }
@@ -174,7 +175,7 @@ async function fetchSalaryHistory() {
     try {
       const { data } = await axios.get(`http://localhost:8000/payroll/salaries/${id}`, {
         params: { month: yyyymm },
-        headers: { Authorization: `Bearer ${userStore.accessToken}` }
+        headers: { Authorization: `Bearer ${token}` }
       })
       if (data?.salaryDate) {
         results.push({
