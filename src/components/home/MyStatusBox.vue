@@ -18,27 +18,44 @@
     <div class="approval-wrapper">
       <div class="section-title-row">
         <div class="section-title">나의 결재 현황</div>
-        <div class="shortcut" @click="goToApproval">↗</div>
+        <div class="shortcut" @click="() => navigateTo('/draftdoc/approve')">↗</div>
       </div>
       <hr class="section-divider" />
       <div class="approval-list">
-        <div class="approval-item">상신 <span class="count">3</span></div>
-        <div class="approval-item">결재대기 <span class="count">1</span></div>
-        <div class="approval-item">반려 <span class="count">1</span></div>
+        <div class="approval-item">
+          상신
+          <span class="count" @click="() => navigateTo('/draftdoc/mydraft')">0</span>
+        </div>
+        <div class="approval-item">
+          결재대기
+          <span class="count" @click="() => navigateTo('/draftdoc/approve')">0</span>
+        </div>
+        <div class="approval-item">
+          반려
+          <span class="count" @click="() => navigateTo('/draftdoc/mydraft')">0</span>
+        </div>
       </div>
     </div>
-
     <!-- 근태 현황 -->
     <div class="attendance-wrapper">
       <div class="section-title-row">
         <div class="section-title">나의 근태 현황</div>
-        <div class="shortcut" @click="goToAttendance">↗</div>
+        <div class="shortcut" @click="() => navigateTo('/attendance/myAttendance')">↗</div>
       </div>
       <hr class="section-divider" />
       <div class="attendance-list">
-        <div class="attendance-item">잔여 연차 <span class="count">3</span></div>
-        <div class="attendance-item">주 근무 시간 <span class="count">26</span></div>
-        <div class="attendance-item">주 초과 근무 시간 <span class="count">8</span></div>
+        <div class="attendance-item">
+          잔여 연차
+          <span class="count" @click="() => navigateTo('/attendance/myLeave')">0</span>
+        </div>
+        <div class="attendance-item">
+          주 근무 시간
+          <span class="count" @click="() => navigateTo('/attendance/myAttendance')">0</span>
+        </div>
+        <div class="attendance-item">
+          주 초과 근무 시간
+          <span class="count" @click="() => navigateTo('/attendance/myAttendance')">0</span>
+        </div>
       </div>
     </div>
   </div>
@@ -46,20 +63,19 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+const router = useRouter()
 
 const user = ref(null)
+const draftCount = ref(0) // 상신
+const approveWaitingCount = ref(0) // 결재대기
+const rejectCount = ref(0) // 반려
+const remainLeave = ref(0) // 잔여 연차
 
-function onImageError(e) {
-  e.target.src = '/images/erpizza_profile.svg'
+function navigateTo(path) {
+  router.push(path)
 }
-function goToApproval() {
-  // 예: 라우팅 또는 alert 테스트
-  alert('결재 현황으로 이동할 수 있어요!')
-}
-function goToAttendance() {
-  // 예: 라우팅 또는 alert 테스트
-  alert('결재 현황으로 이동할 수 있어요!')
-}
+
 onMounted(async () => {
   const token = localStorage.getItem('token')
   if (!token) {
@@ -122,7 +138,7 @@ onMounted(async () => {
 .attendance-list {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 7px;
   font-size: 14px;
   color: #444;
 }
@@ -138,12 +154,17 @@ onMounted(async () => {
   font-size: 16px;
   font-weight: bold;
   color: #00A8E8;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+.count:hover {
+  color: #000;
 }
 .section-title-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-top: 25px;
+  margin-top: 22px;
 }
 
 .section-title {
