@@ -9,7 +9,7 @@
         해당 페이지에 대한 접근 권한이 없습니다.<br />
         필요한 경우 관리자에게 권한 요청을 해주세요.
       </p>
-      <button class="btn-save" @click="goLogin">ERPPIZZA</button>
+      <button class="btn-save" @click="goLogin">ERPIZZA</button>
     </div>
   </div>
 </template>
@@ -39,7 +39,7 @@ export default {
   left: 0;
   width: 100%;
   height: 100%;
-  background: url('/images/erppizza_background.png') repeat;
+  background: url('/images/erpizza_background.png') repeat;
   background-size: contain;
   opacity: 0.2;
   z-index: 0;
