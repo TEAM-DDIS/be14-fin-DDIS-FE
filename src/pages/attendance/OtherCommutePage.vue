@@ -15,11 +15,15 @@
                 <DateFilter @search="handleSearch" />
             </div>
             <div>
-                <OtherCommuteSummary :commuteList="commuteList"/>
+                <OtherCommuteSummary
+                :commuteList="commuteList"
+                :dateRange="dateRange"/>
             </div>
             <div>
                 <span class="desc">출퇴근 내역</span>
-                <OtherCommuteCard :employee-id="employeeId"/>
+                <OtherCommuteCard
+                :commuteList="commuteList"
+                :dateRange="dateRange"/>
             </div>
         </div>
     </div>
@@ -36,16 +40,39 @@ import OtherCommuteCard from '@/components/commute/OtherCommuteCard.vue'
 const route = useRoute()
 const router = useRouter()
 const employeeId = route.params.employeeId
-
 const commuteList = ref([])
+const dateRange = ref({ start: '', end: '' })
 
 function goBack() {
   router.back()
 }
 
-function handleSearch(range) {
-  console.log('조회기간:', range)
+async function handleSearch(range) {
+  dateRange.value = range
+
+  const token = localStorage.getItem('token')
+  if (!token) {
+    console.error('토큰이 없습니다. 로그인 후 다시 시도하세요.')
+    return
+  }
+
+  try {
+    const query = new URLSearchParams({
+      startDate: range.start,
+      endDate: range.end
+    })
+    const res = await fetch(`http://localhost:8000/attendance/commute/${employeeId}?${query}`, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    })
+    const json = await res.json()
+    commuteList.value = json.commuteList
+  } catch (err) {
+    console.error('출퇴근 내역 조회 실패:', err)
+  }
 }
+
 </script>
 
 <style scoped>

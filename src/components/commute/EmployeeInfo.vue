@@ -26,24 +26,51 @@
 </template>
 
 <script setup>
-    import { ref, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 
-    const props = defineProps({
-        employeeId: {
-            type: String,
-            required: true
+const props = defineProps({
+  employeeId: {
+    type: String,
+    required: true
+  },
+  dateRange: {
+    type: Object,
+    default: () => ({ start: '', end: '' })
+  }
+})
+
+const employee = ref(null)
+
+onMounted(async () => {
+  try {
+    const token = localStorage.getItem('token')
+    if (!token) {
+      console.error('토큰이 없습니다. 로그인 후 다시 시도하세요.')
+      return
     }
+
+    const query = new URLSearchParams({
+      startDate: props.dateRange.start,
+      endDate: props.dateRange.end
     })
 
-    const employee = ref(null)
-
-    onMounted(async () => {
-        const res = await fetch('/attendance.json')
-        const json = await res.json()
-        // 예: all_commute 배열에서 필터
-        employee.value = json.employee_info.find(e => e.employeeId === props.employeeId)
+    const res = await fetch(`http://localhost:8000/attendance/commute/${props.employeeId}?${query}`, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
     })
+
+    if (!res.ok) throw new Error('직원 정보 조회 실패')
+
+    const json = await res.json()
+    employee.value = json.employeeInfo
+  } catch (err) {
+    console.error(err)
+  }
+})
 </script>
+
+
 
 <style scoped>
     .employee-info-card {
