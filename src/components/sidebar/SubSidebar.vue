@@ -261,6 +261,9 @@
         display: flex;
         flex-direction: column;
         gap: 30px;
+      
+
+
     }
 
     .main-title {

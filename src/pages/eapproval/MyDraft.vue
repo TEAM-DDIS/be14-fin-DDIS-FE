@@ -1,195 +1,145 @@
 <!-- 전자결재 > 문서함 > 기안함 -->
  
 <template>
-  <!-- 1. 상단: 페이지 제목 -->
   <h1 class="page-title">기안함</h1>
+  <div class="tabs">
+    <span :class="{active: tab==='상신'}" @click="tab='상신'">상신</span>
+    <span :class="{active: tab==='완료'}" @click="tab='완료'">완료</span>
+    <span :class="{active: tab==='반려'}" @click="tab='반려'">반려</span>
+    <span :class="{active: tab==='회수'}" @click="tab='회수'">회수</span>
+  </div>
 
-    <!-- 2. 탭 (상신/완료/반려/회수) -->
-    <div class="tabs">
-      <span :class="{active: tab==='상신'}" @click="tab='상신'">상신</span>
-      <span :class="{active: tab==='완료'}" @click="tab='완료'">완료</span>
-      <span :class="{active: tab==='반려'}" @click="tab='반려'">반려</span>
-      <span :class="{active: tab==='회수'}" @click="tab='회수'">회수</span>
-    </div>
-
-    <!-- 3. 메인 컨텐츠 박스 (검색 + 테이블) -->
-    <div class="main-box">
-      <!-- 3-1. 검색 영역 -->
-      <div class="search-row">
-          <!-- 검색: 상신일 -->
-          <div class="search-item">
-            <label>기안상신일</label>
-            <input type="date" v-model="search.Date" />
-          </div>
-          <!-- 검색: 제목 -->
-          <div class="search-item">
-            <label>기안 제목</label>
-            <input type="text" v-model="search.title" placeholder="기안 제목 입력" />
-          </div>
+  <div class="main-box">
+    <div class="search-row">
+      <div class="search-item">
+        <label>기안상신일</label>
+        <input type="date" v-model="search.date" />
       </div>
-      <!-- 3-2. 목록 테이블 영역 -->
-      <div class="table-box">
-        <AgGridVue
-          class="ag-theme-alpine custom-theme"
-          :gridOptions="{ theme: 'legacy' }"
-          :columnDefs="currentColumnDefs"
-          :rowData="filteredForms"
-          :pagination="true"
-          rowSelection="single"
-          @rowClicked="handleFormRowClick"
-          :overlayNoRowsTemplate="'<span class=\'ag-empty\'>데이터가 없습니다.</span>'"
-          style="width:100%; height:100%;" 
-        />
+      <div class="search-item">
+        <label>기안 제목</label>
+        <input type="text" v-model="search.title" placeholder="기안 제목 입력" />
       </div>
     </div>
+
+    <div class="table-box">
+      <AgGridVue
+        class="ag-theme-alpine custom-theme"
+        :gridOptions="{ theme: 'legacy' }"
+        :columnDefs="currentColumnDefs"
+        :rowData="filteredForms"
+        :pagination="true"
+        rowSelection="single"
+        @rowClicked="onRowClick"
+        style="width:100%; height:100%;"
+      />
+    </div>
+  </div>
 </template>
 
 <script setup>
-// Composition API import 및 ag-grid 관련 모듈 등록
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { AgGridVue } from 'ag-grid-vue3'
 import { ModuleRegistry, AllCommunityModule } from 'ag-grid-community'
+import axios from 'axios'
 ModuleRegistry.registerModules([AllCommunityModule])
 
+// 1) 상태
+const tab    = ref('상신')
+const search = ref({ date: '', title: '' })
+const docs   = ref([])
 
-// 상태 변수 및 검색 조건 등
-const tab = ref('상신');   // 현재 선택된 탭 (상신/완료/반려/회수)
-const search = ref({
-  date: '',
-  title: '',
-});
-
-
-  // 문서 데이터 (실제 서비스에서는 API로 대체)
-const docs = ref([
-  // 샘플 데이터: 실제론 API로 불러옴
-  {
-    id: 4, no: 4, type: '휴가신청서', title: '[휴가신청서] 주아현_연차_05/22~05/23_(2일)', date: '2025-05-26 10:40', approver: '김병범', status: '회수', completeDate: '', finalApprover: '', rejectDate: '', rejector: '', rejectReason: '', withdrawDate: '2025-05-26 10:40', withdrawer: ''
-  },
-  {
-    id: 3, no: 3, type: '휴가신청서', title: '[휴가신청서] 이성준_연차_05/22~05/23_(2일)', date: '2025-05-26 10:40', approver: '김병범', status: '상신', completeDate: '', finalApprover: '', rejectDate: '', rejector: '', rejectReason: '', withdrawDate: '', withdrawer: ''
-  },
-  {
-    id: 3, no: 3, type: '휴가신청서', title: '[휴가신청서] 고도연_연차_05/22~05/23_(2일)', date: '2025-05-26 10:40', approver: '김병범', status: '상신', completeDate: '', finalApprover: '', rejectDate: '', rejector: '', rejectReason: '', withdrawDate: '', withdrawer: ''
-  },
-  {
-    id: 3, no: 3, type: '휴가신청서', title: '[휴가신청서] 한윤상_연차_05/22~05/23_(2일)', date: '2025-05-26 10:40', approver: '김병범', status: '상신', completeDate: '', finalApprover: '', rejectDate: '', rejector: '', rejectReason: '', withdrawDate: '', withdrawer: ''
-  },
-  {
-    id: 3, no: 3, type: '휴가신청서', title: '[휴가신청서] 강이도은_연차_05/22~05/23_(2일)', date: '2025-05-26 10:40', approver: '김병범', status: '상신', completeDate: '', finalApprover: '', rejectDate: '', rejector: '', rejectReason: '', withdrawDate: '', withdrawer: ''
-  },
-  {
-    id: 3, no: 3, type: '휴가신청서', title: '[휴가신청서] 김기종_연차_05/22~05/23_(2일)', date: '2025-05-26 10:40', approver: '김병범', status: '상신', completeDate: '', finalApprover: '', rejectDate: '', rejector: '', rejectReason: '', withdrawDate: '', withdrawer: ''
-  },
-  {
-    id: 2, no: 2, type: '사업기안', title: '[사업기안] DISS 전력팀 워룸 TF팀 구성 운영 계획', date: '2025-05-26 10:40', approver: '김병범', status: '완료', completeDate: '2025-05-28 11:30', finalApprover: '최완결', rejectDate: '', rejector: '', rejectReason: '', withdrawDate: '', withdrawer: ''
-  },
-  {
-    id: 2, no: 2, type: '사업기안', title: '[사업기안] DISS 전력팀 워룸 TF팀 구성 운영 계획', date: '2025-05-26 10:40', approver: '김병범', status: '완료', completeDate: '2025-05-28 11:30', finalApprover: '최완결', rejectDate: '', rejector: '', rejectReason: '', withdrawDate: '', withdrawer: ''
-  },
-  {
-    id: 2, no: 2, type: '사업기안', title: '[사업기안] DISS 전력팀 워룸 TF팀 구성 운영 계획', date: '2025-05-26 10:40', approver: '김병범', status: '완료', completeDate: '2025-05-28 11:30', finalApprover: '최완결', rejectDate: '', rejector: '', rejectReason: '', withdrawDate: '', withdrawer: ''
-  },
-  {
-    id: 2, no: 2, type: '사업기안', title: '[사업기안] DISS 전력팀 워룸 TF팀 구성 운영 계획', date: '2025-05-26 10:40', approver: '김병범', status: '완료', completeDate: '2025-05-28 11:30', finalApprover: '최완결', rejectDate: '', rejector: '', rejectReason: '', withdrawDate: '', withdrawer: ''
-  },
-  {
-    id: 2, no: 2, type: '사업기안', title: '[사업기안] DISS 전력팀 워룸 TF팀 구성 운영 계획', date: '2025-05-26 10:40', approver: '김병범', status: '완료', completeDate: '2025-05-28 11:30', finalApprover: '최완결', rejectDate: '', rejector: '', rejectReason: '', withdrawDate: '', withdrawer: ''
-  },
-  {
-    id: 1, no: 1, type: '지출품의서', title: '[지출품의서] 개발 1팀 사무용품 구매비 지출', date: '2025-05-26 10:40', approver: '김병범', status: '반려', completeDate: '', finalApprover: '', rejectDate: '2025-05-29 09:00', rejector: '박반려', rejectReason: '증빙 부족', withdrawDate: '', withdrawer: ''
-  },
-  {
-    id: 1, no: 1, type: '지출품의서', title: '[지출품의서] 개발 1팀 사무용품 구매비 지출', date: '2025-05-26 10:40', approver: '김병범', status: '반려', completeDate: '', finalApprover: '', rejectDate: '2025-05-29 09:00', rejector: '박반려', rejectReason: '증빙 부족', withdrawDate: '', withdrawer: ''
-  },
-  {
-    id: 1, no: 1, type: '지출품의서', title: '[지출품의서] 개발 1팀 사무용품 구매비 지출', date: '2025-05-26 10:40', approver: '김병범', status: '반려', completeDate: '', finalApprover: '', rejectDate: '2025-05-29 09:00', rejector: '박반려', rejectReason: '증빙 부족', withdrawDate: '', withdrawer: ''
-  },
-  {
-    id: 1, no: 1, type: '지출품의서', title: '[지출품의서] 개발 1팀 사무용품 구매비 지출', date: '2025-05-26 10:40', approver: '김병범', status: '반려', completeDate: '', finalApprover: '', rejectDate: '2025-05-29 09:00', rejector: '박반려', rejectReason: '증빙 부족', withdrawDate: '', withdrawer: ''
-  },
-  {
-    id: 1, no: 1, type: '지출품의서', title: '[지출품의서] 개발 1팀 사무용품 구매비 지출', date: '2025-05-26 10:40', approver: '김병범', status: '반려', completeDate: '', finalApprover: '', rejectDate: '2025-05-29 09:00', rejector: '박반려', rejectReason: '증빙 부족', withdrawDate: '', withdrawer: ''
-  },
-  {
-    id: 1, no: 1, type: '지출품의서', title: '[지출품의서] 개발 1팀 사무용품 구매비 지출', date: '2025-05-26 10:40', approver: '김병범', status: '반려', completeDate: '', finalApprover: '', rejectDate: '2025-05-29 09:00', rejector: '박반려', rejectReason: '증빙 부족', withdrawDate: '', withdrawer: ''
-  },
-  {
-    id: 1, no: 1, type: '지출품의서', title: '[지출품의서] 개발 1팀 사무용품 구매비 지출', date: '2025-05-26 10:40', approver: '김병범', status: '반려', completeDate: '', finalApprover: '', rejectDate: '2025-05-29 09:00', rejector: '박반려', rejectReason: '증빙 부족', withdrawDate: '', withdrawer: ''
-  }
-]);
-
-  // 탭별 컬럼(ag-grid 테이블 헤더) 정의
+// 2) 컬럼 정의 (결재함이랑 동일)
 const columnDefsByTab = {
-  '상신': [
-    { headerName: "번호", field: "no", width: 100 },
-    { headerName: "구분", field: "type", width: 150 },
-    { headerName: "제목", field: "title", flex: 1 },
-    { headerName: "상신일시", field: "date", width: 230 },
-    { headerName: "결재대기자", field: "approver", width: 150 },
+  '상신': [ 
+    { headerName:"번호", field:"no", width:100 },
+    { headerName:"구분", field:"type", width:150 },
+    { headerName:"제목", field:"title", flex:1 },
+    { headerName:"상신일시", field:"date", width:230 },
+    { headerName:"결재대기자", field:"approver", width:150 },
   ],
   '완료': [
-    { headerName: "번호", field: "no", width: 100 },
-    { headerName: "구분", field: "type", width: 150 },
-    { headerName: "제목", field: "title", flex: 1 },
-    { headerName: "완료일시", field: "completeDate", width: 230 },
+    { headerName:"번호", field:"no", width:100 },
+    { headerName:"구분", field:"type", width:150 },
+    { headerName:"제목", field:"title", flex:1 },
+    { headerName:"완료일시", field:"completeDate", width:230 },
   ],
   '반려': [
-    { headerName: "번호", field: "no", width: 100 },
-    { headerName: "구분", field: "type", width: 150 },
-    { headerName: "제목", field: "title", flex: 1 },
-    { headerName: "반려일시", field: "rejectDate", width: 230 },
-    { headerName: "반려자", field: "rejector", width: 150 },
-    { headerName: "반려사유", field: "rejectReason", width: 230 },
+    { headerName:"번호", field:"no", width:100 },
+    { headerName:"구분", field:"type", width:150 },
+    { headerName:"제목", field:"title", flex:1 },
   ],
   '회수': [
-    { headerName: "번호", field: "no", width: 100 },
-    { headerName: "구분", field: "type", width: 150 },
-    { headerName: "제목", field: "title", flex: 1 },
-    { headerName: "회수일시", field: "withdrawDate", width: 230 },
-  ],
-};
-
-// 현재 탭에 맞는 컬럼 반환 (computed)
-
-const currentColumnDefs = computed(() => columnDefsByTab[tab.value]);
-
-  // 탭/검색 조건에 맞는 데이터만 추출해 테이블에 표시
-  // - 최신순 번호(내림차순) 재정렬
-
-const filteredForms = computed(() => {
-  const filtered = docs.value.filter(doc => {
-    // 현재 탭(상신/완료/반려/회수)에 해당하는 문서만 필터링
-    if (tab.value && doc.status !== tab.value) return false;
-
-    // 검색 조건: 제목에 입력한 문자열이 포함된 경우만 필터링
-    if (search.value.title && !doc.title.includes(search.value.title)) return false;
-
-    // 검색 조건: 날짜(Date)가 정확히 일치하는 경우만 필터링 (하루 단위)
-    if (search.value.Date) {
-      const docDate = doc.date?.substring(0, 10);  // 'YYYY-MM-DD'
-      if (docDate !== search.value.Date) return false;
-    }
-  // 모든 조건을 통과한 문서만 결과에 포함
-    return true;
-  });
-  // 번호 필드 재생성
-  return filtered.map((doc, idx) => ({
-    ...doc,
-    no: filtered.length - idx, // 최신순: 1,2,3...
-  }));
-});
-
-// 행 클릭시 이벤트
-function handleFormRowClick(params) {
-  // params.data에 선택된 행 데이터가 담김
-  console.log('선택된 행:', params.data);
+    { headerName:"번호", field:"no", width:100 },
+    { headerName:"구분", field:"type", width:150 },
+    { headerName:"제목", field:"title", flex:1 },
+  ]
+}
+const currentColumnDefs = computed(() => columnDefsByTab[tab.value])
+const statusMap = {
+  상신: '대기중',
+  완료: '완료',
+  반려: '반려',
+  회수: '회수'
 }
 
-// 검색 버튼 클릭
-// (실제 API 연동시 이 함수에서 서버에 요청)
-function onSearch() {
-  // API 연동 등 실제 로직 위치
+// 3) 필터 & 번호붙이기
+const filteredForms = computed(() => {
+  const expected = statusMap[tab.value]     // 예: '상신' → '대기중'
+  const filtered = docs.value.filter(doc => {
+    // 1) 탭 필터
+    if (expected && doc.status !== expected) return false
+
+    // 2) 제목 검색
+    if (search.value.title && !doc.title.includes(search.value.title)) return false
+
+    // 3) 날짜 검색 (YYYY-MM-DD)
+    if (search.value.date) {
+      const day = (doc.date || doc.createdAt).slice(0, 10)
+      if (day !== search.value.date) return false
+    }
+
+    return true
+  })
+
+  // 3) 번호 붙이기 (최신순)
+  return filtered.map((doc, i) => ({
+    ...doc,
+    no: filtered.length - i
+  }))
+})
+
+// 4) API 호출
+async function fetchMyDrafts() {
+  try {
+    const res = await axios.get('http://localhost:8000/drafts/query', {
+      headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+    })
+    // 백이 주는 DocumentDTO 필드에 맞춰 맵핑
+    docs.value = res.data.map(d => ({
+      docId: d.docId,
+      title: d.title,
+      type: d.type,
+      status: d.status,
+
+      // Ag-Grid 상신 탭에 필요한 필드
+      date:        d.submittedAt || d.createdAt, // columnDefs 상신에서 field:"date"
+      approver:    d.approver,                             // 다음 결재대기자 정보를 알고 있으면 넣고, 아니면 빈 문자열
+
+      // 완료 탭
+      completeDate: d.approvedAt || '',            // field:"completeDate"
+      createdAt: d.createdAt
+    }))
+  } catch (e) {
+    console.error('기안함 불러오기 실패', e)
+  }
+}
+
+// 5) 라이프사이클
+onMounted(fetchMyDrafts)
+
+// 6) 행 클릭 핸들러
+function onRowClick(e) {
+  console.log('기안 선택됨:', e.data)
 }
 </script>
 

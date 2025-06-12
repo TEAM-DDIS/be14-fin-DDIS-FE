@@ -184,6 +184,12 @@ const router = createRouter({
             path: '/draftdoc/approve',
             component: () => import('@/pages/eapproval/ApproveDoc.vue')
         },
+        {
+            path: '/drafts/:docId',
+            name: 'DraftDetail',
+            component: () => import('@/pages/eapproval/DetailTest.vue'),
+            props: true   
+        },
 
         // 수신함 
         {
