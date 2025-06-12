@@ -73,7 +73,7 @@ defineExpose({ fetchFavorites })
 <style scoped>
 /* 전체 박스 */
 .quick-menu {
-  margin-top: 10px;
+  margin-top: 30px;
   grid-area: quick-menu;
   height: fit-content;
   align-items: center;
