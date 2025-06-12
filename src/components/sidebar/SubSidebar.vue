@@ -261,8 +261,7 @@
         display: flex;
         flex-direction: column;
         gap: 30px;
-        margin-left: -10px;
-        margin-top: 30px
+      
 
 
     }
