@@ -2,9 +2,9 @@
   <div class="goal-page">
     <h1 class="page-title">성과 관리</h1>
     <div class="labels-row">
-      <p class="desc">목표 관리</p>
+      <p class="section-title">목표 관리</p>
       <div class="label-spacer"></div>
-      <p class="desc">실적 관리</p>
+      <p class="section-title">실적 관리</p>
     </div>
     <div class="panels">
       <img class="arrows" src="@/assets/icons/Polygon-2.svg"> 
@@ -14,11 +14,22 @@
         <div class="goal-container">
           <!-- 목표가 없고 등록 폼도 안 보일 때 -->
           <div v-if="goals.length === 0 && !showGoalForm" class="placeholder">
-            <p class="placeholder-text">목표를 등록해보세요!</p>
+            <p class="placeholder-text">목표를 등록해보세요! </p>
           </div>
 
           <!-- 목표 등록 폼 -->
           <form v-else-if="showGoalForm" class="goal-form" @submit.prevent="addGoal">
+             <!-- 상태 바 -->
+            <div class="weight-status" :class="{
+                'over': totalWeight > 100,
+                'complete': totalWeight === 100
+              }">
+              현재 가중치 합계: {{ totalWeight }}%
+              <span v-if="totalWeight < 100"> (남음 {{ 100 - totalWeight }}%)</span>
+              <span v-if="totalWeight > 100"> — 초과되었습니다!</span>
+              <span v-else-if="totalWeight === 100"> — 가중치가 딱 맞았습니다!</span>
+            </div>
+                      
             <div class="form-row">
               <label for="title">목표명</label>
               <input
@@ -59,8 +70,8 @@
               ></textarea>
             </div>
             <div class="form-actions">
-              <button class="btn-primary" type="submit">저장</button>
               <button class="btn-secondary" type="button" @click="cancelGoal">취소</button>
+              <button class="btn-primary" type="submit":disabled="newGoal.goalWeight <= 0 || totalWeight + newGoal.goalWeight > 100">저장</button>
             </div>
           </form>
 
@@ -102,7 +113,7 @@
 
         <!-- 목표등록 버튼 -->
         <div class="actions" v-if="!showGoalForm">
-          <button class="btn-primary" @click="openGoalForm">목표등록</button>
+          <button class="btn-primary" @click="openGoalForm" :disabled="totalWeight >= 100">목표등록</button>
         </div>
       </section>
 
@@ -206,6 +217,11 @@ const newGoal = reactive({
   goalCreatedAt: getKoreaLocalDateTimeString(),
   employeeName: userStore.name
 })
+
+const totalWeight = computed(() =>
+  goals.value.reduce((sum, g) => sum + (g.goalWeight || 0), 0)
+)
+
 
 // 실적 폼 데이터
 const form = reactive({
@@ -389,6 +405,13 @@ function onFileChange(e) {
 
 // 1) 목표 등록
 async function addGoal() {
+  if (newGoal.goalWeight <= 0) {
+    return alert('가중치는 0보다 커야 합니다.')
+  }
+  if (totalWeight.value + newGoal.goalWeight > 100) {
+    return alert(`가중치 합이 100%를 초과합니다. 현재 합: ${totalWeight.value}%`)
+  }
+
   if (!newGoal.goalTitle) return
 
   const token = localStorage.getItem('token')
@@ -425,6 +448,7 @@ async function addGoal() {
   }
 }
 
+
 // 목표 등록 취소
 function cancelGoal() {
   newGoal.goalTitle = ''
@@ -443,7 +467,7 @@ function confirmDelete(id) {
 async function deleteGoals(id) {
   try {
     const token = localStorage.getItem('token')
-    const res = await fetch(`http://localhost:8000/goalsperf/${id}`, {
+    const res = await fetch(`http://localhost:8000/goals/${id}`, {
       method: 'DELETE',
       headers: {
         Authorization: `Bearer ${token}`,
@@ -603,16 +627,33 @@ async function deletePerf() {
   flex-direction: column;
   height: 100vh;
 }
+.weight-status {
+  margin-bottom: 12px;
+  font-weight: bold;
+}
+.weight-status.over { color: #d9534f; /* 빨강 */ }
+.weight-status.complete { color: #5cb85c; /* 초록 */ }
+
+input#weight.input-over {
+  border-color: #d9534f;
+}
+input#weight.input-complete {
+  border-color: #5cb85c;
+}
 .labels-row {
   display: flex;
-  gap: 240px;
+  gap: 24px;
   margin-bottom: 8px;
   margin-top: -18px;
+  
   /* margin-left:20px; */
 }
 .section-title:first-child {
   width: 40%;
   margin-left: 20px;
+  margin-bottom: 10px;
+  font-size: 18px;
+  display: block;
 }
 .label-spacer {
   width: 20px;
@@ -620,6 +661,9 @@ async function deletePerf() {
 .section-title:last-child {
   margin-left: 20px;
   width: 55%;
+  margin-bottom: 10px;
+  font-size: 18px;
+  display: block;
 }
 .panels {
   flex: 1;
@@ -653,10 +697,10 @@ async function deletePerf() {
   display: none;
 }
 .placeholder {
-  flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
+  flex: 1;
 }
 .placeholder-text {
   color: #00a8e8;
@@ -712,7 +756,7 @@ async function deletePerf() {
 .form-row input:focus,
 .form-row textarea:focus {
   outline: none;
-  border-color: #00a8e8;
+  border-color: black;
   background: #fff;
 }
 .form-row textarea {
@@ -733,25 +777,44 @@ async function deletePerf() {
   gap: 8px;
 }
 .btn-primary {
-  background: #00a8e8;
-  color: #fff;
-  border: none;
-  padding: 10px 24px;
-  border-radius: 6px;
+    font-size: 14px;
+  font-weight: bold;
+  background-color: #00a8e8;
+  color: white;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  padding: 10px 30px;
   cursor: pointer;
-  margin-bottom: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: background-color 0.2s, box-shadow 0.2s;
+  box-sizing: border-box;
 }
 .btn-primary:hover {
-  background: #0b4f6a;
+    background-color: white;
+  color: #00a8e8;
+  border-color: #00a8e8;
+  box-shadow:
+  inset 1px 1px 10px rgba(0, 0, 0, 0.25);
 }
 .btn-secondary {
-  background: #f5f5f5;
-  color: #333;
+    font-size: 14px;
+  font-weight: bold;
+  background-color: #c8c8c8;
+  color: white;
   border: none;
-  padding: 8px 20px;
-  border-radius: 6px;
+  border-radius: 10px;
+  padding: 10px 30px;
   cursor: pointer;
-  margin-bottom: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: background-color 0.2s, box-shadow 0.2s;
+  box-sizing: border-box;
+}
+.btn-secondary:hover {
+    background-color: white;
+  color: #c8c8c8;
+  border-color: #00a8e8;
+  box-shadow:
+  inset 1px 1px 10px rgba(0, 0, 0, 0.25);
 }
 .goals-list {
   flex: 1;
@@ -906,7 +969,9 @@ async function deletePerf() {
 }
 .perf-form {
   display: grid;
+  position:relative;
   grid-template-columns: max-content 1fr;
+  flex-direction: column;
   row-gap: 16px;
   column-gap: 24px;
   align-items: start;
@@ -918,6 +983,13 @@ async function deletePerf() {
   border-radius: 6px;
   color: #fff;
   cursor: pointer;
+}
+.btn-delete:hover {
+  background-color: white;
+  color: #c8c8c8;;
+  border-color: #00a8e8;
+  box-shadow:
+  inset 1px 1px 10px rgba(0, 0, 0, 0.25);
 }
 .empty {
   display: flex;
@@ -979,7 +1051,7 @@ async function deletePerf() {
 .form-row textarea:focus,
 .input-area textarea:focus {
   outline: none;
-  border-color: #00a8e8;
+  border-color: black;
   background: #fff;
 }
 .attach-area label {
@@ -995,15 +1067,24 @@ async function deletePerf() {
   gap: 8px;
 }
 .btn-attach {
-  background: #00a8e8;
-  color: #fff;
-  border: none;
-  padding: 10px 24px;
-  border-radius: 6px;
+  font-size: 14px;
+  font-weight: bold;
+  background-color: #00a8e8;
+  color: white;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  padding: 10px 30px;
   cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: background-color 0.2s, box-shadow 0.2s;
+  box-sizing: border-box;
 }
 .btn-attach:hover {
-  background: #0b4f6a;
+  background-color: white;
+  color: #00a8e8;
+  border-color: #00a8e8;
+  box-shadow:
+  inset 1px 1px 10px rgba(0, 0, 0, 0.25);
 }
 .sr-only {
   position: absolute;
@@ -1012,18 +1093,38 @@ async function deletePerf() {
   overflow: hidden;
 }
 .btn-save-wrap {
-  text-align: center;
+  grid-column: 1 / -1; 
+  margin-top: 30px;
+  display: flex;
+  justify-content: flex-end;
+  padding-right: 0;
+  gap: 8px;
 }
 .btn-save {
-  background: #00a8e8;
-  color: #fff;
-  border: none;
-  padding: 10px 24px;
-  border-radius: 6px;
+  font-size: 14px;
+  font-weight: bold;
+  background-color: #00a8e8;
+  color: white;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  padding: 10px 30px;
   cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: background-color 0.2s, box-shadow 0.2s;
+  box-sizing: border-box;
 }
 .btn-save:hover {
-  background: #0b4f6a;
+  background-color: white;
+  color: #00a8e8;
+  border-color: #00a8e8;
+  box-shadow:
+  inset 1px 1px 10px rgba(0, 0, 0, 0.25);
+}
+.btn-primary:disabled {
+  background-color: #c8c8c8;
+  color: #6c757d;
+  cursor: not-allowed;
+  opacity: 0.65;
 }
 .detail-title {
   margin-bottom: 12px;

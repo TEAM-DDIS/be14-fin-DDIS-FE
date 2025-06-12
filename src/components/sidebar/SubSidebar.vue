@@ -161,7 +161,7 @@
             '기안 작성': {
                 items: [
                     {
-                        name: '기안작성', 
+                        name: '기안양식함', 
                         path: '/draftdoc/draftcreate'
                     },
                     {
