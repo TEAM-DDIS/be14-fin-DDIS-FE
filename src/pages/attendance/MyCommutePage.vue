@@ -1,35 +1,63 @@
 <template>
-    <div>
-        <h1 class="page-title">내 출퇴근 관리</h1>
-        <div class="all-leave-page">
-            <!-- 날짜 필터 -->
-            <div class="date-filter">
-                <span class="desc">기간 설정</span>
-                <DateFilter @search="handleSearch" />
-            </div>
-            <div>
-                <MyCommuteSummary :commuteList="commuteList"/>
-            </div>
-            <div>
-                <span class="desc">출퇴근 내역</span>
-                <MyCommuteCard/>
-            </div>
-        </div>
+  <div>
+    <h1 class="page-title">내 출퇴근 관리</h1>
+    <div class="all-leave-page">
+      <!-- 날짜 필터 -->
+      <div class="date-filter">
+        <span class="desc">기간 설정</span>
+        <DateFilter @search="handleSearch" />
+      </div>
+
+      <div>
+        <MyCommuteSummary
+        :commuteList="commuteList"
+        :dateRange="dateRange"/>
+      </div>
+
+      <div>
+        <span class="desc">출퇴근 내역</span>
+        <MyCommuteCard
+        :commuteList="commuteList"
+        :dateRange="dateRange"/>
+      </div>
     </div>
+  </div>
 </template>
 
 <script setup>
-    import { ref } from 'vue'
-    import DateFilter from '@/components/leave/DateFilter.vue'
+import { ref, onMounted } from 'vue'
+import DateFilter from '@/components/leave/DateFilter.vue'
 import MyCommuteCard from '@/components/commute/MyCommuteCard.vue'
 import MyCommuteSummary from '@/components/commute/MyCommuteSummary.vue'
 
-    const activeTab = ref('used')
+const commuteList = ref([])
+const dateRange = ref({ start: '', end: '' })
 
-    function handleSearch(range) {
-        console.log('조회기간:', range)
-    }
+function handleSearch(range) {
+  dateRange.value = range
+}
+
+onMounted(async () => {
+  const token = localStorage.getItem('token')
+  if (!token) {
+    console.error('토큰이 없습니다. 로그인 후 다시 시도하세요.')
+    return
+  }
+
+  try {
+    const res = await fetch('http://localhost:8000/attendance/commute/me', {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    })
+    const json = await res.json()
+    commuteList.value = json
+  } catch (err) {
+    console.error('출퇴근 내역 조회 실패:', err)
+  }
+})
 </script>
+
 
 <style scoped>
     .page-title {
