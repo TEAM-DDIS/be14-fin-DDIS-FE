@@ -73,6 +73,7 @@ defineExpose({ fetchFavorites })
 <style scoped>
 /* 전체 박스 */
 .quick-menu {
+  margin-top: 30px;
   grid-area: quick-menu;
   height: fit-content;
   align-items: center;
@@ -92,44 +93,44 @@ defineExpose({ fetchFavorites })
   gap: 18px;
   padding: 5px;
   align-items: center;
+  width: 100%;
 }
 
-/* 개별 메뉴 아이템 스타일 */
-.menu-item {
+.menu-item,
+.edit-button {
+  width: 100%;
+  min-height: 65px;
+  max-width: 300px;
+  box-sizing: border-box;
+  padding: 10px 15px;
+  border-radius: 13px;
+  font-size: 14px;
+  text-align: center;
+  box-shadow: 0 0 4px 3px rgba(0, 0, 0, 0.06);
+  height: 45px;
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 10px 15px 10px 15px;
+}
+
+/* 개별 효과는 따로 */
+.menu-item {
   background-color: #ffffff;
   color: #7D7D7D;
-  border-radius: 13px;
-  box-shadow: 0px 0px 4px 3px rgba(0, 0, 0, 0.06);
-  font-size: 14px;
-  text-align: center;
-  height:45px;
-  width: 100px;
   cursor: pointer;
   word-break: break-word;
 }
 .menu-item:hover {
   background-color: #00a8e8;
-  color:#fff;
+  color: #fff;
 }
 
-
-/* 메뉴 편집 버튼 스타일 */
 .edit-button {
   background-color: #D3D3D3;
+  font-weight: 600;
   border: none;
-  border-radius: 13px;
-  padding: 10px 15px 10px 15px;
   cursor: pointer;
   transition: background-color 0.2s;
-  min-height: 65px;
-  width: 130px;
-  font-size: 14px;
-  font-weight: 600;
-  box-shadow: 0px 0px 5px 1px rgba(0, 0, 0, 0.08);
   margin-bottom: 10px;
 }
 .edit-button:hover {
