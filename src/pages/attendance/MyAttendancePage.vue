@@ -12,7 +12,7 @@
       </div>
     </div>
     <div class="right-panel">
-      <span class="desc">개인 캘린더</span>
+      <span class="desc">내 캘린더</span>
       <PersonalCalendar @add="handleAddPersonalEvent"/>
     </div>
   </div>
