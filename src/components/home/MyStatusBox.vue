@@ -46,15 +46,21 @@
       <div class="attendance-list">
         <div class="attendance-item">
           잔여 연차
-          <span class="count" @click="() => navigateTo('/attendance/myLeave')">0</span>
+          <span class="count" @click="() => navigateTo('/attendance/myLeave')">
+            {{ remainLeave }}
+          </span>
         </div>
         <div class="attendance-item">
           주 근무 시간
-          <span class="count" @click="() => navigateTo('/attendance/myCommute')">0</span>
+          <span class="count" @click="() => navigateTo('/attendance/myCommute')">
+            {{ weeklyWorkHours }}
+          </span>
         </div>
         <div class="attendance-item">
           주 초과 근무 시간
-          <span class="count" @click="() => navigateTo('/attendance/myCommute')">0</span>
+          <span class="count" @click="() => navigateTo('/attendance/myCommute')">
+            {{ weeklyOvertimeHours }}
+          </span>
         </div>
       </div>
     </div>
@@ -64,16 +70,28 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+
 const router = useRouter()
 
 const user = ref(null)
-const draftCount = ref(0) // 상신
-const approveWaitingCount = ref(0) // 결재대기
-const rejectCount = ref(0) // 반려
-const remainLeave = ref(0) // 잔여 연차
+const draftCount = ref(0)
+const approveWaitingCount = ref(0)
+const rejectCount = ref(0)
+
+const remainLeave = ref(0)
+const weeklyWorkHours = ref(0)
+const weeklyOvertimeHours = ref(0)
 
 function navigateTo(path) {
   router.push(path)
+}
+
+function convertMinutesToHours(min) {
+  return Math.floor(min / 60)
+}
+
+function onImageError(e) {
+  e.target.src = '/images/erpizza_profile.svg'
 }
 
 onMounted(async () => {
@@ -83,21 +101,42 @@ onMounted(async () => {
     return
   }
 
+  const headers = {
+    Authorization: `Bearer ${token}`
+  }
+
   try {
-    const res = await fetch('http://localhost:8000/employees/myinfo', {
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
-    })
+    // 프로필
+    const resUser = await fetch('http://localhost:8000/employees/myinfo', { headers })
+    if (!resUser.ok) throw new Error('유저 정보 실패')
+    user.value = await resUser.json()
 
-    if (!res.ok) throw new Error('응답 실패')
+    // 잔여 연차
+    const resLeave = await fetch('http://localhost:8000/attendance/leave/status/me', { headers })
+    if (resLeave.ok) {
+      const data = await resLeave.json()
+      remainLeave.value = data.remainingLeave
+    }
 
-    const data = await res.json()
-    user.value = data
+    // 주 근무 시간
+    const resWork = await fetch('http://localhost:8000/attendance/work-duration-summary', { headers })
+    if (resWork.ok) {
+      const data = await resWork.json()
+      weeklyWorkHours.value = convertMinutesToHours(data.totalWorkDuration)
+    }
+
+    // 주 초과 근무 시간
+    const resOvertime = await fetch('http://localhost:8000/attendance/overtime-summary', { headers })
+    if (resOvertime.ok) {
+      const data = await resOvertime.json()
+      weeklyOvertimeHours.value = convertMinutesToHours(data.totalOvertime)
+    }
+
   } catch (err) {
-    console.error('내 정보 불러오기 실패:', err)
+    console.error('데이터 불러오기 실패:', err)
   }
 })
+
 </script>
 
 <style scoped>
