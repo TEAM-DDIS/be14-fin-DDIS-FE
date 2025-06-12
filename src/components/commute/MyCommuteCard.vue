@@ -5,7 +5,7 @@
                 class="ag-theme-alpine custom-theme"
                 :gridOptions="{ theme: 'legacy' }"
                 :columnDefs="columnDefs"
-                :rowData="leaveUsedData"
+                :rowData="filteredCommuteList"
                 height="600px"
                 :pagination="true"
                 :paginationPageSize="10"
@@ -15,28 +15,44 @@
 </template>
 
 <script setup>
-    import { ref, onMounted } from 'vue'
-    import AgGrid from '@/components/grid/BaseGrid.vue'
+import { computed } from 'vue'
+import AgGrid from '@/components/grid/BaseGrid.vue'
 
-    const leaveUsedData = ref([])
+const props = defineProps({
+  commuteList: {
+    type: Array,
+    required: true
+  },
+  dateRange: {
+    type: Object,
+    default: () => ({ start: '', end: '' })
+  }
+})
 
-    const columnDefs = [
-        { headerName: '날짜', field: 'work_date', sort: "desc"},
-        { headerName: '근무상태', field: 'work_status_id'},
-        { headerName: '출근시간', field: 'check_in_time'},
-        { headerName: '퇴근시간', field: 'check_out_time'},
-        { headerName: '근무시간', field: 'work_duration'},
-        { headerName: '시간외근무시간', field: 'over_work'},
-        { headerName: '야간근무시간', field: 'night_work'},
-        { headerName: '휴일근무시간', field: 'holiday_work'},
-        { headerName: '총 근무시간', field: 'work_sum'}
-    ]
+// 시간 포맷터
+const formatTime = (raw) => raw ? raw.split('.')[0] : '-'
+const convertMinutesToHours = (mins) => mins ? Math.floor(mins / 60) : 0
 
-    onMounted(async () => {
-        const res = await fetch('/attendance.json')
-        const json = await res.json()
-        leaveUsedData.value = json.commute
-    })
+// 날짜 필터링
+const filteredCommuteList = computed(() => {
+  return props.commuteList.filter(item => {
+    const date = item.workDate?.slice(0, 7)
+    return (!props.dateRange.start || date >= props.dateRange.start) &&
+           (!props.dateRange.end || date <= props.dateRange.end)
+  })
+})
+
+const columnDefs = [
+  { headerName: '날짜', field: 'workDate', sort: 'desc' },
+  { headerName: '근무상태', field: 'workStatus' },
+  { headerName: '출근시간', field: 'checkInTime', valueFormatter: p => formatTime(p.value) },
+  { headerName: '퇴근시간', field: 'checkOutTime', valueFormatter: p => formatTime(p.value) },
+  { headerName: '근무시간', field: 'workDuration', valueFormatter: p => convertMinutesToHours(p.value) },
+  { headerName: '시간외근무시간', field: 'overtimeExtra', valueFormatter: p => convertMinutesToHours(p.value) },
+  { headerName: '야간근무시간', field: 'overtimeNight', valueFormatter: p => convertMinutesToHours(p.value) },
+  { headerName: '휴일근무시간', field: 'overtimeHoliday', valueFormatter: p => convertMinutesToHours(p.value) },
+  { headerName: '총 근무시간', field: 'totalWorkTime', valueFormatter: p => convertMinutesToHours(p.value) }
+]
 </script>
 
 <style scoped>

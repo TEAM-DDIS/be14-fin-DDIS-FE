@@ -11,7 +11,9 @@
       <!-- 출퇴근 테이블 -->
       <div>
         <span class="desc">출퇴근 내역</span>
-        <AllCommuteCard @row-click="handleRowClick" />
+        <AllCommuteCard @row-click="handleRowClick"
+        :commuteList="commuteList"
+        :dateRange="dateRange"/>
       </div>
     </div>
   </div>
@@ -23,13 +25,35 @@ import { useRouter } from 'vue-router'
 import DateFilter from '@/components/leave/DateFilter.vue'
 import AllCommuteCard from '@/components/commute/AllCommuteCard.vue'
 
+const commuteList = ref([])
 const router = useRouter()
+const dateRange = ref({ start: '', end: '' })
 
-function handleSearch(range) {
-  console.log('조회기간:', range)
-  // 추후 range.start, range.end로 필터 적용 가능
+async function handleSearch(range) {
+  dateRange.value = range
+
+  const token = localStorage.getItem('token')
+  if (!token) {
+    console.error('토큰이 없습니다. 로그인 후 다시 시도하세요.')
+    return
+  }
+
+  try {
+    const query = new URLSearchParams({
+      startDate: range.start,
+      endDate: range.end
+    })
+    const res = await fetch(`http://localhost:8000/attendance/commute/summary/all?${query}`, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    })
+    const json = await res.json()
+    commuteList.value = json
+  } catch (err) {
+    console.error('출퇴근 내역 조회 실패:', err)
+  }
 }
-
 function handleRowClick(row) {
   router.push({
     name: 'OtherCommutePage',

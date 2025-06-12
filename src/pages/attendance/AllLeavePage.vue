@@ -26,8 +26,10 @@
             </div>
             <!-- 탭 내용 -->
             <div class="tab-content">
-                <AllLeaveUsedCard v-if="activeTab === 'used'" />
-                <AllLeaveRegistCard v-if="activeTab === 'regist'" />
+                <AllLeaveUsedCard v-if="activeTab === 'used'"
+                :dateRange="dateRange"/>
+                <AllLeaveRegistCard v-if="activeTab === 'regist'"
+                :dateRange="dateRange"/>
             </div>
         </div>
     </div>
@@ -40,8 +42,10 @@
     import AllLeaveRegistCard from '@/components/leave/AllLeaveRegistCard.vue'
 
     const activeTab = ref('used')
+    const dateRange = ref({ start: '', end: '' })
 
     function handleSearch(range) {
+        dateRange.value = range
         console.log('조회기간:', range)
     }
 </script>
