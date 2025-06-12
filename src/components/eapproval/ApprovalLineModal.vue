@@ -1,338 +1,330 @@
 <!-- 결재라인 모달 -->
 
 <template>
-  <!-- 🟦 모달 배경 (클릭 시 닫기 기능) -->
-  <div class="modal-backdrop" @click.self="emit('close')">
+  <!-- 모달 전체 오버레이 (배경 클릭 시 닫힘) -->
+  <div class="modal-overlay" @click.self="$emit('close')">
     <div class="modal-content">
-      <!-- 🟦 모달 상단 타이틀 -->
-      <div class="modal-title">{{ mode }} 지정</div>
-
-      <!-- 🟦 모달 본문 영역 -->
+      <!-- ◆ 모달 제목 (상단 중앙) -->
+      <div class="model-text">
+        <h3 class="modal-title">결재선 설정</h3>
+      </div>
+      <!-- 상단: 조직도 탭, 정렬, 검색, 삭제 버튼 -->
+      <div class="modal-header">
+        <div class="tab-group">
+          <!-- 조직도 탭(고정) -->
+          <button class="active">조직도</button>
+        </div>
+        <div class="sort-search-group">
+          <!-- 정렬 기준 선택 -->
+          <select v-model="sortKey">
+            <option value="이름">이름</option>
+            <option value="부서">부서</option>
+          </select>
+          <!-- 검색 입력창 -->
+          <input type="text" v-model="search" placeholder="검색" />
+        </div>
+        <!-- 결재자 삭제 버튼 (선택된 결재자 삭제) -->
+        <button class="delete-btn btn-delete" @click="deleteSelectedApprovers">삭제</button>
+      </div>
       <div class="modal-body">
-        <!-- 🟨 좌측: 조직도 + 검색 + 구성원 리스트 -->
-        <div class="sidebar">
-          <!-- 조직도 컴포넌트 (스크롤 제한 영역) -->
-          <div class="org-tree-scroll">
-            <OrgTree @selectMember="selectMember" />
-          </div>
-
-          <!-- 사원 검색창 -->
-          <div class="search-box">
-            <input type="text" v-model="searchText" placeholder="사원검색" />
-            <button @click="searchMember">🔍</button>
-          </div>
-
-          <!-- 검색된 사원 목록 테이블 -->
-          <table class="member-list">
+        <!-- 좌측: 조직도 트리 (Hierarchy 컴포넌트) -->
+        <div class="org-tree-area">
+          <Hierarchy />
+        </div>
+        <!-- 중앙: 결재/협조 버튼 -->
+        <div class="action-btns">
+          <button class="action-btn btn-save">결재</button>
+          <button class="action-btn btn-save">협조</button>
+        </div>
+        <!-- 우측: 결재선 테이블 -->
+        <div class="approver-table-area">
+          <table class="approver-table">
             <thead>
               <tr>
-                <th>이름</th>
-                <th>직책</th>
-                <th>부서</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr
-                v-for="member in filteredMembers"
-                :key="member.id"
-                @click="selectMember(member)"
-                :class="{ selected: selectedMember && member.id === selectedMember.id }"
-              >
-                <td>{{ member.name }}</td>
-                <td>{{ member.position }}</td>
-                <td>{{ member.dept }}</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-
-        <!-- 🟩 가운데: 추가 버튼 (선택된 사원을 오른쪽 목록으로 이동) -->
-        <div class="center-btns">
-          <button
-            class="arrow-btn"
-            :disabled="!selectedMember"
-            @click="addSelected"
-          >
-            {{ mode }}<br />▶
-          </button>
-        </div>
-
-        <!-- 🟦 우측: 선택된 지정 대상자 테이블 -->
-        <div class="approver-table-wrap">
-          <div class="section-header">
-            {{ mode === "결재자" ? "결재자" : mode }}
-          </div>
-          <table class="approval-list">
-            <thead>
-              <tr>
+                <th><!-- 체크박스 --> </th>
                 <th>순서</th>
+                <th>결재유형</th>
                 <th>이름</th>
-                <th>직책</th>
-                <th>부서</th>
-                <!-- 결재자 지정 시 결재/협조 선택 -->
-                <th v-if="mode === '결재자'">결재선</th>
-                <th></th>
               </tr>
             </thead>
             <tbody>
-              <tr v-for="(person, idx) in selectedList" :key="person.id">
-                <td>{{ idx + 1 }}</td>
-                <td>{{ person.name }}</td>
-                <td>{{ person.position }}</td>
-                <td>{{ person.dept }}</td>
-                <!-- 결재자일 때만 선택 박스 노출 -->
-                <td v-if="mode === '결재자'">
-                  <select v-model="person.type">
-                    <option value="결재">결재</option>
-                    <option value="협조">협조</option>
-                  </select>
-                </td>
-                <!-- 삭제 버튼 -->
+              <!-- 결재선 목록 렌더링, 체크박스 선택 가능 -->
+              <tr v-for="(item, idx) in approverList" :key="item.id">
                 <td>
-                  <button @click="removeSelected(idx)">삭제</button>
+                  <input type="checkbox" :value="item.id" v-model="selectedApprovers" />
                 </td>
+                <td>{{ idx + 1 }}</td>
+                <td>{{ item.type }}</td>
+                <td>{{ item.name }}</td>
               </tr>
             </tbody>
           </table>
         </div>
       </div>
-
-      <!-- 🟪 모달 하단 버튼 -->
+      <!-- 하단: 취소/등록 버튼 -->
       <div class="modal-footer">
-        <button @click="submitSelected" class="footer-btn blue">확인</button>
-        <button @click="emit('close')" class="footer-btn gray">취소</button>
+        <button class="footer-btn cancel btn-delete" @click="$emit('close')">취소</button>
+        <button class="footer-btn submit btn-save">등록</button>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-/* 🔹 외부 컴포넌트 및 Composition API import */
-import OrgTree from '@/components/org/structure/Hierarchy.vue';
-import { ref, computed, watch } from 'vue';
+// =========================
+// 결재선 설정 모달 (조직도/결재선)
+// =========================
+import { ref } from 'vue';
+import Hierarchy from '@/components/org/structure/Hierarchy.vue'; // 조직도 트리 컴포넌트
 
-/* 🔹 부모 컴포넌트로부터 전달되는 emit, props 설정 */
-const emit = defineEmits(['close', 'submit']);
-const props = defineProps({
-  mode: { type: String, required: true }, // 지정 모드: 결재자 / 수신자 / 참조자
-  defaultList: { type: Array, default: () => [] }, // 기본 지정된 목록
-});
+// 상단 탭/정렬/검색 상태
+const tab = ref('조직도'); // 현재 탭(고정)
+const sortKey = ref('이름'); // 정렬 기준
+const search = ref('');     // 검색어
 
-/* 🔹 전체 사원 목록 (예시 데이터) */
-const allMembers = ref([
-  { id: 1, name: '김철수', position: '관리자', dept: '경영지원팀' },
-  { id: 2, name: '이영희', position: '사원', dept: '개발사업부' },
+// 결재선 mock 데이터 (실제 연동 시 API로 대체)
+const approverList = ref([
+  { id: 1, type: '결재', name: '홍길동' },
+  { id: 2, type: '협조', name: '김철수' },
 ]);
 
-/* 🔹 검색어 및 상태 변수 */
-const searchText = ref('');
-const selectedMember = ref(null); // 현재 선택된 사원
-const selectedList = ref([...props.defaultList]); // 최종 지정된 사원 목록
+// 선택된 결재자 id 배열 (체크박스)
+const selectedApprovers = ref([]);
 
-/* 🔹 defaultList가 변경될 때 selectedList도 동기화 */
-watch(() => props.defaultList, (val) => {
-  selectedList.value = [...val];
-});
-
-/* 🔹 검색어 기반 필터링 */
-const filteredMembers = computed(() =>
-  allMembers.value.filter(
-    m =>
-      m.name.includes(searchText.value) ||
-      m.position.includes(searchText.value) ||
-      m.dept.includes(searchText.value)
-  )
-);
-
-/* 🔹 사원 선택 함수 */
-function selectMember(member) {
-  selectedMember.value = member;
+// 체크박스 토글 함수
+function toggleApprover(id) {
+  const idx = selectedApprovers.value.indexOf(id);
+  if (idx === -1) selectedApprovers.value.push(id);
+  else selectedApprovers.value.splice(idx, 1);
 }
 
-/* 🔹 검색 버튼 클릭 (v-model 필터링 기반이므로 기능 없음) */
-function searchMember() {
-  // 불필요 – 자동 필터링
-}
-
-/* 🔹 선택된 사원을 오른쪽 목록에 추가 */
-function addSelected() {
-  if (
-    selectedMember.value &&
-    !selectedList.value.some(a => a.id === selectedMember.value.id)
-  ) {
-    if (props.mode === "결재자") {
-      selectedList.value.push({ ...selectedMember.value, type: "결재" });
-    } else {
-      selectedList.value.push({ ...selectedMember.value });
-    }
-  }
-}
-
-/* 🔹 오른쪽 목록에서 제거 */
-function removeSelected(idx) {
-  selectedList.value.splice(idx, 1);
-}
-
-/* 🔹 확인 버튼 클릭 시 submit 이벤트 발생 */
-function submitSelected() {
-  emit('submit', selectedList.value);
+// 선택된 결재자 삭제 함수
+function deleteSelectedApprovers() {
+  approverList.value = approverList.value.filter(item => !selectedApprovers.value.includes(item.id));
+  selectedApprovers.value = [];
 }
 </script>
 
 <style scoped>
-/* 기존 style 복사해서 동일하게 사용하세요! */
-</style>
-
-
-<style scoped>
-.modal-backdrop {
+/* =========================
+   모달 전체 오버레이/컨테이너
+========================= */
+.modal-overlay {
   position: fixed;
-  inset: 0;
-  background-color: rgba(0,0,0,0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.15);
   z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 .modal-content {
-  width: 950px;
-  min-height: 560px;
-  max-height: 90vh;    /* 화면 기준 최대 높이 제한(세로 스크롤 생김) */
+  background: #fff;
+  border-radius: 18px;
+  width: 900px;           /* 모달 가로 크기 넉넉히 */
+  min-width: 700px;
+  max-width: 98vw;
+  min-height: 600px;      /* 모달 세로 최소 크기 넉넉히 */
+  box-shadow: 0 2px 24px rgba(0,0,0,0.13);
   display: flex;
   flex-direction: column;
-  background: #fff;
-  border-radius: 10px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  position: relative;
+  padding: 0 0 0 0;
 }
-.modal-title {
-  color: #000000; 
-  font-size: 20px;
-  font-weight: bold;
-  padding: 16px 22px;
-  margin-top: 8px; 
-  margin-bottom: 8px;
+
+/* =========================
+   상단 제목/탭/정렬/검색/삭제
+========================= */
+.model-text {
+  padding: 24px 0 0 0;    /* 상단 여백 */
   text-align: center;
 }
+.modal-title {
+  font-size: 20px;
+  font-weight: bold;
+  margin-bottom: 30px;
+  margin-left: 0;
+}
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 12px;
+  padding: 0 18px 0 18px;
+  border-bottom: 1.5px solid #e0e0e0;
+  position: relative;
+  flex-wrap: nowrap; /* 한 줄 유지 */
+}
+.tab-group {
+  display: flex;
+  gap: 4px;
+}
+.tab-group button {
+  background: #f8f9fa;
+  border: 1px solid #e0e0e0;
+  border-bottom: none;
+  border-radius: 8px 8px 0 0;
+  padding: 6px 18px;
+  font-weight: 500;
+  font-size: 15px;
+  color: #333;
+  cursor: pointer;
+}
+.tab-group .active {
+  background: #fff;
+  color: #00a8e8;
+  border-bottom: 2px solid #fff;
+  font-weight: bold;
+}
+.sort-search-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: 12px;
+  flex-shrink: 0;
+}
+.sort-search-group select {
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-size: 14px;
+  width: 90px;
+  min-width: 70px;
+  max-width: 120px;
+}
+.sort-search-group input {
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-size: 14px;
+  width: 120px;
+  min-width: 80px;
+  max-width: 180px;
+}
+.delete-btn {
+  margin-left: auto;
+  margin-bottom: 10px;
+  flex-shrink: 0;
+}
+
+/* =========================
+   조직도/결재선 본문 영역
+========================= */
 .modal-body {
-  border-radius: 10px;
-    display: flex; 
-    flex-direction: row; 
-    flex: 1; 
-    min-height: 420px; 
-    background: #ffffff;
-    padding: 18px 0;
+  display: flex;
+  flex: 1;
+  min-height: 400px;
+  padding: 0 32px 0 32px; /* 좌우 여백 넉넉히 */
+  gap: 24px;              /* 좌우 영역 간격 */
+  margin-top: 8px;
+  align-items: stretch;   /* 세로로 모두 같은 높이 */
+  justify-content: center;
 }
-.sidebar {
-    width: 260px;
-    background: #ededed;
-    padding: 14px 10px 0 18px;
-    border-right: 1px solid #d8d8d8;
-    display: flex;
-    flex-direction: column;
+.org-tree-area, .approver-table-area {
+  /* 조직도/결재자 영역 동일하게 */
+  flex: 1 1 0;
+  min-width: 320px;
+  max-width: 420px;
+  height: 410px;
+  background: #fafbfc;
+  border: 1px solid #e0e0e0;
+  border-radius: 18px;
+  padding: 24px 16px 24px 16px;
+  overflow-y: auto;
+  box-sizing: border-box;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
 }
-/* 조직도 트리만 별도 스크롤 */
-.org-tree-scroll {
-    max-height: 220px;  /* 원하는 높이로 조정 */
-    overflow-y: auto;
-    margin-bottom: 8px;
+.action-btns {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  align-items: center;
+  justify-content: center;
+  margin: 0 8px;
+  height: 420px;
+  align-self: center;
 }
-.search-box {
-    margin: 16px 0 8px 0; 
-    display: flex;
+.approver-table {
+  width: 100%;
+  border-collapse: collapse;
 }
-.search-box input { 
-    flex: 1;
+.approver-table th, .approver-table td {
+  border: 1px solid #e0e0e0;
+  padding: 8px 10px;
+  font-size: 15px;
+  text-align: center;
 }
-.member-list { width: 100%; 
-    margin-top: 6px; 
-    border-collapse: collapse; 
-    font-size: 0.98rem;
+.approver-table th {
+  background: #f8f9fa;
+  color: #222;
+  font-weight: 600;
 }
-.member-list th, .member-list td { 
-    border: 1px solid #d0d0d0; 
-    padding: 4px 7px; 
-}
-.member-list tr:hover { 
-    background: #dbefff; 
-    cursor: pointer; 
-}
-.member-list th { 
-    background: #f0f0f0; 
-}
-.member-list tr.selected { 
-    background: #b6eaff; 
-}
-.center-btns {
-    min-width: 90px; 
-    display: flex; 
-    flex-direction: column;
-    align-items: center; 
-    justify-content: center;
-}
-.arrow-btn {
-    padding: 14px 12px; 
-    font-size: 1.04rem; 
-    margin-bottom: 8px;
-    background: #00a8e8;
-    color: #fff; 
-    border: none; 
-    border-radius: 8px; 
-    cursor: pointer;
-    font-weight: 500; 
-    letter-spacing: 1px;
-}
-.arrow-btn:disabled { 
-    background: #b6c5d6; 
-    cursor: not-allowed; 
-}
-.approver-table-wrap {
-    flex: 1; 
-    padding: 0 24px; 
-    display: flex; 
-    flex-direction: column;
-}
-.section-header {
-    font-size: 1.06rem; 
-    font-weight: bold; 
-    margin: 4px 0 8px 0; 
-    padding-left: 2px;
-}
-.approval-list {
-    width: 100%;
-    table-layout: fixed;
-    border-collapse: collapse;
-}
-.approval-list th, .approval-list td {
-    border: 1px solid #ccc;
-    text-align: center;
-    padding: 6px 0;
-    /* 예시: 긴 텍스트 말줄임 */
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-.approval-list th { 
-    background: #f0f0f0; 
-}
+
+/* =========================
+   하단 버튼 영역
+========================= */
 .modal-footer {
-    display: flex; 
-    justify-content: flex-end; 
-    gap: 12px; 
-    background: #f5f5f5; 
-    padding: 16px 24px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 24px 32px 24px 0;
+  border-top: 1.5px solid #e0e0e0;
+  background: #fff;
+  border-radius: 0 0 12px 12px;
 }
 .footer-btn {
-    padding: 8px 28px; 
-    border-radius: 5px; 
-    border: none; 
-    font-size: 1.05rem;
-    font-weight: 500; 
-    cursor: pointer;
+  font-size: 15px;
+  font-weight: 500;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 32px;
+  cursor: pointer;
 }
-.footer-btn.blue { 
-    background: #00a8e8; 
-    color: #fff; }
-.footer-btn.gray { 
-    background: #aaa; 
-    color: #fff; }
+
+/* =========================
+   버튼 스타일(공통)
+========================= */
+/* 저장(등록/결재/협조) 버튼 스타일 */
+.btn-save {
+  font-size: 14px;
+  font-weight: bold;
+  background-color: #00a8e8;
+  color: white;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  padding: 10px 30px;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: background-color 0.2s, box-shadow 0.2s;
+  box-sizing: border-box;
+}
+.btn-save:hover {
+  background-color: white;
+  color: #00a8e8;
+  border-color: #00a8e8;
+  box-shadow: inset 1px 1px 10px rgba(0, 0, 0, 0.25);
+}
+/* 삭제/취소 버튼 스타일 */
+.btn-delete {
+  font-size: 14px;
+  font-weight: bold;
+  background-color: #D3D3D3;
+  color: #000;
+  border: none;
+  border-radius: 10px;
+  padding: 10px 30px;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: background-color 0.2s, box-shadow 0.2s;
+  box-sizing: border-box;
+}
+.btn-delete:hover {
+  background-color: #000;
+  color: #fff;
+}
 </style>
+  
