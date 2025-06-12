@@ -50,11 +50,11 @@
         </div>
         <div class="attendance-item">
           주 근무 시간
-          <span class="count" @click="() => navigateTo('/attendance/myAttendance')">0</span>
+          <span class="count" @click="() => navigateTo('/attendance/myCommute')">0</span>
         </div>
         <div class="attendance-item">
           주 초과 근무 시간
-          <span class="count" @click="() => navigateTo('/attendance/myAttendance')">0</span>
+          <span class="count" @click="() => navigateTo('/attendance/myCommute')">0</span>
         </div>
       </div>
     </div>
