@@ -45,6 +45,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { AgGridVue } from 'ag-grid-vue3'
+import { useRouter } from 'vue-router'
 import axios from 'axios'
 import { ModuleRegistry, AllCommunityModule } from 'ag-grid-community'
 ModuleRegistry.registerModules([AllCommunityModule])
@@ -53,7 +54,7 @@ ModuleRegistry.registerModules([AllCommunityModule])
 const tab = ref('결재')
 const search = ref({ date: '', title: '' })
 const docs = ref([])
-
+const router = useRouter()  
 // 탭별 그리드 컬럼 설정
 const columnDefsByTab = {
   '결재': [
@@ -90,33 +91,35 @@ const statusMap = {
 }
 
 // 백엔드에서 결재 문서 목록 조회
+function formatDateTime(dateString) {
+  if (!dateString) return ''
+  const dt = new Date(dateString)
+  const yyyy = dt.getFullYear()
+  const MM   = String(dt.getMonth() + 1).padStart(2, '0')
+  const dd   = String(dt.getDate()).padStart(2, '0')
+  const hh   = String(dt.getHours()).padStart(2, '0')
+  const mm   = String(dt.getMinutes()).padStart(2, '0')
+  return `${yyyy}-${MM}-${dd} ${hh}:${mm}`
+}
+
 async function fetchApprovals() {
   try {
     const res = await axios.get('http://localhost:8000/approvals', {
       headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
     })
-    console.log('결재함 RAW 데이터:', res.data)
-
-    const data = res.data
-    const list = Array.isArray(data)
-      ? data
-      : Array.isArray(data.documents)
-        ? data.documents
-        : []
+    const list = Array.isArray(res.data) ? res.data : res.data.documents || []
 
     docs.value = list.map((doc, idx) => ({
-      docId: doc.docId,
-      title: doc.title,
-      submittedAt: doc.submittedAt || doc.createdAt,
-      approvedAt: doc.approvedAt || '',
-      status: doc.status,
-      writer: doc.writer || '',
-      type: doc.type || '',
-      no: idx + 1
+      docId:       doc.docId,
+      title:       doc.title,
+      // 포맷팅된 문자열을 바로 할당
+      submittedAt: formatDateTime(doc.submittedAt || doc.createdAt),
+      approvedAt:  formatDateTime(doc.approvedAt),
+      status:      doc.status,
+      writer:      doc.writer || '',
+      type:        doc.type   || '',
+      no:          idx + 1
     }))
-
-    console.log('docs after mapping:', docs.value)
-    console.log('filteredForms after mapping:', filteredForms.value)
   } catch (e) {
     console.error('결재함 조회 실패', e)
   }
@@ -143,6 +146,9 @@ const filteredForms = computed(() =>
 // 행 클릭 핸들러
 function handleFormRowClick(params) {
   console.log('선택된 행:', params.data)
+  const docId = params.data.docId
+  // /drafts/8 같은 경로로 이동
+  router.push({ name: 'DraftDetail', params: { docId } })
 }
 </script>
 
