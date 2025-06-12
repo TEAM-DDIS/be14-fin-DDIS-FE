@@ -403,7 +403,7 @@ export default {
       const now = new Date();
       const submitData = {
         title: this.form.title,
-        body: this.form.body,
+        docContent: this.form.body,
         retentionPeriod: this.form.retentionPeriod,
         receiver: this.receiverList.map(u => u.id),
         reference: this.referenceList.map(u => u.id),
