@@ -25,10 +25,10 @@
           <td>-</td>
           <td>보존연한</td>
           <td>
-            <select v-model="form.retentionPeriod">
-              <option>1년</option>
-              <option>3년</option>
-              <option>5년</option>
+            <select v-model.number="form.retentionPeriod">
+                <option :value="1">1년</option>
+                <option :value="3">3년</option>
+                <option :value="5">5년</option>
             </select>
           </td>
         </tr>
