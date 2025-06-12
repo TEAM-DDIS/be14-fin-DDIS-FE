@@ -1,10 +1,10 @@
 <!-- home > 캘린더 박스 -->
 <template>
   <div class="calendar-wrapper">
-    <!-- 상단 탭: 개인 근태 / 팀 근태 전환 -->
+    <!-- 상단 탭: 개인 캘린더 / 팀 캘린더 전환 -->
     <div class="tab-menu">
-      <button :class="{ active: activeTab === 'personal' }" @click="activeTab = 'personal'">내 근태</button>
-      <button :class="{ active: activeTab === 'team' }" @click="activeTab = 'team'">팀 근태</button>
+      <button :class="{ active: activeTab === 'personal' }" @click="activeTab = 'personal'">내 캘린더</button>
+      <button :class="{ active: activeTab === 'team' }" @click="activeTab = 'team'">팀 캘린더</button>
     </div>
 
     <!-- 캘린더 카드 -->
