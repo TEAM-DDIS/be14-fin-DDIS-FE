@@ -25,7 +25,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref } from 'vue'
 import DateFilter from '@/components/leave/DateFilter.vue'
 import MyCommuteCard from '@/components/commute/MyCommuteCard.vue'
 import MyCommuteSummary from '@/components/commute/MyCommuteSummary.vue'
@@ -33,11 +33,9 @@ import MyCommuteSummary from '@/components/commute/MyCommuteSummary.vue'
 const commuteList = ref([])
 const dateRange = ref({ start: '', end: '' })
 
-function handleSearch(range) {
+async function handleSearch(range) {
   dateRange.value = range
-}
 
-onMounted(async () => {
   const token = localStorage.getItem('token')
   if (!token) {
     console.error('토큰이 없습니다. 로그인 후 다시 시도하세요.')
@@ -45,7 +43,11 @@ onMounted(async () => {
   }
 
   try {
-    const res = await fetch('http://localhost:8000/attendance/commute/me', {
+    const query = new URLSearchParams({
+      startDate: range.start,
+      endDate: range.end
+    })
+    const res = await fetch(`http://localhost:8000/attendance/commute/me?${query}`, {
       headers: {
         Authorization: `Bearer ${token}`
       }
@@ -55,8 +57,9 @@ onMounted(async () => {
   } catch (err) {
     console.error('출퇴근 내역 조회 실패:', err)
   }
-})
+}
 </script>
+
 
 
 <style scoped>
