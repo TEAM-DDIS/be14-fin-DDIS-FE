@@ -3,89 +3,59 @@
     <h3 class="company-title">
       DDIS <span class="rep">{{ getCompanyRep() }}</span>
     </h3>
-    <ul class="org-list">
-      <!-- 1) 본부 반복 -->
-      <li v-for="head in hierarchy" :key="head.headId">
-        <div class="node head" @click="toggle('h' + head.headId)">
-          <i
-            :class="
-              expanded['h' + head.headId]
-                ? 'fa fa-chevron-down'
-                : 'fa fa-chevron-right'
-            "
-          />
-          {{ head.headName }}
-          
-        </div>
+    <div class="control-buttons">
+      <button @click="expandAll" class="control-btn">✚</button>
+      <button @click="collapseAll" class="control-btn">╳</button>
+    </div>
 
-        <!-- 본부가 펼쳐졌을 때 부서 표시 -->
-        <ul v-show="expanded['h' + head.headId]" class="org-list">
-          <li v-for="dept in head.departments" :key="dept.departmentId">
-            <div
-              class="node dept"
-              @click.stop="onDepartmentClick(dept)"
-            >
-              <i
-                :class="
-                  expanded['d' + dept.departmentId]
-                    ? 'fa fa-chevron-down'
-                    : 'fa fa-chevron-right'
-                "
-              />
-              {{ dept.departmentName }}
-            </div>
+    <div class="org-box scrollbar">
+      <ul class="org-list">
+        <li v-for="head in hierarchy" :key="head.headId">
+          <div class="node head" @click="toggle('h' + head.headId)">
+            <i
+              :class="expanded['h' + head.headId] ? 'fa fa-chevron-down' : 'fa fa-chevron-right'"
+            />
+            {{ head.headName }}
+          </div>
 
-            <!-- 부서가 펼쳐졌을 때 하위 표시 -->
-            <div
-              v-show="expanded['d' + dept.departmentId]"
-              class="dept-children"
-            >
-              <!-- 부서장 노드 -->
-              <div
-                v-if="dept.deptManager"
-                class="node emp emp-manager"
-              >
-                부장: {{ dept.deptManager.employeeName }}
+          <ul v-show="expanded['h' + head.headId]" class="org-list">
+            <li v-for="dept in head.departments" :key="dept.departmentId">
+              <div class="node dept" @click.stop="onDepartmentClick(dept)">
+                <i
+                  :class="expanded['d' + dept.departmentId] ? 'fa fa-chevron-down' : 'fa fa-chevron-right'"
+                />
+                {{ dept.departmentName }}
               </div>
 
-              <!-- 팀 리스트 -->
-              <ul class="team-list">
-                <li v-for="team in dept.teams" :key="team.teamId">
-                  <div
-                    class="node team"
-                    @click.stop="onTeamClick(team)"
-                  >
-                    <i
-                      :class="
-                        expanded['t' + team.teamId]
-                          ? 'fa fa-chevron-down'
-                          : 'fa fa-chevron-right'
-                      "
-                    />
-                    {{ team.teamName }}
-                  </div>
+              <div v-show="expanded['d' + dept.departmentId]" class="dept-children">
+                <div v-if="dept.deptManager" class="node emp emp-manager">
+                  부장: {{ dept.deptManager.employeeName }}
+                </div>
 
-                  <!-- 팀원이 펼쳐졌을 때 표시 (부서장은 제외) -->
-                  <ul
-                    v-show="expanded['t' + team.teamId]"
-                    class="member-list"
-                  >
-                    <li
-                      v-for="emp in filteredTeamMembers(team)"
-                      :key="emp.employeeId"
-                    >
-                      <div class="node emp">
-                        {{ emp.rankName }} {{ emp.positionName }}: {{ emp.employeeName }}
-                      </div>
-                    </li>
-                  </ul>
-                </li>
-              </ul>
-            </div>
-          </li>
-        </ul>
-      </li>
-    </ul>
+                <ul class="team-list">
+                  <li v-for="team in dept.teams" :key="team.teamId">
+                    <div class="node team" @click.stop="onTeamClick(team)">
+                      <i
+                        :class="expanded['t' + team.teamId] ? 'fa fa-chevron-down' : 'fa fa-chevron-right'"
+                      />
+                      {{ team.teamName }}
+                    </div>
+
+                    <ul v-show="expanded['t' + team.teamId]" class="member-list">
+                      <li v-for="emp in filteredTeamMembers(team)" :key="emp.employeeId">
+                        <div class="node emp">
+                          {{ emp.rankName }} {{ emp.positionName }}: {{ emp.employeeName }}
+                        </div>
+                      </li>
+                    </ul>
+                  </li>
+                </ul>
+              </div>
+            </li>
+          </ul>
+        </li>
+      </ul>
+    </div>
   </div>
 </template>
 
@@ -145,6 +115,32 @@ function isDeptManager(emp) {
 function filteredTeamMembers(team) {
   return team.members.filter(emp => !isDeptManager(emp))
 }
+
+// 전체 열기
+function expandAll() {
+  hierarchy.value.forEach(head => {
+    expanded['h' + head.headId] = true
+    head.departments.forEach(dept => {
+      expanded['d' + dept.departmentId] = true
+      dept.teams.forEach(team => {
+        expanded['t' + team.teamId] = true
+      })
+    })
+  })
+}
+
+// 전체 닫기
+function collapseAll() {
+  hierarchy.value.forEach(head => {
+    expanded['h' + head.headId] = false
+    head.departments.forEach(dept => {
+      expanded['d' + dept.departmentId] = false
+      dept.teams.forEach(team => {
+        expanded['t' + team.teamId] = false
+      })
+    })
+  })
+}
 </script>
 
 <style scoped>
@@ -152,21 +148,60 @@ function filteredTeamMembers(team) {
   font-size: 14px;
   color: #333;
   padding: 0 12px;
+  margin-bottom: 20px;
 }
 .company-title {
   font-size: 18px;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
 }
 .company-title .rep {
   font-size: 14px;
   color: #666;
 }
+
+.control-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 4px;
+  justify-content: flex-end;
+}
+
+.control-btn {
+  background-color: #3f3f3f;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  padding: 6px 10px;
+  font-size: 12px;
+  font-weight: bold;
+  color: #ffffff;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: background-color 0.2s, box-shadow 0.2s;
+  box-sizing: border-box;
+}
+.control-btn:hover {
+  background-color: white;
+  color: #3f3f3f;
+  border-color: #3f3f3f;
+  box-shadow: inset 1px 1px 10px rgba(0, 0, 0, 0.25);
+}
+
 .org-list,
 .org-list ul {
   list-style: none;
   margin: 0;
   padding: 0;
 }
+.org-box {
+  height: 400px;
+  overflow-y: auto;
+}
+
+.org-box.scrollbar {
+ scrollbar-width: none;
+}
+
 .org-list li {
   position: relative;
   padding-left: 24px;
