@@ -1,171 +1,148 @@
 <!-- 전자결재  > 문서함 > 결재함 -->
 
 <template>
-    <!-- 1. 상단: 페이지 제목 -->
-    <h1 class="page-title">결재함</h1>
+  <!-- 1. 상단: 페이지 제목 -->
+  <h1 class="page-title">결재함</h1>
 
-    <!-- 2. 탭 -->
-    <div class="tabs">
-        <span :class="{active: tab==='결재'}" @click="tab='결재'">결재</span>
-        <span :class="{active: tab==='진행'}" @click="tab='진행'">진행</span>
-        <span :class="{active: tab==='완료'}" @click="tab='완료'">완료</span>
+  <!-- 2. 탭 -->
+  <div class="tabs">
+    <span :class="{ active: tab === '결재' }" @click="tab = '결재'">결재</span>
+    <span :class="{ active: tab === '진행' }" @click="tab = '진행'">진행</span>
+    <span :class="{ active: tab === '완료' }" @click="tab = '완료'">완료</span>
+  </div>
+
+  <!-- 3. 메인 컨텐츠 박스 (검색 + 테이블) -->
+  <div class="main-box">
+    <!-- 3-1. 검색 영역 -->
+    <div class="search-row">
+      <div class="search-item">
+        <label>기안상신일</label>
+        <input type="date" v-model="search.date" />
+      </div>
+      <div class="search-item">
+        <label>기안 제목</label>
+        <input type="text" v-model="search.title" placeholder="기안 제목 입력" />
+      </div>
     </div>
 
-    <!-- 3. 메인 컨텐츠 박스 (검색 + 테이블) -->
-    <div class="main-box">
-
-        <!-- 3-1. 검색 영역 -->
-        <div class="search-row">
-            <!-- 검색: 상신일 -->
-            <div class="search-item">
-                <label>기안상신일</label>
-                <input type="date" v-model="search.Date" />
-            </div>
-            <!-- 검색: 제목 -->
-            <div class="search-item">
-                <label>기안 제목</label>
-                <input type="text" v-model="search.title" placeholder="기안 제목 입력" />
-            </div>
-        </div>
-        <!-- 3-2. 목록 테이블 영역 -->
-        <div class="table-box">
-            <AgGridVue
-            class="ag-theme-alpine custom-theme"
-            :gridOptions="{ theme: 'legacy' }"
-            :columnDefs="currentColumnDefs"
-            :rowData="filteredForms"
-            :pagination="true"
-            rowSelection="single"
-            @rowClicked="handleFormRowClick"
-            :overlayNoRowsTemplate="'<span class=\'ag-empty\'>데이터가 없습니다.</span>'"
-            style="width:100%; height:100%;" 
-            />
-        </div>
+    <!-- 3-2. 목록 테이블 영역 -->
+    <div class="table-box">
+      <AgGridVue
+        class="ag-theme-alpine custom-theme"
+        :gridOptions="{ theme: 'legacy' }"
+        :columnDefs="currentColumnDefs"
+        :rowData="filteredForms"
+        :pagination="true"
+        rowSelection="single"
+        @rowClicked="handleFormRowClick"
+        :overlayNoRowsTemplate="'<span class=\'ag-empty\'>데이터가 없습니다.</span>'"
+        style="width:100%; height:100%;"
+      />
     </div>
+  </div>
 </template>
 
 <script setup>
-
-// Composition API import 및 ag-grid 관련 모듈 등록
-
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { AgGridVue } from 'ag-grid-vue3'
+import axios from 'axios'
 import { ModuleRegistry, AllCommunityModule } from 'ag-grid-community'
 ModuleRegistry.registerModules([AllCommunityModule])
 
+// 상태 정의
+const tab = ref('결재')
+const search = ref({ date: '', title: '' })
+const docs = ref([])
 
-// 상태 변수 및 검색 조건 등
-
-const tab = ref('결재');   // 현재 선택된 탭 (결재)
-const search = ref({
-    date: '',
-    title: '',
-});
-
-
-// 문서 데이터 (실제 서비스에서는 API로 대체)
-
-const docs = ref([
-  // 결재
-    { no: 1, type: '휴가신청서', title: '[휴가신청서] 이도현 - 보고', date: '2025-05-26 10:40', writer: '이도현', status: '결재' },
-    { no: 2, type: '지출품의서', title: '[지출품의서] 김유정 - 회식비', date: '2025-05-25 14:25', writer: '김유정', status: '결재' },
-    { no: 3, type: '사업기안', title: '[사업기안] 박정우 - 출장계획', date: '2025-05-24 09:30', writer: '박정우', status: '결재' },
-    { no: 4, type: '휴가신청서', title: '[휴가신청서] 최수연 - 연차', date: '2025-05-23 15:40', writer: '최수연', status: '결재' },
-    { no: 5, type: '사업기안', title: '[사업기안] 이지원 - 제안서', date: '2025-05-22 08:10', writer: '이지원', status: '결재' },
-    { no: 6, type: '지출품의서', title: '[지출품의서] 윤아름 - 광고비', date: '2025-05-21 11:45', writer: '윤아름', status: '결재' },
-    { no: 7, type: '휴가신청서', title: '[휴가신청서] 박지훈 - 반차', date: '2025-05-20 17:10', writer: '박지훈', status: '결재' },
-    { no: 8, type: '사업기안', title: '[사업기안] 서민재 - 교육참석', date: '2025-05-19 12:20', writer: '서민재', status: '결재' },
-    { no: 9, type: '지출품의서', title: '[지출품의서] 정예린 - 장비구입', date: '2025-05-18 09:50', writer: '정예린', status: '결재' },
-    { no: 10, type: '휴가신청서', title: '[휴가신청서] 김태훈 - 병가', date: '2025-05-17 13:00', writer: '김태훈', status: '결재' },
-    // 진행
-    { no: 1, type: '사업기안', title: '[사업기안] 한지민 - 회의계획', date: '2025-05-26 09:10', writer: '한지민', status: '진행' },
-    { no: 2, type: '지출품의서', title: '[지출품의서] 송강 - 출장비', date: '2025-05-25 10:30', writer: '송강', status: '진행' },
-    { no: 3, type: '휴가신청서', title: '[휴가신청서] 김세정 - 반차', date: '2025-05-24 16:20', writer: '김세정', status: '진행' },
-    { no: 4, type: '사업기안', title: '[사업기안] 배수지 - 시연발표', date: '2025-05-23 11:15', writer: '배수지', status: '진행' },
-    { no: 5, type: '지출품의서', title: '[지출품의서] 정해인 - 간식비', date: '2025-05-22 14:50', writer: '정해인', status: '진행' },
-    { no: 6, type: '휴가신청서', title: '[휴가신청서] 문가영 - 조퇴', date: '2025-05-21 17:25', writer: '문가영', status: '진행' },
-    { no: 7, type: '사업기안', title: '[사업기안] 노정의 - 계약추진', date: '2025-05-20 13:10', writer: '노정의', status: '진행' },
-    { no: 8, type: '지출품의서', title: '[지출품의서] 이도겸 - 회의비', date: '2025-05-19 15:40', writer: '이도겸', status: '진행' },
-    { no: 9, type: '휴가신청서', title: '[휴가신청서] 윤두준 - 휴가계획', date: '2025-05-18 11:00', writer: '윤두준', status: '진행' },
-    { no: 10, type: '사업기안', title: '[사업기안] 이정은 - 홍보자료', date: '2025-05-17 09:20', writer: '이정은', status: '진행' },
-    // 완료
-    { no: 1, type: '지출품의서', title: '[지출품의서] 김민재 - 비용정산', date: '2025-05-26 15:10', writer: '김민재', status: '완료' },
-    { no: 2, type: '휴가신청서', title: '[휴가신청서] 정유진 - 연차신청', date: '2025-05-25 12:20', writer: '정유진', status: '완료' },
-    { no: 3, type: '사업기안', title: '[사업기안] 황민현 - 프로젝트요청', date: '2025-05-24 13:15', writer: '황민현', status: '완료' },
-    { no: 4, type: '휴가신청서', title: '[휴가신청서] 박하늘 - 병가요청', date: '2025-05-23 10:05', writer: '박하늘', status: '완료' },
-    { no: 5, type: '지출품의서', title: '[지출품의서] 유승호 - 구매품의', date: '2025-05-22 16:40', writer: '유승호', status: '완료' },
-    { no: 6, type: '사업기안', title: '[사업기안] 김소현 - 회의안건', date: '2025-05-21 09:45', writer: '김소현', status: '완료' },
-    { no: 7, type: '휴가신청서', title: '[휴가신청서] 강하늘 - 조퇴요청', date: '2025-05-20 14:30', writer: '강하늘', status: '완료' },
-    { no: 8, type: '지출품의서', title: '[지출품의서] 서강준 - 접대비', date: '2025-05-19 17:15', writer: '서강준', status: '완료' },
-    { no: 9, type: '사업기안', title: '[사업기안] 김고은 - 프로젝트제안', date: '2025-05-18 08:55', writer: '김고은', status: '완료' },
-    { no: 10, type: '휴가신청서', title: '[휴가신청서] 전지현 - 휴가신청', date: '2025-05-17 11:50', writer: '전지현', status: '완료' }
-])
-  // 샘플 데이터: 실제론 API로 불러옴
-
-
-// 탭별 컬럼(ag-grid 테이블 헤더) 정의
+// 탭별 그리드 컬럼 설정
 const columnDefsByTab = {
-    '결재': [
-        { headerName: "번호", field: "no", width: 100 },
-        { headerName: "구분", field: "type", width: 150 },
-        { headerName: "제목", field: "title", flex: 1 },
-        { headerName: "상신일시", field: "date", width: 230 },
-        { headerName: "결재상태", field: "status", width: 230 },
-        { headerName: "기안자", field: "writer", width: 150 },
-    ],
-    '진행': [
-        { headerName: "번호", field: "no", width: 100 },
-        { headerName: "구분", field: "type", width: 150 },
-        { headerName: "제목", field: "title", flex: 1 },
-        { headerName: "상신일시", field: "date", width: 230 },
-        { headerName: "결재상태", field: "status", width: 230 },
-        { headerName: "기안자", field: "writer", width: 150 },
-    ],
-    '완료': [
-        { headerName: "번호", field: "no", width: 100 },
-        { headerName: "구분", field: "type", width: 150 },
-        { headerName: "제목", field: "title", flex: 1 },
-        { headerName: "상신일시", field: "date", width: 230 },
-        { headerName: "결재완료일시", field: "date", width: 230 },
-        { headerName: "기안자", field: "writer", width: 150 },
-    ],
-};
-
-
-// 현재 탭에 맞는 컬럼 반환 (computed)
-const currentColumnDefs = computed(() => columnDefsByTab[tab.value]);
-
-
-// 탭/검색 조건에 맞는 데이터만 추출해 테이블에 표시
-const filteredForms = computed(() => {
-    const filtered = docs.value.filter(doc => {
-        if (tab.value && doc.status !== tab.value) return false;
-
-        if (search.value.title && !doc.title.includes(search.value.title)) return false;
-
-        // 검색 조건: 날짜(Date)가 정확히 일치하는 경우만 필터링 (하루 단위)
-        if (search.value.Date) {
-        const docDate = doc.date?.substring(0, 10);  // 'YYYY-MM-DD'
-        if (docDate !== search.value.Date) return false;
-        }
-        return true;
-    });
-  // 번호 필드 재생성
-    return filtered.map((doc, idx) => ({
-        ...doc,
-        no: filtered.length - idx, // 최신순: 1,2,3...
-    }));
-});
-
-function handleFormRowClick(params) {
-  // params.data에 선택된 행 데이터가 담김
-    console.log('선택된 행:', params.data);
+  '결재': [
+    { headerName: '번호', field: 'no', width: 100 },
+    { headerName: '구분', field: 'type', width: 150 },
+    { headerName: '제목', field: 'title', flex: 1 },
+    { headerName: '상신일시', field: 'submittedAt', width: 230 },
+    { headerName: '결재상태', field: 'status', width: 230 },
+    { headerName: '기안자', field: 'writer', width: 150 }
+  ],
+  '진행': [
+    { headerName: '번호', field: 'no', width: 100 },
+    { headerName: '구분', field: 'type', width: 150 },
+    { headerName: '제목', field: 'title', flex: 1 },
+    { headerName: '상신일시', field: 'submittedAt', width: 230 },
+    { headerName: '결재상태', field: 'status', width: 230 },
+    { headerName: '기안자', field: 'writer', width: 150 }
+  ],
+  '완료': [
+    { headerName: '번호', field: 'no', width: 100 },
+    { headerName: '구분', field: 'type', width: 150 },
+    { headerName: '제목', field: 'title', flex: 1 },
+    { headerName: '완료일시', field: 'approvedAt', width: 230 },
+    { headerName: '기안자', field: 'writer', width: 150 }
+  ]
 }
-// 검색 버튼 클릭
-// (실제 API 연동시 이 함수에서 서버에 요청)
+const currentColumnDefs = computed(() => columnDefsByTab[tab.value] || [])
 
-function onSearch() {
-  // API 연동 등 실제 로직 위치
+// 상태-DB status 매핑
+const statusMap = {
+  '결재': '대기중',
+  '진행': '진행',
+  '완료': '완료'
+}
+
+// 백엔드에서 결재 문서 목록 조회
+async function fetchApprovals() {
+  try {
+    const res = await axios.get('http://localhost:8000/approvals', {
+      headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+    })
+    console.log('결재함 RAW 데이터:', res.data)
+
+    const data = res.data
+    const list = Array.isArray(data)
+      ? data
+      : Array.isArray(data.documents)
+        ? data.documents
+        : []
+
+    docs.value = list.map((doc, idx) => ({
+      docId: doc.docId,
+      title: doc.title,
+      submittedAt: doc.submittedAt || doc.createdAt,
+      approvedAt: doc.approvedAt || '',
+      status: doc.status,
+      writer: doc.writer || '',
+      type: doc.type || '',
+      no: idx + 1
+    }))
+
+    console.log('docs after mapping:', docs.value)
+    console.log('filteredForms after mapping:', filteredForms.value)
+  } catch (e) {
+    console.error('결재함 조회 실패', e)
+  }
+}
+
+onMounted(fetchApprovals)
+
+// 검색/탭 조건에 따른 필터링
+const filteredForms = computed(() =>
+  docs.value
+    .filter(doc => {
+      const expect = statusMap[tab.value]
+      if (expect && doc.status !== expect) return false
+      if (search.value.title && !doc.title.includes(search.value.title)) return false
+      if (search.value.date) {
+        const dateOnly = doc.submittedAt.slice(0, 10)
+        if (dateOnly !== search.value.date) return false
+      }
+      return true
+    })
+    .map((doc, idx, arr) => ({ ...doc, no: arr.length - idx }))
+)
+
+// 행 클릭 핸들러
+function handleFormRowClick(params) {
+  console.log('선택된 행:', params.data)
 }
 </script>
 

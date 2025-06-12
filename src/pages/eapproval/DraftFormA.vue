@@ -47,10 +47,10 @@
             <td>-</td>
             <td>보존연한</td>
             <td>
-              <select v-model="form.retentionPeriod">
-                <option>1년</option>
-                <option>3년</option>
-                <option>5년</option>
+              <select v-model.number="form.retentionPeriod">
+                  <option :value="1">1년</option>
+                  <option :value="3">3년</option>
+                  <option :value="5">5년</option>
               </select>
             </td>
           </tr>
@@ -403,7 +403,7 @@ export default {
       const now = new Date();
       const submitData = {
         title: this.form.title,
-        body: this.form.body,
+        docContent: this.form.body,
         retentionPeriod: this.form.retentionPeriod,
         receiver: this.receiverList.map(u => u.id),
         reference: this.referenceList.map(u => u.id),
@@ -418,7 +418,7 @@ export default {
       try {
         const res = await axios.post("http://localhost:8000/drafts/creation", submitData, {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("accessToken")}`
+            Authorization: `Bearer ${localStorage.getItem("token")}`
           }
         });
         const { docId } = res.data;
