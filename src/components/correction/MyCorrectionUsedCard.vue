@@ -15,53 +15,53 @@
 </template>
 
 <script setup>
-    import { ref, onMounted } from 'vue'
-    import AgGrid from '@/components/grid/BaseGrid.vue'
+  import { ref, onMounted } from 'vue'
+  import AgGrid from '@/components/grid/BaseGrid.vue'
 
-    const leaveUsedData = ref([])
+  const leaveUsedData = ref([])
 
-    const columnDefs = [
-  { headerName: '번호', valueGetter: params => params.api.getDisplayedRowCount() - params.node.rowIndex, sortable: false },
-  { headerName: '처리상태', field: 'approvalStatus' },
-  { headerName: '신청일', field: 'requestTime' },
-  { headerName: '출근시각', field: 'beforeCheckInTime', valueFormatter: ({ value }) => value ? value.split('.')[0] : '' },
-  { headerName: '변경요청시각', field: 'requestedTimeChange',
-    valueFormatter: ({ value }) => {
-      if (!value) return ''
-      const time = new Date(value).toTimeString().split(' ')[0]
-      return time
-    } 
-    },
-  { headerName: '처리시간', field: 'processedTime' },
-  { headerName: '사유', field: 'reason' },
-  { headerName: '반려사유', field: 'rejectReason' }
-]
+  const columnDefs = [
+    { headerName: '번호', valueGetter: params => params.api.getDisplayedRowCount() - params.node.rowIndex, sortable: false },
+    { headerName: '처리상태', field: 'approvalStatus' },
+    { headerName: '신청일', field: 'requestTime' },
+    { headerName: '출근시각', field: 'beforeCheckInTime', valueFormatter: ({ value }) => value ? value.split('.')[0] : '' },
+    { headerName: '변경요청시각', field: 'requestedTimeChange',
+      valueFormatter: ({ value }) => {
+        if (!value) return ''
+        const time = new Date(value).toTimeString().split(' ')[0]
+        return time
+      } 
+      },
+    { headerName: '처리시간', field: 'processedTime' },
+    { headerName: '사유', field: 'reason' },
+    { headerName: '반려사유', field: 'rejectReason' }
+  ]
 
-onMounted(async () => {
-  const token = localStorage.getItem('token')
-  if (!token) {
-    console.error('토큰이 없습니다. 로그인 후 다시 시도하세요.')
-    return
-  }
+  onMounted(async () => {
+    const token = localStorage.getItem('token')
+    if (!token) {
+      console.error('토큰이 없습니다. 로그인 후 다시 시도하세요.')
+      return
+    }
 
-  try {
-    const res = await fetch('http://localhost:8000/attendance/correction/history/process/me', {
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
-    })
+    try {
+      const res = await fetch('http://localhost:8000/attendance/correction/history/process/me', {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      })
 
-    if (!res.ok) throw new Error('API 오류')
+      if (!res.ok) throw new Error('API 오류')
 
-    const data = await res.json()
-  leaveUsedData.value = data
-  } catch (err) {
-    console.error('내 출근정정 내역 불러오기 실패:', err)
-    statuses.value = []
-  } finally {
-    loading.value = false
-  }
-})
+      const data = await res.json()
+    leaveUsedData.value = data
+    } catch (err) {
+      console.error('내 출근정정 내역 불러오기 실패:', err)
+      statuses.value = []
+    } finally {
+      loading.value = false
+    }
+  })
 </script>
 
 <style scoped>
