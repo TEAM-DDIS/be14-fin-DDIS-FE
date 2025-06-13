@@ -26,8 +26,10 @@
             </div>
             <!-- 탭 내용 -->
             <div class="tab-content">
-                <AllCorrectionUsedCard v-if="activeTab === 'used'" />
-                <AllCorrectionRegistCard v-if="activeTab === 'regist'" />
+                <AllCorrectionUsedCard v-if="activeTab === 'used'"
+                :dateRange="dateRange" />
+                <AllCorrectionRegistCard v-if="activeTab === 'regist'"
+                :dateRange="dateRange" />
             </div>
         </div>
     </div>
@@ -40,8 +42,10 @@
     import AllCorrectionRegistCard from '@/components/correction/AllCorrectionRegistCard.vue'
 
     const activeTab = ref('used')
+const dateRange = ref({ start: '', end: '' })
 
     function handleSearch(range) {
+        dateRange.value = range
         console.log('조회기간:', range)
     }
 </script>

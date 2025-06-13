@@ -53,7 +53,7 @@
     <!-- 첨부된 파일 목록 -->
     <ul class="attached-list" v-if="files.length">
       <li v-for="(file, idx) in files" :key="idx" class="file-item">
-        <span class="file-name">{{ file.name }}</span>
+        <span class="file-name">{{ file.fileName }}</span>
         <button
           type="button"
           class="btn-delete small"
@@ -101,112 +101,143 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'     // <-- 여기에 useRouter를 import
+import { useRouter } from 'vue-router'
+import axios from 'axios'
+import { useUserStore } from '@/stores/user'
 
-/* 라우터 인스턴스 얻기 */
-const router = useRouter()
+// 1) 협업 중이라 별도 api.js 없이, 여기서만 baseURL 설정
+axios.defaults.baseURL = 'http://localhost:8000'
 
-/* 제목 */
-const title = ref('')
+const router    = useRouter()
+const userStore = useUserStore()
 
-/* 파일 첨부 상태 */
-const files = ref([])
-const fileInputRef = ref(null)
-
-function onDropFiles(event) {
-  const dropped = Array.from(event.dataTransfer.files)
-  addFiles(dropped)
+// 2) 토큰 헤더 함수
+function authHeaders() {
+  return { Authorization: `Bearer ${userStore.accessToken}` }
 }
 
+// 3) 반응형 상태
+const title        = ref('')
+const editorRef    = ref(null)
+const contentHtml  = ref('')
+const files        = ref([])    // { key, fileName, fileSize }
+const fileInputRef = ref(null)
+
+// 4) 에디터 placeholder 처리
+const editorPlaceholder = '내용을 입력해주세요.'
+onMounted(() => {
+  const el = editorRef.value
+  if (!el) return
+  const toggleEmpty = () => {
+    el.classList.toggle('empty', !el.innerText.trim())
+  }
+  el.addEventListener('focus',  () => el.classList.remove('empty'))
+  el.addEventListener('blur',   toggleEmpty)
+  toggleEmpty()
+})
+
+// 5) 파일 드롭/선택 핸들러
+function onDropFiles(e) {
+  addFiles(Array.from(e.dataTransfer.files))
+}
 function onClickAddFiles() {
   fileInputRef.value.click()
 }
-
 function onFileChange(e) {
-  const selected = Array.from(e.target.files)
-  addFiles(selected)
+  addFiles(Array.from(e.target.files))
   e.target.value = ''
 }
 
-function addFiles(newFiles) {
+// 6) presigned URL 받아서 S3에 PUT, 메타만 보관
+async function addFiles(newFiles) {
   if (files.value.length + newFiles.length > 5) {
-    alert('첨부파일은 최대 5개까지 가능합니다.')
-    return
+    return alert('첨부파일은 최대 5개까지 가능합니다.')
   }
-  newFiles.forEach((f) => {
-    if (f.size <= 20 * 1024 * 1024) {
-      files.value.push(f)
-    } else {
-      alert(`${f.name} 파일은 20MB를 초과하여 추가되지 않았습니다.`)
+  for (const f of newFiles) {
+    if (f.size > 20 * 1024 * 1024) {
+      alert(`${f.name} 은 20MB를 초과하여 제외됩니다.`)
+      continue
     }
-  })
+    try {
+      // a) presigned URL + key 요청
+      const { data } = await axios.get('/s3/upload-url', {
+        params: { filename: f.name, contentType: f.type },
+        headers: authHeaders()
+      })
+      // b) S3에 PUT 업로드
+      await fetch(data.url, {
+        method:  'PUT',
+        headers: { 'Content-Type': f.type },
+        body:    f
+      })
+      // c) 업로드 성공 시 메타 보관
+      files.value.push({
+        key:      data.key,
+        fileName: f.name,
+        fileSize: f.size
+      })
+    } catch (err) {
+      console.error(err)
+      alert(`파일 업로드 실패: ${f.name}`)
+    }
+  }
 }
 
-function removeFile(index) {
-  files.value.splice(index, 1)
-}
-
-function onRemoveAllFiles() {
-  files.value = []
-}
-
-/* 본문 에디터 */
-const editorRef = ref(null)
-const contentHtml = ref('')
-const editorPlaceholder = '내용을 입력해주세요.'
-
+// 7) 에디터 입력
 function onEditorInput(e) {
   contentHtml.value = e.target.innerHTML
 }
 
-onMounted(() => {
-  if (editorRef.value) {
-    if (editorRef.value.innerText.trim() === '') {
-      editorRef.value.classList.add('empty')
-    }
-    editorRef.value.addEventListener('focus', () => {
-      editorRef.value.classList.remove('empty')
-    })
-    editorRef.value.addEventListener('blur', () => {
-      if (editorRef.value.innerText.trim() === '') {
-        editorRef.value.classList.add('empty')
-      }
-    })
-  }
-})
+// 8) 파일 제거
+function removeFile(idx) {
+  files.value.splice(idx, 1)
+}
 
-/* 취소 및 제출 로직 */
+// 9) 취소
 function onCancel() {
-  // 입력값을 리셋하는 로직
-  title.value = ''
-  files.value = []
-  if (editorRef.value) {
-    editorRef.value.innerHTML = ''
-  }
-  // ----> 공지사항 목록 페이지로 이동
   router.push('/post')
 }
 
-function onSubmit() {
+// 10) 제출 — 이제 FormData가 아니라 JSON payload
+async function onSubmit() {
   if (!title.value.trim()) {
-    alert('제목을 입력해주세요.')
-    return
+    return alert('제목을 입력해주세요.')
   }
-  if (!editorRef.value || editorRef.value.innerText.trim() === '') {
-    alert('본문을 입력해주세요.')
-    return
+  if (!editorRef.value.innerText.trim()) {
+    return alert('본문을 입력해주세요.')
   }
-  const formData = new FormData()
-  formData.append('title', title.value)
-  formData.append('content', contentHtml.value)
-  files.value.forEach((f) => {
-    formData.append('files', f)
-  })
-  console.log('서버 전송용 FormData:', formData)
-  alert('등록이 완료되었습니다.')
-  onCancel()
+
+  // JSON DTO 구조
+  const payload = {
+    boardTitle:   title.value,
+    boardContent: contentHtml.value,
+    files: files.value.map(f => ({
+      key:      f.key,
+      fileName: f.fileName,
+      fileSize: f.fileSize
+    }))
+  }
+
+  try {
+    const res = await axios.post(
+      '/boards',
+      payload,
+      { headers: { 
+          ...authHeaders(), 
+          'Content-Type': 'application/json' 
+        } 
+      }
+    )
+    alert(` 등록 완료! `)
+    router.push('/post')
+  } catch (err) {
+    console.error(err)
+    alert('등록 실패: ' + (err.response?.data?.message || err.message))
+  }
 }
 </script>
+
+
 
 <style scoped>
 .post-enroll-wrapper {

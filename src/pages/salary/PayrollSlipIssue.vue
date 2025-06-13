@@ -158,24 +158,20 @@
 
 
 <script setup>
-// Vue 핵심 기능 및 외부 라이브러리 임포트
 import { ref, reactive, computed, onMounted } from 'vue'
 import axios from 'axios'
 import AgGrid from '@/components/grid/BaseGrid.vue'
 import Modal from '@/components/salary/PayrollModal.vue'
 import { useUserStore } from '@/stores/user'
 
-
-// 모달 표시 여부 상태
 const showModal = ref(false)
-const searchKeyword = ref('') // 검색어 상태
-const employees = ref([]) // 전체 사원 목록
-const salaryHistory = ref([]) // 급여 내역 목록
-const salarySection = ref(null) // 급여 내역 영역 ref
+const searchKeyword = ref('')
+const employees = ref([])
+const salaryHistory = ref([])
+const salarySection = ref(null)
 const userStore = useUserStore()
 const token = localStorage.getItem('token')
 
-// 선택된 사원의 급여명세서 상세 정보
 const selectedSlip = reactive({
   yearMonth: '',
   employeeId: '',
@@ -192,10 +188,9 @@ const selectedSlip = reactive({
   salaryDate: ''
 })
 
-// 조회 기간 설정
+// 날짜 선택 기본값 제거
 const dateRange = reactive({ start: '', end: '' })
 
-// 필터 설정 값
 const filters = reactive({
   headName: '',
   departmentName: '',
@@ -203,7 +198,6 @@ const filters = reactive({
   rankName: ''
 })
 
-// AG Grid 컬럼 정의: 사원 기본 정보용
 const columnDefs = [
   { headerName: '사번', field: 'employeeId' },
   { headerName: '성명', field: 'employeeName' },
@@ -216,7 +210,6 @@ const columnDefs = [
   { headerName: '예금주', field: 'bankDepositor' }
 ]
 
-// AG Grid 컬럼 정의: 급여 내역용
 const salaryColumnDefs = [
   { headerName: '사원번호', field: 'employeeId' },
   { headerName: '성명', field: 'employeeName' },
@@ -226,11 +219,9 @@ const salaryColumnDefs = [
   { headerName: '실지급', field: 'netSalary' }
 ]
 
-// 본부 및 직급 등의 고유값 목록 추출
 const uniqueHeads = computed(() => [...new Set(employees.value.map(e => e.headName).filter(Boolean))])
 const uniqueRanks = computed(() => [...new Set(employees.value.map(e => e.rankName).filter(Boolean))])
 
-// 필터된 부서 및 팀 목록 계산
 const filteredDepartments = computed(() => {
   return [...new Set(
     employees.value
@@ -238,6 +229,7 @@ const filteredDepartments = computed(() => {
       .map(e => e.departmentName).filter(Boolean)
   )]
 })
+
 const filteredTeams = computed(() => {
   return [...new Set(
     employees.value
@@ -246,7 +238,6 @@ const filteredTeams = computed(() => {
   )]
 })
 
-// 필터링 및 검색 적용된 사원 목록
 const filteredEmployees = computed(() => {
   return employees.value.filter(e => {
     const keyword = searchKeyword.value.toLowerCase()
@@ -259,12 +250,11 @@ const filteredEmployees = computed(() => {
   })
 })
 
-// 스크롤을 급여 내역 섹션으로 이동
 function scrollToSalarySection() {
   salarySection.value?.scrollIntoView({ behavior: 'smooth' })
 }
 
-// 선택된 기간 동안의 급여 내역 조회
+
 async function fetchSalaryHistory() {
   try {
     if (!dateRange.start || !dateRange.end) {
@@ -272,118 +262,106 @@ async function fetchSalaryHistory() {
       return
     }
 
-    const results = []
-    const startMonth = new Date(dateRange.start + '-01')
-    const endMonth = new Date(dateRange.end + '-01')
-
-    for (const emp of filteredEmployees.value) {
-      const current = new Date(startMonth)
-      while (current <= endMonth) {
-        const yyyymm = current.getFullYear() + '-' + String(current.getMonth() + 1).padStart(2, '0')
-        const { data } = await axios.get(`http://localhost:8000/payroll/salaries/${emp.employeeId}`, {
-          params: { month: yyyymm },
-          headers: { Authorization: `Bearer ${token}` }
-        })
-        if (data && data.salaryDate) {
-          results.push({
-            employeeId: emp.employeeId,
-            employeeName: emp.employeeName,
-            yearMonth: data.salaryDate.slice(0, 7),
-            salaryDate: data.salaryDate,
-            totalIncome: data.totalIncome,
-            totalDeductions: data.totalDeductions,
-            netSalary: data.netSalary
-          })
-        }
-        current.setMonth(current.getMonth() + 1)
-      }
+    const params = {
+      fromMonth: dateRange.start,
+      toMonth: dateRange.end,
+      headName: filters.headName,
+      departmentName: filters.departmentName,
+      teamName: filters.teamName,
+      rankName: filters.rankName
     }
-    salaryHistory.value = results
+
+    const { data } = await axios.get(`http://localhost:8000/payroll/salaries`, {
+      params,
+      headers: { Authorization: `Bearer ${token}` }
+    })
+
+    // 필터링된 사원만 추려서 반영 (옵션)
+    const filtered = data.filter(item =>
+      filteredEmployees.value.some(emp => emp.employeeId === item.employeeId)
+    )
+
+    salaryHistory.value = filtered.map(s => ({
+      ...s,
+      yearMonth: s.salaryDate.slice(0, 7)
+    }))
+
     scrollToSalarySection()
   } catch (e) {
     console.error('조회 중 오류:', e)
   }
 }
 
-// 급여 내역 행 클릭 시 상세 정보 조회 및 반영
 async function selectSlip(e) {
   const row = e.data
   try {
     const { data: salary } = await axios.get(`http://localhost:8000/payroll/salaries/${row.employeeId}`, {
       params: { month: row.yearMonth },
       headers: { Authorization: `Bearer ${token}` }
-    }) .catch(err => {
-    if (err.response?.status === 403) {
-      alert(err.response.data.message || "접근 권한이 없습니다.");
-    }
-  });
+    })
 
     const { data: emp } = await axios.get(`http://localhost:8000/payroll/employees/${row.employeeId}`, {
       headers: { Authorization: `Bearer ${token}` }
     })
-    selectedSlip.employeeId = emp.employeeId
-    selectedSlip.employeeEmail = emp.employeeEmail
-    selectedSlip.employeeName = emp.employeeName
-    selectedSlip.headName = emp.headName
-    selectedSlip.departmentName = emp.departmentName
-    selectedSlip.teamName = emp.teamName
-    selectedSlip.rankName = emp.rankName
-    selectedSlip.yearMonth = salary.salaryDate.slice(0, 7)
-    selectedSlip.salaryDate = salary.salaryDate
-    selectedSlip.netSalary = salary.netSalary 
-    
-    selectedSlip.pays = [
-      { label: '기본급', amount: salary.salaryBasic },
-      { label: '연장수당', amount: salary.salaryOvertime },
-      { label: '야간수당', amount: salary.salaryNight },
-      { label: '휴일수당', amount: salary.salaryHoliday },
-      { label: '식대', amount: salary.salaryMeal },
-      { label: '교통비', amount: salary.salaryTransport },
-      { label: '상여금', amount: salary.salaryBonus },
-      { label: '총지급', amount: salary.totalIncome }
-    ]
 
-    selectedSlip.deductions = [
-      { label: '소득세', amount: salary.incomeTax },
-      { label: '지방소득세', amount: salary.localIncomeTax },
-      { label: '국민연금', amount: salary.nationalPension },
-      { label: '건강보험', amount: salary.healthInsurance },
-      { label: '장기요양보험', amount: salary.longCareInsurance },
-      { label: '고용보험', amount: salary.employmentInsurance },
-      { label: '총공제', amount: salary.totalDeductions }
-    ]
+    Object.assign(selectedSlip, {
+      employeeId: emp.employeeId,
+      employeeEmail: emp.employeeEmail,
+      employeeName: emp.employeeName,
+      headName: emp.headName,
+      departmentName: emp.departmentName,
+      teamName: emp.teamName,
+      rankName: emp.rankName,
+      yearMonth: salary.salaryDate.slice(0, 7),
+      salaryDate: salary.salaryDate,
+      netSalary: salary.netSalary,
+      pays: [
+        { label: '기본급', amount: salary.salaryBasic },
+        { label: '연장수당', amount: salary.salaryOvertime },
+        { label: '야간수당', amount: salary.salaryNight },
+        { label: '휴일수당', amount: salary.salaryHoliday },
+        { label: '식대', amount: salary.salaryMeal },
+        { label: '교통비', amount: salary.salaryTransport },
+        { label: '상여금', amount: salary.salaryBonus },
+        { label: '총지급', amount: salary.totalIncome }
+      ],
+      deductions: [
+        { label: '소득세', amount: salary.incomeTax },
+        { label: '지방소득세', amount: salary.localIncomeTax },
+        { label: '국민연금', amount: salary.nationalPension },
+        { label: '건강보험', amount: salary.healthInsurance },
+        { label: '장기요양보험', amount: salary.longCareInsurance },
+        { label: '고용보험', amount: salary.employmentInsurance },
+        { label: '총공제', amount: salary.totalDeductions }
+      ]
+    })
   } catch (e) {
     console.error('명세서 상세 조회 오류:', e)
   }
 }
 
-// 숫자를 통화 형식으로 포맷
 function formatCurrency(val) {
   return val.toLocaleString()
 }
 
-// 컴포넌트 마운트 시 초기 데이터 세팅 (직원 목록, 기간 기본값)
+// 초기 날짜 설정 제거
 onMounted(async () => {
   const res = await axios.get('http://localhost:8000/payroll/employees', {
     headers: { Authorization: `Bearer ${token}` }
-  }) .catch(err => {
+  }).catch(err => {
     if (err.response?.status === 403) {
       alert(err.response.data.message || "접근 권한이 없습니다.");
     }
   });
   employees.value = res.data
-
-  const today = new Date()
-  dateRange.end = today.toISOString().slice(0, 7)
-  const twoMonthsAgo = new Date(today.setMonth(today.getMonth() - 2))
-  dateRange.start = twoMonthsAgo.toISOString().slice(0, 7)
 })
 
-// 모달 열기 핸들러
+// 모달
 function openModal() {
   showModal.value = true
 }
 </script>
+
 
 
 <style scoped>
