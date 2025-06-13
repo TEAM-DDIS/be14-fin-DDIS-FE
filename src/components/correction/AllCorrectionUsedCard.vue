@@ -79,7 +79,7 @@
         { headerName: '성명', field: 'employeeName' },
         { headerName: '처리상태', field: 'approvalStatus' },
         { headerName: '신청일', field: 'requestTime' },
-        { headerName: '출근시각', field: 'checkInTime', valueFormatter: ({ value }) => value ? value.split('.')[0] : '' },
+        { headerName: '출근시각', field: 'beforeCheckInTime', valueFormatter: ({ value }) => value ? value.split('.')[0] : '' },
         { headerName: '변경요청시각', field: 'requestedTimeChange',
             valueFormatter: ({ value }) => {
             if (!value) return ''
