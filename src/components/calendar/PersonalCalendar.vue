@@ -337,7 +337,7 @@
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
-  margin: 5px 10px !important;
+  margin: 5px 10px 1px!important;
   border-radius: 15px !important;
   padding-bottom: 3px !important;
   box-shadow: 0 2px 2px rgba(0,0,0,0.1) !important;

@@ -155,7 +155,7 @@ onMounted(async () => {
   min-height: 24px !important;
   line-height: 24px !important;
   padding: 0 4px !important;
-  margin: 5px 10px !important;
+  margin: 5px 10px 1px!important;
   font-size: 12px !important;
   border-radius: 15px !important;
   overflow: hidden;
