@@ -43,9 +43,9 @@
       <div class="initials-sidebar">
         <ul>
           <li
-            v-for="(cho, idx) in initials"
-            :key="idx"
-            :class="{ active: selectedInitial === cho }"
+            v-for="cho in initials"
+            :key="cho"
+            :class="{ active: selectedInitial === cho, disabled: !typeInitials.includes(cho) }"
             @click="onInitialClick(cho)"
           >
             {{ cho }}
@@ -107,9 +107,10 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { AgGridVue } from 'ag-grid-vue3'
+ import axios from 'axios'
 import {
   ModuleRegistry,
   AllCommunityModule,
@@ -164,7 +165,7 @@ const columnDefs = ref([
     headerClass: 'header-word'
   },
   {
-    headerName: '정의',
+    headerName: '설명',
     field: 'definition',
     flex: 2,
     cellClass: 'center-align',
@@ -172,29 +173,30 @@ const columnDefs = ref([
   },
 ])
 
-// 더미 데이터
-const rowData = ref([
-  { id: 1, title: 'ERP', definition: '전사적 자원 관리 시스템으로, 기업의 모든 경영 활동을 통합 관리하는 소프트웨어' },
-  { id: 2, title: '회계관리', definition: '기업의 재무 상태를 기록·분석·보고하는 기능을 제공하는 모듈' },
-  { id: 3, title: '인사관리', definition: '직원 채용, 급여, 평가, 교육 등 인사 업무 전반을 관리하는 기능' },
-  { id: 4, title: '재무회계', definition: '기업의 회계 장부를 작성하고 재무제표를 생성하는 회계 모듈' },
-  { id: 5, title: '생산관리', definition: '원자재 투입부터 제품 출하까지 생산 공정을 계획·통제하는 기능' },
-  { id: 6, title: '재고관리', definition: '창고별, 품목별 재고 수량을 실시간으로 파악하고 조정하는 기능' },
-  { id: 7, title: '구매관리', definition: '구매 요청부터 발주, 납품, 대금 결제까지 구매 프로세스를 관리하는 기능' },
-  { id: 8, title: '영업관리', definition: '고객견적 작성, 수주, 출하, 매출정산 등의 영업 활동을 관리하는 기능' },
-  { id: 9, title: '고객관계관리', definition: '고객 정보를 수집·분석하여 마케팅, 영업, 서비스 활동을 지원하는 기능' },
-  { id: 10, title: '전자결재', definition: '전사 문서를 전자 서명 방식으로 결재·승인하는 워크플로우 기능' },
-  { id: 11, title: 'API', definition: 'Application Programming Interface의 약자로, 소프트웨어 간 상호작용을 위한 인터페이스' },
-  { id: 12, title: 'Authentication', definition: '사용자 신원을 확인하고 권한을 부여하기 위한 인증 과정' },
-  { id: 13, title: 'Bandwidth', definition: '네트워크가 전송할 수 있는 데이터의 최대 용량' },
-  { id: 14, title: 'Caching', definition: '데이터를 임시로 저장하여 접근 속도를 높이는 기술' },
-  { id: 15, title: 'Debugging', definition: '코드의 오류를 찾아내고 수정하는 과정' },
-  { id: 16, title: 'Encryption', definition: '데이터를 암호화하여 안전하게 전송하거나 저장하는 기술' },
-  { id: 17, title: 'Framework', definition: '소프트웨어 개발을 위해 사전에 작성된 기본 구조나 라이브러리 집합' },
-  { id: 18, title: 'Git', definition: '분산 버전 관리 시스템으로, 소스 코드 변경 이력을 효율적으로 관리' },
-  { id: 19, title: 'HTTP', definition: 'HyperText Transfer Protocol의 약자로, 웹에서 데이터를 주고받기 위한 프로토콜' },
-  { id: 20, title: 'Interface', definition: '클래스나 모듈 간의 통신을 정의하는 경계 또는 규격' }
-])
+const rowData = ref([])
+
+// 백엔드 API 기본 URL (필요에 따라 수정)
+const API_BASE = 'http://localhost:8000/dictionary'
+
+// 컴포넌트 마운트 시 데이터 로드
+onMounted(fetchDictionary)
+
+/** 전체 목록 조회 */
+async function fetchDictionary() {
+  try {
+      const res = await axios.get(`${API_BASE}`)
+
+      rowData.value = res.data.map(d => ({
+      id: d.dictionaryId,
+      title: d.dictionaryName,
+      definition: d.dictionaryContent,
+      type: d.dictionaryType
+    }))
+  } catch (err) {
+    console.error(err)
+    alert('용어사전 로드에 실패했습니다.')
+  }
+}
 
 const searchText = ref('')
 const pageSize = ref(10)
@@ -207,57 +209,84 @@ const entryTitle = ref('')
 const entryDefinition = ref('')
 const editingId = ref(null)
 
-// 초성 + 영어 이니셜 배열
 const initials = ref([
-  // 한국어 초성
   'ㄱ','ㄲ','ㄴ','ㄷ','ㄸ','ㄹ','ㅁ','ㅂ','ㅃ','ㅅ','ㅆ','ㅇ','ㅈ','ㅉ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ',
-  // 영어 대문자 A-Z
   'A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z'
 ])
+
+
+
+
 const selectedInitial = ref('')
 
-// 한글 초성 계산 + 영어 대문자 처리 함수
+ // 초성/영문 계산 함수
 function getInitialChar(str) {
   if (!str) return ''
+  const c = str.charAt(0)
 
-  const firstChar = str.charAt(0)
-  const code = firstChar.charCodeAt(0)
-
-  // 영어 알파벳 (A-Z / a-z) 처리
-  if ((code >= 65 && code <= 90) || (code >= 97 && code <= 122)) {
-    return firstChar.toUpperCase()
+  // ① 이미 초성(Jamo) 문자가 들어온 경우 바로 반환
+  const choList = [
+    'ㄱ','ㄲ','ㄴ','ㄷ','ㄸ','ㄹ',
+    'ㅁ','ㅂ','ㅃ','ㅅ','ㅆ','ㅇ',
+    'ㅈ','ㅉ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ'
+  ]
+  if (choList.includes(c)) {
+    return c
   }
 
-  // 한글 음절 범위 내 초성 계산
-  const uni = firstChar.charCodeAt(0) - 0xac00
+  // ② 영어 알파벳이면 대문자 반환
+  const code = c.charCodeAt(0)
+  if ((code >= 65 && code <= 90) || (code >= 97 && code <= 122)) {
+    return c.toUpperCase()
+  }
+
+  // ③ 한글 음절인 경우 초성 계산
+  const uni = code - 0xAC00
   if (uni < 0 || uni > 11171) {
     return ''
   }
-  const choIndex = Math.floor(uni / 588)
-  const choList = ['ㄱ','ㄲ','ㄴ','ㄷ','ㄸ','ㄹ','ㅁ','ㅂ','ㅃ','ㅅ','ㅆ','ㅇ','ㅈ','ㅉ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ']
-  return choList[choIndex]
+  const idx = Math.floor(uni / 588)
+  return choList[idx]  // 여기서 choList 재활용
 }
 
-// 검색어 + 초성/영어 이니셜 필터링
+
+// 2) 실제 데이터로부터 활성화할 이니셜만 수집
+const typeInitials = computed(() => {
+  const set = new Set()
+  rowData.value.forEach(item => {
+    const i = getInitialChar(item.type)
+    if (i) set.add(i)
+  })
+  return Array.from(set)
+})
+
+// 3) 검색 + type 이니셜 필터
 const filteredData = computed(() => {
   return rowData.value.filter(item => {
-    const matchesSearch = !searchText.value
-      ? true
-      : item.title.toLowerCase().includes(searchText.value.toLowerCase())
+    const okSearch = !searchText.value
+      || item.title.toLowerCase().includes(searchText.value.toLowerCase())
 
-    const initChar = getInitialChar(item.title)
-    const matchesInitial = !selectedInitial.value
-      ? true
-      : initChar === selectedInitial.value
+    // ① 실제 type 첫 글자에서 뽑는 이니셜
+    const init = getInitialChar(item.type)
+    
+    // ② 비교
+    const okInitial = !selectedInitial.value
+      || init === selectedInitial.value
 
-    return matchesSearch && matchesInitial
+    return okSearch && okInitial
   })
 })
 
-// 그리드 준비 시 API 저장
+
 function onGridReady(params) {
   gridApi = params.api
 }
+
+// 4) 클릭 시 selectedInitial 토글
+function onInitialClick(cho) {
+  selectedInitial.value = (selectedInitial.value === cho) ? '' : cho
+}
+
 
 // 삭제 버튼 클릭 → 삭제 확인 모달 열기
 function onDeleteClick() {
@@ -352,14 +381,14 @@ function getRowHeight(params) {
     : defaultRowHeight
 }
 
-// 초성/영문 이니셜 클릭 시
-function onInitialClick(cho) {
-  if (selectedInitial.value === cho) {
-    selectedInitial.value = ''
-  } else {
-    selectedInitial.value = cho
-  }
-}
+// // 초성/영문 이니셜 클릭 시
+// function onInitialClick(cho) {
+//   if (selectedInitial.value === cho) {
+//     selectedInitial.value = ''
+//   } else {
+//     selectedInitial.value = cho
+//   }
+// }
 </script>
 
 <style scoped>
@@ -410,8 +439,7 @@ function onInitialClick(cho) {
   background: #fff;
   border-radius: 12px;
   box-shadow: 1px 1px 20px 1px rgba(0, 0, 0, 0.05);
-  width: 100%;
-  margin: 0 10px 30px;
+  margin: 0 20px 30px;
   padding: 20px 40px 32px 40px;
   box-sizing: border-box;
 }
@@ -472,16 +500,16 @@ function onInitialClick(cho) {
 /* 초성/영문 이니셜 사이드바 */
 .initials-sidebar {
   width: 60px;
-  height: 300px;              /* 그리드 높이(500px)의 중앙에 오도록 절반 이하로 설정 */
+  height: 500px;              /* 그리드 높이(500px)의 중앙에 오도록 절반 이하로 설정 */
   background: #fafafa;
   border: 1px solid #d9d9d9;
-  border-radius: 30px;
+  border-radius: 25px;
   overflow-y: auto;
 }
 
 /* 스크롤바 스타일 */
 .initials-sidebar::-webkit-scrollbar {
-  width: 6px;
+  width: 4px;
 }
 .initials-sidebar::-webkit-scrollbar-thumb {
   background: #c1c1c1;
@@ -489,7 +517,7 @@ function onInitialClick(cho) {
 }
 .initials-sidebar::-webkit-scrollbar-track {
   background: transparent;
-  margin: 30px 0;            /* 테두리 곡선 부분과 간섭 없도록 위/아래 여백 */
+  margin: 12px 0;            /* 테두리 곡선 부분과 간섭 없도록 위/아래 여백 */
   border-radius: 3px;
 }
 
@@ -498,6 +526,20 @@ function onInitialClick(cho) {
   padding: 4px 0;
   margin: 0;
 }
+
+.initials-sidebar li:hover {
+  background: #d7d7d7;
+  border: transparent;
+  border-radius: 4px;
+}
+.initials-sidebar li.active {
+  background: #00a8e8;
+  color: #fff;
+  font-weight: bold;
+  border: transparent;
+  border-radius: 4px;
+}
+
 .initials-sidebar li {
   cursor: pointer;
   font-size: 14px;
@@ -507,14 +549,16 @@ function onInitialClick(cho) {
   user-select: none;
   transition: background 0.2s, color 0.2s;
 }
-.initials-sidebar li:hover {
-  background: #e0f7fa;
+
+.initials-sidebar li.disabled {
+  color: #ccc;
+  cursor: default;
 }
-.initials-sidebar li.active {
-  background: #00a8e8;
-  color: #fff;
-  font-weight: bold;
+.initials-sidebar li.disabled:hover {
+  background: transparent;
 }
+
+
 
 /* 하단 버튼 영역 */
 .pagination-control {
@@ -624,4 +668,6 @@ function onInitialClick(cho) {
 .entry-buttons .btn-save {
   width: 48%;
 }
+
+
 </style>
