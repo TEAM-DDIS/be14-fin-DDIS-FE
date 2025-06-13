@@ -301,7 +301,7 @@ const router = createRouter({
 
         {
             path: '/dictionary',
-            component: () => import('@/components/dictionary/DictionaryPage.vue')
+            component: () => import('@/pages/dictionary/DictionaryPage.vue')
         },
 
         // =============== 에러 페이지 ===============
