@@ -23,51 +23,51 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+  import { ref, onMounted } from 'vue'
 
-const loading = ref(true)
-const todayMeetings = ref([])
+  const loading = ref(true)
+  const todayMeetings = ref([])
 
-function getTodayString() {
-  const today = new Date()
-  const yyyy = today.getFullYear()
-  const mm = String(today.getMonth() + 1).padStart(2, '0')
-  const dd = String(today.getDate()).padStart(2, '0')
-  return `${yyyy}-${mm}-${dd}`
-}
-
-onMounted(async () => {
-  const token = localStorage.getItem('token')
-
-  if (!token) {
-    console.error('토큰이 없습니다. 로그인 후 다시 시도하세요.')
-    loading.value = false
-    return
+  function getTodayString() {
+    const today = new Date()
+    const yyyy = today.getFullYear()
+    const mm = String(today.getMonth() + 1).padStart(2, '0')
+    const dd = String(today.getDate()).padStart(2, '0')
+    return `${yyyy}-${mm}-${dd}`
   }
 
-  try {
-    const res = await fetch('http://localhost:8000/attendance/meeting/today', {
-      headers: { Authorization: `Bearer ${token}` }
-    })
+  onMounted(async () => {
+    const token = localStorage.getItem('token')
 
-    if (!res.ok) {
-      throw new Error(`HTTP ${res.status} - ${res.statusText}`)
+    if (!token) {
+      console.error('토큰이 없습니다. 로그인 후 다시 시도하세요.')
+      loading.value = false
+      return
     }
 
-    const data = await res.json()
+    try {
+      const res = await fetch('http://localhost:8000/attendance/meeting/today', {
+        headers: { Authorization: `Bearer ${token}` }
+      })
 
-    if (!Array.isArray(data)) {
-      throw new Error('API 응답이 배열이 아닙니다.')
+      if (!res.ok) {
+        throw new Error(`HTTP ${res.status} - ${res.statusText}`)
+      }
+
+      const data = await res.json()
+
+      if (!Array.isArray(data)) {
+        throw new Error('API 응답이 배열이 아닙니다.')
+      }
+
+      todayMeetings.value = data
+    } catch (err) {
+      console.error('오늘 회의 일정 API 호출 실패:', err)
+      todayMeetings.value = []
+    } finally {
+      loading.value = false
     }
-
-    todayMeetings.value = data
-  } catch (err) {
-    console.error('오늘 회의 일정 API 호출 실패:', err)
-    todayMeetings.value = []
-  } finally {
-    loading.value = false
-  }
-})
+  })
 </script>
 
 

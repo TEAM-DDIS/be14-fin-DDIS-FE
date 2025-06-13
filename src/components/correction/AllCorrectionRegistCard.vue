@@ -110,56 +110,54 @@
     }
 
     async function handleConfirm() {
-  if (!selectedRow.value?.attendanceId) {
-    alert('attendanceId가 없습니다.')
-    return
-  }
+        if (!selectedRow.value?.attendanceId) {
+            alert('attendanceId가 없습니다.')
+            return
+        }
 
-  try {
-    const res = await fetch(`http://localhost:8000/attendance/correction/approve`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ attendanceId: selectedRow.value.attendanceId })
-    })
-    if (!res.ok) throw new Error('승인 실패')
-    alert('승인 완료!')
-    showModal.value = false
-    selectedRow.value = null
-    location.reload()
-  } catch (err) {
-    console.error('승인 에러:', err)
-    alert('승인 중 오류 발생')
-  }
-}
+        try {
+            const res = await fetch(`http://localhost:8000/attendance/correction/approve`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ attendanceId: selectedRow.value.attendanceId })
+            })
+            if (!res.ok) throw new Error('승인 실패')
+            alert('승인 완료!')
+            showModal.value = false
+            selectedRow.value = null
+            location.reload()
+        } catch (err) {
+            console.error('승인 에러:', err)
+            alert('승인 중 오류 발생')
+        }
+    }
 
 
     async function handleSubmit(data) {
-  if (!selectedRow.value?.attendanceId) {
-    alert('attendanceId가 없습니다.')
-    return
-  }
+        if (!selectedRow.value?.attendanceId) {
+            alert('attendanceId가 없습니다.')
+            return
+        }
 
-  try {
-    const res = await fetch(`http://localhost:8000/attendance/correction/reject`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        attendanceId: selectedRow.value.attendanceId,
-        rejectReason: data.reason
-      })
-    })
-    if (!res.ok) throw new Error('반려 실패')
-    alert('반려 완료!')
-    showModal.value = false
-    selectedRow.value = null
-    location.reload()
-  } catch (err) {
-    console.error('반려 에러:', err)
-    alert('반려 중 오류 발생')
-  }
-}
-
-
+        try {
+            const res = await fetch(`http://localhost:8000/attendance/correction/reject`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                attendanceId: selectedRow.value.attendanceId,
+                rejectReason: data.reason
+            })
+            })
+            if (!res.ok) throw new Error('반려 실패')
+            alert('반려 완료!')
+            showModal.value = false
+            selectedRow.value = null
+            location.reload()
+        } catch (err) {
+            console.error('반려 에러:', err)
+            alert('반려 중 오류 발생')
+        }
+    }
 
     const employees = ref([])
     const searchKeyword = ref('')
@@ -171,11 +169,11 @@
     })
 
     const props = defineProps({
-  dateRange: {
-    type: Object,
-    default: () => ({ start: '', end: '' })
-  }
-})
+        dateRange: {
+            type: Object,
+            default: () => ({ start: '', end: '' })
+        }
+    })
 
     const columnDefs = [
         { headerName: '번호', valueGetter: params => params.api.getDisplayedRowCount() - params.node.rowIndex, sortable: false },
@@ -186,61 +184,61 @@
         { headerName: '출근시각', field: 'beforeCheckInTime', valueFormatter: ({ value }) => value ? value.split('.')[0] : '' },
         { headerName: '변경요청시각', field: 'requestedTimeChange',
             valueFormatter: ({ value }) => {
-            if (!value) return ''
-            const time = new Date(value).toTimeString().split(' ')[0]
-            return time
+                if (!value) return ''
+                const time = new Date(value).toTimeString().split(' ')[0]
+                return time
             } 
-            },
+        },
         { headerName: '처리시간', field: 'processedTime' },
         { headerName: '사유', field: 'reason' },
         { headerName: '반려사유', field: 'rejectReason' }
-        ]
+    ]
 
-onMounted(async () => {
-  try {
-    const res = await fetch('http://localhost:8000/attendance/correction/history/request/all')
-    const json = await res.json()
-    employees.value = json
-  } catch (err) {
-    console.error('출근 정정 신청 내역 조회 실패:', err)
-  }
-})
+    onMounted(async () => {
+        try {
+            const res = await fetch('http://localhost:8000/attendance/correction/history/request/all')
+            const json = await res.json()
+            employees.value = json
+        } catch (err) {
+            console.error('출근 정정 신청 내역 조회 실패:', err)
+        }
+    })
 
-const uniqueHeads = computed(() =>
-  [...new Set(employees.value.map(e => e.headName).filter(Boolean))]
-)
-const uniqueRanks = computed(() =>
-  [...new Set(employees.value.map(e => e.rankName).filter(Boolean))]
-)
-const filteredDepartments = computed(() =>
-  [...new Set(employees.value.filter(e => !filters.headName || e.headName === filters.headName).map(e => e.departmentName).filter(Boolean))]
-)
-const filteredTeams = computed(() =>
-  [...new Set(employees.value.filter(e => !filters.departmentName || e.departmentName === filters.departmentName).map(e => e.teamName).filter(Boolean))]
-)
+    const uniqueHeads = computed(() =>
+        [...new Set(employees.value.map(e => e.headName).filter(Boolean))]
+    )
+    const uniqueRanks = computed(() =>
+        [...new Set(employees.value.map(e => e.rankName).filter(Boolean))]
+    )
+    const filteredDepartments = computed(() =>
+        [...new Set(employees.value.filter(e => !filters.headName || e.headName === filters.headName).map(e => e.departmentName).filter(Boolean))]
+    )
+    const filteredTeams = computed(() =>
+        [...new Set(employees.value.filter(e => !filters.departmentName || e.departmentName === filters.departmentName).map(e => e.teamName).filter(Boolean))]
+    )
 
-const filteredEmployees = computed(() => {
-  const keyword = searchKeyword.value.toLowerCase()
+    const filteredEmployees = computed(() => {
+    const keyword = searchKeyword.value.toLowerCase()
 
-  return employees.value.filter(e => {
-    const inKeyword =
-      !keyword ||
-      e.employeeId.toString().includes(keyword) ||
-      e.employeeName.toLowerCase().includes(keyword)
+    return employees.value.filter(e => {
+        const inKeyword =
+        !keyword ||
+        e.employeeId.toString().includes(keyword) ||
+        e.employeeName.toLowerCase().includes(keyword)
 
-    const inOrgFilter =
-      (!filters.headName || e.headName === filters.headName) &&
-      (!filters.departmentName || e.departmentName === filters.departmentName) &&
-      (!filters.teamName || e.teamName === filters.teamName) &&
-      (!filters.rankName || e.rankName === filters.rankName)
+        const inOrgFilter =
+        (!filters.headName || e.headName === filters.headName) &&
+        (!filters.departmentName || e.departmentName === filters.departmentName) &&
+        (!filters.teamName || e.teamName === filters.teamName) &&
+        (!filters.rankName || e.rankName === filters.rankName)
 
-    const requestMonth = e.requestTime?.slice(0, 7)
-    const inDateRange =
-        (!props.dateRange.start || requestMonth >= props.dateRange.start) &&
-        (!props.dateRange.end || requestMonth <= props.dateRange.end)
-    return inKeyword && inOrgFilter && inDateRange
-  })
-})
+        const requestMonth = e.requestTime?.slice(0, 7)
+        const inDateRange =
+            (!props.dateRange.start || requestMonth >= props.dateRange.start) &&
+            (!props.dateRange.end || requestMonth <= props.dateRange.end)
+        return inKeyword && inOrgFilter && inDateRange
+    })
+    })
 </script>
 
 <style scoped>

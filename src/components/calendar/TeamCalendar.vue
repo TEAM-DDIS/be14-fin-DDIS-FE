@@ -55,44 +55,44 @@
     const show = ref(false)
 
     async function onAdd({ date, title, time }) {
-  const token = localStorage.getItem('token')
+    const token = localStorage.getItem('token')
 
-  try {
-    const res = await fetch('http://localhost:8000/attendance/schedule/meeting', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        meetingDate: date,
-        meetingTitle: title,
-        meetingTime: time
-      })
-    })
+    try {
+        const res = await fetch('http://localhost:8000/attendance/schedule/meeting', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                meetingDate: date,
+                meetingTitle: title,
+                meetingTime: time
+            })
+        })
 
-    if (!res.ok) {
-      const errorText = await res.text()
-      throw new Error(errorText)
+        if (!res.ok) {
+            const errorText = await res.text()
+            throw new Error(errorText)
+        }
+
+        // 일정 등록 성공 시 캘린더에 추가
+        calendarOptions.events.push({
+            title: '',
+            start: date,
+            className: 'event-meeting',
+            extendedProps: {
+                type: 'meeting',
+                title,
+                time
+            }
+        })
+
+        show.value = false
+    } catch (err) {
+        console.error('회의 일정 등록 실패:', err.message)
+        alert('회의 일정 등록 중 오류가 발생했습니다.\n' + err.message)
     }
-
-    // 일정 등록 성공 시 캘린더에 추가
-    calendarOptions.events.push({
-      title: '',
-      start: date,
-      className: 'event-meeting',
-      extendedProps: {
-        type: 'meeting',
-        title,
-        time
-      }
-    })
-
-    show.value = false
-  } catch (err) {
-    console.error('회의 일정 등록 실패:', err.message)
-    alert('회의 일정 등록 중 오류가 발생했습니다.\n' + err.message)
-  }
 }
 
     // 날짜 숫자만 보이게

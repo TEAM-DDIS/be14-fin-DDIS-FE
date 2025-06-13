@@ -9,19 +9,16 @@
         님 안녕하세요.
       </span>
       <br />
-
       <!-- status -->
       <span class="status-wrapper">
         <span class="status-main">{{ status }}</span>
         <span class="status-sub">입니다.</span>
       </span>
     </p>
-
     <div class="time-info">
       <p>출근 : {{ checkIn ? checkIn : '-' }}</p>
       <p>퇴근 : {{ checkOut ? checkOut : '-' }}</p>
     </div>
-
     <div class="circle-box">
       <div class="circle">
         <svg viewBox="0 0 36 36">
@@ -46,352 +43,347 @@
         </div>
       </div>
     </div>
-
     <button
-    class="check-btn"
-    :class="isCheckedIn ? 'btn-gray' : 'btn-blue'"
-    @click="handleClick"
-    :disabled="isButtonDisabled">
-    {{ buttonText }}
-  </button>
+      class="check-btn"
+      :class="isCheckedIn ? 'btn-gray' : 'btn-blue'"
+      @click="handleClick"
+      :disabled="isButtonDisabled">
+      {{ buttonText }}
+    </button>
   </div>
 </template>
 
-
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+  import { ref, computed, onMounted, onUnmounted } from 'vue'
 
-// 상태
-const name = ref('')
-const position = ref('')
-const checkIn = ref('')
-const checkOut = ref('')
-const isCheckedIn = ref(false)
-const workSeconds = ref(0)
-let timer = null
-let checkInDate = null
-let isLunchBreak = false // 점심시간 상태 저장
-let alertedAtSix = false // 퇴근 누락 방지용 알림
-const workStatusName = ref('')
-const buttonText = computed(() => {
-  if (!checkIn.value) return '출근'
-  if (!checkOut.value) return '퇴근'
-  return '완료됨'  // ✅ 퇴근 완료 상태
-})
-const isButtonDisabled = computed(() => {
-  return !!(checkIn.value && checkOut.value)
-})
+  // 상태
+  const name = ref('')
+  const position = ref('')
+  const checkIn = ref('')
+  const checkOut = ref('')
+  const isCheckedIn = ref(false)
+  const workSeconds = ref(0)
+  let timer = null
+  let checkInDate = null
+  let isLunchBreak = false // 점심시간 상태 저장
+  let alertedAtSix = false // 퇴근 누락 방지용 알림
+  const workStatusName = ref('')
+  const buttonText = computed(() => {
+    if (!checkIn.value) return '출근'
+    if (!checkOut.value) return '퇴근'
+    return '완료됨'  // 퇴근 완료 상태
+  })
+  const isButtonDisabled = computed(() => {
+    return !!(checkIn.value && checkOut.value)
+  })
 
-// 현재 시각
-const now = () => new Date()
+  // 현재 시각
+  const now = () => new Date()
 
-// 서버 시간 받아오기 (출근/퇴근 기록 기반)
-onMounted(async () => {
-  const token = localStorage.getItem('token')
-  if (!token) {
-    console.error('토큰이 없습니다. 로그인 후 다시 시도하세요.')
-    return
-  }
+  // 서버 시간 받아오기 (출근/퇴근 기록 기반)
+  onMounted(async () => {
+    const token = localStorage.getItem('token')
+    if (!token) {
+      console.error('토큰이 없습니다. 로그인 후 다시 시도하세요.')
+      return
+    }
 
-  try {
-    const res = await fetch('http://localhost:8000/attendance/status/me', {
-      headers: {
-        Authorization: `Bearer ${token}`
+    try {
+      const res = await fetch('http://localhost:8000/attendance/status/me', {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      })
+      const data = await res.json()
+
+      name.value = data.employeeName
+      position.value = data.rankName
+      checkIn.value = data.checkInTime ? data.checkInTime.split('.')[0] : null
+      checkOut.value = data.checkOutTime ? data.checkOutTime.split('.')[0] : null
+
+      if (data.checkInTime && data.checkOutTime) {
+        const [h1, m1, s1] = data.checkInTime.split(':').map(Number)
+        const [h2, m2, s2] = data.checkOutTime.split(':').map(Number)
+
+        const checkInDate = now()
+        checkInDate.setHours(h1, m1, s1, 0)
+
+        const checkOutDate = now()
+        checkOutDate.setHours(h2, m2, s2, 0)
+
+        let diff = Math.floor((checkOutDate - checkInDate) / 1000)
+
+        const noonStart = now()
+        noonStart.setHours(12, 0, 0, 0)
+        const noonEnd = now()
+        noonEnd.setHours(13, 0, 0, 0)
+
+        if (checkInDate < noonStart && checkOutDate > noonEnd) {
+          diff -= 3600
+        }
+
+        workSeconds.value = Math.max(0, Math.min(diff, 8 * 3600))
+        isCheckedIn.value = false
       }
-    })
-    const data = await res.json()
 
-    name.value = data.employeeName
-    position.value = data.rankName
-    checkIn.value = data.checkInTime ? data.checkInTime.split('.')[0] : null
-    checkOut.value = data.checkOutTime ? data.checkOutTime.split('.')[0] : null
+      if (data.checkInTime && !data.checkOutTime) {
+        const [h, m, s] = data.checkInTime.split(':').map(Number)
+        const checkInTime = now()
+        checkInTime.setHours(h, m, s, 0)
+        checkInDate = checkInTime
 
-    if (data.checkInTime && data.checkOutTime) {
-  const [h1, m1, s1] = data.checkInTime.split(':').map(Number)
-  const [h2, m2, s2] = data.checkOutTime.split(':').map(Number)
+        const nowTime = now()
+        const nineAM = now()
+        nineAM.setHours(9, 0, 0, 0)
 
-  const checkInDate = now()
-  checkInDate.setHours(h1, m1, s1, 0)
+        const startTime = checkInTime < nineAM ? nineAM : checkInTime
+        let elapsed = Math.floor((nowTime - startTime) / 1000)
 
-  const checkOutDate = now()
-  checkOutDate.setHours(h2, m2, s2, 0)
+        const noonStart = now()
+        noonStart.setHours(12, 0, 0, 0)
+        const noonEnd = now()
+        noonEnd.setHours(13, 0, 0, 0)
 
-  let diff = Math.floor((checkOutDate - checkInDate) / 1000)
+        if (nowTime >= noonStart && nowTime < noonEnd) {
+          isLunchBreak = true
+          elapsed = Math.floor((noonStart - startTime) / 1000)
+        } else if (checkInTime < noonStart && nowTime >= noonEnd) {
+          elapsed -= 3600
+        }
 
-  const noonStart = now()
-  noonStart.setHours(12, 0, 0, 0)
-  const noonEnd = now()
-  noonEnd.setHours(13, 0, 0, 0)
+        elapsed = Math.min(elapsed, 8 * 3600)
 
-  if (checkInDate < noonStart && checkOutDate > noonEnd) {
-    diff -= 3600
-  }
-
-  workSeconds.value = Math.max(0, Math.min(diff, 8 * 3600))
-  isCheckedIn.value = false
-}
-
-    if (data.checkInTime && !data.checkOutTime) {
-      const [h, m, s] = data.checkInTime.split(':').map(Number)
-      const checkInTime = now()
-      checkInTime.setHours(h, m, s, 0)
-      checkInDate = checkInTime
+        workSeconds.value = Math.max(elapsed, 0)
+        isCheckedIn.value = true
+        if (!(nowTime >= noonStart && nowTime < noonEnd)) {
+          startTimer()
+        }
+      }
 
       const nowTime = now()
-      const nineAM = now()
-      nineAM.setHours(9, 0, 0, 0)
+      const eighteenPM = now()
+      eighteenPM.setHours(18, 0, 0, 0)
 
-      const startTime = checkInTime < nineAM ? nineAM : checkInTime
-      let elapsed = Math.floor((nowTime - startTime) / 1000)
+      if (data.checkInTime && !data.checkOutTime && nowTime >= eighteenPM) {
+        workSeconds.value = 8 * 3600
+        isCheckedIn.value = true
+        status.value = '근무 종료'
+      }
 
+      const interval = setInterval(() => {
+      const nowTime = now()
+
+      const eighteenPM = new Date()
+      eighteenPM.setHours(18, 0, 0, 0)
+
+      // 조건: 18:00이 되었고, 출근했고 퇴근 안 했고, alert 한 번도 안 띄웠을 때
+      if (
+        nowTime.getHours() === 18 &&
+        nowTime.getMinutes() === 0 &&
+        !checkOut.value &&
+        checkIn.value &&
+        isCheckedIn.value &&
+        !alertedAtSix
+      ) {
+        alertedAtSix = true
+        alert('18시가 되었습니다. 퇴근을 등록해주세요.')
+      }
+    }, 1000) // 1초 간격으로 체크 (1분 단위로 해도 됨)
+
+    onUnmounted(() => clearInterval(interval))
+
+    workStatusName.value = data.workStatusName
+
+    } catch (err) {
+      console.error('내 근무 현황 API 호출 실패:', err)
+    }
+  })
+
+  // 출근 등록
+  const postCheckIn = async () => {
+    const token = localStorage.getItem('token')
+    try {
+      const res = await fetch('http://localhost:8000/attendance/check-in', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      })
+
+      if (!res.ok) {
+        const errorText = await res.text()
+        throw new Error(errorText)
+      }
+
+      const nowTime = now()
+      checkIn.value = formatTime(nowTime)
+      isCheckedIn.value = true
+      workSeconds.value = 0
+      startTimer()
+    } catch (err) {
+      console.error('출근 등록 실패:', err.message)
+      alert('출근 등록 중 오류가 발생했습니다.\n' + err.message)
+    }
+  }
+
+  // 퇴근 등록
+  const postCheckOut = async () => {
+    const token = localStorage.getItem('token')
+    try {
+      const res = await fetch('http://localhost:8000/attendance/check-out', {
+        method: 'PUT',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      })
+
+      if (!res.ok) {
+        const errorText = await res.text()
+        throw new Error(errorText)
+      }
+
+      const nowTime = now()
+      checkOut.value = formatTime(nowTime)
+      isCheckedIn.value = false
+      stopTimer()
+    } catch (err) {
+      console.error('퇴근 등록 실패:', err.message)
+      alert('퇴근 등록 중 오류가 발생했습니다.\n' + err.message)
+    }
+  }
+
+  // 출근/퇴근 버튼
+  const handleClick = () => {
+    const nowTime = now()
+    const hours = nowTime.getHours()
+    const minutes = nowTime.getMinutes()
+    const seconds = nowTime.getSeconds()
+
+    // 출근
+    if (!isCheckedIn.value) {
+      const isBefore12 = hours < 12
+
+      if (
+        (workStatusName.value === '오전반차' && isBefore12) ||
+        (workStatusName.value !== '오전반차' && !isBefore12)
+      ) {
+        alert('출근 가능 시간이 아닙니다.')
+        return
+      }
+
+      checkIn.value = formatTime(nowTime)
+      isCheckedIn.value = true
+      workSeconds.value = 0
+      startTimer()
+      postCheckIn()
+    }
+
+    // 퇴근
+    else {
+      const isBefore12 = hours < 12
+      const isBefore18 = hours < 18
+
+      if (
+        (workStatusName.value === '오후반차' && isBefore12) ||
+        (workStatusName.value !== '오후반차' && isBefore18)
+      ) {
+        alert('퇴근 가능 시간이 아닙니다.')
+        return
+      }
+
+      checkOut.value = formatTime(nowTime)
+      isCheckedIn.value = false
+      stopTimer()
+      postCheckOut()
+    }
+  }
+
+  const formatTime = time => {
+    const pad = n => n.toString().padStart(2, '0')
+    return `${pad(time.getHours())}:${pad(time.getMinutes())}:${pad(time.getSeconds())}`
+  }
+
+  const startTimer = () => {
+
+    const baseSeconds = 8 * 3600
+
+    if (!checkIn.value) return
+
+    // 출근 시간 기준 설정
+    const [h, m, s] = checkIn.value.split(':').map(Number)
+    checkInDate = now()
+    checkInDate.setHours(h, m, s, 0)
+
+    timer = setInterval(() => {
+      const nowTime = now()
+
+      // 점심시간 체크
       const noonStart = now()
       noonStart.setHours(12, 0, 0, 0)
       const noonEnd = now()
       noonEnd.setHours(13, 0, 0, 0)
 
       if (nowTime >= noonStart && nowTime < noonEnd) {
-        isLunchBreak = true
-        elapsed = Math.floor((noonStart - startTime) / 1000)
-      } else if (checkInTime < noonStart && nowTime >= noonEnd) {
-        elapsed -= 3600
+        status.value = '점심 시간'
+        return // 점심시간 동안 타이머 멈춤
       }
 
-      elapsed = Math.min(elapsed, 8 * 3600)
+      // 퇴근 시간 체크
+      const eighteenPM = now()
+      eighteenPM.setHours(18, 0, 0, 0)
 
-      workSeconds.value = Math.max(elapsed, 0)
-      isCheckedIn.value = true
-      if (!(nowTime >= noonStart && nowTime < noonEnd)) {
-        startTimer()
+      if (nowTime >= eighteenPM || workSeconds.value >= baseSeconds - 1) {
+        workSeconds.value = baseSeconds
+        stopTimer()
+        status.value = '근무 종료'
+        return
       }
-    }
 
-    const nowTime = now()
-    const eighteenPM = now()
-    eighteenPM.setHours(18, 0, 0, 0)
-
-    if (data.checkInTime && !data.checkOutTime && nowTime >= eighteenPM) {
-      workSeconds.value = 8 * 3600
-      isCheckedIn.value = true
-      status.value = '근무 종료'
-    }
-
-    const interval = setInterval(() => {
-    const nowTime = now()
-
-    const eighteenPM = new Date()
-    eighteenPM.setHours(18, 0, 0, 0)
-
-    // 조건: 18:00이 되었고, 출근했고 퇴근 안 했고, alert 한 번도 안 띄웠을 때
-    if (
-      nowTime.getHours() === 18 &&
-      nowTime.getMinutes() === 0 &&
-      !checkOut.value &&
-      checkIn.value &&
-      isCheckedIn.value &&
-      !alertedAtSix
-    ) {
-      alertedAtSix = true
-      alert('18시가 되었습니다. 퇴근을 등록해주세요.')
-    }
-  }, 1000) // 1초 간격으로 체크 (1분 단위로 해도 됨)
-
-  onUnmounted(() => clearInterval(interval))
-
-  workStatusName.value = data.workStatusName
-
-  } catch (err) {
-    console.error('내 근무 현황 API 호출 실패:', err)
-  }
-})
-
-// 출근 등록
-const postCheckIn = async () => {
-  const token = localStorage.getItem('token')
-  try {
-    const res = await fetch('http://localhost:8000/attendance/check-in', {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-    })
-
-    if (!res.ok) {
-      const errorText = await res.text()
-      throw new Error(errorText)
-    }
-
-    const nowTime = now()
-    checkIn.value = formatTime(nowTime)
-    isCheckedIn.value = true
-    workSeconds.value = 0
-    startTimer()
-  } catch (err) {
-    console.error('출근 등록 실패:', err.message)
-    alert('출근 등록 중 오류가 발생했습니다.\n' + err.message)
-  }
-}
-
-// 퇴근 등록
-const postCheckOut = async () => {
-  const token = localStorage.getItem('token')
-  try {
-    const res = await fetch('http://localhost:8000/attendance/check-out', {
-      method: 'PUT',
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-    })
-
-    if (!res.ok) {
-      const errorText = await res.text()
-      throw new Error(errorText)
-    }
-
-    const nowTime = now()
-    checkOut.value = formatTime(nowTime)
-    isCheckedIn.value = false
-    stopTimer()
-  } catch (err) {
-    console.error('퇴근 등록 실패:', err.message)
-    alert('퇴근 등록 중 오류가 발생했습니다.\n' + err.message)
-  }
-}
-
-// 출근/퇴근 버튼
-const handleClick = () => {
-  const nowTime = now()
-  const hours = nowTime.getHours()
-  const minutes = nowTime.getMinutes()
-  const seconds = nowTime.getSeconds()
-
-  // 출근
-  if (!isCheckedIn.value) {
-    const isAfter11_59_59 = hours > 11 || (hours === 11 && minutes === 59 && seconds > 59)
-    const isBefore12 = hours < 12
-
-    if (
-      (workStatusName.value === '오전반차' && isBefore12) ||
-      (workStatusName.value !== '오전반차' && !isBefore12)
-    ) {
-      alert('출근 가능 시간이 아닙니다.')
-      return
-    }
-
-    checkIn.value = formatTime(nowTime)
-    isCheckedIn.value = true
-    workSeconds.value = 0
-    startTimer()
-    postCheckIn()
+      // ✅ 점심도 아니고 퇴근도 아니면 1초씩 누적
+      workSeconds.value += 1
+      status.value = '근무 중'
+    }, 1000)
   }
 
-  // 퇴근
-  else {
-    const isBefore12 = hours < 12
-    const isBefore18 = hours < 18
-
-    if (
-      (workStatusName.value === '오후반차' && isBefore12) ||
-      (workStatusName.value !== '오후반차' && isBefore18)
-    ) {
-      alert('퇴근 가능 시간이 아닙니다.')
-      return
-    }
-
-    checkOut.value = formatTime(nowTime)
-    isCheckedIn.value = false
-    stopTimer()
-    postCheckOut()
+  const stopTimer = () => {
+    clearInterval(timer)
+    timer = null
   }
-}
 
-const formatTime = time => {
-  const pad = n => n.toString().padStart(2, '0')
-  return `${pad(time.getHours())}:${pad(time.getMinutes())}:${pad(time.getSeconds())}`
-}
+  onUnmounted(() => {
+    if (timer) stopTimer()
+  })
 
-const startTimer = () => {
-
-  const baseSeconds = 8 * 3600
-
-  if (!checkIn.value) return
-
-  // 출근 시간 기준 설정
-  const [h, m, s] = checkIn.value.split(':').map(Number)
-  checkInDate = now()
-  checkInDate.setHours(h, m, s, 0)
-
-  timer = setInterval(() => {
+  const status = computed(() => {
     const nowTime = now()
-
-    // 점심시간 체크
     const noonStart = now()
     noonStart.setHours(12, 0, 0, 0)
     const noonEnd = now()
     noonEnd.setHours(13, 0, 0, 0)
 
-    if (nowTime >= noonStart && nowTime < noonEnd) {
-      status.value = '점심 시간'
-      return // 점심시간 동안 타이머 멈춤
+    if (isCheckedIn.value && nowTime >= noonStart && nowTime < noonEnd) {
+      return '점심 시간'
     }
+    if (!isCheckedIn.value && !checkOut.value) return '출근 전'
+    if (isCheckedIn.value) return '근무 중'
+    return '근무 종료'
+  })
 
-    // 퇴근 시간 체크
-    const eighteenPM = now()
-    eighteenPM.setHours(18, 0, 0, 0)
+  const formattedWorkTime = computed(() => {
+    const h = Math.floor(workSeconds.value / 3600)
+    const m = Math.floor((workSeconds.value % 3600) / 60)
+    const s = workSeconds.value % 60
+    const pad = n => n.toString().padStart(2, '0')
+    return `${pad(h)}:${pad(m)}:${pad(s)}`
+  })
 
-    if (nowTime >= eighteenPM || workSeconds.value >= baseSeconds - 1) {
-      workSeconds.value = baseSeconds
-      stopTimer()
-      status.value = '근무 종료'
-      return
-    }
-
-    // ✅ 점심도 아니고 퇴근도 아니면 1초씩 누적
-    workSeconds.value += 1
-    status.value = '근무 중'
-  }, 1000)
-}
-
-
-const stopTimer = () => {
-  clearInterval(timer)
-  timer = null
-}
-
-onUnmounted(() => {
-  if (timer) stopTimer()
-})
-
-const status = computed(() => {
-  const nowTime = now()
-  const noonStart = now()
-  noonStart.setHours(12, 0, 0, 0)
-  const noonEnd = now()
-  noonEnd.setHours(13, 0, 0, 0)
-
-  if (isCheckedIn.value && nowTime >= noonStart && nowTime < noonEnd) {
-    return '점심 시간'
-  }
-  if (!isCheckedIn.value && !checkOut.value) return '출근 전'
-  if (isCheckedIn.value) return '근무 중'
-  return '근무 종료'
-})
-
-const formattedWorkTime = computed(() => {
-  const h = Math.floor(workSeconds.value / 3600)
-  const m = Math.floor((workSeconds.value % 3600) / 60)
-  const s = workSeconds.value % 60
-  const pad = n => n.toString().padStart(2, '0')
-  return `${pad(h)}:${pad(m)}:${pad(s)}`
-})
-
-const percent = computed(() => {
-  const base = 8 * 3600
-  return Math.min((workSeconds.value / base) * 100, 100)
-})
+  const percent = computed(() => {
+    const base = 8 * 3600
+    return Math.min((workSeconds.value / base) * 100, 100)
+  })
 </script>
-
 
 <style scoped>
   .attendance-summary-card {
@@ -504,9 +496,9 @@ const percent = computed(() => {
   }
 
   .percent-text .time {
-      font-size: 18px;
-      font-weight: bold;
-      margin: 0;
+    font-size: 18px;
+    font-weight: bold;
+    margin: 0;
   }
 
   .check-btn {
@@ -528,9 +520,9 @@ const percent = computed(() => {
 
   .check-btn:hover {
     background-color: white;
-      color: #00A8E8;
-      border: 1px solid #00A8E8;
-      box-shadow: inset 1px 1px 10px rgba(0, 0, 0, 0.25);
+    color: #00A8E8;
+    border: 1px solid #00A8E8;
+    box-shadow: inset 1px 1px 10px rgba(0, 0, 0, 0.25);
   }
 
   .btn-blue {
