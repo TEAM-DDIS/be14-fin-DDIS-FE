@@ -48,12 +48,12 @@
     </div>
 
     <button
-      class="check-btn"
-      :class="isCheckedIn ? 'btn-gray' : 'btn-blue'"
-      @click="handleClick"
-    >
-      {{ isCheckedIn ? '퇴근' : '출근' }}
-    </button>
+    class="check-btn"
+    :class="isCheckedIn ? 'btn-gray' : 'btn-blue'"
+    @click="handleClick"
+    :disabled="isButtonDisabled">
+    {{ buttonText }}
+  </button>
   </div>
 </template>
 
@@ -64,13 +64,23 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 // 상태
 const name = ref('')
 const position = ref('')
-const checkIn = ref(null)
-const checkOut = ref(null)
+const checkIn = ref('')
+const checkOut = ref('')
 const isCheckedIn = ref(false)
 const workSeconds = ref(0)
 let timer = null
 let checkInDate = null
 let isLunchBreak = false // 점심시간 상태 저장
+let alertedAtSix = false // 퇴근 누락 방지용 알림
+const workStatusName = ref('')
+const buttonText = computed(() => {
+  if (!checkIn.value) return '출근'
+  if (!checkOut.value) return '퇴근'
+  return '완료됨'  // ✅ 퇴근 완료 상태
+})
+const isButtonDisabled = computed(() => {
+  return !!(checkIn.value && checkOut.value)
+})
 
 // 현재 시각
 const now = () => new Date()
@@ -95,6 +105,31 @@ onMounted(async () => {
     position.value = data.rankName
     checkIn.value = data.checkInTime ? data.checkInTime.split('.')[0] : null
     checkOut.value = data.checkOutTime ? data.checkOutTime.split('.')[0] : null
+
+    if (data.checkInTime && data.checkOutTime) {
+  const [h1, m1, s1] = data.checkInTime.split(':').map(Number)
+  const [h2, m2, s2] = data.checkOutTime.split(':').map(Number)
+
+  const checkInDate = now()
+  checkInDate.setHours(h1, m1, s1, 0)
+
+  const checkOutDate = now()
+  checkOutDate.setHours(h2, m2, s2, 0)
+
+  let diff = Math.floor((checkOutDate - checkInDate) / 1000)
+
+  const noonStart = now()
+  noonStart.setHours(12, 0, 0, 0)
+  const noonEnd = now()
+  noonEnd.setHours(13, 0, 0, 0)
+
+  if (checkInDate < noonStart && checkOutDate > noonEnd) {
+    diff -= 3600
+  }
+
+  workSeconds.value = Math.max(0, Math.min(diff, 8 * 3600))
+  isCheckedIn.value = false
+}
 
     if (data.checkInTime && !data.checkOutTime) {
       const [h, m, s] = data.checkInTime.split(':').map(Number)
@@ -129,6 +164,41 @@ onMounted(async () => {
         startTimer()
       }
     }
+
+    const nowTime = now()
+    const eighteenPM = now()
+    eighteenPM.setHours(18, 0, 0, 0)
+
+    if (data.checkInTime && !data.checkOutTime && nowTime >= eighteenPM) {
+      workSeconds.value = 8 * 3600
+      isCheckedIn.value = true
+      status.value = '근무 종료'
+    }
+
+    const interval = setInterval(() => {
+    const nowTime = now()
+
+    const eighteenPM = new Date()
+    eighteenPM.setHours(18, 0, 0, 0)
+
+    // 조건: 18:00이 되었고, 출근했고 퇴근 안 했고, alert 한 번도 안 띄웠을 때
+    if (
+      nowTime.getHours() === 18 &&
+      nowTime.getMinutes() === 0 &&
+      !checkOut.value &&
+      checkIn.value &&
+      isCheckedIn.value &&
+      !alertedAtSix
+    ) {
+      alertedAtSix = true
+      alert('18시가 되었습니다. 퇴근을 등록해주세요.')
+    }
+  }, 1000) // 1초 간격으로 체크 (1분 단위로 해도 됨)
+
+  onUnmounted(() => clearInterval(interval))
+
+  workStatusName.value = data.workStatusName
+
   } catch (err) {
     console.error('내 근무 현황 API 호출 실패:', err)
   }
@@ -194,22 +264,41 @@ const handleClick = () => {
   const nowTime = now()
   const hours = nowTime.getHours()
   const minutes = nowTime.getMinutes()
+  const seconds = nowTime.getSeconds()
 
+  // 출근
   if (!isCheckedIn.value) {
-    if (hours > 11 || (hours === 11 && minutes >= 59)) {
-      alert('출근 가능 시간은 11:59까지입니다.')
+    const isAfter11_59_59 = hours > 11 || (hours === 11 && minutes === 59 && seconds > 59)
+    const isBefore12 = hours < 12
+
+    if (
+      (workStatusName.value === '오전반차' && isBefore12) ||
+      (workStatusName.value !== '오전반차' && !isBefore12)
+    ) {
+      alert('출근 가능 시간이 아닙니다.')
       return
     }
+
     checkIn.value = formatTime(nowTime)
     isCheckedIn.value = true
     workSeconds.value = 0
     startTimer()
     postCheckIn()
-  } else {
-    if (hours < 18) {
-      alert('퇴근은 18:00 이후에 가능합니다.')
+  }
+
+  // 퇴근
+  else {
+    const isBefore12 = hours < 12
+    const isBefore18 = hours < 18
+
+    if (
+      (workStatusName.value === '오후반차' && isBefore12) ||
+      (workStatusName.value !== '오후반차' && isBefore18)
+    ) {
+      alert('퇴근 가능 시간이 아닙니다.')
       return
     }
+
     checkOut.value = formatTime(nowTime)
     isCheckedIn.value = false
     stopTimer()
