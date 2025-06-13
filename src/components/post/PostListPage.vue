@@ -20,13 +20,11 @@
         :gridOptions="{ theme: 'legacy' }"
         style="width: 100%; height: 500px;"
         :columnDefs="columnDefs"
-        :rowData="filteredData"
+        :rowData="rowData"
         rowSelection="multiple"
         :pagination="true"
         :paginationPageSize="pageSize"
         :paginationPageSizeSelector="[5,10,20,50]"
-        :rowHeight="defaultRowHeight"
-        :getRowHeight="getRowHeight"
         @grid-ready="onGridReady"
         @cell-clicked="onCellClick"
       />
@@ -52,10 +50,11 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, onMounted } from 'vue'
 import axios from 'axios'
 import { AgGridVue } from 'ag-grid-vue3'
+import { useRouter } from 'vue-router'
+import { useUserStore } from '@/stores/user'
 import {
   ModuleRegistry,
   AllCommunityModule,
@@ -78,85 +77,35 @@ ModuleRegistry.registerModules([
 ])
 
 const router = useRouter()
+const userStore = useUserStore()
 let gridApi = null
-const defaultRowHeight = 60
+
+const columnDefs = ref([
+  { headerName: '', field: 'checkbox', checkboxSelection:true, headerCheckboxSelection:true, width:50, pinned:'left' },
+  { headerName: '번호',   field:'boardId',   width:100, cellClass:'center-align' },
+  { headerName: '제목',   field:'boardTitle', flex:2 },
+  { headerName: '작성자', field:'employeeName', flex:1, cellClass:'center-align' },
+  { headerName: '작성일자', field:'boardCreateAt', flex:1, cellClass:'center-align' }
+])
+
+const rowData = ref([])
 const searchText = ref('')
 const pageSize = ref(10)
 const showDeleteModal = ref(false)
 
-// 실제 API에서 받아올 데이터
-const rowData = ref([])
-
-// API 호출해서 rowData 세팅
 onMounted(async () => {
   try {
-    const res = await axios.get('http://localhost:8000/boards/lists')
-    // BoardListDTO: { boardId, boardTitle, employeeName, boardCreateAt }
-    rowData.value = res.data.map(item => ({
-      id:           item.boardId,
-      title:        item.boardTitle,
-      writer:       item.employeeName,
-      date:         item.boardCreateAt.slice(0,10)  // "yyyy-MM-dd" 포맷
-    }))
-  } catch (err) {
-    console.error(err)
-    alert('공지사항 목록을 불러오는 데 실패했습니다.')
+    const res = await axios.get('http://localhost:8000/boards/lists', {
+      headers: {
+        Authorization: `Bearer ${userStore.accessToken || localStorage.getItem('token')}`
+      }
+    })
+    rowData.value = res.data
+  } catch (e) {
+    console.error('공지사항 목록 조회 실패:', e)
+    alert('공지사항을 불러오는 중 오류가 발생했습니다.')
   }
 })
-
-// 컬럼 정의 (변경 없음)
-const columnDefs = ref([
-  {
-    headerName: '',
-    field: 'checkbox',
-    checkboxSelection: true,
-    headerCheckboxSelection: true,
-    width: 50,
-    pinned: 'left',
-    cellClass: 'checkbox-cell',
-    headerClass: 'checkbox-header-cell'
-  },
-  {
-    headerName: '번호',
-    field: 'id',
-    width: 100,
-    cellClass: 'center-align',
-    headerClass: 'header-number'
-  },
-  {
-    headerName: '제목',
-    field: 'title',
-    flex: 2,
-    autoHeight: true,
-    cellStyle: { whiteSpace: 'normal' },
-    headerClass: 'header-title'
-  },
-  {
-    headerName: '작성자',
-    field: 'writer',
-    flex: 0.5,
-    cellClass: 'center-align',
-    headerClass: 'header-writer'
-  },
-  {
-    headerName: '작성일자',
-    field: 'date',
-    flex: 0.5,
-    cellClass: 'center-align',
-    headerClass: 'header-date'
-  }
-])
-
-// 필터링된 데이터
-const filteredData = computed(() => {
-  if (!searchText.value) return rowData.value
-  const q = searchText.value.toLowerCase()
-  return rowData.value.filter(r => r.title.toLowerCase().includes(q))
-})
-
-function onSearch() {
-  // computed에 반영만 하면 되므로 비워두셔도 됩니다.
-}
 
 function onGridReady(params) {
   gridApi = params.api
