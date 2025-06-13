@@ -109,18 +109,57 @@
         showModal.value = true
     }
 
-    function handleConfirm() {
-        console.log('승인')
-        showModal.value = false
-        selectedRow.value = null
-    }
+    async function handleConfirm() {
+  if (!selectedRow.value?.attendanceId) {
+    alert('attendanceId가 없습니다.')
+    return
+  }
+
+  try {
+    const res = await fetch(`http://localhost:8000/attendance/correction/approve`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ attendanceId: selectedRow.value.attendanceId })
+    })
+    if (!res.ok) throw new Error('승인 실패')
+    alert('승인 완료!')
+    showModal.value = false
+    selectedRow.value = null
+    location.reload()
+  } catch (err) {
+    console.error('승인 에러:', err)
+    alert('승인 중 오류 발생')
+  }
+}
 
 
-    function handleSubmit(data) {
-        console.log(`제출된 데이터 [${modalType.value}]:`, data)
-        showModal.value = false
-        selectedRow.value = null
-    }
+    async function handleSubmit(data) {
+  if (!selectedRow.value?.attendanceId) {
+    alert('attendanceId가 없습니다.')
+    return
+  }
+
+  try {
+    const res = await fetch(`http://localhost:8000/attendance/correction/reject`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        attendanceId: selectedRow.value.attendanceId,
+        rejectReason: data.reason
+      })
+    })
+    if (!res.ok) throw new Error('반려 실패')
+    alert('반려 완료!')
+    showModal.value = false
+    selectedRow.value = null
+    location.reload()
+  } catch (err) {
+    console.error('반려 에러:', err)
+    alert('반려 중 오류 발생')
+  }
+}
+
+
 
     const employees = ref([])
     const searchKeyword = ref('')
@@ -131,44 +170,77 @@
         rankName: ''
     })
 
+    const props = defineProps({
+  dateRange: {
+    type: Object,
+    default: () => ({ start: '', end: '' })
+  }
+})
+
     const columnDefs = [
-        { headerName: '번호', field: 'id', sort: 'desc' },
+        { headerName: '번호', valueGetter: params => params.api.getDisplayedRowCount() - params.node.rowIndex, sortable: false },
         { headerName: '사번', field: 'employeeId' },
         { headerName: '성명', field: 'employeeName' },
-        { headerName: '처리상태', field: 'approval_status' },
-        { headerName: '신청일', field: 'request_time' },
-        { headerName: '출근시각', field: 'check_in_time' },
-        { headerName: '변경요청시각', field: 'requested_time_change' },
-        { headerName: '처리시간', field: 'processed_time' },
+        { headerName: '처리상태', field: 'approvalStatus' },
+        { headerName: '신청일', field: 'requestTime' },
+        { headerName: '출근시각', field: 'checkInTime', valueFormatter: ({ value }) => value ? value.split('.')[0] : '' },
+        { headerName: '변경요청시각', field: 'requestedTimeChange',
+            valueFormatter: ({ value }) => {
+            if (!value) return ''
+            const time = new Date(value).toTimeString().split(' ')[0]
+            return time
+            } 
+            },
+        { headerName: '처리시간', field: 'processedTime' },
         { headerName: '사유', field: 'reason' },
-        { headerName: '반려사유', field: 'rejection_reason' }
-    ]
+        { headerName: '반려사유', field: 'rejectReason' }
+        ]
 
-    onMounted(async () => {
-        const res = await fetch('/attendance.json')
-        const json = await res.json()
-        employees.value = json.all_correction_regist
-    })
+onMounted(async () => {
+  try {
+    const res = await fetch('http://localhost:8000/attendance/correction/history/request/all')
+    const json = await res.json()
+    employees.value = json
+  } catch (err) {
+    console.error('출근 정정 신청 내역 조회 실패:', err)
+  }
+})
 
-    const uniqueHeads = computed(() => [...new Set(employees.value.map(e => e.headName).filter(Boolean))])
-    const uniqueRanks = computed(() => [...new Set(employees.value.map(e => e.rankName).filter(Boolean))])
-    const filteredDepartments = computed(() =>
-    [...new Set(employees.value.filter(e => !filters.headName || e.headName === filters.headName).map(e => e.departmentName).filter(Boolean))]
-    )
-    const filteredTeams = computed(() =>
-    [...new Set(employees.value.filter(e => !filters.departmentName || e.departmentName === filters.departmentName).map(e => e.teamName).filter(Boolean))]
-    )
+const uniqueHeads = computed(() =>
+  [...new Set(employees.value.map(e => e.headName).filter(Boolean))]
+)
+const uniqueRanks = computed(() =>
+  [...new Set(employees.value.map(e => e.rankName).filter(Boolean))]
+)
+const filteredDepartments = computed(() =>
+  [...new Set(employees.value.filter(e => !filters.headName || e.headName === filters.headName).map(e => e.departmentName).filter(Boolean))]
+)
+const filteredTeams = computed(() =>
+  [...new Set(employees.value.filter(e => !filters.departmentName || e.departmentName === filters.departmentName).map(e => e.teamName).filter(Boolean))]
+)
 
-    const filteredEmployees = computed(() => {
-    const keyword = searchKeyword.value.toLowerCase()
-    return employees.value.filter(e =>
-        (!keyword || e.employeeId.includes(keyword) || e.employeeName.toLowerCase().includes(keyword)) &&
-        (!filters.headName || e.headName === filters.headName) &&
-        (!filters.departmentName || e.departmentName === filters.departmentName) &&
-        (!filters.teamName || e.teamName === filters.teamName) &&
-        (!filters.rankName || e.rankName === filters.rankName)
-    )
-    })
+const filteredEmployees = computed(() => {
+  const keyword = searchKeyword.value.toLowerCase()
+
+  return employees.value.filter(e => {
+    const inKeyword =
+      !keyword ||
+      e.employeeId.toString().includes(keyword) ||
+      e.employeeName.toLowerCase().includes(keyword)
+
+    const inOrgFilter =
+      (!filters.headName || e.headName === filters.headName) &&
+      (!filters.departmentName || e.departmentName === filters.departmentName) &&
+      (!filters.teamName || e.teamName === filters.teamName) &&
+      (!filters.rankName || e.rankName === filters.rankName)
+
+    const requestMonth = e.requestTime?.slice(0, 7)
+    const inDateRange =
+        (!props.dateRange.start || requestMonth >= props.dateRange.start) &&
+        (!props.dateRange.end || requestMonth <= props.dateRange.end)
+    return inKeyword && inOrgFilter && inDateRange
+  })
+})
 </script>
 
 <style scoped>
