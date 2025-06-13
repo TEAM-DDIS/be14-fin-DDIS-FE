@@ -4,65 +4,72 @@
 
   <div class="content-box">
     <div class="register-container">
-      <!-- 1. 기본 정보 -->
-      <div class="info-section">
-        <table class="info-table">
-          <tr>
-            <th>사원번호</th>
-            <td>
-              <input
-                v-model="form.name"
-                @input="onNameInput"
-                type="text"
-                placeholder="사원번호를 입력하세요"
-              />
-            </td>
-          </tr>
-          <tr>
-            <th>발령제목</th>
-            <td>
-              <input
-                v-model="form.title"
-                type="text"
-                placeholder="발령제목을 입력하세요"
-              />
-            </td>
-          </tr>
-          <tr>
-            <th>발령유형</th>
-            <td>
-              <select v-model="form.type">
-                <option value="승진">승진</option>
-                <option value="전보">전보</option>
-                <option value="전직">전직</option>
-                <option value="직급조정">직급조정</option>
-                <option value="직무">직무</option>
-              </select>
-            </td>
-          </tr>
-          <tr>
-            <th>발령일자</th>
-            <td>
-              <input
-                v-model="form.effectiveDate"
-                type="date"
-              />
-            </td>
-          </tr>
-        </table>
-      </div>
+      <div class="form-grid-container">
+        <!-- 1. 기본 정보 -->
+        <div class="info-section">
+          <div class="select-container">
+            <button class="btn-select" @click="showApprovalModal = true">
+              사원 추가
+            </button>
+          </div>
+          <table class="info-table">
+            <tr>
+              <th>사원번호</th>
+              <td>{{  form.currentOrg.employeeId || '-' }}</td>
+            </tr>
+            <tr>
+              <th>사원명</th>
+              <td>{{ form.currentOrg.employeeName || '-' }}</td>
+            </tr>
+            <tr>
+              <th>발령제목</th>
+              <td>
+                <input
+                  v-model="form.title"
+                  type="text"
+                  placeholder="발령제목을 입력하세요"
+                  :disabled="!form.currentOrg.employeeId"
+                />
+              </td>
+            </tr>
+            <tr>
+              <th>발령유형</th>
+              <td>
+                <select v-model="form.type"
+                        :disabled="!form.title">
+                  <option value="승진">승진</option>
+                  <option value="전보">전보</option>
+                  <option value="전직">전직</option>
+                  <option value="직급조정">직급조정</option>
+                  <option value="직무">직무</option>
+                </select>
+              </td>
+            </tr>
+            <tr>
+              <th>발령일자</th>
+              <td>
+                <input
+                  v-model="form.effectiveDate"
+                  type="date"
+                  :disabled="!form.title"
+                />
+              </td>
+            </tr>
+          </table>
+        </div>
 
-      <!-- 2. 조직 변경: ag-Grid 사용 -->
-      <div class="org-section">
-        <AgGridVue
-          class="ag-theme-alpine custom-theme"
-          :gridOptions="{ theme: 'legacy' }"
-          :rowData="rowData"
-          :columnDefs="columnDefs"
-          :defaultColDef="defaultColDef"
-          @grid-ready="onGridReady"
-          style="width: 100%; height: 350px;"
-        />
+        <!-- 2. 조직 변경: ag-Grid 사용 -->
+        <div class="org-section">
+          <AgGridVue
+            class="ag-theme-alpine custom-theme"
+            :gridOptions="{ theme: 'legacy' }"
+            :rowData="rowData"
+            :columnDefs="columnDefs"
+            :defaultColDef="{ sortable: true, resizable: true }"
+            @grid-ready="onGridReady"
+            style="width: 100%; height: 340px;"
+          />
+        </div>
       </div>
 
       <!-- 3. 버튼 그룹 -->
@@ -72,18 +79,35 @@
       </div>
     </div>
   </div>
+
+  <GetEmployeeModal
+    v-if="showApprovalModal"
+    :hierarchy="fullHierarchy"
+    :initialApprovers="[]"
+    @update="onApprovalUpdate"
+    @submit="onApprovalSubmit"
+    @close="showApprovalModal = false"
+  />
+
 </template>
 
 <script setup>
 import { reactive, ref, watch, onMounted, computed, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
+import 'core-js/features/array/flat-map'
 import { AgGridVue } from 'ag-grid-vue3'
 import { ModuleRegistry, AllCommunityModule } from 'ag-grid-community'
 ModuleRegistry.registerModules([AllCommunityModule])
 
 import debounce from 'lodash/debounce';
 
+// 모달 표시 플래그 & 결재선 리스트
+import GetEmployeeModal from '@/components/org/appointment/GetEmployeeModal.vue'
+const showApprovalModal = ref(false)
+const employeeList = ref([])
+
+const fullHierarchy = ref([])
 
 const router = useRouter()
 const gridApi = ref(null)
@@ -137,19 +161,52 @@ const ranksNew     = ref([])
 const employeeCache = reactive(new Map())
 
 
-
 // 초기 전체 계층 로드
 onMounted(async () => {
-  const res = await axios.get('http://localhost:8000/structure/heads')
-  orgHeads.value = res.data
   try {
     const resp = await axios.get('http://localhost:8000/structure/hierarchy')
     const full = Array.isArray(resp.data) ? resp.data : []
+
+   fullHierarchy.value = full
+  //  fullHierarchy.value = resp.data
+
+
+    // 기존 dataStore 세팅
     dataStore.headquarters = full.map(h => ({ headId: h.headId, headName: h.headName, headCode: h.headCode }))
-    dataStore.department   = full.flatMap(h => (h.departments||[]).map(d => ({ departmentId: d.departmentId, departmentName: d.departmentName, departmentCode: d.departmentCode, headId: h.headId })))
-    dataStore.team         = full.flatMap(h => (h.departments||[]).flatMap(d => (d.teams||[]).map(t => ({ teamId: t.teamId, teamName: t.teamName, teamCode: t.teamCode, departmentId: d.departmentId }))))
-    dataStore.job          = full.flatMap(h => (h.departments||[]).flatMap(d => (d.teams||[]).flatMap(t => (t.jobs||[]).map(j => ({ jobId: j.jobId, jobName: j.jobName, jobCode: j.jobCode, teamId: t.teamId })))) )
-    currentHeads.value     = dataStore.headquarters
+    dataStore.department = full.flatMap(head =>
+      (head.departments || []).map(dept => ({
+        departmentId:   dept.departmentId,
+        departmentName: dept.departmentName,
+        departmentCode: dept.departmentCode,
+        headId:         head.headId
+      }))
+    )
+    // 각 department 아래의 teams 를 평탄화
+    dataStore.team = full.flatMap(head =>
+      (head.departments || []).flatMap(dept =>
+        (dept.teams || []).map(team => ({
+          teamId:      team.teamId,
+          teamName:    team.teamName,
+          teamCode:    team.teamCode,
+          departmentId: dept.departmentId
+        }))
+      )
+    )
+
+    dataStore.job = full.flatMap(head =>
+      (head.departments || []).flatMap(dept =>
+        (dept.teams || []).flatMap(team =>
+          (team.jobs || []).map(job => ({
+            jobId:   job.jobId,
+            jobName: job.jobName,
+            jobCode: job.jobCode,
+            teamId:  team.teamId
+          }))
+        )
+      )
+    )
+
+    currentHeads.value = dataStore.headquarters
     await nextTick()
     gridApi.value?.refreshCells({ columns: ['current', 'new'], force: true })
   } catch (e) {
@@ -157,11 +214,10 @@ onMounted(async () => {
   }
 })
 
-// Employee 정보 로드
 async function loadEmployeeInfo() {
-  if (!form.name) return
+  if (!form.currentOrg.employeeId) return
 
-  const id = String(form.name)
+  const id = String(form.currentOrg.employeeId)
   let emp = employeeCache.get(id)
 
   if (!emp) {
@@ -180,13 +236,12 @@ async function loadEmployeeInfo() {
   form.currentOrg.departmentId = emp.departmentId
   form.currentOrg.teamId       = emp.teamId
   form.currentOrg.jobId        = emp.jobId
-  // form.currentOrg.jobName     = emp.jobName
   form.currentOrg.jobCode      = emp.jobCode
   form.currentOrg.positionCode = emp.positionCode
   form.currentOrg.rankCode     = emp.rankCode
 
   departmentsCurrent.value = dataStore.department
-   .filter(d => d.departmentId === emp.departmentId)
+    .filter(d => d.departmentId === emp.departmentId)
   teamsCurrent.value       = dataStore.team
     .filter(t => t.teamId === emp.teamId)
   jobsCurrent.value = [{
@@ -194,19 +249,71 @@ async function loadEmployeeInfo() {
     jobName: emp.jobName,
     jobCode: emp.jobCode
   }]
-
   positionsCurrent.value = [{ positionCode: emp.positionCode, positionName: emp.positionName }]
   ranksCurrent.value     = [{ rankCode: emp.rankCode, rankName: emp.rankName }]
 
-  // await nextTick()
   gridApi.value.refreshCells({ columns: ['current'], force: true })
 }
 
-// 사원번호 입력 시 3초 후 사원정보 load
-const debouncedLoad = debounce(loadEmployeeInfo, 300);
-function onNameInput() {
-  if (form.name) debouncedLoad();
+
+// 모달에서 확인 버튼 눌렀을 때 호출되는 핸들러
+async function onApprovalSubmit(selectedList) {
+  const stub = selectedList[0]
+  if (!stub) return
+
+  // 1) 번호·이름
+  form.currentOrg.employeeId   = stub.employeeId
+  form.currentOrg.employeeName = stub.employeeName
+
+  // 2) 조직 정보 로드
+  await loadEmployeeInfo()
+  form.org.headId       = form.currentOrg.headId
+  form.org.departmentId = form.currentOrg.departmentId
+  form.org.teamId       = form.currentOrg.teamId
+  form.org.jobId        = form.currentOrg.jobId
+  form.org.positionCode = form.currentOrg.positionCode
+  form.org.rankCode     = form.currentOrg.rankCode
+
+
+  // 3) 모달 닫기
+  showApprovalModal.value = false
 }
+
+function fillCurrentOrgCells() {
+  rowData.forEach(r => {
+    switch(r.key) {
+      case 'head':
+        r.current = dataStore.headquarters.find(h => h.headId === form.currentOrg.headId)?.headName || ''
+        break
+      case 'department':
+        r.current = dataStore.department.find(d => d.departmentId === form.currentOrg.departmentId)?.departmentName || ''
+        break
+      case 'team':
+        r.current = dataStore.team.find(t => t.teamId === form.currentOrg.teamId)?.teamName || ''
+        break
+      case 'job':
+        r.current = form.currentOrg.jobId 
+          ? dataStore.job.find(j => j.jobId === form.currentOrg.jobId)?.jobName 
+          : ''
+        break
+      case 'position':
+        r.current = positionsCurrent.value.find(p => p.positionCode === form.currentOrg.positionCode)?.positionName || ''
+        break
+      case 'rank':
+        r.current = ranksCurrent.value.find(rk => rk.rankCode === form.currentOrg.rankCode)?.rankName || ''
+        break
+    }
+  })
+  // 그리드에 반영
+  gridApi.value.refreshCells({ columns: ['current'], force: true })
+}
+
+
+// 삭제나 추가될 때마다 approverList 를 업데이트 합니다
+function onApprovalUpdate(newList) {
+  employeeList.value = newList
+}
+
 
 // 발령 조직 watch
 // 본부 → 부서
@@ -270,15 +377,66 @@ const orgFields = {
   rank: '소속 직급'
 }
 const rowData = reactive([])
-const defaultColDef = { resizable: true, sortable: true }
 const columnDefs = [
   { field: 'label', headerName: '항목', flex: 1, editable: false },
-  { field: 'current', headerName: '현재 소속 조직', flex: 3, cellRenderer: params => makeSelect(params, 'currentOrg') },
-  { field: 'new', headerName: '발령 조직', flex: 3, cellRenderer: params => makeSelect(params, 'org') }
+  { field: 'current', headerName: '현재 소속 조직', flex: 1.8, cellRenderer: params => makeSelect(params, 'currentOrg') },
+  { field: 'new', headerName: '발령 조직', flex: 1.8, cellRenderer: params => makeSelect(params, 'org') }
 ]
+
+// 타입별로 보여줄 조직 단계 키(key) 목록
+const typeToKeys = {
+  승진:   ['head', 'department'],               // 승진 시: 본부, 부서
+  전보:   ['department', 'team'],               // 전보 시: 부서, 팀
+  전직:   ['department', 'team', 'job'],        // 전직 시: 부서, 팀, 직무
+  직급조정: ['department', 'team', 'position'], // 직급조정: 부서, 팀, 직책
+  직무:   ['department', 'team', 'job']         // 직무 변경: 부서, 팀, 직무
+}
+
+// form.type이 바뀔 때마다 rowData 초기화
+watch(() => form.type, newType => {
+  rowData.length = 0
+  const keys = typeToKeys[newType] || []
+  keys.forEach(key => {
+    rowData.push({
+      key,
+      label: orgFields[key],
+      current: '',
+      new: null
+    })
+  })
+}, { immediate: true })
+
+
 
 function makeSelect(params, context) {
   const key = params.data.key
+
+    if (context === 'org') {
+    const ok = {
+      head:       () => !!form.currentOrg.employeeId,   // 사원 선택 후에만
+      department: () => !!form.org.headId,              // 본부 선택 후에만
+      team:       () => !!form.org.departmentId,        // 부서 선택 후에만
+      job:        () => !!form.org.teamId,              // 팀 선택 후에만
+      position:   () => !!form.org.jobId,               // 직무 선택 후에만
+      rank:       () => !!form.org.positionCode         // 직책 선택 후에만
+    }[ key ]?.();
+
+    if (!ok) {
+      // 이전 단계가 안 채워져 있으면 빈 readonly input 리턴
+      return (() => {
+        const inp = document.createElement('input');
+        inp.type = 'text';
+        inp.readOnly = true;
+        inp.value = '';
+        inp.style.width = '95%';
+        inp.style.height = '70%';
+        inp.style.border = '2px solid #eee';
+        inp.style.borderRadius = '8px'
+        inp.style.background = '#f9f9f9';
+        return inp;
+      })();
+    }
+  }
 
   // 현재 소속 조직은 텍스트 표시
   if (context === 'currentOrg') {
@@ -336,6 +494,7 @@ function makeSelect(params, context) {
     return span
   }
 
+
   // 발령 조직은 드롭다운 표시
   const sel = document.createElement('select')
   sel.style.width = '100%'
@@ -389,71 +548,73 @@ function onGridReady(params) {
   Object.entries(orgFields).forEach(([key, label]) =>
     rowData.push({ key, label, current: null, new: null })
   )
+
+  fillCurrentOrgCells()
 }
 
-async function submit() {
+// async function submit() {
 
-    // --- helper: id → code 매핑 함수 추가 ---
-  const findById = (arr, idKey, codeKey) => id => {
-    const it = arr.find(x => String(x[idKey]) === String(id));
-    return it ? it[codeKey] : null;
-  };
+//     // --- helper: id → code 매핑 함수 추가 ---
+//   const findById = (arr, idKey, codeKey) => id => {
+//     const it = arr.find(x => String(x[idKey]) === String(id));
+//     return it ? it[codeKey] : null;
+//   };
 
-  const headCodeFrom    = findById(dataStore.headquarters,'headId',   'headCode');
-  const deptCodeFrom    = findById(dataStore.department,   'departmentId','departmentCode');
-  const teamCodeFrom    = findById(dataStore.team,         'teamId',   'teamCode');
+//   const headCodeFrom    = findById(dataStore.headquarters,'headId',   'headCode');
+//   const deptCodeFrom    = findById(dataStore.department,   'departmentId','departmentCode');
+//   const teamCodeFrom    = findById(dataStore.team,         'teamId',   'teamCode');
 
-  const headCodeTo      = findById(orgHeads.value,        'headId',   'headCode');
-  const deptCodeTo      = findById(departmentsNew.value,  'departmentId','departmentCode');
-  const teamCodeTo      = findById(teamsNew.value,        'teamId',   'teamCode');
-  const jobCodeTo       = findById(jobsNew.value,         'jobId',    'jobCode');
+//   const headCodeTo      = findById(orgHeads.value,        'headId',   'headCode');
+//   const deptCodeTo      = findById(departmentsNew.value,  'departmentId','departmentCode');
+//   const teamCodeTo      = findById(teamsNew.value,        'teamId',   'teamCode');
+//   const jobCodeTo       = findById(jobsNew.value,         'jobId',    'jobCode');
 
-  const payload = {
-    employeeId: Number(form.name),
-    appointmentReason: form.title,
-    appointmentType: form.type,
-    appointmentEffectiveDate: form.effectiveDate,
+//   const payload = {
+//     employeeId: Number(form.name),
+//     appointmentReason: form.title,
+//     appointmentType: form.type,
+//     appointmentEffectiveDate: form.effectiveDate,
 
-    fromHeadCode:      headCodeFrom(form.currentOrg.headId),
-    fromDepartmentCode:deptCodeFrom(form.currentOrg.departmentId),
-    fromTeamCode:      teamCodeFrom(form.currentOrg.teamId),
-    fromJobCode:       form.currentOrg.jobCode,
-    fromPositionCode:  form.currentOrg.positionCode,
-    fromRankCode:      form.currentOrg.rankCode,
+//     fromHeadCode:      headCodeFrom(form.currentOrg.headId),
+//     fromDepartmentCode:deptCodeFrom(form.currentOrg.departmentId),
+//     fromTeamCode:      teamCodeFrom(form.currentOrg.teamId),
+//     fromJobCode:       form.currentOrg.jobCode,
+//     fromPositionCode:  form.currentOrg.positionCode,
+//     fromRankCode:      form.currentOrg.rankCode,
 
-    toHeadCode:        headCodeTo(form.org.headId),
-    toDepartmentCode:  deptCodeTo(form.org.departmentId),
-    toTeamCode:        teamCodeTo(form.org.teamId),
-    toJobCode:         jobCodeTo(form.org.jobId),
-    toPositionCode:    form.org.positionCode,
-    toRankCode:        form.org.rankCode,
+//     toHeadCode:        headCodeTo(form.org.headId),
+//     toDepartmentCode:  deptCodeTo(form.org.departmentId),
+//     toTeamCode:        teamCodeTo(form.org.teamId),
+//     toJobCode:         jobCodeTo(form.org.jobId),
+//     toPositionCode:    form.org.positionCode,
+//     toRankCode:        form.org.rankCode,
 
-    appointmentStatus: '대기',
-    isApplied: false
-  };
+//     appointmentStatus: '대기',
+//     isApplied: false
+//   };
   
-  console.log('▶ 전송 payload:', payload);
+//   console.log('▶ 전송 payload:', payload);
 
-  try {
-    await axios.post(
-      'http://localhost:8000/appointment/create',
-      payload,
-      { headers: { 'Content-Type': 'application/json' } }
-    );
-    alert('등록 성공!');
-    router.push('/appointment');
-  } catch (err) {
-    console.error('▶ AxiosError:', err);
-    alert(
-      `등록 중 오류가 발생했습니다.\n` +
-      `${err.response?.data?.message || err.message}`
-    );
-  }
-}
+//   try {
+//     await axios.post(
+//       'http://localhost:8000/appointment/create',
+//       payload,
+//       { headers: { 'Content-Type': 'application/json' } }
+//     );
+//     alert('등록 성공!');
+//     router.push('/appointment');
+//   } catch (err) {
+//     console.error('▶ AxiosError:', err);
+//     alert(
+//       `등록 중 오류가 발생했습니다.\n` +
+//       `${err.response?.data?.message || err.message}`
+//     );
+//   }
+// }
 
-function cancel() {
-  router.back()
-}
+// function cancel() {
+//   router.back()
+// }
 </script>
 
 
@@ -480,11 +641,33 @@ function cancel() {
   margin: 24px;
 }
 .register-container {
-  width: 60%;
+  /* width: 60%; */
   margin: 0 auto;
   margin-top: 20px;
   margin-bottom: 20px;
 }
+
+.form-grid-container {
+  display: flex;
+  gap: 40px;
+  align-items: flex-start;
+  margin-bottom: 20px;
+  padding: 0 20px;
+}
+
+/* 왼쪽 테이블 영역 너비 */
+.info-section {
+  flex: 1;
+  min-width: 300px;
+}
+
+/* 오른쪽 ag-Grid 영역 너비 */
+.org-section {
+  flex: 1.5;               /* 왼쪽의 두 배 너비 */
+  min-width: 400px;
+  height: 350px;         /* 필요에 따라 조절 */
+}
+
 /* 정보 입력 섹션 */
 .info-section {
   width: 100%;
@@ -537,8 +720,8 @@ function cancel() {
   display: flex;
   gap: 100px;
   justify-content: center;
-  margin-top: 40px;
-  margin-bottom: 20px;
+  margin-top: 60px;
+  margin-bottom: 40px;
 }
 .btn-save {
   font-size: 14px;
@@ -572,9 +755,41 @@ function cancel() {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   transition: background-color 0.2s, box-shadow 0.2s;
   box-sizing: border-box;
+
+  display: flex;
+  justify-content: flex-end;
+  float: right;
 }
 .btn-cancel:hover {
   background-color: #000;
   color: #fff;
+}
+
+.select-container {
+  display: flex;
+  justify-content: flex-start;
+  margin-bottom: 15px; /* 테이블과 버튼 사이 간격 */
+  margin-top: 15px;
+}
+
+
+.btn-select {
+  font-size: 14px;
+  font-weight: bold;
+  background-color: #00a8e8;
+  color: white;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  padding: 10px 16px;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: background-color 0.2s, box-shadow 0.2s;
+}
+
+.btn-select:hover {
+  background-color: white;
+  color: #00a8e8;
+  border-color: #00a8e8;
+  box-shadow: inset 1px 1px 10px rgba(0, 0, 0, 0.25);
 }
 </style>

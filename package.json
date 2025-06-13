@@ -20,6 +20,7 @@
     "ag-grid-vue3": "^33.3.1",
     "axios": "^1.9.0",
     "buffer": "^6.0.3",
+    "core-js": "^3.43.0",
     "element-plus": "^2.9.11",
     "express": "^4.19.2",
     "html2pdf.js": "^0.10.3",

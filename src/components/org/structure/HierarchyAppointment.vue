@@ -4,11 +4,11 @@
       DDIS <span class="rep">{{ getCompanyRep() }}</span>
     </h3>
     <div class="control-buttons">
-      <button @click="expandAll" class="control-btn">✚</button>
-      <button @click="collapseAll" class="control-btn">╳</button>
+      <button @click="expandAll" class="control-btn">전체 보기</button>
+      <button @click="collapseAll" class="control-btn">전체 닫기</button>
     </div>
 
-    <div class="org-box scrollbar">
+    <div class="org-box">
       <ul class="org-list">
         <li v-for="head in hierarchy" :key="head.headId">
           <div class="node head" @click="toggle('h' + head.headId)">
@@ -196,11 +196,51 @@ function collapseAll() {
 .org-box {
   height: 400px;
   overflow-y: auto;
+
+  /* Firefox */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0,0,0,0.2) rgba(0,0,0,0.05);
 }
 
+/* WebKit 기반 스크롤바 전체 너비/트랙/슬라이더 */
+.org-box::-webkit-scrollbar {
+  width: 6px;
+}
+.org-box::-webkit-scrollbar-track {
+  background: rgba(0,0,0,0.05);
+  border-radius: 3px;
+}
+.org-box::-webkit-scrollbar-thumb {
+  background-color: rgba(0,0,0,0.2);
+  border-radius: 3px;
+  margin: 4px 0;
+}
+.org-box::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(0,0,0,0.3);
+}
+
+/* 모든 화살표 버튼(위/아래, 좌/우) 완전 제거 */
+/* .org-box::-webkit-scrollbar-button,
+.org-box::-webkit-scrollbar-button:start,
+.org-box::-webkit-scrollbar-button:end,
+.org-box::-webkit-scrollbar-button:vertical:decrement,
+.org-box::-webkit-scrollbar-button:vertical:increment,
+.org-box::-webkit-scrollbar-button:horizontal:decrement,
+.org-box::-webkit-scrollbar-button:horizontal:increment {
+  display: none;
+  width: 0;
+  height: 0;
+} */
+
+/* (선택) 모서리 코너 부분도 투명 처리 */
+.org-box::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* 
 .org-box.scrollbar {
  scrollbar-width: none;
-}
+} */
 
 .org-list li {
   position: relative;
@@ -296,4 +336,5 @@ function collapseAll() {
   position: relative;
   padding-left: 24px;
 }
+
 </style>
