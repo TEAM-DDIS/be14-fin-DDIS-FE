@@ -97,7 +97,10 @@ async function onLogin() {
     const userData = await userRes.json()
     userStore.setUser(userData)
 
-    // 5) 성공 시 대시보드로 이동
+    // 5) 전 사원 목록 요청
+    await userStore.fetchAllEmployees() 
+
+    // 6) 성공 시 대시보드로 이동
     router.push('/')
   } catch (err) {
     console.error(err)
