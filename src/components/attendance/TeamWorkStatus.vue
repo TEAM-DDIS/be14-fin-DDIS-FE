@@ -17,41 +17,41 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+  import { computed } from 'vue'
 
-const props = defineProps({
-  employeePhotoUrl: String,
-  name: String,
-  role: String,
-  status: String
-})
+  const props = defineProps({
+    employeePhotoUrl: String,
+    name: String,
+    role: String,
+    status: String
+  })
 
-const badgeClass = computed(() => {
-  switch (props.status) {
-    case '정상근무': return 'badge-근무중'
-    case '연차': return 'badge-연차'
-    case '오전반차':
-    case '오후반차': return 'badge-반차'
-    case '출장': return 'badge-출장'
-    case '외근': return 'badge-외근'
-    case '지각': return 'badge-지각'
-    case '결근': return 'badge-결근'
-    case '-': return 'badge-출근전'
-    default: return ''
+  const badgeClass = computed(() => {
+    switch (props.status) {
+      case '정상근무': return 'badge-근무중'
+      case '연차': return 'badge-연차'
+      case '오전반차':
+      case '오후반차': return 'badge-반차'
+      case '출장': return 'badge-출장'
+      case '외근': return 'badge-외근'
+      case '지각': return 'badge-지각'
+      case '결근': return 'badge-결근'
+      case '-': return 'badge-출근전'
+      default: return ''
+    }
+  })
+
+  const displayStatus = computed(() => {
+    switch (props.status) {
+      case '정상근무': return '근무 중'
+      default: return props.status
+    }
+  })
+
+
+  function onImageError(e) {
+    e.target.src = '/images/erpizza_profile.svg'
   }
-})
-
-const displayStatus = computed(() => {
-  switch (props.status) {
-    case '정상근무': return '근무 중'
-    default: return props.status
-  }
-})
-
-
-function onImageError(e) {
-  e.target.src = '/images/erpizza_profile.svg'
-}
 </script>
 
 <style scoped>

@@ -37,13 +37,18 @@
       <!-- 이벤트 -->
       <div class="reminder-box event-schedule">
         <div class="reminder-title">이벤트</div>
-        <ul class="reminder-list custom-bullet">
-          <li class="event">
-            <span class="bullet"></span>
-            <span class="time">[종일]</span>
-            김말랑 사원 생일
-          </li>
-        </ul>
+          <ul class="reminder-list custom-bullet">
+            <li v-for="user in birthdayUsers" :key="user.employeeId" class="event">
+              <span class="bullet"></span>
+              <span class="time">[{{ formatBirthDate(user.employeeBirth) }}]</span>
+              {{ user.employeeName }} {{ user.positionName }} 생일
+            </li>
+            <li v-if="birthdayUsers.length === 0" class="event">
+              <span class="bullet"></span>
+              <span class="time">[없음]</span>
+              이벤트가 없습니다
+            </li>
+          </ul>
       </div>
     </div>
   </div>
@@ -51,10 +56,15 @@
 
 <script setup>
 import { ref, onMounted, computed } from 'vue'
+import { useUserStore } from '@/stores/user'
 
+const userStore = useUserStore()
 const schedules = ref([])
 const loading = ref(true)
 const teamMeetings = ref([])
+
+const birthdayUsers = computed(() => userStore.birthdayUsersNext7Days)
+
 
 // 일정 시간순 정렬
 const sortedSchedules = computed(() => {
@@ -65,7 +75,12 @@ const sortedMeetings = computed(() => {
   return [...teamMeetings.value].sort((a, b) => a.meetingTime.localeCompare(b.meetingTime))
 })
 
-
+function formatBirthDate(dateStr) {
+  const date = new Date(dateStr)
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  return `${month}월 ${day}일`
+}
 // 오전/오후 포맷 변환
 function formatTime(timeStr) {
   const [hourStr, minute] = timeStr.split(':')

@@ -19,39 +19,39 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import TeamWorkStatus from './TeamWorkStatus.vue'
+  import { ref, onMounted } from 'vue'
+  import TeamWorkStatus from './TeamWorkStatus.vue'
 
-const teamName = ref('')
-const statuses = ref([])
-const loading = ref(true)
+  const teamName = ref('')
+  const statuses = ref([])
+  const loading = ref(true)
 
-onMounted(async () => {
-  const token = localStorage.getItem('token')
-  if (!token) {
-    console.error('토큰이 없습니다. 로그인 후 다시 시도하세요.')
-    return
-  }
+  onMounted(async () => {
+    const token = localStorage.getItem('token')
+    if (!token) {
+      console.error('토큰이 없습니다. 로그인 후 다시 시도하세요.')
+      return
+    }
 
-  try {
-    const res = await fetch('http://localhost:8000/attendance/status/team', {
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
-    })
+    try {
+      const res = await fetch('http://localhost:8000/attendance/status/team', {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      })
 
-    if (!res.ok) throw new Error('API 오류')
+      if (!res.ok) throw new Error('API 오류')
 
-    const data = await res.json()
-    teamName.value = data.teamName
-    statuses.value = data.statuses || []
-  } catch (err) {
-    console.error('팀 근무 현황 불러오기 실패:', err)
-    statuses.value = []
-  } finally {
-    loading.value = false
-  }
-})
+      const data = await res.json()
+      teamName.value = data.teamName
+      statuses.value = data.statuses || []
+    } catch (err) {
+      console.error('팀 근무 현황 불러오기 실패:', err)
+      statuses.value = []
+    } finally {
+      loading.value = false
+    }
+  })
 </script>
 
 <style scoped>
