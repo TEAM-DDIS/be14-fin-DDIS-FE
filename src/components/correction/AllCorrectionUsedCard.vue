@@ -49,6 +49,7 @@
                 :paginationPageSize="10"
                 :style="{ width: '100%' }"
             />
+            <button @click="downloadCSV" class="download-btn">CSV 다운로드</button>
         </div>
     </div>
 </template>
@@ -137,6 +138,49 @@
             return inKeyword && inOrgFilter && inDateRange
         })
     })
+
+    function downloadCSV() {
+        if (!filteredEmployees.value.length) {
+            alert('출근 정정 내역이 없습니다.')
+            return
+        }
+
+        const headers = [
+            '사번', '성명', '처리상태', '신청일',
+            '출근시각', '변경요청시각', '처리시간',
+            '사유', '반려사유'
+        ]
+
+        const rows = filteredEmployees.value.map(item => [
+            `\t${item.employeeId}`,
+            item.employeeName,
+            item.approvalStatus || '',
+            item.requestTime || '',
+            item.beforeCheckInTime?.split('.')[0] || '',
+            item.requestedTimeChange
+                ? new Date(item.requestedTimeChange).toTimeString().split(' ')[0]
+                : '',
+            item.processedTime || '',
+            item.reason || '',
+            item.rejectReason || ''
+        ])
+
+        const csvContent = [headers, ...rows]
+            .map(e => e.map(v => `"${v}"`).join(','))
+            .join('\n')
+
+        const blob = new Blob(['\uFEFF' + csvContent], {
+            type: 'text/csv;charset=utf-8;'
+        })
+        const url = URL.createObjectURL(blob)
+
+        const link = document.createElement('a')
+        link.href = url
+        link.setAttribute('download', '출근정정내역.csv')
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+    }
 </script>
 
 <style scoped>
@@ -187,5 +231,29 @@
 
     .fixed-select {
         width: 150px;
+    }
+
+    .download-btn {
+        font-size: 14px;
+        font-weight: bold;
+        background-color: #00a8e8;
+        color: white;
+        border: 1px solid transparent;
+        border-radius: 10px;
+        padding: 10px 30px;
+        margin-top: 20px;
+        cursor: pointer;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        transition: background-color 0.2s, box-shadow 0.2s;
+        box-sizing: border-box;
+        white-space: nowrap;
+    }
+
+    .download-btn:hover {
+        background-color: white;
+        color: #00a8e8;
+        border-color: #00a8e8;
+        box-shadow:
+        inset 1px 1px 10px rgba(0, 0, 0, 0.25);
     }
 </style>
