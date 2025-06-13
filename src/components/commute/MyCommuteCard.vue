@@ -53,20 +53,22 @@
     { headerName: '휴일근무시간', field: 'overtimeHoliday', valueFormatter: p => convertMinutesToHours(p.value) },
     { headerName: '총 근무시간', field: 'totalWorkTime', valueFormatter: p => convertMinutesToHours(p.value) }
   ]
+
+
 </script>
 
 <style scoped>
-    .leave-used-wrapper {
-      display: flex;
-      justify-content: space-between;
-      background: #fff;
-      padding: 30px;
-      border-radius: 12px;
-      box-shadow: 1px 1px 20px 1px rgba(0, 0, 0, 0.05);
-      flex-wrap: wrap;
-    }
+  .leave-used-wrapper {
+    display: flex;
+    justify-content: space-between;
+    background: #fff;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 1px 1px 20px 1px rgba(0, 0, 0, 0.05);
+    flex-wrap: wrap;
+  }
 
-    .section {
-      width: 100%;
-    }
+  .section {
+    width: 100%;
+  }
 </style>

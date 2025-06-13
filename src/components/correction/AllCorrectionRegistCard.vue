@@ -51,9 +51,17 @@
                     :style="{ width: '100%' }"
                     @row-click="onRowClick"
                 />
-                <div class="btn-area">
-                    <button class="reject-btn" @click="openModal('reject')">반려</button>
-                    <button class="apply-btn" @click="openModal('approve')">승인</button>
+                <div class="btn-area-wrapper">
+                    <!-- 왼쪽: CSV 다운로드 -->
+                    <div class="left-btn">
+                        <button @click="downloadCSV" class="download-btn">CSV 다운로드</button>
+                    </div>
+
+                    <!-- 오른쪽: 승인 / 반려 -->
+                    <div class="right-btn">
+                        <button class="reject-btn" @click="openModal('reject')">반려</button>
+                        <button class="apply-btn" @click="openModal('approve')">승인</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -239,6 +247,49 @@
         return inKeyword && inOrgFilter && inDateRange
     })
     })
+
+    function downloadCSV() {
+        if (!filteredEmployees.value.length) {
+            alert('출근 정정 신청 내역이 없습니다.')
+            return
+        }
+
+        const headers = [
+            '사번', '성명', '처리상태', '신청일',
+            '출근시각', '변경요청시각', '처리시간',
+            '사유', '반려사유'
+        ]
+
+        const rows = filteredEmployees.value.map(item => [
+            `\t${item.employeeId}`,
+            item.employeeName,
+            item.approvalStatus || '',
+            item.requestTime || '',
+            item.beforeCheckInTime?.split('.')[0] || '',
+            item.requestedTimeChange
+                ? new Date(item.requestedTimeChange).toTimeString().split(' ')[0]
+                : '',
+            item.processedTime || '',
+            item.reason || '',
+            item.rejectReason || ''
+        ])
+
+        const csvContent = [headers, ...rows]
+            .map(e => e.map(v => `"${v}"`).join(','))
+            .join('\n')
+
+        const blob = new Blob(['\uFEFF' + csvContent], {
+            type: 'text/csv;charset=utf-8;'
+        })
+        const url = URL.createObjectURL(blob)
+
+        const link = document.createElement('a')
+        link.href = url
+        link.setAttribute('download', '출근정정신청내역.csv')
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+    }
 </script>
 
 <style scoped>
@@ -295,12 +346,47 @@
         width: 150px;
     }
 
-    .btn-area {
+    .btn-area-wrapper {
         width: 100%;
         display: flex;
-        justify-content: flex-end;
+        justify-content: space-between; /* 양쪽 정렬 */
+        align-items: center;            /* 수직 정렬 */
         margin-top: 20px;
-        gap: 20px
+    }
+
+    /* 버튼 그룹 가로 정렬 */
+    .left-btn,
+    .right-btn {
+        display: flex;
+        align-items: center;
+    }
+
+    /* 오른쪽 버튼 간 간격 */
+    .right-btn {
+        gap: 20px;
+    }
+
+    .download-btn {
+        font-size: 14px;
+        font-weight: bold;
+        background-color: #00a8e8;
+        color: white;
+        border: 1px solid transparent;
+        border-radius: 10px;
+        padding: 10px 30px;
+        cursor: pointer;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        transition: background-color 0.2s, box-shadow 0.2s;
+        box-sizing: border-box;
+        white-space: nowrap;
+    }
+
+    .download-btn:hover {
+        background-color: white;
+        color: #00a8e8;
+        border-color: #00a8e8;
+        box-shadow:
+        inset 1px 1px 10px rgba(0, 0, 0, 0.25);
     }
 
     .reject-btn {
