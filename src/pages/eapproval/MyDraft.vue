@@ -41,12 +41,14 @@ import { ref, computed, onMounted } from 'vue'
 import { AgGridVue } from 'ag-grid-vue3'
 import { ModuleRegistry, AllCommunityModule } from 'ag-grid-community'
 import axios from 'axios'
+import { useRoute } from 'vue-router'
 ModuleRegistry.registerModules([AllCommunityModule])
 
 // 1) 상태
 const tab    = ref('상신')
 const search = ref({ date: '', title: '' })
 const docs   = ref([])
+const route = useRoute()
 
 // 2) 컬럼 정의 (결재함이랑 동일)
 const columnDefsByTab = {
@@ -135,7 +137,15 @@ async function fetchMyDrafts() {
 }
 
 // 5) 라이프사이클
-onMounted(fetchMyDrafts)
+onMounted(() => {
+ const queryTab = route.query.tab
+ if (['상신', '완료', '반려', '회수'].includes(queryTab)) {
+   tab.value = queryTab
+ }
+
+  fetchMyDrafts()
+})
+
 
 // 6) 행 클릭 핸들러
 function onRowClick(e) {

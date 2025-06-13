@@ -24,15 +24,15 @@
       <div class="approval-list">
         <div class="approval-item">
           상신
-          <span class="count" @click="() => navigateTo('/draftdoc/mydraft')">0</span>
+          <span class="count" @click="() => navigateTo('/draftdoc/mydraft', '상신')">{{ draftCount }}</span>
         </div>
         <div class="approval-item">
           결재대기
-          <span class="count" @click="() => navigateTo('/draftdoc/approve')">0</span>
+          <span class="count" @click="() => navigateTo('/draftdoc/approve')">{{ approveWaitingCount }}</span>
         </div>
         <div class="approval-item">
           반려
-          <span class="count" @click="() => navigateTo('/draftdoc/mydraft')">0</span>
+          <span class="count" @click="() => navigateTo('/draftdoc/mydraft', '반려')">{{ rejectCount }}</span>
         </div>
       </div>
     </div>
@@ -82,8 +82,12 @@ const remainLeave = ref(0)
 const weeklyWorkHours = ref(0)
 const weeklyOvertimeHours = ref(0)
 
-function navigateTo(path) {
-  router.push(path)
+function navigateTo(path, tab = '') {
+  if (tab) {
+    router.push({ path, query: { tab } })
+  } else {
+    router.push(path)
+  }
 }
 
 function convertMinutesToHours(min) {
@@ -130,6 +134,21 @@ onMounted(async () => {
     if (resOvertime.ok) {
       const data = await resOvertime.json()
       weeklyOvertimeHours.value = convertMinutesToHours(data.totalOvertime)
+    }
+
+    // 상신 문서
+    const resDrafts = await fetch('http://localhost:8000/drafts/query', { headers })
+    if (resDrafts.ok) {
+      const data = await resDrafts.json()
+      draftCount.value = data.filter(doc => doc.status === '대기중').length
+      rejectCount.value = data.filter(doc => doc.status === '반려').length
+    }
+
+    // 결재 대기 문서                         
+    const resApprovals = await fetch('http://localhost:8000/approvals', { headers })
+    if (resApprovals.ok) {
+      const data = await resApprovals.json()
+      approveWaitingCount.value = data.filter(doc => doc.status === '대기중').length
     }
 
   } catch (err) {
