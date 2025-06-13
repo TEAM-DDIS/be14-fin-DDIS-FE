@@ -163,7 +163,7 @@ async function fetchGoals() {
     const data = await res.json()
 goals.value = data.map(dto => {
       const perfValue = dto.performanceValue ?? 0
-      const goalValue = dto.goalValue ?? 0
+      const goalValue = dto.goalValue ?? 0  
       const progress = goalValue > 0
         ? Math.round((perfValue / goalValue) * 100)
         : 0
