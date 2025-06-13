@@ -33,6 +33,7 @@
 
     const checkInTime = ref(null)
     const checkOutTime = ref(null)
+    const workStatusName = ref('')
     const isCheckedIn = ref(false)
     const isDone = computed(() => !!checkInTime.value && !!checkOutTime.value)
 
@@ -72,10 +73,13 @@ async function handleCheck() {
   try {
     if (!checkInTime.value) {
       // 출근 등록
-      if (hours > 11 || (hours === 11 && minutes >= 59)) {
-        alert('출근 가능 시간은 11:59까지입니다.')
-        return
-      }
+      if (
+    (workStatusName.value === '오전반차' && hours < 12) ||  // ✅ 오전반차는 12시 이후만
+    (workStatusName.value !== '오전반차' && (hours > 11 || (hours === 11 && minutes >= 59)))
+  ) {
+    alert('출근 가능 시간이 아닙니다.')
+    return
+  }
 
       const res = await fetch('http://localhost:8000/attendance/check-in', {
         method: 'POST',
@@ -95,10 +99,13 @@ async function handleCheck() {
 
     } else if (!checkOutTime.value) {
       // ✅ 퇴근 제한: 18시 이전이면 막기
-      if (hours < 18) {
-        alert('퇴근은 18:00 이후에 가능합니다.')
-        return
-      }
+      if (
+    (workStatusName.value === '오후반차' && hours < 12) ||  // ✅ 오후반차는 12시 이후
+    (workStatusName.value !== '오후반차' && hours < 18)     // ✅ 나머지는 18시 이후
+  ) {
+    alert('퇴근 가능 시간이 아닙니다.')
+    return
+  }
 
       const res = await fetch('http://localhost:8000/attendance/check-out', {
         method: 'PUT',
@@ -140,6 +147,7 @@ async function handleCheck() {
 
   checkInTime.value = data.checkInTime ? data.checkInTime.split('.')[0] : null
   checkOutTime.value = data.checkOutTime ? data.checkOutTime.split('.')[0] : null
+  workStatusName.value = data.workStatusName
 
   // ✅ 서버에 출근 기록은 있고 퇴근 기록은 없을 때 출근 상태로 판단
   if (checkInTime.value && !checkOutTime.value) {

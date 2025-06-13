@@ -66,6 +66,7 @@ import {
   ValidationModule
 } from 'ag-grid-community'
 
+// — register modules once
 ModuleRegistry.registerModules([
   AllCommunityModule,
   ClientSideRowModelModule,
@@ -76,77 +77,105 @@ ModuleRegistry.registerModules([
   ValidationModule
 ])
 
-const router = useRouter()
+// — vue-router / pinia
+const router    = useRouter()
 const userStore = useUserStore()
-let gridApi = null
 
+// — grid column 정의
 const columnDefs = ref([
-  { headerName: '', field: 'checkbox', checkboxSelection:true, headerCheckboxSelection:true, width:50, pinned:'left' },
-  { headerName: '번호',   field:'boardId',   width:100, cellClass:'center-align' },
-  { headerName: '제목',   field:'boardTitle', flex:2 },
-  { headerName: '작성자', field:'employeeName', flex:1, cellClass:'center-align' },
-  { headerName: '작성일자', field:'boardCreateAt', flex:1, cellClass:'center-align' }
+  { headerName: '',       field: 'checkbox', checkboxSelection: true, headerCheckboxSelection: true, width:50, pinned:'left' },
+  { headerName: '번호',     field: 'boardId',      width:100, cellClass:'center-align' },
+  { headerName: '제목',     field: 'boardTitle',   flex:2 },
+  { headerName: '작성자',   field: 'employeeName', flex:1, cellClass:'center-align' },
+  { headerName: '작성일자', field: 'boardCreateAt',flex:1, cellClass:'center-align' }
 ])
 
-const rowData = ref([])
-const searchText = ref('')
-const pageSize = ref(10)
+// — 상태
+const fullData        = ref([])   // 원본 전체 목록
+const rowData         = ref([])   // 그리드에 바인딩될 데이터
+const searchText      = ref('')
+const pageSize        = ref(10)
 const showDeleteModal = ref(false)
 
+// — JWT 토큰 헤더
+function authHeaders() {
+  return { Authorization: `Bearer ${userStore.accessToken}` }
+}
+
+// — 1) 초기 데이터 로드
 onMounted(async () => {
   try {
     const res = await axios.get('http://localhost:8000/boards/lists', {
-      headers: {
-        Authorization: `Bearer ${userStore.accessToken || localStorage.getItem('token')}`
-      }
+      headers: authHeaders()
     })
-    rowData.value = res.data
+    fullData.value = res.data
+    rowData.value  = res.data
   } catch (e) {
     console.error('공지사항 목록 조회 실패:', e)
     alert('공지사항을 불러오는 중 오류가 발생했습니다.')
   }
 })
 
+// — 2) 검색어 변경 시 자체 필터링
+function onSearch() {
+  const kw = searchText.value.trim().toLowerCase()
+  if (!kw) {
+    rowData.value = fullData.value
+  } else {
+    rowData.value = fullData.value.filter(item =>
+      item.boardTitle.toLowerCase().includes(kw)
+    )
+  }
+}
+
+// — 3) AG Grid 준비 (gridApi 불필요하면 주석 처리 가능)
+let gridApi = null
 function onGridReady(params) {
   gridApi = params.api
 }
 
+// — 4) 삭제 모달 & 삭제 처리
 function onDeleteClick() {
-  const sel = gridApi.getSelectedRows()
-  if (!sel.length) {
-    alert('삭제할 항목을 선택하세요.')
-    return
-  }
+  const sel = gridApi?.getSelectedRows() || []
+  if (!sel.length) return alert('삭제할 항목을 선택하세요.')
   showDeleteModal.value = true
 }
-
 function cancelDelete() {
   showDeleteModal.value = false
 }
-
-function confirmDelete() {
+async function confirmDelete() {
   const sel = gridApi.getSelectedRows()
-  rowData.value = rowData.value.filter(r => !sel.includes(r))
-  gridApi.deselectAll()
-  showDeleteModal.value = false
+  const ids = sel.map(r => r.boardId)
+  try {
+    await Promise.all(ids.map(id =>
+      axios.delete(`http://localhost:8000/boards/${id}`, {
+        headers: authHeaders()
+      })
+    ))
+    // 로컬에서도 제거
+    fullData.value = fullData.value.filter(r => !ids.includes(r.boardId))
+    rowData.value  = rowData.value.filter(r => !ids.includes(r.boardId))
+    gridApi.deselectAll()
+    showDeleteModal.value = false
+    alert('선택 항목이 삭제되었습니다.')
+  } catch (err) {
+    console.error('삭제 실패:', err)
+    alert('삭제 중 오류가 발생했습니다.')
+  }
 }
 
-function getRowHeight(params) {
-  return params.data.title.length > 20
-    ? 80
-    : defaultRowHeight
-}
-
+// — 5) 등록 / 상세 이동
 function onRegister() {
   router.push('/post/postEnroll')
 }
-
 function onCellClick(e) {
-  if (e.colDef.field === 'title') {
-    router.push(`/post/postDetail/${e.data.id}`)
+  if (e.colDef.field === 'boardTitle') {
+    router.push(`/post/postDetail/${e.data.boardId}`)
   }
 }
 </script>
+
+
 
 <style scoped>
 .page-title {

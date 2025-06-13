@@ -55,44 +55,44 @@
     const show = ref(false)
 
     async function onAdd({ date, title, time }) {
-  const token = localStorage.getItem('token')
+        const token = localStorage.getItem('token')
 
-  try {
-    const res = await fetch('http://localhost:8000/attendance/schedule/personal', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        scheduleDate: date,
-        scheduleTitle: title,
-        scheduleTime: time
-      })
-    })
+        try {
+            const res = await fetch('http://localhost:8000/attendance/schedule/personal', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    scheduleDate: date,
+                    scheduleTitle: title,
+                    scheduleTime: time
+                })
+            })
 
-    if (!res.ok) {
-      const errorText = await res.text()
-      throw new Error(errorText)
-    }
+            if (!res.ok) {
+                const errorText = await res.text()
+                throw new Error(errorText)
+        }
 
-    // 일정 등록 성공 시 캘린더에 추가
-    calendarOptions.events.push({
-      title: '',
-      start: date,
-      className: 'event-personal',
-      extendedProps: {
-        type: 'personal',
-        title,
-        time
-      }
+        // 일정 등록 성공 시 캘린더에 추가
+        calendarOptions.events.push({
+            title: '',
+            start: date,
+            className: 'event-personal',
+            extendedProps: {
+                type: 'personal',
+                title,
+                time
+        }
     })
 
     show.value = false
-  } catch (err) {
-    console.error('개인 일정 등록 실패:', err.message)
-    alert('일정 등록 중 오류가 발생했습니다.\n' + err.message)
-  }
+    } catch (err) {
+        console.error('개인 일정 등록 실패:', err.message)
+        alert('일정 등록 중 오류가 발생했습니다.\n' + err.message)
+    }
 }
 
     // 날짜 숫자만 보이게
