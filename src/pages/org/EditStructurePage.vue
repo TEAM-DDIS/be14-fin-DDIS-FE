@@ -40,7 +40,7 @@
       <!-- ② 조직도 조회 패널 (Tree) -->
       <div class="section">
         <p class="desc2">조직도 조회</p>
-        <div class="card tree-panel">
+        <div class="card tree-panel scrollbar">
           <h2 class="card-title">조직도</h2>
           <div class="tree-container">
             <!-- OrgHierarchyAll 컴포넌트: :headquarters 하나만 넘겨줍니다 -->
@@ -58,165 +58,168 @@
       <!-- ③ 부서/팀 정보 + 직원 목록 패널 -->
       <div class="section">
         <p class="desc2">조직 정보 조회</p>
-        <div class="card info-panel">
+        <div class="card info-panel scrollbar">
           <h2 class="card-title">조직 정보</h2>
 
-          <!-- 1) 부서가 선택된 경우 -->
-          <div v-if="selectedDept" class="info-content">
-            <!-- ★ 부서 이동 / 부서원 이동 버튼 추가 ★ -->
-            <div class="button-group">
-              <button class="btn-dept" @click="showMovePanel = true">
-                부서 이동
-              </button>
-            </div>
+          <div class="info-body">
+            <!-- 1) 부서가 선택된 경우 -->
+            <div v-if="selectedDept" class="info-content">
+              <!-- ★ 부서 이동 / 부서원 이동 버튼 추가 ★ -->
+              <div class="button-group">
+                <button class="btn-dept" @click="showMovePanel = true">
+                  부서 이동
+                </button>
+              </div>
 
-            <ul class="info-list">
-              <h3 class="section-title">부서 정보</h3>
-              <li>
-                <strong>부서명: </strong>
-                {{ selectedDept.departmentName }}
-              </li>
-              <li>
-                <strong>부서 코드: </strong>
-                {{ selectedDept.departmentCode }}
-              </li>
-              <li>
-                <strong>상위 본부명: </strong>
-                {{ getHeadNameById(selectedDept.headId) }}
-              </li>
-              <li>
-                <strong>상위 본부 코드: </strong>
-                {{ getHeadCodeById(selectedDept.headId) }}
-              </li>
-              <li>
-                <strong>소속 팀 명칭: </strong>
-                <span
-                  v-for="(t, idx) in teamNamesOfDept"
-                  :key="idx"
-                >
-                  {{ t }}<span v-if="idx < teamNamesOfDept.length - 1">, </span>
-                </span>
-              </li>
-            </ul>
-
-            <div class="member-section">
-              <h3 class="section-title">소속 직원 목록</h3>
-              <table class="member-table">
-                <thead>
-                  <tr>
-                    <th>사번</th>
-                    <th>이름</th>
-                    <th>직책</th>
-                    <th>직급</th>
-                    <th>이메일</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr
-                    v-for="emp in deptMembers"
-                    :key="emp.employeeId"
-                    @click="onEmployeeClick(emp)"
-                    :class="{ active: emp.employeeId === selectedEmployee?.employeeId }"
+              <ul class="info-list">
+                <h3 class="section-title">부서 정보</h3>
+                <li>
+                  <strong>부서명: </strong>
+                  {{ selectedDept.departmentName }}
+                </li>
+                <li>
+                  <strong>부서 코드: </strong>
+                  {{ selectedDept.departmentCode }}
+                </li>
+                <li>
+                  <strong>상위 본부명: </strong>
+                  {{ getHeadNameById(selectedDept.headId) }}
+                </li>
+                <li>
+                  <strong>상위 본부 코드: </strong>
+                  {{ getHeadCodeById(selectedDept.headId) }}
+                </li>
+                <li>
+                  <strong>소속 팀 명칭: </strong>
+                  <span
+                    v-for="(t, idx) in teamNamesOfDept"
+                    :key="idx"
                   >
-                    <td>{{ emp.employeeId }}</td>
-                    <td>{{ emp.employeeName }}</td>
-                    <td>{{ emp.positionName }}</td>
-                    <td>{{ emp.rankName }}</td>
-                    <td>{{ emp.email || '-' }}</td>
-                  </tr>
-                  <tr v-if="deptMembers.length === 0">
-                    <td colspan="5" class="no-data">
-                      해당 부서에 직원이 없습니다.
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
+                    {{ t }}<span v-if="idx < teamNamesOfDept.length - 1">, </span>
+                  </span>
+                </li>
+              </ul>
+
+              <div class="member-section">
+                <h3 class="section-title">소속 직원 목록</h3>
+                <table class="member-table">
+                  <thead>
+                    <tr>
+                      <th>사번</th>
+                      <th>이름</th>
+                      <th>직책</th>
+                      <th>직급</th>
+                      <th>이메일</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr
+                      v-for="emp in deptMembers"
+                      :key="emp.employeeId"
+                      @click="onEmployeeClick(emp)"
+                      :class="{ active: emp.employeeId === selectedEmployee?.employeeId }"
+                    >
+                      <td>{{ emp.employeeId }}</td>
+                      <td>{{ emp.employeeName }}</td>
+                      <td>{{ emp.positionName }}</td>
+                      <td>{{ emp.rankName }}</td>
+                      <td>{{ emp.email || '-' }}</td>
+                    </tr>
+                    <tr v-if="deptMembers.length === 0">
+                      <td colspan="5" class="no-data">
+                        해당 부서에 직원이 없습니다.
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
             </div>
-          </div>
 
-          <!-- 2) 팀이 선택된 경우 -->
-          <div v-else-if="selectedTeam" class="info-content">
-            <!-- ★ 팀 이동 / 팀원 이동 버튼 추가 ★ -->
-            <div class="button-group">
-              <button class="btn-dept" @click="showMovePanel = true">
-                팀 이동
-              </button>
+            <!-- 2) 팀이 선택된 경우 -->
+            <div v-else-if="selectedTeam" class="info-content">
+              <!-- ★ 팀 이동 / 팀원 이동 버튼 추가 ★ -->
+              <div class="button-group">
+                <button class="btn-dept" @click="showMovePanel = true">
+                  팀 이동
+                </button>
+              </div>
+
+              <ul class="info-list">
+                <h3 class="section-title">팀 정보</h3>
+                <li>
+                  <strong>팀명: </strong>
+                  {{ selectedTeam.teamName }}
+                </li>
+                <li>
+                  <strong>팀 코드: </strong>
+                  {{ selectedTeam.teamCode }}
+                </li>
+                <li>
+                  <strong>상위 부서명: </strong>
+                  {{ getDeptNameById(selectedTeam.departmentId) }}
+                </li>
+                <li>
+                  <strong>상위 부서 코드: </strong>
+                  {{ getDeptCodeById(selectedTeam.departmentId) }}
+                </li>
+                <li>
+                  <strong>상위 본부명: </strong>
+                  {{ getHeadNameByDept(selectedTeam.departmentId) }}
+                </li>
+                <li>
+                  <strong>상위 본부 코드: </strong>
+                  {{ getHeadCodeByDept(selectedTeam.departmentId) }}
+                </li>
+              </ul>
+
+              <div class="member-section">
+                <h3 class="section-title">팀원 목록</h3>
+                <table class="member-table">
+                  <thead>
+                    <tr>
+                      <th>사번</th>
+                      <th>이름</th>
+                      <th>직책</th>
+                      <th>직급</th>
+                      <th>이메일</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr
+                      v-for="emp in teamMembers"
+                      :key="emp.employeeId"
+                      @click="onEmployeeClick(emp)"
+                      :class="{ active: emp.employeeId === selectedEmployee?.employeeId }"
+                    >
+                      <td>{{ emp.employeeId }}</td>
+                      <td>{{ emp.employeeName }}</td>
+                      <td>{{ emp.positionName }}</td>
+                      <td>{{ emp.rankName }}</td>
+                      <td>{{ emp.email || '-' }}</td>
+                    </tr>
+                    <tr v-if="teamMembers.length === 0">
+                      <td colspan="5" class="no-data">
+                        해당 팀에 직원이 없습니다.
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
             </div>
 
-            <ul class="info-list">
-              <h3 class="section-title">팀 정보</h3>
-              <li>
-                <strong>팀명: </strong>
-                {{ selectedTeam.teamName }}
-              </li>
-              <li>
-                <strong>팀 코드: </strong>
-                {{ selectedTeam.teamCode }}
-              </li>
-              <li>
-                <strong>상위 부서명: </strong>
-                {{ getDeptNameById(selectedTeam.departmentId) }}
-              </li>
-              <li>
-                <strong>상위 부서 코드: </strong>
-                {{ getDeptCodeById(selectedTeam.departmentId) }}
-              </li>
-              <li>
-                <strong>상위 본부명: </strong>
-                {{ getHeadNameByDept(selectedTeam.departmentId) }}
-              </li>
-              <li>
-                <strong>상위 본부 코드: </strong>
-                {{ getHeadCodeByDept(selectedTeam.departmentId) }}
-              </li>
-            </ul>
-
-            <div class="member-section">
-              <h3 class="section-title">팀원 목록</h3>
-              <table class="member-table">
-                <thead>
-                  <tr>
-                    <th>사번</th>
-                    <th>이름</th>
-                    <th>직책</th>
-                    <th>직급</th>
-                    <th>이메일</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr
-                    v-for="emp in teamMembers"
-                    :key="emp.employeeId"
-                    @click="onEmployeeClick(emp)"
-                    :class="{ active: emp.employeeId === selectedEmployee?.employeeId }"
-                  >
-                    <td>{{ emp.employeeId }}</td>
-                    <td>{{ emp.employeeName }}</td>
-                    <td>{{ emp.positionName }}</td>
-                    <td>{{ emp.rankName }}</td>
-                    <td>{{ emp.email || '-' }}</td>
-                  </tr>
-                  <tr v-if="teamMembers.length === 0">
-                    <td colspan="5" class="no-data">
-                      해당 팀에 직원이 없습니다.
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
+            <!-- 3) 아무것도 선택되지 않은 경우 -->
+            <div v-else class="placeholder-info">
+              좌측 트리에서 부서 또는 팀을 선택하거나, 검색창에 부서/팀을 입력하세요.
             </div>
-          </div>
-
-          <!-- 3) 아무것도 선택되지 않은 경우 -->
-          <div v-else class="placeholder-info">
-            좌측 트리에서 부서 또는 팀을 선택하거나, 검색창에 부서/팀을 입력하세요.
           </div>
         </div>
+      
       </div>
 
       <!-- ④ 부서 이동 (showMovePanel이 true일 때만 보여준다) -->
       <div class="section" v-if="showMovePanel">
         <p class="desc2">조직 구조 이동</p>
-        <div class="card move-panel">
+        <div class="card move-panel scrollbar">
           <h2 class="card-title">조직 이동</h2>
           <p class="move-instruction">
             이동할 부서를 드래그하여 편집하세요.
@@ -265,7 +268,7 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import axios from 'axios'
 
-import OrgHierarchyAll from '@/components/org/structure/HierarchyAll.vue'
+import OrgHierarchyAll from '@/components/org/structure/Hierarchy.vue'
 import EditHierarchy from '@/components/org/structure/EditHierarchy.vue'
 import AddModal from '@/components/org/structure/AddModal.vue'
 import DeleteModal from '@/components/org/structure/DeleteModal.vue'
@@ -626,7 +629,12 @@ function onTeamSelectedForMove(team) {
 <style scoped>
 /* 공통 리셋 */
 
-
+.page-container {
+  height: 120vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden; 
+}
 .page-title {
   margin-left: 20px;
   margin-bottom: 30px;
@@ -665,6 +673,7 @@ function onTeamSelectedForMove(team) {
   font-weight: bold;
   font-size: 20px;
   margin-right: 12px;
+  /* margin-bottom: 12px; */
 }
 .toolbar-btn {
   display: flex;
@@ -721,6 +730,7 @@ function onTeamSelectedForMove(team) {
   gap: 24px;
   align-items: stretch;
   margin-left: 20px;
+
 }
 .section {
   display: flex;
@@ -732,13 +742,11 @@ function onTeamSelectedForMove(team) {
   background: #fff;
   border-radius: 12px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-  padding: 20px 24px;
+  padding: 10px 30px;
   display: flex;
   flex-direction: column;
-  flex: 1;
-  min-height: 0;
-  overflow: hidden;
 }
+
 .card-title {
   font-weight: bold;
   margin-bottom: 12px;
@@ -746,13 +754,24 @@ function onTeamSelectedForMove(team) {
 
 /* ② 조직도 조회 */
 .tree-panel {
+  height: 550px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
   overflow-y: auto;
 }
+
+.tree-panel.scrollbar {
+  scrollbar-width: none;
+}
+
 .tree-container {
   flex: 1;
   overflow-y: auto;
-  padding-right: 8px;
+  scrollbar-width: none;
+  margin-bottom: 20px;
 }
+
 .loading {
   text-align: center;
   color: #888;
@@ -768,11 +787,26 @@ function onTeamSelectedForMove(team) {
   padding-bottom: 2px;
   margin-bottom: 12px;
 }
+
+
 .info-panel {
+  display: flex;
+  flex-direction: column;
+  height: 550px;            /* 고정 높이 */
+  overflow: hidden;         /* 외부 스크롤 숨김 */
   overflow-y: auto;
-  overflow-x: auto;
-  padding: 20px 24px;
+  padding: 10px 30px;
 }
+
+/* .info-body {
+  overflow: hidden;
+  overflow-y: auto;
+} */
+.info-panel.scrollbar {
+  scrollbar-width: none;
+}
+
+
 .info-list {
   list-style: none;
   font-size: 18px;
@@ -847,18 +881,24 @@ function onTeamSelectedForMove(team) {
 
 /* ④ 부서 이동 카드 */
 .move-panel {
+  height: 550px;
   display: flex;
   flex-direction: column;
-  padding: 30px 40px;
+  padding: 10px 30px;
+  overflow: hidden;
+  overflow-y: auto;
 }
-.move-instruction {
-  font-size: 16px;
-  color: #555;
-  margin-bottom: 12px;
+.move-panel.scrollbar {
+  scrollbar-width: none;
 }
 .move-tree-container {
   flex: 1;
   overflow-y: auto;
-  padding-right: 8px;
+  scrollbar-width: none;
+}
+.move-instruction {
+  font-size: 14px;
+  color: #555;
+  margin-bottom: 16px;
 }
 </style>

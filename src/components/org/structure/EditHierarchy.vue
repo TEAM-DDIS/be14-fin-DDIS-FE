@@ -10,6 +10,10 @@
       <i :class="expandedRoot ? 'fa fa-chevron-down' : 'fa fa-chevron-right'"></i>
       DDIS <span class="rep">{{ getCompanyRep() }}</span>
     </div>
+    <div class="control-buttons">
+      <button @click="expandAll" class="control-btn">전체 보기</button>
+      <button @click="collapseAll" class="control-btn">전체 닫기</button>
+    </div>
 
     <!-- 2) DDIS가 펼쳐져 있을 때 본부 목록 표시 -->
     <ul v-show="expandedRoot" class="org-list">
@@ -128,6 +132,7 @@ const expanded = reactive({})
 
 // 부모 컴포넌트로 이벤트 전달
 const emit = defineEmits(['dept-selected', 'team-selected'])
+
 
 // --- 3) Mounted 시점에 백엔드에서 조직 계층과 사원 정보 가져오기 ---
 onMounted(async () => {
@@ -337,6 +342,35 @@ async function cancelChanges() {
   pendingMoves.value = []
 }
 
+/** 전체 보기 */
+function expandAll() {
+  // 최상위 노드도 열기
+  expandedRoot.value = true
+
+  // 모든 본부 열기
+  headquarters.value.forEach(hq => {
+    expanded[hq.headCode] = true
+  })
+  // 모든 부서 열기
+  departments.value.forEach(dept => {
+    expanded[dept.departmentCode] = true
+  })
+  // 모든 팀 열기
+  teams.value.forEach(team => {
+    expanded[team.teamCode] = true
+  })
+}
+
+/** 전체 닫기 */
+function collapseAll() {
+  // 최상위 노드도 닫기
+  expandedRoot.value = false
+
+  // expanded 객체의 값들을 모두 false 로
+  Object.keys(expanded).forEach(key => {
+    expanded[key] = false
+  })
+}
 </script>
 
 <style scoped>
@@ -346,11 +380,39 @@ async function cancelChanges() {
   padding: 0 12px;
 }
 
+.control-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 4px;
+  justify-content: flex-end;
+}
+
+.control-btn {
+  background-color: #3f3f3f;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  padding: 6px 10px;
+  font-size: 12px;
+  font-weight: bold;
+  color: #ffffff;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: background-color 0.2s, box-shadow 0.2s;
+  box-sizing: border-box;
+}
+.control-btn:hover {
+  background-color: white;
+  color: #3f3f3f;
+  border-color: #3f3f3f;
+  box-shadow: inset 1px 1px 10px rgba(0, 0, 0, 0.25);
+}
+
 /* 최상위 DDIS 노드 스타일 */
 .node.head-root {
   font-size: 20px;
   font-weight: bold;
-  margin-bottom: 12px;
+
   display: flex;
   align-items: center;
   cursor: pointer;
@@ -361,11 +423,11 @@ async function cancelChanges() {
   color: #00a8e8;
 }
 /* “EXPANDED” 상태 강조 */
-.expanded-root {
-  background-color: #f0f8ff;
+/* .expanded-root {
+  background-color: #f3f3f3;
   border-radius: 4px;
   padding: 2px 4px;
-}
+} */
 
 /* 계층별 리스트 */
 .org-list,
@@ -376,14 +438,14 @@ async function cancelChanges() {
 }
 .org-list li {
   position: relative;
-  padding-left: 24px;
+  padding-left: 30px;
 }
 /* 세로 라인 */
 .org-list li::before {
   content: '';
   position: absolute;
   top: 0;
-  left: 8px;
+  left: 14px;
   width: 2px;
   height: 100%;
   background: #ccc;
@@ -393,7 +455,7 @@ async function cancelChanges() {
   content: '';
   position: absolute;
   top: 12px;
-  left: 8px;
+  left: 14px;
   width: 15px;
   height: 2px;
   background: #ccc;
@@ -459,7 +521,7 @@ async function cancelChanges() {
   display: flex;
   justify-content: flex-end;
   gap: 16px;
-  margin-top: 20px;
+  margin: 20px 0px;
 }
 
 .btn-confirm {
