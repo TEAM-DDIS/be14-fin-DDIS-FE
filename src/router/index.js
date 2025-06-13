@@ -184,6 +184,12 @@ const router = createRouter({
             path: '/draftdoc/approve',
             component: () => import('@/pages/eapproval/ApproveDoc.vue')
         },
+        {
+            path: '/drafts/:docId',
+            name: 'DraftDetail',
+            component: () => import('@/pages/eapproval/DetailTest.vue'),
+            props: true   
+        },
 
         // 수신함 
         {
@@ -295,7 +301,7 @@ const router = createRouter({
 
         {
             path: '/dictionary',
-            component: () => import('@/components/dictionary/DictionaryPage.vue')
+            component: () => import('@/pages/dictionary/DictionaryPage.vue')
         },
 
         // =============== 에러 페이지 ===============

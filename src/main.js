@@ -10,6 +10,11 @@ import 'ag-grid-community/styles/ag-theme-alpine.css'
 import '@/assets/main.css'
 import 'quill/dist/quill.snow.css'
 
+import { Buffer } from 'buffer'
+
+window.global = window
+window.Buffer = Buffer
+
 // 🔹 Quill + QuillEditor
 import { QuillEditor } from '@vueup/vue-quill'
 import '@vueup/vue-quill/dist/vue-quill.snow.css'
