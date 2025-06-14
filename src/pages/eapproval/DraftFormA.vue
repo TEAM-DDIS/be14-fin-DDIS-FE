@@ -131,6 +131,7 @@
       <!-- ◆ 기안 내용 작성 영역 -->
       <div class="section-title">기안내용</div>
       <hr class="section-divider" />
+
       <!-- 제목, 첨부파일 테이블 -->
       <table class="file-table">
         <tbody>
@@ -300,7 +301,17 @@ export default {
         this.approvalLines = response.data.flatMap(step =>
           step.approverList.map(approver => {
             const lineType = approver.lineType || "ACTUAL";
-            // ★ stepNo 가 1 이면 '기안', 아니면 기존 INTERNAL/EXTERNAL 구분
+            // ★ stepNo 가 1 이면 '기안', 2면 '미결', 그 이후면 '대기중'
+            let statusLabel;
+            if (step.stepNo === 1) {
+              statusLabel = "기안";
+            } else if (step.stepNo === 2) {
+              statusLabel = "미결";
+            } else {
+              statusLabel = "대기중";
+            }
+
+            // 타입 라벨 (실제/양식 or '결재' 구분)
             const typeLabel = step.stepNo === 1
               ? "기안"
               : (approver.type === "INTERNAL" ? "결재" : approver.typeLabel || "");
@@ -315,9 +326,9 @@ export default {
               employeeId:    approver.employeeId,
               position:      approver.positionName,
               team:          approver.teamName || "",
-              status:        "대기중",
-              type:          typeLabel,      // ← 여기서 기안/결재 구분
-              lineTypeLabel,                // ← 실제/양식 결재선
+              status:        statusLabel,  // ← 여기를 동적으로 변경
+              type:          typeLabel,
+              lineTypeLabel,
               viewedAt:      null,
               approvedAt:    null,
               comment:       ""
@@ -330,8 +341,6 @@ export default {
       } catch (error) {
         console.error("❌ 자동 결재선 조회 실패:", error);
       }
-
-
 
 
     },
@@ -474,18 +483,20 @@ body, html {
 
 /* ✅ 메인 박스: 전체 레이아웃 래퍼 */
 .main-box {
-  max-width: 1500px;
-  margin: 20px auto;
-  background: #fff;
-  padding: 18px;
-  box-shadow: 1px 1px 20px 1px rgba(0, 0, 0, 0.05);
+  background: #ffffff;
   border-radius: 12px;
+  padding: 20px 32px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  margin: 24px;
+  max-width: 100%;
+  max-height: 1500px;
 }
 
 /* ✅ 내부 컨텐츠 컨테이너 */
 .container {
   font-family: Arial, sans-serif;
   max-width: 1350px;
+  max-height: 1500px;
   margin: 20px auto;
 }
 
@@ -876,7 +887,7 @@ textarea {
   font-size: 15px;               /* 글자 크기 */
   font-weight: bold;             /* 글자 굵게 */
   white-space: nowrap;           /* 줄바꿈 없이 한 줄로 표시 */
-  background-color: #f8f9fa;     /* 파란 배경 색 */
+  background-color: #f8f9fa;   
   text-align: center;            /* 텍스트 가운데 정렬 */
   display: flex;                 /* Flexbox 사용 */
   align-items: center;           /* 수직 가운데 정렬 */
