@@ -50,6 +50,7 @@
                 :style="{ width: '100%' }"
                 @row-click="e => emit('row-click', e.data)"
             />
+            <button @click="downloadCSV" class="download-btn">CSV 다운로드</button>
         </div>
     </div>
 </template>
@@ -69,28 +70,28 @@
     })
 
     const props = defineProps({
-  commuteList: {
-    type: Array,
-    required: true
-  },
-  dateRange: {
-    type: Object,
-    default: () => ({ start: '', end: '' })
-  }
-})
+        commuteList: {
+            type: Array,
+            required: true
+        },
+        dateRange: {
+            type: Object,
+            default: () => ({ start: '', end: '' })
+        }
+    })
 
-// 시간 포맷터
-const formatTime = (raw) => raw ? raw.split('.')[0] : '-'
-const convertMinutesToHours = (mins) => mins ? Math.floor(mins / 60) : 0
+    // 시간 포맷터
+    const formatTime = (raw) => raw ? raw.split('.')[0] : '-'
+    const convertMinutesToHours = (mins) => mins ? Math.floor(mins / 60) : 0
 
-// 날짜 필터링
-const filteredCommuteList = computed(() => {
-  return props.commuteList.filter(item => {
-    const date = item.workDate?.slice(0, 7)
-    return (!props.dateRange.start || date >= props.dateRange.start) &&
-           (!props.dateRange.end || date <= props.dateRange.end)
-  })
-})
+    // 날짜 필터링
+    const filteredCommuteList = computed(() => {
+        return props.commuteList.filter(item => {
+            const date = item.workDate?.slice(0, 7)
+            return (!props.dateRange.start || date >= props.dateRange.start) &&
+                    (!props.dateRange.end || date <= props.dateRange.end)
+        })
+    })
     const columnDefs = [
         { headerName: '번호', valueGetter: params => params.node.rowIndex + 1, sortable: false },
         { headerName: '사번', field: 'employeeId' },
@@ -106,37 +107,79 @@ const filteredCommuteList = computed(() => {
         { headerName: '총 근무시간', field: 'totalWorkTime' }
     ]
 
-const uniqueHeads = computed(() =>
-  [...new Set(props.commuteList.map(e => e.headName).filter(Boolean))]
-)
-const uniqueRanks = computed(() =>
-  [...new Set(props.commuteList.map(e => e.rankName).filter(Boolean))]
-)
-const filteredDepartments = computed(() =>
-  [...new Set(props.commuteList.filter(e => !filters.headName || e.headName === filters.headName).map(e => e.departmentName).filter(Boolean))]
-)
-const filteredTeams = computed(() =>
-  [...new Set(props.commuteList.filter(e => !filters.departmentName || e.departmentName === filters.departmentName).map(e => e.teamName).filter(Boolean))]
-)
+    const uniqueHeads = computed(() =>
+        [...new Set(props.commuteList.map(e => e.headName).filter(Boolean))]
+    )
+    const uniqueRanks = computed(() =>
+        [...new Set(props.commuteList.map(e => e.rankName).filter(Boolean))]
+    )
+    const filteredDepartments = computed(() =>
+        [...new Set(props.commuteList.filter(e => !filters.headName || e.headName === filters.headName).map(e => e.departmentName).filter(Boolean))]
+    )
+    const filteredTeams = computed(() =>
+        [...new Set(props.commuteList.filter(e => !filters.departmentName || e.departmentName === filters.departmentName).map(e => e.teamName).filter(Boolean))]
+    )
 
-const filteredEmployees = computed(() => {
-  const keyword = searchKeyword.value.toLowerCase()
+    const filteredEmployees = computed(() => {
+        const keyword = searchKeyword.value.toLowerCase()
 
-  return props.commuteList.filter(e => {
-    const inKeyword =
-      !keyword ||
-      e.employeeId?.toString().includes(keyword) ||
-      e.employeeName?.toLowerCase().includes(keyword)
+        return props.commuteList.filter(e => {
+            const inKeyword =
+            !keyword ||
+            e.employeeId?.toString().includes(keyword) ||
+            e.employeeName?.toLowerCase().includes(keyword)
 
-    const inOrgFilter =
-      (!filters.headName || e.headName === filters.headName) &&
-      (!filters.departmentName || e.departmentName === filters.departmentName) &&
-      (!filters.teamName || e.teamName === filters.teamName) &&
-      (!filters.rankName || e.rankName === filters.rankName)
+            const inOrgFilter =
+            (!filters.headName || e.headName === filters.headName) &&
+            (!filters.departmentName || e.departmentName === filters.departmentName) &&
+            (!filters.teamName || e.teamName === filters.teamName) &&
+            (!filters.rankName || e.rankName === filters.rankName)
 
-    return inKeyword && inOrgFilter
-  })
-})
+            return inKeyword && inOrgFilter
+        })
+    })
+
+    function downloadCSV() {
+        if (!filteredEmployees.value.length) {
+            alert('출퇴근 내역이 없습니다.')
+            return
+        }
+
+        const headers = [
+            '사번', '성명', '연차', '반차', '출장', '외근',
+            '초과근무', '지각', '결근', '출근일수', '총 근무시간'
+        ]
+
+        const rows = filteredEmployees.value.map(item => [
+            `\t${item.employeeId}`,
+            item.employeeName,
+            item.annualCount ?? '',
+            item.halfCount ?? '',
+            item.businessTripCount ?? '',
+            item.outsideCount ?? '',
+            item.overtimeCount ?? '',
+            item.lateCount ?? '',
+            item.absentCount ?? '',
+            item.presentCount ?? '',
+            item.totalWorkTime ?? ''
+        ])
+
+        const csvContent = [headers, ...rows]
+            .map(e => e.map(v => `"${v}"`).join(','))
+            .join('\n')
+
+        const blob = new Blob(['\uFEFF' + csvContent], {
+            type: 'text/csv;charset=utf-8;'
+        })
+        const url = URL.createObjectURL(blob)
+
+        const link = document.createElement('a')
+        link.href = url
+        link.setAttribute('download', '출퇴근_요약.csv')
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+    }
 </script>
 
 <style scoped>
@@ -187,5 +230,29 @@ const filteredEmployees = computed(() => {
 
     .fixed-select {
         width: 150px;
+    }
+
+    .download-btn {
+        font-size: 14px;
+        font-weight: bold;
+        background-color: #00a8e8;
+        color: white;
+        border: 1px solid transparent;
+        border-radius: 10px;
+        padding: 10px 30px;
+        margin-top: 20px;
+        cursor: pointer;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        transition: background-color 0.2s, box-shadow 0.2s;
+        box-sizing: border-box;
+        white-space: nowrap;
+    }
+
+    .download-btn:hover {
+        background-color: white;
+        color: #00a8e8;
+        border-color: #00a8e8;
+        box-shadow:
+        inset 1px 1px 10px rgba(0, 0, 0, 0.25);
     }
 </style>
