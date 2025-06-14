@@ -33,6 +33,13 @@ const router = createRouter({
             component: () => import('@/components/employeeInfo/EmployeeList.vue')
         },
 
+        // 사원 상세 조회
+        {
+            path: '/employeeInfo/:id',
+            name: 'EmployeeDetail',
+            component: () => import('@/components/employeeInfo/EmployeeDetailPage.vue')
+        },
+
         // 사원 등록 
         {
             path: '/employeeInfo/employeeEnroll',

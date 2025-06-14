@@ -23,8 +23,7 @@
               v-if="profileSrc !== '/images/profile-placeholder.png'"
               class="profile-img"
               :src="profileSrc"
-              alt="Profile"
-            />
+              alt="Profile"/>
             <div v-else class="profile-placeholder-box">
               <span class="no-photo-text">사진을 추가해주세요</span>
             </div>
@@ -44,9 +43,8 @@
               ref="fileInput"
               accept="image/*"
               style="display: none"
-              @change="onFileChange"
-            />
-          </div>
+              @change="onFileChange" />
+            </div>
         </div>
 
         <!-- 위쪽 카드 전용 그리드 (3열 × 5행) -->
@@ -357,7 +355,7 @@
               <label class="label-bold">결혼 여부
                 <span class="required-star">*</span> 
               </label>
-               <select class="same-size-input" v-model="form.isMarriage">
+              <select class="same-size-input" v-model="form.isMarriage">
                 <option value="">선택</option>
                 <option 
                   v-for="opt in marriageOptions" 
@@ -418,7 +416,7 @@ import { ref, reactive, watch, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 
-import axios from 'axios'
+import axios from 'axios' 
 
 // Axios 기본 URL 설정
 axios.defaults.baseURL = 'http://localhost:8000'
@@ -436,6 +434,12 @@ const yearOptions = Array.from(
   { length: currentYear - 1950 + 1 },
   (_, i) => currentYear - i
 )
+
+// 프로필 미리보기 URL
+const profileSrc = ref('/images/profile-placeholder.png')
+// 숨겨진 file input 레퍼런스
+const fileInput  = ref(null)
+
 
 // 드롭다운 옵션 리스트
 
@@ -608,34 +612,38 @@ const teamMap = {
   '영업부서': ['B2B영업팀', 'B2C영업팀']
 }
 
-// ④ 프로필 이미지 업로드
-const profileSrc = ref('/images/profile-placeholder.png')
-const fileInput = ref(null)
-function onUploadClick() {
-  fileInput.value?.click()
+  function onUploadClick() {
+    fileInput.value?.click()
+  }
+
+
+async function onFileChange(e) {
+  const file = e.target.files?.[0]
+  if (!file) return
+
+  // 1) presigned PUT URL + key 받아오기
+  const { data } = await axios.get('/s3/upload-url', {
+    params: { filename: file.name, contentType: file.type }
+  })
+
+  // 2) S3에 업로드
+  await axios.put(data.url, file, {
+    headers: { 'Content-Type': file.type }
+  })
+
+  // 3) DTO에는 **key**만 저장
+  form.employeePhotoUrl  = data.key
+  form.employeePhotoName = file.name
+
+  // 4) 미리보기는 **profileSrc** 에만 저장
+  const { data: previewUrl } = await axios.get('/s3/download-url', {
+    params: { filename: data.key, contentType: file.type }
+  })
+  profileSrc.value = previewUrl
 }
 
-// 파일 선택 → presigned URL로 S3 PUT → 키/이름 세팅 → 미리보기
-async function onFileChange(event) {
-  const file = event.target.files?.[0]
-  if (!file) return
-  try {
-    const { data } = await axios.get('/s3/upload-url', {
-      params: { filename: file.name, contentType: file.type }
-    })
-    await fetch(data.url, {
-      method: 'PUT',
-      headers: { 'Content-Type': file.type },
-      body: file
-    })
-    form.employeePhotoUrl  = data.key
-    form.employeePhotoName = file.name
-    profileSrc.value = URL.createObjectURL(file)
-  } catch (err) {
-    console.error(err)
-    alert('사진 업로드에 실패했습니다.')
-  }
-}
+
+
 
 function authHeaders() {
   return { 
@@ -648,7 +656,7 @@ function authHeaders() {
 async function onSave() {
     // 1) 필수 입력 항목과 누락 시 보여줄 메시지를 배열로 정의
     const requiredChecks = [
-    { key: 'employeePhotoUrl',  msg: '사진을 업로드해주세요.' },
+    { key: 'employeePhotoUrl',   msg: '사진을 업로드해주세요.' },
     { key: 'employeeName',       msg: '사원명을 입력해주세요.' },
     { key: 'employmentDate',     msg: '입사일을 선택해주세요.' },
     { key: 'employeeNation',     msg: '국적을 입력해주세요.' },
@@ -679,13 +687,18 @@ async function onSave() {
       }
     }
 
+    console.log('▶ 서버로 보내는 form.employeePhotoUrl:', form.employeePhotoUrl)
+    console.log('▶ preview 용 profileSrc:', profileSrc.value)
+
     // 3) 모두 통과했으면 서버에 요청
     try {
+      console.log('onSave 직전 form.employeePhotoUrl:', form.employeePhotoUrl)
       const res = await axios.post(
         '/employees/enroll',
         form,
         { headers: authHeaders() }
       );
+      console.log('등록 응답:', res.data)
       alert(`등록되었습니다 (ID: ${res.data})`);
       router.push('/employeeInfo/employeeList');
     } catch (err) {
@@ -769,7 +782,7 @@ function onBackClick() {
   box-sizing: border-box;
 }
 .btn-back:hover {
-  background-color: #000;
+    background-color: #000;
   color: #fff;
 }
 
