@@ -20,12 +20,12 @@
         class="ag-theme-alpine custom-theme"
         :style="{ width: '100%', height: '500px' }"
         :columnDefs="columnDefs"
-        :rowData="filteredData"
+        :rowData="rowData"
         :defaultColDef="defaultColDef"
         rowSelection="multiple"               
         :gridOptions="gridOptions"
         @grid-ready="onGridReady"
-        @cell-clicked="onCellClick"
+        @cellClicked="onCellClick"
       />
     </div>
   </div>
@@ -159,9 +159,13 @@ function onGridReady(params) {
 }
 
 // 11) 셀 클릭(사원명) → 상세 이동
-function onCellClick(e) {
-  if (e.colDef.field === 'employeeName') {
-    router.push('/employeeInfo/employeeEnroll')
+function onCellClick(event) {
+  // event.data 가 해당 행의 전체 데이터 객체
+  const id = event.data.employeeId   // ← 여기서 꼭 .employeeId 꺼내세요
+  if (id != null) {
+    router.push(`/employeeInfo/${id}`)
+  } else {
+    console.warn('employeeId 가 없습니다:', event.data)
   }
 }
 

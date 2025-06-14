@@ -24,13 +24,20 @@ const router = createRouter({
         // 내 인사 정보
         {
             path: '/employeeInfo/myInfo',
-            component: () => import('@/components/employeeInfo/EmployeeEnroll.vue')
+            component: () => import('@/components/employeeInfo/MyEmployeePage.vue')
         },
 
         // 사원 목록 조회
         {
             path: '/employeeInfo/employeeList',
             component: () => import('@/components/employeeInfo/EmployeeList.vue')
+        },
+
+        // 사원 상세 조회
+        {
+            path: '/employeeInfo/:id',
+            name: 'EmployeeDetail',
+            component: () => import('@/components/employeeInfo/EmployeeDetailPage.vue')
         },
 
         // 사원 등록 
