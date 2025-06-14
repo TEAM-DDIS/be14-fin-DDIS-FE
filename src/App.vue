@@ -32,7 +32,9 @@
     <FloatingChat v-if="!hideLayout" @toggle="showChatbot = !showChatbot" />
 
     <!-- 챗봇 모달 -->
-    <ChatModal v-if="showChatbot" @close="showChatbot = false" />
+    <transition name="chat-pop" appear>
+      <ChatModal v-if="showChatbot" @close="showChatbot = false" />
+    </transition>
   </div>
 </template>
 
@@ -153,5 +155,19 @@ html, body {
 }
 .app.no-header {
   padding-top: 0;
+}
+
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+.fade-enter-to,
+.fade-leave-from {
+  opacity: 1;
 }
 </style>
