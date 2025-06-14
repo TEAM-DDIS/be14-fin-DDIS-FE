@@ -44,18 +44,29 @@
 <script setup>
 import { ref } from 'vue'
 
+// 부모로부터 lineId를 props로 전달받음
+const props = defineProps({
+  lineId: {
+    type: [String, Number],
+    required: true
+  }
+})
+// close, submit 이벤트 정의 (submit은 부모가 실제 API 호출)
+const emit = defineEmits(['close','submit'])
+
+// 내부 상태
 const status = ref('승인')
 const opinion = ref('')
 
-const emit = defineEmits(['submit','close'])
-
+// 제출 이벤트만 emit; API 호출은 부모 컴포넌트에서 처리
 function submitApproval() {
-  emit('submit', {
-    status: status.value,
-    opinion: opinion.value.trim()
-  })
+  const text = opinion.value.trim()
+  emit('submit', { lineId: props.lineId, status: status.value, opinion: text })
+  emit('close')
 }
 </script>
+
+
 
 <style scoped>
 .modal-overlay {
