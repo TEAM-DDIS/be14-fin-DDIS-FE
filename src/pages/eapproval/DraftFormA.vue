@@ -199,12 +199,30 @@
 
 <script>
 import { QuillEditor } from '@vueup/vue-quill';
+import { ref, reactive } from 'vue'
 import axios from "axios";
 import SelectionModal from '@/components/eapproval/ApprovalLineModal.vue';
 import SubmitModal from '@/components/eapproval/SubmitModal.vue';
 import DraftSaveModal from '@/components/eapproval/DraftSaveModal.vue';
 import { useUserStore } from '@/stores/user';
 const userStore = useUserStore()
+
+async function getUploadInfo(file) {
+  const token = localStorage.getItem('token')
+  const qs = new URLSearchParams({ filename: file.name, contentType: file.type }).toString()
+  const res = await fetch(`http://localhost:8000/s3/upload-url?${qs}`, {
+    headers: { Authorization: `Bearer ${token}` }
+  })
+  if (!res.ok) throw new Error('Presign URL 요청 실패')
+  return res.json()
+}
+
+async function uploadToS3(uploadUrl, file) {
+  const res = await fetch(uploadUrl, {
+    method: 'PUT', headers: { 'Content-Type': file.type }, body: file
+  })
+  if (!res.ok) throw new Error('S3 업로드 실패')
+}
 
 export default {
   name: "CreateDraftPreview",
@@ -353,6 +371,30 @@ export default {
       this.showReferenceModal = false;
       this.form.reference = list.map(u => u.name).join(', ');
     },
+     handleFileUpload(e) {
+      this.fileError = ''
+      const file = e.target.files[0]
+      if (!file) return
+      if (file.size > this.maxFileSize) { this.fileError='10MB 이하만 가능'; return }
+      if (!this.allowedTypes.includes(file.type)) { this.fileError='허용되지 않는 형식'; return }
+      this.fileInput = file
+    },
+    async addFile() {
+      if (!this.fileInput) return
+      const file = this.fileInput
+      if (this.uploadedFiles.some(f=>f.name===file.name&&f.size===file.size)) { this.fileError='이미 추가됨'; return }
+      try {
+        const { key, url } = await getUploadInfo(file)
+        await uploadToS3(url, file)
+        this.uploadedFiles.push({ name:file.name, size:file.size, type:file.type, key, selected:false })
+        this.fileInput = null
+      } catch(e){ console.error(e); this.fileError='업로드 실패' }
+    },
+    removeSelectedFiles(){ 
+      this.uploadedFiles=this.uploadedFiles.filter(f=>!f.selected) 
+    },
+   
+
     async confirmDraftSave() {
       const now = new Date();
       const draftData = {

@@ -232,17 +232,6 @@ const totalWeight = computed(() =>
   goals.value.reduce((sum, g) => sum + (g.goalWeight || 0), 0)
 )
 
-const myPerformances = computed(() =>
-  goals.value
-    .filter(g => g.performance?.employeeIdSelfreviewer === userStore.employeeId)
-    .map(g => ({
-      performanceId: g.performance.performanceId,
-      goalTitle: g.goalTitle,
-      actual: g.performance.performanceValue,
-      comment: g.performance.selfreviewContent
-    }))
-)
-
 function openMyPerfModal() { showMyPerfModal.value = true }
 function closeMyPerfModal() { showMyPerfModal.value = false }
 
@@ -392,14 +381,24 @@ async function fetchPresignedUrls() {
   presignedUrls.value = []
 
   for (let i = 0; i < form.existingAttachmentKeys.length; i++) {
-    const s3Key = form.existingAttachmentKeys[i]
+    const s3Key   = form.existingAttachmentKeys[i]
     const fileType = form.existingAttachmentFileTypes[i]
+
     try {
+      // 1) URLSearchParams 로 쿼리스트링 생성 (소문자 키)
+      const qs = new URLSearchParams({
+        filename:    s3Key,
+        contentType: fileType
+      }).toString()
+
+      // 2) GET /s3/download-url?filename=…&contentType=…
       const res = await fetch(
-        `http://localhost:8000/s3/download-url?fileName=${encodeURIComponent(s3Key)}&ContentType=${encodeURIComponent(fileType)}`,
+        `http://localhost:8000/s3/download-url?${qs}`,
         { headers: { Authorization: `Bearer ${token}` } }
       )
       if (!res.ok) throw new Error("프리사인드 URL 생성 실패")
+
+      // 3) plain text 로 온 presigned GET URL
       const url = await res.text()
       presignedUrls.value.push(url)
     } catch (err) {
@@ -432,17 +431,30 @@ function getDownloadUrlWithDisposition(presignedUrl, filename) {
 // -----------------------------
 async function downloadAttachment(fileKey, fileType) {
   try {
-    const token = localStorage.getItem('token')
+    const token = localStorage.getItem('token');
+    // 쿼리스트링 생성
+    const qs = new URLSearchParams({
+      filename: fileKey,
+      contentType: fileType
+    }).toString();
+
+    // ① 다운로드용 presign URL 요청
     const res = await fetch(
-      `http://localhost:8000/s3/download-url?fileName=${encodeURIComponent(fileKey)}&ContentType=${encodeURIComponent(fileType)}`,
-      { headers: { Authorization: `Bearer ${token}` } }
-    )
-    if (!res.ok) throw new Error('다운로드 URL 생성 실패')
-    const presignedUrl = await res.text()
-    window.open(presignedUrl, '_blank')
+      `http://localhost:8000/s3/download-url?${qs}`,
+      {
+        headers: { Authorization: `Bearer ${token}` }
+      }
+    );
+    if (!res.ok) throw new Error('다운로드 URL 생성 실패');
+
+    // ② 백엔드가 반환한 presigned GET URL (plain text)
+    const downloadUrl = await res.text();
+
+    // ③ 새 탭으로 열기
+    window.open(downloadUrl, '_blank');
   } catch (err) {
-    console.error(err)
-    alert('파일 다운로드 중 오류가 발생했습니다.')
+    console.error(err);
+    alert('파일 다운로드 중 오류가 발생했습니다.');
   }
 }
 function handleModalSelect(goalId) {
@@ -554,32 +566,46 @@ async function submitPerf() {
   let fileSizesToSend = [...form.existingAttachmentFileSizes]
 
   // 새로 파일을 골랐다면 presign→PUT
-  if (form.file) {
-    try {
-      const key = `performance/${uuidv4()}-${form.file.name}`
-      const presignRes = await fetch(
-        `http://localhost:8000/s3/upload-url?fileName=${encodeURIComponent(key)}&ContentType=${encodeURIComponent(form.file.type)}`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      )
-      if (!presignRes.ok) throw new Error('Presign URL 요청 실패')
-      const uploadUrl = await presignRes.text()
+if (form.file) {
+  try {
+    // GET /s3/upload-url?filename=...&contentType=...
+    const qs = new URLSearchParams({
+      filename: form.file.name,
+      contentType: form.file.type
+    }).toString();
 
-      const putRes = await fetch(uploadUrl, {
-        method: 'PUT',
-        headers: { 'Content-Type': form.file.type },
-        body: form.file
-      })
-      if (!putRes.ok) throw new Error('S3 파일 업로드 실패')
+    const presignRes = await fetch(
+      `http://localhost:8000/s3/upload-url?${qs}`,
+      {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      }
+    );
+    if (!presignRes.ok) throw new Error('Presign URL 요청 실패');
 
-      attachmentUrlsToSend = [key]
-      fileNamesToSend = [form.fileName]
-      fileTypesToSend = [form.file.type]
-      fileSizesToSend = [form.file.size]
-    } catch (err) {
-      console.error(err)
-      return alert('파일 업로드 중 오류가 발생했습니다.')
-    }
+    // 백엔드가 { key, url } 형태로 응답하니 그대로 파싱
+    const { key, url: uploadUrl } = await presignRes.json();
+
+    // S3에 PUT
+    const putRes = await fetch(uploadUrl, {
+      method: 'PUT',
+      headers: { 'Content-Type': form.file.type },
+      body: form.file
+    });
+    if (!putRes.ok) throw new Error('S3 파일 업로드 실패');
+
+    // payload용 데이터 업데이트
+    attachmentUrlsToSend = [key];
+    fileNamesToSend      = [form.fileName];
+    fileTypesToSend      = [form.file.type];
+    fileSizesToSend      = [form.file.size];
+  } catch (err) {
+    console.error(err);
+    return alert('파일 업로드 중 오류가 발생했습니다.');
   }
+}
 
   const payload = {
     performanceValue: form.actual,
