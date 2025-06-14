@@ -175,6 +175,51 @@
           </div>
          </div>
       </div>
+      <!-- 인사발령 탭: AG Grid -->
+      <div v-else-if="currentTab === '인사발령'">
+        <div class="ag-theme-alpine ag-grid-box">  
+          <AgGridVue
+            :columnDefs="appointmentColumnDefs"
+            :rowData="appointmentData"
+            :defaultColDef="defaultColDef"
+            :pagination="true"
+            :paginationPageSize="pageSize"
+            rowSelection="multiple"
+            @grid-ready="onGridReady"
+            style="width:100%; height:100%"
+          />
+        </div>
+      </div>
+      <!-- 징계 탭: AG Grid -->
+      <div v-else-if="currentTab === '징계'">
+        <div class="ag-theme-alpine ag-grid-box">
+          <AgGridVue
+            :columnDefs="disciplineColumnDefs"
+            :rowData="disciplineData"
+            :defaultColDef="defaultColDef"
+            :pagination="true"
+            :paginationPageSize="pageSize"
+            rowSelection="multiple"
+            @grid-ready="onGridReady"
+            style="width:100%; height:100%"
+          />
+        </div>
+      </div>
+      <!-- 계약 탭: AG Grid -->
+      <div v-else-if="currentTab === '계약'">
+        <div class="ag-theme-alpine ag-grid-box">
+          <AgGridVue
+            :columnDefs="contractColumnDefs"
+            :rowData="contractData"
+            :defaultColDef="defaultColDef"
+            :pagination="true"
+            :paginationPageSize="pageSize"
+            rowSelection="multiple"
+            @grid-ready="onGridReady"
+            style="width:100%; height:100%"
+          />
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -186,13 +231,70 @@ import axios from 'axios'
 import { useUserStore } from '@/stores/user'
 axios.defaults.baseURL = 'http://localhost:8000'
 
+import { AgGridVue } from 'ag-grid-vue3'
+import {
+  ModuleRegistry,
+  AllCommunityModule,
+  ClientSideRowModelModule,
+  RowSelectionModule,
+  PaginationModule,
+  RowAutoHeightModule,
+  CellStyleModule,
+  ValidationModule
+} from 'ag-grid-community'
+
+// AG Grid 모듈 등록
+ModuleRegistry.registerModules([
+  AllCommunityModule,
+  ClientSideRowModelModule,
+  RowSelectionModule,
+  PaginationModule,
+  RowAutoHeightModule,
+  CellStyleModule,
+  ValidationModule
+])
+
+
+
 const userStore = useUserStore()
 const route = useRoute()
 const router = useRouter()
 
 // 탭 정의
-const tabs = ['인사정보','개인정보']
+const tabs = ['인사정보','개인정보','인사발령','징계','계약']
 const currentTab = ref(tabs[0])
+
+// ⑤ AG Grid 공통 설정
+const defaultColDef = { sortable: true, filter: true, resizable: true }
+const pageSize = ref(10)
+let gridApi = null
+function onGridReady(params) { gridApi = params.api }
+
+// 인사발령 그리드
+const appointmentColumnDefs = ref([
+  { headerName: '번호', field: 'id', width: 90 },
+  { headerName: '사원번호', field: 'employeeNo', flex: 1, cellClass: 'center-align' },
+  { headerName: '발령유형', field: 'appointment_type', flex: 1, cellClass: 'center-align' },
+  { headerName: '발령일자', field: 'appointment_effective_date', flex: 1, cellClass: 'center-align' },
+  { headerName: '상태', field: 'appointment_status', width: 200 },
+  { headerName: '상세', field: 'detail', width: 100 }
+])
+
+// 징계 그리드
+const disciplineColumnDefs = ref([
+  { headerName: '징계번호', field: 'disciplineNo', flex: 1, cellClass: 'center-align' },
+  { headerName: '징계내용', field: 'content', flex: 2 },
+  { headerName: '징계일자', field: 'disciplineDate', flex: 1, cellClass: 'center-align' }
+])
+
+// 계약 그리드
+const contractColumnDefs = ref([
+  { headerName: '번호', field: 'id', width: 100, cellClass: 'center-align' },
+  { headerName: '요청일자', field: 'requestDate', width: 150 },
+  { headerName: '계약서류', field: 'document', flex: 1, cellRenderer: params => `<a href="${params.data.documentUrl}" target="_blank">${params.value}</a>` },
+  { headerName: '계약일자', field: 'contractDate', width: 150 },
+  { headerName: '만료일자', field: 'expiryDate', width: 150, cellClass: 'center-align' }
+])
 
 // form 초기값
 const form = reactive({
@@ -304,7 +406,7 @@ onMounted(async () => {
 
     form.teamId              = data.teamId
     form.teamName            = data.teamName
-    
+
     if (form.employeePhotoUrl) {
       try {
         const resp = await axios.get(`/s3/download-url`, {
@@ -494,6 +596,17 @@ onMounted(async () => {
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     white-space: normal;
   }
+}
+
+/* AG Grid 컨테이너 */
+.ag-grid-box {
+  width: 100%;
+  height: 300px;
+  border: 1px solid #d9d9d9;
+  border-radius: 8px;
+  overflow: hidden;
+  margin: 0 auto;
+  overflow-y: auto;
 }
 
 .info-column {
