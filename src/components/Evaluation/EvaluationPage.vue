@@ -248,6 +248,7 @@ const accessToken    = computed(() => userStore.accessToken)
 const currentUser    = computed(() => userStore.user)
 const selectedHistory = ref(null)
 
+
 function getPayload() {
   try {
     const raw = accessToken.value.split('.')[1].replace(/-/g,'+').replace(/_/g,'/')
