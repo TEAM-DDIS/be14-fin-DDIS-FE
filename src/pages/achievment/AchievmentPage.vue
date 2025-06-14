@@ -2,13 +2,6 @@
   <div class="performance-page">
     <h1 class="page-title">전체 성과 이력</h1>
 
-    <!-- 인사팀인 경우에만 전체/나의 조회 토글 버튼 노출 -->
-    <div v-if="isHR" class="toggle-btn-wrapper" style="text-align: right; margin-bottom: 10px;">
-      <button @click="toggleView" class="toggle-btn">
-        {{ viewingAll ? '나의 성과 조회' : '전체 성과 조회' }}
-      </button>
-    </div>
-
     <div class="ag-grid-wrapper">
       <AgGrid
         class="ag-theme-alpine custom-theme"
@@ -23,43 +16,10 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted } from 'vue'
 import AgGrid from '@/components/grid/BaseGrid.vue'
-import { useUserStore } from '@/stores/user'
 
-const userStore = useUserStore()
-
-// JWT 페이로드 디코딩
-function getPayload() {
-  try {
-    const base64 = userStore.accessToken.split('.')[1]
-    const normalized = base64.replace(/-/g, '+').replace(/_/g, '/')
-    return JSON.parse(atob(normalized))
-  } catch {
-    return {}
-  }
-}
-
-// 인사팀 여부
-const isHR = computed(() => {
-  const payload = getPayload()
-  return Array.isArray(payload.auth) && payload.auth.includes('ROLE_HR')
-})
-
-// “전체 모드”인지 여부 (인사팀만 토글 가능)
-const viewingAll = ref(isHR.value)
-
-// 호출할 엔드포인트 결정
-const endpoint = computed(() => {
-  if (!isHR.value) {
-    return '/review/history/employee'
-  }
-  return viewingAll.value
-    ? '/review/history/all'
-    : '/review/history/employee'
-})
-
-// 컬럼 정의 (기존 그대로)
+// 컬럼 정의
 const columnDefs = ref([
   { headerName: '사번', field: 'employeeId', width: 180 },
   { headerName: '이름', field: 'employeeName', width: 180 },
@@ -77,11 +37,12 @@ const columnDefs = ref([
   }
 ])
 
+// 행 데이터
 const rowData = ref([])
 
-// 데이터 로드 함수
+// 전체 성과 이력 조회
 async function loadData() {
-  const url = `http://localhost:8000${endpoint.value}`
+  const url = 'http://localhost:8000/review/history/all'
   try {
     const res = await fetch(url, {
       headers: {
@@ -94,12 +55,6 @@ async function loadData() {
     console.error('로드 오류:', e)
     rowData.value = []
   }
-}
-
-// 토글 버튼 클릭 핸들러
-function toggleView() {
-  viewingAll.value = !viewingAll.value
-  loadData()
 }
 
 onMounted(loadData)
@@ -115,26 +70,6 @@ onMounted(loadData)
   font-size: 24px;
   color: #00a8e8;
   font-weight: bold;
-}
-
-/* 토글 버튼 스타일 (예시) */
-.toggle-btn-wrapper .toggle-btn {
-    margin-left: auto;
-    font-size: 14px;
-    font-weight: bold;
-    background-color: #00a8e8;
-    color: white;
-    border: 1px solid transparent;
-    border-radius: 10px;
-    padding: 10px 30px;
-    cursor: pointer;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-    transition: background-color 0.2s, box-shadow 0.2s;
-    box-sizing: border-box;
-}
-
-.toggle-btn-wrapper .toggle-btn:hover {
-  background: #0088c8;
 }
 
 .ag-grid-wrapper {
