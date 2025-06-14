@@ -1,10 +1,10 @@
 <template>
   <!-- 페이지 제목 + 버튼을 같은 줄에 배치 -->
-  <h1 class="page-title">사원 상세 조회</h1>
+  <h1 class="page-title">사원 목록 조회</h1>
   <div class="desc-row">
-    <p class="desc">사원 상세 조회</p>
+    <p class="desc">사원 등록 </p>
     <div class="button-group-inline top-buttons">
-      <button class="btn-delete" @click="onDeleteClick">삭제</button>
+      <button type="button" class="btn-back" @click="onBackClick">취소</button>
       <button class="btn-save" @click="onSave">저장</button>
     </div>
   </div>
@@ -53,12 +53,17 @@
         <div class="top-grid-info">
           <!-- 1행 -->
           <div class="info-item">
-            <label class="label-bold">사원명</label>
-            <input class="same-size-input" v-model="form.employeeName" />
+            <label class="label-bold">사원명 
+              <span class="required-star">*</span> 
+            </label>
+            <input class="same-size-input" 
+            v-model="form.employeeName" />
           </div>
                   <!-- 직무 선택 -->
           <div class="info-item">
-            <label class="label-bold">직무</label>
+            <label class="label-bold">직무
+              <span class="required-star">*</span> 
+            </label>
             <select v-model="form.jobId" class="same-size-input">
               <option value="">선택</option>
               <option 
@@ -72,7 +77,9 @@
           </div>
 
           <div class="info-item">
-            <label class="label-bold">근무형태</label>
+            <label class="label-bold">근무형태
+              <span class="required-star">*</span> 
+            </label>
               <select class="same-size-input" v-model="form.workType">
                 <option value="">선택</option>
                 <option 
@@ -87,7 +94,9 @@
           <!-- 2행 -->
           <!-- 본부 선택 -->
           <div class="info-item">
-            <label class="label-bold">본부</label>
+            <label class="label-bold">본부
+              <span class="required-star">*</span> 
+            </label>
             <select v-model="form.headId" class="same-size-input">
               <option value="">선택</option>
               <option 
@@ -101,7 +110,9 @@
           </div>
                   <!-- 직책 선택 -->
           <div class="info-item">
-            <label class="label-bold">직책</label>
+            <label class="label-bold">직책
+              <span class="required-star">*</span> 
+            </label>
             <select v-model="form.positionId" class="same-size-input">
               <option value="">선택</option>
               <option 
@@ -114,13 +125,17 @@
             </select>
           </div>
           <div class="info-item">
-            <label class="label-bold">입사일</label>
+            <label class="label-bold">입사일
+              <span class="required-star">*</span> 
+            </label>
             <input type="date" class="same-size-input" v-model="form.employmentDate" />
           </div>
 
                   <!-- 부서 선택 -->
           <div class="info-item">
-            <label class="label-bold">부서</label>
+            <label class="label-bold">부서
+              <span class="required-star">*</span> 
+            </label>
             <select v-model="form.departmentId" class="same-size-input">
               <option value="">선택</option>
               <option 
@@ -134,7 +149,9 @@
           </div>
                   <!-- 직급 선택 -->
           <div class="info-item">
-            <label class="label-bold">직급</label>
+            <label class="label-bold">직급
+              <span class="required-star">*</span> 
+            </label>
             <select v-model="form.rankId" class="same-size-input">
               <option value="">선택</option>
               <option 
@@ -153,7 +170,9 @@
 
                     <!-- 팀 선택 -->
           <div class="info-item">
-            <label class="label-bold">팀</label>
+            <label class="label-bold">팀
+              <span class="required-star">*</span> 
+            </label>
             <select v-model="form.teamId" class="same-size-input">
               <option value="">선택</option>
               <option 
@@ -166,7 +185,9 @@
             </select>
           </div>
           <div class="info-item">
-            <label class="label-bold">연락처</label>
+            <label class="label-bold">연락처
+              <span class="required-star">*</span> 
+            </label>
             <input class="same-size-input" v-model="form.employeeContact" />
           </div>
           <div class="info-item"></div>
@@ -174,10 +195,17 @@
           <!-- 5행 -->
           <div class="info-item">
             <label class="label-bold">사번</label>
-            <input class="same-size-input" v-model="form.employeeNo" />
+                <input
+                      class="same-size-input"
+                      v-model="form.employeeId"
+                      disabled
+                      placeholder="등록 시 자동 생성됩니다"
+                />
           </div>
           <div class="info-item">
-            <label class="label-bold">이메일</label>
+            <label class="label-bold">이메일
+              <span class="required-star">*</span> 
+            </label>
             <input class="same-size-input" v-model="form.employeeEmail" />
           </div>
           <div class="info-item"></div>
@@ -208,7 +236,9 @@
         <div class="grid-info scrollable-grid">
           <div class="info-column">
             <div class="info-item">
-              <label class="label-bold">성별</label>
+              <label class="label-bold">성별
+                <span class="required-star">*</span> 
+              </label>
               <select class="same-size-input" v-model="form.employeeGender">
                 <option value="">선택</option>
                 <option 
@@ -220,15 +250,21 @@
               </select>
             </div>
             <div class="info-item">
-              <label class="label-bold">국적</label>
+              <label class="label-bold">국적
+                <span class="required-star">*</span> 
+              </label>
               <input class="same-size-input" v-model="form.employeeNation" />
             </div>
             <div class="info-item">
-              <label class="label-bold">생년월일</label>
+              <label class="label-bold">생년월일
+                <span class="required-star">*</span> 
+              </label>
               <input type="date" class="same-size-input" v-model="form.employeeBirth" />
             </div>
             <div class="info-item">
-              <label class="label-bold">4대 보험</label>
+              <label class="label-bold">4대 보험
+                <span class="required-star">*</span> 
+              </label>
               <select class="same-size-input" v-model="form.isFourInsurances">
                     <option value="">선택</option>
                     <option 
@@ -240,15 +276,21 @@
               </select>
             </div>
             <div class="info-item">
-              <label class="label-bold">거래 은행</label>
+              <label class="label-bold">거래 은행
+                <span class="required-star">*</span> 
+              </label>
               <input class="same-size-input" v-model="form.bankName" />
             </div>
             <div class="info-item">
-              <label class="label-bold">예금주</label>
+              <label class="label-bold">예금주
+                <span class="required-star">*</span> 
+              </label>
               <input class="same-size-input" v-model="form.bankDepositor" />
             </div>
             <div class="info-item">
-              <label class="label-bold">계좌</label>
+              <label class="label-bold">계좌
+                <span class="required-star">*</span> 
+              </label>
               <input class="same-size-input" v-model="form.bankAccount" />
             </div>
           </div>
@@ -260,19 +302,27 @@
         <div class="grid-info scrollable-grid">
           <div class="info-column">
             <div class="info-item">
-              <label class="label-bold">주민등록번호</label>
+              <label class="label-bold">주민등록번호
+                <span class="required-star">*</span> 
+              </label>
               <input class="same-size-input" v-model="form.employeeResident" />
             </div>
             <div class="info-item">
-              <label class="label-bold">주소</label>
+              <label class="label-bold">주소
+                <span class="required-star">*</span> 
+              </label>
               <input class="same-size-input" v-model="form.employeeAddress" />
             </div>
             <div class="info-item">
-              <label class="label-bold">출신학교</label>
+              <label class="label-bold">출신학교
+                <span class="required-star">*</span> 
+              </label>
               <input class="same-size-input" v-model="form.employeeSchool" />
             </div>
             <div class="info-item">
-              <label class="label-bold">장애 여부</label>
+              <label class="label-bold">장애 여부
+                <span class="required-star">*</span> 
+              </label>
               <select class="same-size-input" v-model="form.isDisorder">
                 <option value="">선택</option>
                 <option 
@@ -284,7 +334,9 @@
               </select>
             </div>
             <div class="info-item">
-              <label class="label-bold">병역 여부</label>
+              <label class="label-bold">병역 여부
+                <span class="required-star">*</span> 
+              </label>
                 <select class="same-size-input" v-model="form.militaryType">
                   <option value="">선택</option>
                   <option 
@@ -296,11 +348,15 @@
                 </select>
             </div>
             <div class="info-item">
-              <label class="label-bold">부양 가족 수</label>
+              <label class="label-bold">부양 가족 수
+                <span class="required-star">*</span> 
+              </label>
               <input type="number" class="same-size-input" v-model="form.familyCount" />
             </div>
             <div class="info-item">
-              <label class="label-bold">결혼 여부</label>
+              <label class="label-bold">결혼 여부
+                <span class="required-star">*</span> 
+              </label>
                <select class="same-size-input" v-model="form.isMarriage">
                 <option value="">선택</option>
                 <option 
@@ -324,7 +380,9 @@
               <input class="same-size-input" v-model="form.previousCompany" />
             </div>
             <div class="info-item">
-              <label class="label-bold">최종 학력</label>
+              <label class="label-bold">최종 학력
+                <span class="required-star">*</span> 
+              </label>
               <input class="same-size-input" v-model="form.finalAcademic" />
             </div>
             <div class="info-item">
@@ -490,8 +548,8 @@ const form = reactive({
   employeeId:        null,   // 보낼 필요는 없지만 DTO에 있으므로
   employeeName:      '',
   employeePwd:       '',
-  employeePhotoName: '',
-  employeePhotoUrl:  '',
+  employeePhotoName: null,
+  employeePhotoUrl:  null,
   employeeNation:    '',
   employeeGender:    '',
   employeeBirth:     '',     // LocalDate → yyyy-MM-dd 형태의 문자열
@@ -526,12 +584,13 @@ const form = reactive({
 })
 
 // ② 본부/부서/팀 변경 시 초기화
-watch(() => form.selectedHead, () => {
-  form.selectedDepartment = ''
-  form.selectedTeam = ''
+watch(() => form.headId, () => {
+  form.departmentId = null
+  form.teamId       = null
 })
-watch(() => form.selectedDepartment, () => {
-  form.selectedTeam = ''
+
+watch(() => form.departmentId, () => {
+  form.teamId = null
 })
 
 // ③ 본부/부서/팀 매핑
@@ -587,31 +646,65 @@ function authHeaders() {
 
 // ⑥ 저장 로직
 async function onSave() {
-  if (!form.employeeName || !form.employmentDate) {
-    return alert('사원명과 입사일은 필수 입력입니다.')
-  }
-  try {
-    const res = await axios.post('/employees/enroll', 
-    form,
-  { headers: authHeaders() }
-  )
-    alert(`등록되었습니다 (ID: ${res.data})`)
-    router.push('/employeeInfo/employeeList')
-  } catch (err) {
-    console.error(err)
-    alert('등록 중 오류가 발생했습니다.')
+    // 1) 필수 입력 항목과 누락 시 보여줄 메시지를 배열로 정의
+    const requiredChecks = [
+    { key: 'employeePhotoUrl',  msg: '사진을 업로드해주세요.' },
+    { key: 'employeeName',       msg: '사원명을 입력해주세요.' },
+    { key: 'employmentDate',     msg: '입사일을 선택해주세요.' },
+    { key: 'employeeNation',     msg: '국적을 입력해주세요.' },
+    { key: 'employeeGender',     msg: '성별을 선택해주세요.' },
+    { key: 'employeeBirth',      msg: '생년월일을 입력해주세요.' },
+    { key: 'employeeResident',   msg: '주민등록번호를 입력해주세요.' },
+    { key: 'employeeContact',    msg: '연락처를 입력해주세요.' },
+    { key: 'employeeEmail',      msg: '이메일을 입력해주세요.' },
+    { key: 'employeeAddress',    msg: '주소를 입력해주세요.' },
+    { key: 'workType',           msg: '근무형태를 선택해주세요.' },
+    { key: 'bankName',           msg: '은행명을 입력해주세요.' },
+    { key: 'bankDepositor',      msg: '예금주를 입력해주세요.' },
+    { key: 'bankAccount',        msg: '계좌번호를 입력해주세요.' },
+    { key: 'isDisorder',         msg: '장애여부를 선택해주세요.' },
+    { key: 'militaryType',       msg: '병역여부를 선택해주세요.' },
+    { key: 'isMarriage',         msg: '결혼여부를 선택해주세요.' },
+    { key: 'familyCount',        msg: '가족 수를 입력해주세요.' },
+    { key: 'finalAcademic',      msg: '최종 학력을 입력해주세요.' },
+    { key: 'employeeSchool',     msg: '최종 학교를 입력해주세요.' },
+    { key: 'isFourInsurances',   msg: '4대 보험 여부를 선택해주세요.' },
+  ];
+
+    // 2) 하나라도 누락되었으면 해당 메시지 alert 후 리턴
+    for (const { key, msg } of requiredChecks) {
+      const val = form[key];
+      if (val === '' || val === null || val === undefined) {
+        return alert(msg);
+      }
+    }
+
+    // 3) 모두 통과했으면 서버에 요청
+    try {
+      const res = await axios.post(
+        '/employees/enroll',
+        form,
+        { headers: authHeaders() }
+      );
+      alert(`등록되었습니다 (ID: ${res.data})`);
+      router.push('/employeeInfo/employeeList');
+    } catch (err) {
+      if (err.response) {
+        console.error('HTTP', err.response.status)
+        console.error('Response data:', err.response.data)
+        alert(err.response.data.message || JSON.stringify(err.response.data))
+      } else {
+        console.error(err)
+        alert('알 수 없는 오류가 발생했습니다.')
+    }
   }
 }
 
-// ⑦ 삭제 모달 로직
-const showDeleteModal = ref(false)
-function onDeleteClick() { showDeleteModal.value = true }
-function cancelDelete() { showDeleteModal.value = false }
-function confirmDelete() {
-  showDeleteModal.value = false
-  alert('삭제가 완료되었습니다')
+
+function onBackClick() {
   router.push('/employeeInfo/employeeList')
 }
+
 </script>
 
 
@@ -622,6 +715,8 @@ function confirmDelete() {
   margin-bottom: 30px;
   color: #00a8e8;
 }
+
+.required-star { color: red; }
 
 /* “사원 상세 조회” 텍스트와 버튼을 같은 행에 배치 */
 .desc-row {
@@ -661,7 +756,7 @@ function confirmDelete() {
   box-shadow: inset 1px 1px 10px rgba(0, 0, 0, 0.25);
 }
 
-.btn-delete {
+.btn-back {
   background-color: #d3d3d3;
   color: #000;
   border: none;
@@ -673,7 +768,7 @@ function confirmDelete() {
   transition: background-color 0.2s, box-shadow 0.2s;
   box-sizing: border-box;
 }
-.btn-delete:hover {
+.btn-back:hover {
   background-color: #000;
   color: #fff;
 }
