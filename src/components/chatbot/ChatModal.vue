@@ -1,46 +1,50 @@
 <template>
-  <div class="modal-overlay" @click.self="$emit('close')">
-    <div class="chatbot-modal">
-      <div class="header">
-        <div class="title-row">
-          <img src="@/assets/icons/pizza-icon2.svg" alt="DDIS Logo" class="logo"/>
-          <span class="title">ERPIZZA</span>
+  <transition name="fade">
+    <div class="modal-overlay" @click.self="$emit('close')">
+      <transition name="chat-pop">
+        <div class="chatbot-modal">
+          <div class="header">
+            <div class="title-row">
+              <img src="@/assets/icons/pizza-icon2.svg" alt="DDIS Logo" class="logo" />
+              <span class="title">ERPIZZA</span>
+            </div>
+            <button class="close-btn" @click="$emit('close')">✕</button>
+          </div>
+
+          <div class="chat-body" ref="chatBody">
+            <MessageBubble
+              v-for="(msg, index) in messages"
+              :key="index"
+              v-bind="msg"
+            />
+          </div>
+
+          <div class="input-area">
+            <input
+              v-model="input"
+              @keydown.enter="sendMessage"
+              type="text"
+              placeholder="메시지를 입력하세요"
+            />
+            <button
+              class="send-btn"
+              :class="{ active: input.trim().length > 0 }"
+              @click="sendMessage"
+            >
+              전송
+            </button>
+          </div>
         </div>
-        <button class="close-btn" @click="$emit('close')">✕</button>
-      </div>
-
-      <div class="chat-body" ref="chatBody">
-        <MessageBubble
-          v-for="(msg, index) in messages"
-          :key="index"
-          v-bind="msg"
-        />
-      </div>
-
-      <div class="input-area">
-        <input
-            v-model="input"
-            @keydown.enter="sendMessage"
-            type="text"
-            placeholder="메시지를 입력하세요"
-          />
-          <button
-            class="send-btn"
-            :class="{ active: input.trim().length > 0 }"
-            @click="sendMessage"
-          >
-            전송
-          </button>
-      </div>
+      </transition>
     </div>
-  </div>
+  </transition>
 </template>
 
 <script setup>
-import { ref, nextTick, onMounted  } from 'vue'
+import { ref, nextTick, onMounted } from 'vue'
 import MessageBubble from './MessageBubble.vue'
 
-const chatBody = ref(null) 
+const chatBody = ref(null)
 const input = ref('')
 const messages = ref([
   {
@@ -65,10 +69,14 @@ function sendMessage() {
   messages.value.push({
     from: 'user',
     text: input.value,
-    time: now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit',  hour12: true })
+    time: now.toLocaleTimeString('en-US', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true
+    })
   })
   input.value = ''
-  scrollToBottom() 
+  scrollToBottom()
 }
 
 onMounted(() => {
@@ -77,39 +85,28 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.logo {
-  width: 40px;
-  height: 40px;
-}
-.title-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
 .modal-overlay {
   position: fixed;
-  bottom: 24px;
-  right: 24px;
-  width: 100vw;
-  height: 100vh;
+  inset: 0;
   background: rgba(0, 0, 0, 0.2);
   display: flex;
   justify-content: flex-end;
   align-items: flex-end;
-  z-index: 1500;
+  z-index: 2000;
   padding: 24px;
   box-sizing: border-box;
 }
 
 .chatbot-modal {
-  width:420px;
+  width: 450px;
   max-height: 70vh;
+  min-height: 35vh;
   background: white;
   border-radius: 16px;
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
 }
 
 .header {
@@ -121,7 +118,15 @@ onMounted(() => {
   align-items: center;
   font-weight: bold;
 }
-
+.title-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.logo {
+  width: 40px;
+  height: 40px;
+}
 .close-btn {
   background: transparent;
   border: none;
@@ -129,67 +134,18 @@ onMounted(() => {
   font-size: 18px;
   font-weight: bold;
   cursor: pointer;
-  transition: transform 0.2s ease;
 }
 .close-btn:hover {
-  background: transparent;
-  border: none;
   color: black;
-  font-weight: bold;
-  cursor: pointer;
 }
+
 .chat-body {
   flex: 1;
   padding: 20px 16px 20px 20px;
   background: #f7f7f7;
   overflow-y: auto;
   box-sizing: border-box;
-  scrollbar-gutter: stable;
 }
-
-.input-area {
-  border-top: 1px solid #eee;
-  display: flex;
-  padding: 8px;
-  background: #fff;
-}
-
-.input-area input {
-  flex: 1;
-  border: 1px solid #ccc;
-  padding: 8px;
-  font-size: 14px;
-  border-radius: 8px;
-  background: #fff;
-  outline: none;
-  margin-right: 8px;
-  transition: border-color 0.2s ease;
-
-}
-.input-area input:focus {
-  border-color: #000;
-  background-color: #fff;
-}
-
-.send-btn {
-  background: #ccc;           /* 기본 회색 */
-  color: white;               /* 기본 흰 글자 */
-  border: 1px solid transparent;
-  border-radius: 8px;
-  padding: 8px 16px;
-  font-size: 14px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-.send-btn.active {
-  background: #00a3e0;
-}
-.send-btn.active:hover {
-  background: white;
-  color: #00a3e0;
-  border: 1px solid #00a3e0;
-}
-/* 스크롤바 커스터마이징 */
 .chat-body::-webkit-scrollbar {
   width: 4px;
 }
@@ -201,4 +157,76 @@ onMounted(() => {
   background: transparent;
 }
 
+.input-area {
+  border-top: 1px solid #eee;
+  display: flex;
+  padding: 8px;
+  background: #fff;
+}
+.input-area input {
+  flex: 1;
+  border: 2px solid #ccc;
+  padding: 8px;
+  font-size: 14px;
+  border-radius: 8px;
+  background: #fff;
+  outline: none;
+  margin-right: 8px;
+  transition: border-color 0.2s ease;
+}
+.input-area input:focus {
+  border-color: #00A8E8;
+  border: 2px solid #00A8E8;
+}
+.send-btn {
+  background: #ccc;
+  color: white;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.send-btn.active {
+  background: #00A8E8;
+}
+.send-btn.active:hover {
+  background: white;
+  color: #00A8E8;
+  border: 1px solid #00A8E8;
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 095s ease;
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+.fade-enter-to,
+.fade-leave-from {
+  opacity: 1;
+}
+
+.chat-pop-enter-active,
+.chat-pop-leave-active {
+  transition: all 0.3s ease;
+  transform-origin: right bottom;
+}
+.chat-pop-enter-from {
+  transform: scale(0.8);
+  opacity: 0;
+}
+.chat-pop-enter-from,
+.chat-pop-leave-to {
+  transform: scale(1);
+  opacity: 0;
+}
+.chat-pop-enter-to,
+.chat-pop-leave-from {
+  transform: scale(1);
+  opacity: 1;
+}
 </style>
