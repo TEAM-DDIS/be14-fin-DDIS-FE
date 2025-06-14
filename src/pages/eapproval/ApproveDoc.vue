@@ -6,9 +6,10 @@
 
   <!-- 2. 탭 -->
   <div class="tabs">
-    <span :class="{ active: tab === '결재' }" @click="tab = '결재'">결재</span>
-    <span :class="{ active: tab === '진행' }" @click="tab = '진행'">진행</span>
-    <span :class="{ active: tab === '완료' }" @click="tab = '완료'">완료</span>
+    <span :class="{ active: tab.value === '전체' }" @click="tab.value = '전체'">전체</span>
+    <span :class="{ active: tab.value === '결재' }" @click="tab.value = '결재'">결재</span>
+    <span :class="{ active: tab.value === '진행' }" @click="tab.value = '진행'">진행</span>
+    <span :class="{ active: tab.value === '완료' }" @click="tab.value = '완료'">완료</span>
   </div>
 
   <!-- 3. 메인 컨텐츠 박스 (검색 + 테이블) -->
@@ -22,6 +23,7 @@
       <div class="search-item">
         <label>기안 제목</label>
         <input type="text" v-model="search.title" placeholder="기안 제목 입력" />
+
       </div>
     </div>
 
@@ -43,26 +45,35 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { AgGridVue } from 'ag-grid-vue3'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
 import { ModuleRegistry, AllCommunityModule } from 'ag-grid-community'
+
 ModuleRegistry.registerModules([AllCommunityModule])
 
 // 상태 정의
-const tab = ref('결재')
-const search = ref({ date: '', title: '' })
+const tab = reactive({ value: '전체' })
+const search = reactive({ date: '', title: '' })
 const docs = ref([])
 const router = useRouter()  
 // 탭별 그리드 컬럼 설정
 const columnDefsByTab = {
+  '전체': [
+    { headerName: '번호', field: 'no', width: 100 },
+    { headerName: '구분', field: 'type', width: 150 },
+    { headerName: '제목', field: 'title', flex: 1 },
+    { headerName: '상신일시', field: 'submittedAt', width: 230 },
+    { headerName: '결재상태', field: 'docStatus', width: 230 },
+    { headerName: '기안자', field: 'writer', width: 150 }
+  ],
   '결재': [
     { headerName: '번호', field: 'no', width: 100 },
     { headerName: '구분', field: 'type', width: 150 },
     { headerName: '제목', field: 'title', flex: 1 },
     { headerName: '상신일시', field: 'submittedAt', width: 230 },
-    { headerName: '결재상태', field: 'status', width: 230 },
+    { headerName: '결재상태', field: 'docStatus', width: 230 },
     { headerName: '기안자', field: 'writer', width: 150 }
   ],
   '진행': [
@@ -70,7 +81,7 @@ const columnDefsByTab = {
     { headerName: '구분', field: 'type', width: 150 },
     { headerName: '제목', field: 'title', flex: 1 },
     { headerName: '상신일시', field: 'submittedAt', width: 230 },
-    { headerName: '결재상태', field: 'status', width: 230 },
+    { headerName: '결재상태', field: 'docStatus', width: 230 },
     { headerName: '기안자', field: 'writer', width: 150 }
   ],
   '완료': [
@@ -83,11 +94,10 @@ const columnDefsByTab = {
 }
 const currentColumnDefs = computed(() => columnDefsByTab[tab.value] || [])
 
-// 상태-DB status 매핑
 const statusMap = {
-  '결재': '대기중',
-  '진행': '진행',
-  '완료': '완료'
+  '결재': { docStatus: ['심사중'], lineStatus: ['미결'] },
+  '진행': { docStatus: ['심사중'], lineStatus: ['승인'] },
+  '완료': { docStatus: ['결재완료'], lineStatus: ['승인'] }
 }
 
 // 백엔드에서 결재 문서 목록 조회
@@ -103,45 +113,68 @@ function formatDateTime(dateString) {
 }
 
 async function fetchApprovals() {
+  console.log('✅ fetchApprovals 호출됨. 현재 탭:', tab.value)  // 👈 무조건 찍혀야 함
   try {
-    const res = await axios.get('http://localhost:8000/approvals', {
+    const res = await axios.get(`http://localhost:8000/approvals?tab=${tab.value}`, {
       headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
     })
+    console.log('📦 응답 데이터:', res.data)
+
     const list = Array.isArray(res.data) ? res.data : res.data.documents || []
 
-    docs.value = list.map((doc, idx) => ({
+    docs.value = list
+      .filter(doc => doc && typeof doc === 'object') // 안전 필터링
+    .map((doc, idx) => ({
       docId:       doc.docId,
       title:       doc.title,
-      // 포맷팅된 문자열을 바로 할당
       submittedAt: formatDateTime(doc.submittedAt || doc.createdAt),
       approvedAt:  formatDateTime(doc.approvedAt),
-      status:      doc.status,
+      docStatus:   doc.docStatus || '',
+      lineStatus:  doc.lineStatus || '',
       writer:      doc.writer || '',
       type:        doc.type   || '',
       no:          idx + 1
     }))
   } catch (e) {
-    console.error('결재함 조회 실패', e)
+    console.error('❗ 결재함 조회 실패', e)
   }
 }
-
 onMounted(fetchApprovals)
 
+watch(tab, fetchApprovals)
+
 // 검색/탭 조건에 따른 필터링
-const filteredForms = computed(() =>
-  docs.value
+const filteredForms = computed(() => {
+  const expected = statusMap[tab.value]
+  return docs.value
     .filter(doc => {
-      const expect = statusMap[tab.value]
-      if (expect && doc.status !== expect) return false
-      if (search.value.title && !doc.title.includes(search.value.title)) return false
-      if (search.value.date) {
-        const dateOnly = doc.submittedAt.slice(0, 10)
-        if (dateOnly !== search.value.date) return false
+      if (!doc) return false  // ✅ null 또는 undefined 방지
+      const isRejected = doc.lineStatus === '반려' || doc.docStatus === '반려'
+
+      // '전체' 탭이 아닌 경우 반려 문서는 표시하지 않음
+      if (tab.value !== '전체' && isRejected) return false
+
+      // '전체' 탭인 경우 반려 문서는 항상 표시함
+      if (tab.value === '전체' && isRejected) return true
+
+      // 현재 탭이 결재/진행/완료인 경우, 해당 상태 조건과 일치해야 표시됨
+      if (expected) {
+        const docStatusMatch = expected.docStatus.includes(doc.docStatus)
+        const lineStatusMatch = expected.lineStatus.includes(doc.lineStatus)
+        if (!docStatusMatch || !lineStatusMatch) return false
+      }
+
+      // 제목 검색 조건
+      if (search.title && !doc.title?.includes(search.title)) return false
+
+      if (search.date) {
+        const dateOnly = doc.submittedAt?.slice(0, 10)
+        if (dateOnly !== search.date) return false
       }
       return true
     })
     .map((doc, idx, arr) => ({ ...doc, no: arr.length - idx }))
-)
+})
 
 // 행 클릭 핸들러
 function handleFormRowClick(params) {
@@ -192,7 +225,7 @@ function handleFormRowClick(params) {
 
 .tabs .active {
     color: #1f2937;
-    border-bottom: 3px solid #1f2937;  /* 클릭시 검은색 강조 */
+    border-bottom: 3px solid #00a8e8;  /* 클릭시 검은색 강조 */
     font-weight: bold
 }
 
