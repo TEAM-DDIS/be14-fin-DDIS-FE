@@ -27,6 +27,12 @@
     <div v-else>
       <RouterView />
     </div>
+
+    <!-- 항상 떠 있는 챗봇 버튼 -->
+    <FloatingChat v-if="!hideLayout" @toggle="showChatbot = !showChatbot" />
+
+    <!-- 챗봇 모달 -->
+    <ChatModal v-if="showChatbot" @close="showChatbot = false" />
   </div>
 </template>
 
@@ -37,10 +43,12 @@ import { computed, ref, onMounted, onBeforeUnmount } from 'vue'
 import Header from './components/header/Header.vue'
 import Sidebar from './components/sidebar/Sidebar.vue'
 import SubSidebar from './components/sidebar/SubSidebar.vue'
+import FloatingChat from './components/chatbot/FloatingChat.vue'
+import ChatModal from './components/chatbot/ChatModal.vue'
 
 const route = useRoute()
 const selectedMenu = ref(null)
-
+const showChatbot = ref(false)
 // meta에 hideLayout: true가 설정된 경우 헤더/사이드바 제거
 const hideLayout = computed(() => route.meta.hideLayout)
 
