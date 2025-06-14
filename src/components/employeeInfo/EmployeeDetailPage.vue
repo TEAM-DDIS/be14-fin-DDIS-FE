@@ -1,11 +1,15 @@
 <template>
-    <h1 class="page-title">사원 목록 조회</h1>
+    <h1 class="page-title">
+        <img
+        src="@/assets/icons/back_btn.svg"
+        alt="back"
+        class="back-btn"
+        @click="goBack"
+       />사원 목록 조회
+    </h1>
     <div class="desc-row">
         <p class="desc">사원 상세 조회 </p>
-        <div class="button-group-inline top-buttons">
-        <button class="btn-back" @click="onBackClick">뒤로가기</button>
-        </div>
-  </div>
+    </div>
 
 <div class="employee-detail">
     <div class="card compact-card adjusted-card short-height-card overflow-scroll-wrapper top-card">
@@ -342,7 +346,7 @@ const form = reactive({
 })
 
 // 뒤로가기
-function onBackClick() {
+function goBack() {
   router.back()
 }
 
@@ -449,13 +453,10 @@ onMounted(async () => {
   margin: 0; /* 텍스트 자체의 여백 제거 */
 }
 
-/* 위쪽 카드 내부로 이동한 버튼 그룹 */
-.button-group-inline.top-buttons {
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-  margin-left: auto;   /* “사원 상세 조회”와 버튼 사이 빈 공간 채우기 */
-  margin-right: 20px;  /* 전체 오른쪽 여백 맞추기 */
+.back-btn {
+  width: 24px;
+  margin-right: -2px;
+  cursor: pointer;
 }
 
 .btn-save {
