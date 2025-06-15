@@ -41,8 +41,9 @@
 </template>
 
 <script setup>
-import { ref, nextTick, onMounted } from 'vue'
+import { ref, nextTick } from 'vue'
 import MessageBubble from './MessageBubble.vue'
+import axios from 'axios'
 
 const chatBody = ref(null)
 const input = ref('')
@@ -51,9 +52,12 @@ const messages = ref([
     from: 'bot',
     sender: 'ERPIZZA 비서',
     text: '안녕하세요! 무엇을 도와드릴까요?',
-    time: '12:36 PM'
+    time: new Date().toLocaleTimeString()
   }
 ])
+
+const sessionId = 'test_session_' + Date.now()
+const employeeId = 'test_employee_001'
 
 function scrollToBottom() {
   nextTick(() => {
@@ -63,25 +67,51 @@ function scrollToBottom() {
   })
 }
 
-function sendMessage() {
-  if (!input.value.trim()) return
+async function sendMessage() {
+  const trimmed = input.value.trim()
+  if (!trimmed) return
+
   const now = new Date()
   messages.value.push({
     from: 'user',
-    text: input.value,
+    text: trimmed,
     time: now.toLocaleTimeString('en-US', {
       hour: '2-digit',
       minute: '2-digit',
       hour12: true
     })
   })
+
+  const payload = {
+    query: trimmed,
+    employee_id: employeeId,
+    session_id: sessionId
+  }
+
   input.value = ''
   scrollToBottom()
-}
 
-onMounted(() => {
+  try {
+    const res = await axios.post('http://localhost:8888/query', payload)
+    const answer = res.data.answer || '죄송합니다, 답변을 생성하지 못했습니다.'
+    messages.value.push({
+      from: 'bot',
+      sender: 'ERPIZZA 비서',
+      text: answer,
+      time: new Date().toLocaleTimeString()
+    })
+  } catch (err) {
+    console.error(err)
+    messages.value.push({
+      from: 'bot',
+      sender: 'ERPIZZA 비서',
+      text: '오류가 발생했습니다. 다시 시도해 주세요.',
+      time: new Date().toLocaleTimeString()
+    })
+  }
+
   scrollToBottom()
-})
+}
 </script>
 
 <style scoped>

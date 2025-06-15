@@ -1,10 +1,10 @@
 <template>
   <div :class="['message', from === 'user' ? 'from-user' : 'from-bot']">
     <img
-    v-if="from === 'bot'"
-    class="avatar"
-    :src="avatarSrc"
-    alt="avatar"
+      v-if="from === 'bot'"
+      class="avatar"
+      :src="avatarSrc"
+      alt="avatar"
     />
     <div class="bubble" :class="{ 'user-bubble': from === 'user' }">
       <div v-if="sender" class="sender">{{ sender }}</div>
@@ -17,6 +17,7 @@
 <script setup>
 import { defineProps } from 'vue'
 import defaultAvatar from '@/assets/icons/profile_img.svg'
+
 const props = defineProps({
   from: { type: String, default: 'bot' },
   sender: String,
@@ -24,8 +25,10 @@ const props = defineProps({
   time: String,
   avatar: String
 })
+
 const avatarSrc = props.avatar || defaultAvatar
 </script>
+
 
 <style scoped>
 .message {
