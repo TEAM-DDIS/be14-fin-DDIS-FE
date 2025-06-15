@@ -104,7 +104,7 @@
         { headerName: '지각', field: 'lateCount' },
         { headerName: '결근', field: 'absentCount' },
         { headerName: '출근일수', field: 'presentCount' },
-        { headerName: '총 근무시간', field: 'totalWorkTime' }
+        { headerName: '총 근무시간', field: 'totalWorkTime', valueFormatter: p => convertMinutesToHours(p.value) }
     ]
 
     const uniqueHeads = computed(() =>
