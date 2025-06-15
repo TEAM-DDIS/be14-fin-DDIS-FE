@@ -1,9 +1,17 @@
 <template>
-    <h1 class="page-title">내 인사 정보</h1>
+    <h1 class="page-title">
+        <img
+        src="@/assets/icons/back_btn.svg"
+        alt="back"
+        class="back-btn"
+        @click="goBack"
+       />사원 목록 조회
+    </h1>
     <div class="desc-row">
         <p class="desc">사원 상세 조회 </p>
     </div>
-    <div class="employee-detail">
+
+<div class="employee-detail">
     <div class="card compact-card adjusted-card short-height-card overflow-scroll-wrapper top-card">
       <div class="top-card-layout">
 
@@ -222,9 +230,11 @@
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import axios from 'axios'
 import { useUserStore } from '@/stores/user'
+axios.defaults.baseURL = 'http://localhost:8000'
+
 import { AgGridVue } from 'ag-grid-vue3'
 import {
   ModuleRegistry,
@@ -237,9 +247,6 @@ import {
   ValidationModule
 } from 'ag-grid-community'
 
-// Axios 기본 URL
-axios.defaults.baseURL = 'http://localhost:8000'
-
 // AG Grid 모듈 등록
 ModuleRegistry.registerModules([
   AllCommunityModule,
@@ -251,11 +258,11 @@ ModuleRegistry.registerModules([
   ValidationModule
 ])
 
-const userStore = useUserStore()
-const router    = useRouter()
 
-// Pinia에 저장해 둔 본인 사번
-const employeeId = userStore.employeeId
+
+const userStore = useUserStore()
+const route = useRoute()
+const router = useRouter()
 
 // 탭 정의
 const tabs = ['인사정보','개인정보','인사발령','징계','계약']
@@ -345,11 +352,11 @@ function goBack() {
 
 // 데이터 가져오기
 onMounted(async () => {
+  const { id } = route.params
   try {
-    const { data } = await axios.get(
-      `/employees/myinfo`,
-      { headers: { Authorization: `Bearer ${userStore.accessToken}` } }
-    )
+    const { data } = await axios.get(`/employees/${id}`, {
+      headers: { Authorization: `Bearer ${userStore.accessToken}` }
+    })
 
     // S3 컨트롤러를 통해 프록시로 이미지 불러오기
     form.employeePhotoUrl  = data.employeePhotoUrl
@@ -404,16 +411,22 @@ onMounted(async () => {
     form.teamId              = data.teamId
     form.teamName            = data.teamName
 
-    // 프로필 이미지 URL 가져오기
-    if (data.employeePhotoUrl) {
-      const resp = await axios.get('/s3/download-url', {
-        params: {
-          filename:    data.employeePhotoUrl,
-          contentType: 'image/png'
-        }
-      })
-      form.employeePhotoUrl = resp.data
+    if (form.employeePhotoUrl) {
+      try {
+        const resp = await axios.get(`/s3/download-url`, {
+          params: {
+            filename: form.employeePhotoUrl,
+            contentType: 'image/png'   // 실제 업로드하신 파일 타입에 맞춰 주세요
+          }
+        })
+        form.employeePhotoUrl = resp.data  // 이제 이 값이 <img> src 가 됩니다
+      } catch (e) {
+        console.error('S3 presigned download URL fetch failed', e)
+        // 실패 시, 그냥 빈 상태로 두거나 placeholder를 보여줄 수 있습니다
+        form.employeePhotoUrl = ''
+      }
     }
+
   } catch (err) {
     console.error(err)
     alert('사원 정보를 불러오는 데 실패했습니다.')
