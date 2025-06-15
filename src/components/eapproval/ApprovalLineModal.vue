@@ -1,16 +1,20 @@
 <template>
+
+  <!-- ① 모달 외곽: 배경 클릭하면 모달 닫기 -->
   <div class="modal-overlay" @click.self="$emit('close')">
     <div class="modal-content">
-      <!-- 모달 제목 -->
+      <!-- ② 모달 제목 -->
       <div class="model-text">
         <h3 class="modal-title">결재선 설정</h3>
       </div>
 
-      <!-- 상단: 탭/정렬/검색/삭제 -->
+      <!-- ③ 상단 컨트롤: 탭, 정렬, 검색, 삭제 -->
       <div class="modal-header">
+        <!-- ③-1) 조직도/리스트 탭 -->
         <div class="tab-group">
           <button class="active">조직도</button>
         </div>
+        <!-- ③-2) 정렬 키 선택 & 검색창 -->
         <div class="sort-search-group">
           <select v-model="sortKey">
             <option value="name">이름</option>
@@ -18,14 +22,15 @@
           </select>
           <input type="text" v-model="search" placeholder="검색" />
         </div>
+        <!-- ③-3) 체크된 결재자 삭제 버튼 -->
         <button class="delete-btn btn-delete" @click="deleteSelectedApprovers">
           삭제
         </button>
       </div>
 
-      <!-- 본문 -->
+      <!-- ④ 본문 영역: 조직도, 액션 버튼, 결재선 테이블 -->
       <div class="modal-body">
-        <!-- 좌측: 조직도 트리 + 직원 리스트 -->
+        <!-- ④-1) 좌측: EHierarchy 컴포넌트로 조직도 렌더링 -->
         <div class="org-tree-area">
           <!-- Listen for employees-selected event -->
           <EHierarchy
@@ -34,7 +39,7 @@
           />
         </div>
 
-        <!-- 중앙: 결재/협조 버튼 -->
+        <!-- ④-2) 중앙: 선택된 직원에 대한 ‘결재’ / ‘협조’ 버튼 -->
         <div class="action-btns">
           <button class="action-btn btn-save" @click="addApprover('결재')" :disabled="!selectedNode?.employeeId">
             결재
@@ -44,20 +49,30 @@
           </button>
         </div>
 
-        <!-- 우측: 결재선 테이블 -->
+        <!-- ④-3) 우측: 현재 선택된 결재선 리스트 테이블 -->
         <div class="approver-table-area">
           <table class="approver-table">
             <thead>
               <tr>
-                <th><input type="checkbox" @change="toggleAllApprovers" :checked="allSelected"/></th>
+                <!-- ④-3-1) 전체 선택 체크박스 -->
+                <th>
+                  <input type="checkbox" 
+                          @change="toggleAllApprovers" 
+                          :checked="allSelected"/>
+                </th>
                 <th>순서</th>
                 <th>결재유형</th>
                 <th>이름</th>
               </tr>
             </thead>
             <tbody>
+              <!-- ④-3-2) 각 결재자 행 반복 렌더링 -->
               <tr v-for="(item, idx) in approverList" :key="item.employeeId">
-                <td><input type="checkbox" :value="item.employeeId" v-model="selectedApprovers"/></td>
+                <td>
+                  <input type="checkbox" 
+                          :value="item.employeeId" 
+                          v-model="selectedApprovers"/>
+                </td>
                 <td>{{ idx + 1 }}</td>
                 <td>{{ item.type }}</td>
                 <td>{{ item.name }}</td>
@@ -67,7 +82,7 @@
         </div>
       </div>
 
-      <!-- 하단: 취소/등록 -->
+      <!-- ⑤ 하단 버튼: 취소(닫기) / 등록(emit submit) -->
       <div class="modal-footer">
         <button class="footer-btn cancel btn-delete" @click="$emit('close')">취소</button>
         <button class="footer-btn submit btn-save" @click="submitSelection">등록</button>
@@ -80,13 +95,14 @@
 import { ref, computed, onMounted } from 'vue'
 import EHierarchy from '@/components/eapproval/EHierarchy.vue'
 
+// ⑥ Props 정의: 상위에서 받은 조직도(hierarchy)와 초기 결재선(initialApprovers)
 const props = defineProps({
   hierarchy: { type: Array, default: () => [] },
   initialApprovers: { type: Array, default: () => [] }
 })
 const emit = defineEmits(['submit', 'close'])
 
-// 정렬 및 검색 상태
+// ⑦ 로컬 상태 변수 선언
 const sortKey = ref('name')
 const search = ref('')
 
@@ -98,7 +114,7 @@ const hierarchy = ref([])
 const selectedNodes = ref([])
 const selectedNode = ref(null)
 
-// 초기 부모 결재선 복사 & 전체 직원 세팅
+// ⑧ 컴포넌트 마운트 시: initialApprovers 복사 + 조직도 로딩
 onMounted(() => {
   // copy initial approvers
   approverList.value = props.initialApprovers.map((a, i) => ({
@@ -107,6 +123,7 @@ onMounted(() => {
     employeeId: a.employeeId,
     position: a.position,
     team: a.team,
+    rank: a.rank,
     status: a.status,
     type: a.type,
     lineTypeLabel: a.lineTypeLabel,
@@ -114,24 +131,31 @@ onMounted(() => {
     approvedAt: a.approvedAt,
     comment: a.comment
   }))
-  // flatten all employees into selectedNodes
   selectedNodes.value = flattenAllEmployees(props.hierarchy)
 })
 
-// flatten helper
+// ⑨ 조직도 평탄화 헬퍼 함수
 function flattenAllEmployees(tree) {
-  const list = []
+  const list = [];
   tree.forEach(head => {
     head.departments?.forEach(dept => {
       dept.teams?.forEach(team => {
-        team.members?.forEach(emp => list.push(emp))
-      })
-    })
-  })
-  return list
+        team.members?.forEach(emp => {
+          // emp 자체에 teamName, departmentName, headName 을 붙여서
+          list.push({
+            ...emp,
+            teamName:       team.teamName,
+            departmentName: dept.departmentName,
+            headName:       head.headName
+          });
+        });
+      });
+    });
+  });
+  return list;
 }
 
-// EHierarchy 선택 이벤트 수신
+// ⑩ 이벤트 핸들러들
 function onEmployeesSelected(ids, emp) {
   console.log('선택된 ID:', ids)
   console.log('선택된 객체:', emp)

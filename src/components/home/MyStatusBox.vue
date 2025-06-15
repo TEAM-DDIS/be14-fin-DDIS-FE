@@ -18,21 +18,21 @@
     <div class="approval-wrapper">
       <div class="section-title-row">
         <div class="section-title">나의 결재 현황</div>
-        <div class="shortcut" @click="() => navigateTo('/draftdoc/approve')">↗</div>
+        <div class="shortcut" @click="() => navigateTo('/eapproval/approve')">↗</div>
       </div>
       <hr class="section-divider" />
       <div class="approval-list">
         <div class="approval-item">
           상신
-          <span class="count" @click="() => navigateTo('/draftdoc/mydraft', '상신')">{{ draftCount }}</span>
+          <span class="count" @click="() => navigateTo('/eapproval/mydraft', '상신')">{{ draftCount }}</span>
         </div>
         <div class="approval-item">
           결재대기
-          <span class="count" @click="() => navigateTo('/draftdoc/approve')">{{ approveWaitingCount }}</span>
+          <span class="count" @click="() => navigateTo('/eapproval/approve')">{{ approveWaitingCount }}</span>
         </div>
         <div class="approval-item">
           반려
-          <span class="count" @click="() => navigateTo('/draftdoc/mydraft', '반려')">{{ rejectCount }}</span>
+          <span class="count" @click="() => navigateTo('/eapproval/mydraft', '반려')">{{ rejectCount }}</span>
         </div>
       </div>
     </div>

@@ -54,7 +54,7 @@ import { ModuleRegistry, AllCommunityModule } from 'ag-grid-community'
 ModuleRegistry.registerModules([AllCommunityModule])
 
 // 상태 정의
-const tab = reactive({ value: '전체' })
+const tab = reactive({ value: '결재' })
 const search = reactive({ date: '', title: '' })
 const docs = ref([])
 const router = useRouter()  
@@ -181,7 +181,11 @@ function handleFormRowClick(params) {
   console.log('선택된 행:', params.data)
   const docId = params.data.docId
   // /drafts/8 같은 경로로 이동
-  router.push({ name: 'DraftDetail', params: { docId } })
+  router.push({
+    name: 'DraftDetail',
+    params: {docId},
+    query: { box: 'ApprovalBox' }
+})
 }
 </script>
 
