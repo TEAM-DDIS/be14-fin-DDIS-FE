@@ -105,6 +105,11 @@ function handleFormRowClick(params) {
         row.readAt = new Date().toISOString().slice(0, 16).replace('T', ' ')
         row.status = '읽음'
     }
+    router.push({
+        name: 'DraftDetail',
+        params: {docId},
+        query: { box: 'ReferenceBox' }
+})
 }
 </script>
 
