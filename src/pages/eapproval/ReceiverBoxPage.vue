@@ -98,12 +98,25 @@ const filtered = docs.value.filter(doc => {
     return filtered.map((doc, idx) => ({ ...doc, no: filtered.length - idx }))
 })
 
+// function handleFormRowClick(params) {
+//     const row = docs.value.find(d => d.no === params.data.no)
+//     if (row && !row.readAt) {
+//         row.readAt = new Date().toISOString().slice(0, 16).replace('T', ' ')
+//         row.status = '읽음'
+//     }
+// }
+
+
+// 6) 행 클릭 핸들러
 function handleFormRowClick(params) {
-    const row = docs.value.find(d => d.no === params.data.no)
-    if (row && !row.readAt) {
-        row.readAt = new Date().toISOString().slice(0, 16).replace('T', ' ')
-        row.status = '읽음'
-    }
+  console.log('선택된 행:', params.data)
+  const docId = params.data.docId
+  // /drafts/8 같은 경로로 이동
+  router.push({
+    name: 'DraftDetail',
+    params: {docId},
+    query: { box: 'MyDraft' }
+  })
 }
 </script>
 

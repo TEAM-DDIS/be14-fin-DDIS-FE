@@ -1,7 +1,10 @@
+<!-- 기안문 상세 조회 페이지 -->
+
 <template>
+    <div v-if="!isLoading">
   <!-- ◆ 페이지 제목 및 설명 -->
-  <h1 class="page-title">결재함</h1>
-  <p class="desc">업무 기안 조회</p>
+  <h1 class="page-title">{{ currentTitle }}</h1>
+  <p class="desc">{{ currentDesc }}</p>
 
   <div class="main-box">
     <div class="container" v-if="draftDetail">
@@ -36,6 +39,15 @@
         </table>
 
         <!-- 결재선 섹션 with single button -->
+          <div class="retrieve-header">
+            <button
+              class="retrieve-button"
+              :disabled="!selectedLine || selectedLine.status !== '미결'"
+              @click="openRetrieveModal"
+            >회수하기 </button>
+        </div>
+
+
         <div class="approval-header">
             <span class="section-title">결재선</span>
             <button
@@ -72,10 +84,10 @@
               <td>{{ item.step }}</td>
               <td>{{ item.name }}</td>
               <td>{{ item.team }}</td>
-              <td>{{ item.position }}</td>
+              <td>{{ item.rankName }}</td>
               <td>{{ item.status }}</td>
               <td>{{ item.type }}</td>
-              <td>{{ item.approveDate || '-' }}</td>
+              <td>{{ item.approveDate ? item.approveDate.replace('T', ' ').slice(0, 16) : '-' }}</td>
               <td>{{ item.comment || '-' }}</td>
             </tr>
           </tbody>
@@ -127,26 +139,35 @@
           </tr>
         </table>
     </div>
-
-          <!-- draftDetail이 없을 때: 로딩 상태 표시 -->
-          <div v-else class="loading">로딩 중입니다...</div>
   </div>
   <!-- 하단 버튼 그룹 -->
       <div class="button-group">
-        <button class="button gray">취소</button>
-        <button class="button">확인</button>
+        <button class="button gray" @click="handleCancel">취소</button>
+        <button class="button" @click="handleConfirm">확인</button>
+        <!-- 상신 탭일 때 조건부 회수 버튼 -->
+        <button v-if="isRetractable" @click="handleWithdraw">회수</button>
+
+        <!-- 반려 또는 회수 탭일 때 재상신 버튼 -->
+        <button v-if="isBanryeoDoc || isHoesuDoc" @click="handleResubmit">재상신</button>
       </div>
+
+        </div>
+          <!-- draftDetail이 없을 때: 로딩 상태 표시 -->
+          <div v-else class="loading">로딩 중입니다...</div>
 </template>
 
 <script setup>
 // Composition API 함수 import
 import { onMounted, ref, computed } from 'vue'           // 상태 관리와 생명주기 훅
 import axios from 'axios'                                 // HTTP 요청 라이브러리
-import { useRoute } from 'vue-router'                     // 현재 URL의 파라미터(docId 등)를 읽기 위함
+import { useRoute, useRouter } from 'vue-router'                     // 현재 URL의 파라미터(docId 등)를 읽기 위함
 import ApprovalModal from '@/components/eapproval/ApproveModal.vue'  // 결재 모달 컴포넌트
+import RetrieveModal from '@/components/eapproval/RetrieveModal.vue'
+
 
 // 📌 현재 페이지의 URL에서 docId 추출 (예: /drafts/123 → docId = 123)
 const route = useRoute()
+const router = useRouter()
 const docId = route.params.docId
 
 // 📌 상태 변수 (reactive 데이터)
@@ -154,15 +175,52 @@ const draftDetail = ref(null)         // 기안 상세 데이터
 const isLoading = ref(true)           // 로딩 상태 표시용
 const error = ref(null)               // 에러 정보 저장
 
-
 // 📌 모달 관련 상태 변수
 const showApprovalModal = ref(false)  // 결재 모달 열림 여부
 const currentLineId = ref(null)       // 선택된 결재선의 ID
 
-// 📌 현재 선택된 결재선 데이터 (결재하기 버튼 활성화 조건에 사용됨)
-// 숫자 비교 강제 일치
-const myId = localStorage.getItem('employeeId') || ''; 
 
+const box = route.query.box || ''
+const boxKey = box.endsWith('Box') ? box : `${box}Box` // ← 보정
+
+const pageTitleMap = {
+  MyDraftBox: '기안함',
+  ApprovalBox: '결재함',
+  ReceiverBox: '수신함',
+  ReferenceBox: '참조함'
+}
+
+const currentTitle = computed(() => pageTitleMap[boxKey] || '문서함')
+
+
+//  query.formName 기준
+const descMap = {
+  일반기안: '업무 기안 조회',
+}
+const currentDesc = computed(() => {
+  const formName = route.query.formName || ''
+  return descMap[formName] || '업무 기안 조회'
+})
+
+//  로그인 사용자 ID
+const myId = localStorage.getItem('employeeId') || ''
+
+//  문서 상태 기반 조건
+const isSangsinDoc = computed(() => draftDetail.value?.docStatus === '대기중')
+const isBanryeoDoc = computed(() => draftDetail.value?.docStatus === '반려')
+const isHoesuDoc   = computed(() => draftDetail.value?.docStatus === '회수')
+
+// 회수 가능 조건
+const isRetractable = computed(() => {
+  if (!draftDetail.value) return false
+  const isDrafter = draftDetail.value.drafterId == myId
+  const firstApproverStatus = draftDetail.value.approvalLine?.[0]?.status
+  return isDrafter &&
+         draftDetail.value.docStatus === '심사중' &&
+         (firstApproverStatus === '대기중' || firstApproverStatus === '심사중')
+})
+
+// 📌 선택된 결재선
 const selectedLine = computed(() => {
   return draftDetail.value?.approvalLine?.find(
     line => Number(line.id) === Number(currentLineId.value)
@@ -172,11 +230,15 @@ const selectedLine = computed(() => {
 // 📌 기안 상세 조회 API 호출 함수
 async function fetchDetail() {
   isLoading.value = true
-  try {
-    const { data } = await axios.get(`http://localhost:8000/drafts/query/${docId}`)
+    try {
+    const res = await axios.get(`http://localhost:8000/drafts/query/${docId}`, {
+      headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+    })
+    console.log('✅ 상세 데이터:', res.data)
+
+    const data = res.data
 
     const parsed = data.contentDto || {
-      title: '',
       body: data.docContent || '',
       refFile: [],
       receiver: [],
@@ -276,9 +338,25 @@ async function handleApprove({ lineId, status, opinion }) {
     showApprovalModal.value = false  // 모달 닫기
   }
 }
+  // 📌 하단 버튼 동작
+  // 확인, 취소, 회수, 재상신 버튼
+  function handleConfirm() {
+    router.back()
+  }
+  function handleCancel() {
+    router.back()
+  }
+  function handleWithdraw() {
+    console.log('🌀 회수 요청')
+    // 회수 처리 로직 추가 필요
+  }
+  function handleResubmit() {
+    if (draftDetail.value?.docId) {
+      router.push({ name: 'DraftCreate', query: { resubmit: draftDetail.value.docId } })
+    }
+  }
+
 </script>
-
-
 
 <style scoped>
 /* ==== 표 스타일: 헤더는 굵게, 본문은 일반체 ==== */
@@ -314,7 +392,9 @@ async function handleApprove({ lineId, status, opinion }) {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
   margin: 24px;
   max-width: 100%;
-  max-height: 1500px;
+  display: flex;
+  flex-direction: column;
+  min-height: fit-content; /* or: min-height: 800px; */
 }
 
 /* ✅ 내부 컨텐츠 컨테이너 */
