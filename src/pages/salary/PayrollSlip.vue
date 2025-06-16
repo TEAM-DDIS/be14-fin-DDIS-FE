@@ -123,59 +123,75 @@
 
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
-import { useUserStore } from '@/stores/user'
+import { ref, reactive, onMounted, computed } from 'vue'
 import axios from 'axios'
+import { useUserStore } from '@/stores/user'
 import AgGrid from '@/components/grid/BaseGrid.vue'
 import Modal from '@/components/salary/PayrollModal.vue'
+
 const salarySection = ref(null)
 const userStore = useUserStore()
+const accessToken = computed(() => userStore.accessToken)
+
 const employee = ref(null)
 const dateRange = reactive({ start: '', end: '' })
 const salaryHistory = ref([])
 const selectedSlip = ref(null)
+const showModal = ref(false)
+
 const salaryColumnDefs = [
   { headerName: '지급일자', field: 'salaryDate' },
   { headerName: '총지급', field: 'totalIncome' },
   { headerName: '총공제', field: 'totalDeductions' },
   { headerName: '실지급', field: 'netSalary' }
 ]
-const showModal = ref(false)
-const token = localStorage.getItem('token')
+
+function parseJwtPayload() {
+  try {
+    const token = accessToken.value || ''
+    const base64Url = token.split('.')[1]
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split('')
+        .map(c => `%${('00' + c.charCodeAt(0).toString(16)).slice(-2)}`)
+        .join('')
+    )
+    return JSON.parse(jsonPayload)
+  } catch (e) {
+    console.error('JWT 복호화 실패:', e)
+    return {}
+  }
+}
 
 onMounted(async () => {
   await fetchEmployeeInfo()
-  setDefaultDateRange()
 })
 
-function setDefaultDateRange() {
-  const today = new Date()
-  dateRange.end = today.toISOString().slice(0, 7)
-  const prev = new Date(today)
-  prev.setMonth(today.getMonth() - 2)
-  dateRange.start = prev.toISOString().slice(0, 7)
-}
-
 async function fetchEmployeeInfo() {
-  const { data } = await axios.get(`http://localhost:8000/payroll/employees/${userStore.user.employeeId}`, {
-    headers: { Authorization: `Bearer ${token}` }
+  const { data } = await axios.get(`http://localhost:8000/payroll/me`, {
+    headers: { Authorization: `Bearer ${accessToken.value}` }
   })
   employee.value = data
 }
 
 async function fetchSalaryHistory() {
+  if (!dateRange.start || !dateRange.end) {
+    alert('조회 기간을 선택해주세요.')
+    return
+  }
+
   const results = []
   const start = new Date(dateRange.start + '-01')
   const end = new Date(dateRange.end + '-01')
-  const id = userStore.user.employeeId
-
   const current = new Date(start)
+
   while (current <= end) {
     const yyyymm = `${current.getFullYear()}-${String(current.getMonth() + 1).padStart(2, '0')}`
     try {
-      const { data } = await axios.get(`http://localhost:8000/payroll/salaries/${id}`, {
+      const { data } = await axios.get(`http://localhost:8000/payroll/me/salary`, {
         params: { month: yyyymm },
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${accessToken.value}` }
       })
       if (data?.salaryDate) {
         results.push({
@@ -188,34 +204,33 @@ async function fetchSalaryHistory() {
     }
     current.setMonth(current.getMonth() + 1)
   }
+
   salaryHistory.value = results
   scrollToSalarySection()
 }
-// 스크롤을 급여 내역 섹션으로 이동
+
 function scrollToSalarySection() {
   salarySection.value?.scrollIntoView({ behavior: 'smooth' })
 }
 
 async function selectSlip(month) {
-  const response = await axios.get(`http://localhost:8000/payroll/salaries/${employee.value.employeeId}`, {
+  const response = await axios.get(`http://localhost:8000/payroll/me/salary`, {
     params: { month },
-    headers: { Authorization: `Bearer ${userStore.accessToken}` }
+    headers: { Authorization: `Bearer ${accessToken.value}` }
   })
-  console.log('selectSlip 호출됨', month)
 
   const data = response.data
-  
-  selectedSlip.value = {
 
+  selectedSlip.value = {
     yearMonth: month,
-    employeeId: userStore.user.employeeId,            // 추가
-    employeeName: employee.value?.employeeName || '', // 추가
-    headName: employee.value?.headName || '',         // 추가
+    employeeId: employee.value.employeeId,
+    employeeName: employee.value?.employeeName || '',
+    headName: employee.value?.headName || '',
     departmentName: employee.value?.departmentName || '',
     teamName: employee.value?.teamName || '',
     rankName: employee.value?.rankName || '',
-    netSalary: data.netSalary,                        // 추가
-    salaryDate: data.salaryDate,  
+    netSalary: data.netSalary,
+    salaryDate: data.salaryDate,
     pays: [
       { label: '기본급', amount: data.salaryBasic },
       { label: '연장수당', amount: data.salaryOvertime },
@@ -235,19 +250,19 @@ async function selectSlip(month) {
       { label: '고용보험', amount: data.employmentInsurance },
       { label: '총공제', amount: data.totalDeductions }
     ]
-    }
-
+  }
 }
 
 function formatCurrency(val) {
   return val?.toLocaleString() || 0
 }
 
-// 모달 열기 핸들러
 function openModal() {
   showModal.value = true
 }
 </script>
+
+
 
 <style scoped>
 /* 공통 입력 요소 테두리 둥글게 */
