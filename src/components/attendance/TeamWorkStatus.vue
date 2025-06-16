@@ -23,10 +23,15 @@
     employeePhotoUrl: String,
     name: String,
     role: String,
-    status: String
+    status: String,
+    checkOutTime: String
   })
 
   const badgeClass = computed(() => {
+    if (props.checkOutTime && (props.status === '지각' || props.status === '정상근무')) {
+      return 'badge-퇴근'
+    }
+
     switch (props.status) {
       case '정상근무': return 'badge-근무중'
       case '연차': return 'badge-연차'
@@ -42,10 +47,8 @@
   })
 
   const displayStatus = computed(() => {
-    switch (props.status) {
-      case '정상근무': return '근무 중'
-      default: return props.status
-    }
+    if (props.status === '정상근무') return '근무 중'
+    return props.status
   })
 
 
@@ -125,5 +128,8 @@
   }
   .badge-출근전 {
     background-color: #c1c1c1;
+  }
+  .badge-퇴근 {
+    background-color: #6d6d6d;
   }
 </style>

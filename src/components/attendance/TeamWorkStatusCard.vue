@@ -13,6 +13,7 @@
         :name="user.employeeName"
         :role="user.positionName"
         :status="user.workStatusName"
+        :checkOutTime="user.checkOutTime"
       />
     </div>
   </div>
