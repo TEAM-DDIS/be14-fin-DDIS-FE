@@ -94,7 +94,7 @@ const router = useRouter()
 
 // HR 권한 체크
 const payload = parseJwtPayload(userStore.accessToken)
-const isHR = payload?.roles?.includes('HR')
+const isHR = payload?.role?.includes('ROLE_HR') || payload?.auth?.includes('ROLE_HR')
 
 if (!isHR) {
   alert('접근 권한이 없습니다.')
