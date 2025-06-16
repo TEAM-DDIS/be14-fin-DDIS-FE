@@ -16,13 +16,13 @@
         <tbody>
           <tr>
             <td>기안부서</td>
-            <td><input v-model="form.department" type="text" /></td>
-            <td>직책</td>
-            <td><input v-model="form.position" type="text" /></td>
+            <td><input v-model="form.departmentName" type="text"  readonly /></td>
+            <td>직급</td>
+            <td><input v-model="form.rankName" type="text" readonly /></td>
           </tr>
           <tr>
             <td>기안자</td>
-            <td><input v-model="form.drafter" type="text" /></td>
+            <td><input v-model="form.drafter" type="text" readonly /></td>
             <td>기안일자</td>
             <!-- 화면에는 날짜만 보여주기 -->
             <td>
@@ -106,10 +106,9 @@
             <th>번호</th>
             <th>성명</th>
             <th>팀명</th>
-            <th>직책</th>
+            <th>직급</th>
             <th>상태</th>
             <th>종류</th>
-            <th>열람일시</th>
             <th>결재일시</th>
             <th>의견</th>
           </tr>
@@ -119,10 +118,9 @@
             <td>{{ index + 1 }}</td>
             <td>{{ line.name }}</td>
             <td>{{ line.team }}</td>
-            <td>{{ line.position }}</td>
+            <td>{{ line.rankName }}</td>
             <td>{{ line.status }}</td>
             <td>{{ line.type }}</td>
-            <td>{{ line.viewedAt }}</td>
             <td>{{ line.approvedAt }}</td>
             <td>{{ line.comment }}</td>
           </tr>
@@ -217,8 +215,8 @@ export default {
   data() {
     return {
       form: {
-        department: "",
-        position: "",
+        departmentName: "",
+        rankName:"",
         drafter: "",
         draftDate: "",
         retentionPeriod: "",
@@ -263,6 +261,7 @@ export default {
     return this.form.draftDate?.slice(0, 10) || '';
   },
   methods: {
+    // ① 기안자 정보 불러오기
     async loadDrafterInfo() {
       try {
         const res = await fetch("http://localhost:8000/drafter/me", {
@@ -276,10 +275,10 @@ export default {
         }
         const data = await res.json();
         console.log("\u2705 기안자 정보:", data);
-        this.form.department = data.department;
+        this.form.departmentName = data.departmentName;
         this.form.drafter = data.name;
-        this.form.position = data.position;
-        await this.fetchAutoApprovalLine(data.employeeId);
+        this.form.rankName = data.rankName;
+        await this.fetchAutoApprovalLine(data.empId);
       } catch (e) {
         console.error("\u274C loadDrafterInfo 오류:", e);
         alert(e.message);
@@ -288,56 +287,49 @@ export default {
     updateDraftDate(val) {
       this.form.draftDate = val;
     },
-
-
-    async fetchAutoApprovalLine(employeeId) {
-      try {
-        const response = await axios.get("http://localhost:8000/approval-line", {
-          params: { employeeId, formId: 1 },
-          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
-        });
-
-        this.approvalLines = response.data.flatMap(step =>
-          step.approverList.map(approver => {
-            const lineType = approver.lineType || "ACTUAL";
-            // ★ stepNo 가 1 이면 '기안', 아니면 기존 INTERNAL/EXTERNAL 구분
-            const typeLabel = step.stepNo === 1
-              ? "기안"
-              : (approver.type === "INTERNAL" ? "결재" : approver.typeLabel || "");
-
-            const lineTypeLabel = lineType === "ACTUAL"
-              ? "실제 결재선"
-              : "양식 결재선";
-
-            return {
-              step:          step.stepNo,
-              name:          approver.employeeName,
-              employeeId:    approver.employeeId,
-              position:      approver.positionName,
-              team:          approver.teamName || "",
-              status:        "대기중",
-              type:          typeLabel,      // ← 여기서 기안/결재 구분
-              lineTypeLabel,                // ← 실제/양식 결재선
-              viewedAt:      null,
-              approvedAt:    null,
-              comment:       ""
-            };
-          })
-        );
-
-        console.log("📋 화면에 출력될 결재선:", this.approvalLines);
-
-      } catch (error) {
-        console.error("❌ 자동 결재선 조회 실패:", error);
+     // ② 자동 결재선 조회
+     async fetchAutoApprovalLine(empId) {
+  console.log("▶ fetchAutoApprovalLine 호출, empId =", empId);
+  try {
+    // response 객체에서 바로 data만 꺼내오기
+    const { data } = await axios.get(
+      "http://localhost:8000/approval-line",
+      {
+        params:     { employeeId: empId },
+        headers:    { Authorization: `Bearer ${localStorage.getItem("token")}` }
       }
+    );
+    // 꺼낸 data를 바로 map
+    this.approvalLines = data.map(item => ({
+      step:          item.step,
+      name:          item.employeeName,
+      employeeId:    item.employeeId,
+      rankName:      item.rankName || "",
+      role:          item.role || "",
+      team:          item.teamName     || "",
+      status:        "대기중",
+      type:          item.type,
+      lineTypeLabel: item.lineTypeLabel
+                   || (item.lineType === "ACTURE"
+                       ? "실제 결재선"
+                       : "양식 결재선"),
+      viewedAt:      null,
+      approvedAt:    null,
+      comment:       ""
+    }));
+    console.log("📋 화면에 출력될 결재선:", this.approvalLines);
 
-
-
-
+  } catch (error) {
+    console.error("❌ 자동 결재선 조회 실패:", error);
+  }
     },
+
+    // ③ 임시저장 모달 열기/닫기
     openApprovalModal() { this.showApprovalModal = true; },
     openReceiverModal() { this.showReceiverModal = true; },
     openReferenceModal() { this.showReferenceModal = true; },
+
+    // ④ 사용자 선택 모달 결과 처리
     onApprovalLineSubmit(lines) {
       console.log('🟢 수신된 커스텀 결재선:', lines);
       this.approvalLines = lines;
@@ -353,6 +345,8 @@ export default {
       this.showReferenceModal = false;
       this.form.reference = list.map(u => u.name).join(', ');
     },
+
+    // ⑤ 임시저장
     async confirmDraftSave() {
       const now = new Date();
       const draftData = {
@@ -370,38 +364,51 @@ export default {
         alert("임시저장 실패: " + (error.response?.data?.message || error.message));
       }
     },
+
+    // ⑥ 최종 상신하기: rankName·role 포함
     async confirmSubmit() {
       const now = new Date();
+      // (a) 전송할 데이터 형식 정의
       const submitData = {
-        title: this.form.title,
-        docContent: this.form.body,
-        retentionPeriod: this.form.retentionPeriod,
-        receiver: this.receiverList.map(u => u.id),
-        reference: this.referenceList.map(u => u.id),
-        formId: 1,
-        approvalLines: this.approvalLines.map((line, index) => ({
-          step: index + 1,
-          employeeId: line.employeeId,
-          position: line.position,
-          type: line.type,
+        title:            this.form.title,          // ⑥-1) 문서 제목
+        docContent:       this.form.body,           // ⑥-2) 본문 HTML
+        retentionPeriod:  this.form.retentionPeriod,// ⑥-3) 보존연한
+        receiver:         this.receiverList.map(u => u.id), // ⑥-4) 수신자 ID 리스트
+        reference:        this.referenceList.map(u => u.id),// ⑥-5) 참조자 ID 리스트
+        formId:           1,                        // ⑥-6) 양식 ID (고정)
+        approvalLines:    this.approvalLines.map((line, idx) => ({
+          step:       idx + 1,             // ⑥-7) 순번(step)
+          employeeId: line.employeeId,     // ⑥-8) 사원번호
+          position:   line.position,       // ⑥-9) 직책명
+          rankName:   line.rankName,       // ⑥-10) 직급명 추가
+          type:       line.type,           // ⑥-11) 결재 유형 코드
+          role:       line.role            // ⑥-12) document_box.role 추가
         }))
       };
+
        console.log("상신 데이터", JSON.stringify(submitData, null, 2));
-      try {
-        const res = await axios.post("http://localhost:8000/drafts/creation", submitData, {
+      
+      // (b) 서버에 POST 요청
+       try {
+        const res = await axios.post(
+          "http://localhost:8000/drafts/creation", submitData, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`
           }
         });
         const { docId } = res.data;
+
+        // (c) 성공 시 알림 및 이동
         alert(`상신 완료! 문서번호: ${docId}`);
         this.showSubmitModal = false;
-        this.$router.push(`/drafts/${docId}`);
+        this.$router.push({name: 'MyDraftBox'});
       } catch (error) {
         console.error("상신 실패", error);
         alert("상신 실패: " + (error.response?.data?.message || error.message));
       }
     },
+
+    // ⑦ 파일 업로드 처리
     handleFileUpload(event) {
       this.fileError = "";
       const file = event.target.files[0];

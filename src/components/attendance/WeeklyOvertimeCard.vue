@@ -35,12 +35,23 @@
     </p>
     <!-- Apply Button -->
     <button class="apply-btn" @click="onApply">근무 신청</button>
+    <Teleport to="body">
+      <div v-if="show" class="overlay">
+        <div class="modal">
+          <span class="modal-desc">근무 신청</span>
+          <OverTimeEventCard @cancel="show = false" @submit="handleSubmit" />
+        </div>
+      </div>
+    </Teleport>
   </div>
 </template>
 
 <script setup lang="ts">
   import { ref, onMounted, computed } from 'vue'
   import axios from 'axios'
+  import OverTimeEventCard from './OverTimeEventCard.vue'
+
+  const show = ref(false)
 
   const summary = ref({
     regularOvertime: 0,
@@ -72,9 +83,45 @@
   )
 
   const onApply = () => {
-    // 근무 신청 버튼 이벤트 핸들러 (추후 구현)
-    alert('근무 신청은 아직 구현되지 않았습니다.')
+    show.value = true
   }
+
+  const handleSubmit = async (data) => {
+    const token = localStorage.getItem('token')
+    try {
+      const res = await fetch('http://localhost:8000/attendance/overtime-request', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+      })
+
+      if (!res.ok) {
+      const errorText = await res.text()
+      let message = '요청 실패'
+      try {
+        const errorJson = JSON.parse(errorText)
+        message = errorJson.message || message
+      } catch (parseError) {
+        message = errorText // JSON 아님
+      }
+      throw new Error(message)
+    }
+
+    alert('근무 신청이 완료되었습니다.')
+    show.value = false
+
+      const summaryRes = await axios.get('http://localhost:8000/attendance/overtime-summary', {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      summary.value = summaryRes.data
+    } catch (err) {
+      alert('신청 실패: ' + err.message)
+    }
+  }
+
 
   onMounted(async () => {
     const token = localStorage.getItem('token')
@@ -186,5 +233,38 @@
       color: #00A8E8;
       border: 1px solid #00A8E8;
       box-shadow: inset 1px 1px 10px rgba(0, 0, 0, 0.25);
+  }
+
+    /* 모달 전체 배경 */
+  .overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0, 0, 0, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+  }
+
+  /* 모달 내용 */
+  .modal {
+    background: white;
+    padding: 30px;
+    border-radius: 12px;
+    width: 420px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
+    position: relative !important;
+  }
+
+  .modal-desc {
+    display: block;
+    text-align: center;
+    font-weight: bold;
+    font-size: 20px;
+    margin-bottom: 20px;
+  }
+
+  :deep(.overtime-datepicker) {
+    z-index: 3000 !important; /* Element Plus 기본보다 높게 */
   }
 </style>

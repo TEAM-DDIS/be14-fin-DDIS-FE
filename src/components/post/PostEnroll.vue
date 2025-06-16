@@ -105,7 +105,7 @@ import { useRouter } from 'vue-router'
 import axios from 'axios'
 import { useUserStore } from '@/stores/user'
 
-// 1) 협업 중이라 별도 api.js 없이, 여기서만 baseURL 설정
+
 axios.defaults.baseURL = 'http://localhost:8000'
 
 const router    = useRouter()

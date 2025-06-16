@@ -29,7 +29,7 @@
         </div>
         <div style="padding: 20px;">
             <div style="width: 1100px;">
-                <FullCalendar :options="calendarOptions" style="width: 100%;" />
+                <FullCalendar class="calendar--personal" :options="calendarOptions" style="width: 100%;" />
             </div>
         </div>
         <Teleport to="body">
@@ -130,9 +130,9 @@
             if (props.type === 'personal') {
                 return {
                     html: `
-                        <div class="event-label">
-                            <span class="event-status-schedule">${props.title}</span>
+                    <div class="calendar--personal event-label">
                             <span class="event-employee-schedule">${props.time}</span>
+                            <span class="event-status-schedule">${props.title}</span>
                         </div>
                     `
                 }
@@ -140,7 +140,7 @@
 
             return {
                 html: `
-                    <div class="event-label">
+                    <div class="calendar--personal event-label">
                         <span class="event-status">${props.status}</span>
                         <span class="event-employee">${props.employee}</span>
                     </div>
@@ -173,7 +173,7 @@
 
 </script>
 
-<style setup>
+<style scoped>
     /* 캘린더 박스 */
     .personal-calendar {
         background-color: #ffffff;
@@ -277,188 +277,156 @@
     }
 
     /* 요일 헤더 색상 */
-    .fc-col-header-cell.fc-day-sun {
-        color: red;
-    }
-    .fc-col-header-cell.fc-day-sat {
-        color: blue;
-    }
+:deep(.calendar--personal .fc-col-header-cell.fc-day-sun) {
+  color: red;
+}
+:deep(.calendar--personal .fc-col-header-cell.fc-day-sat) {
+  color: blue;
+}
 
-    /* 날짜 셀 숫자 색상 */
-    .fc-daygrid-day.fc-day-sun .fc-daygrid-day-number {
-        color: red;
-    }
-    .fc-daygrid-day.fc-day-sat .fc-daygrid-day-number {
-        color: blue;
-    }
+:deep(.calendar--personal .fc-daygrid-day.fc-day-sun .fc-daygrid-day-number) {
+  color: red;
+}
+:deep(.calendar--personal .fc-daygrid-day.fc-day-sat .fc-daygrid-day-number) {
+  color: blue;
+}
 
-    /* 근무 상태별 배경 색상 */
-    .event-leave {
-        background-color: white !important;
-        border: 3.5px solid #8C9FFF !important;
-    }
-    .event-half-am {
-        background-color: white !important;
-        border: 3.5px solid #8CC2FF !important;
-    }
-    .event-half-pm {
-        background-color: white !important;
-        border: 3.5px solid #8CC2FF !important;
-    }
-    .event-trip {
-        background-color: white !important;
-        border: 3.5px solid #C5E695 !important;
-    }
-    .event-out {
-        background-color: white !important;
-        border: 3.5px solid #D0F0B0 !important;
-    }
-    .event-late {
-        background-color: white !important;
-        border: 3.5px solid #FFD38C !important;
-    }
-    .event-absent {
-        background-color: white !important;
-        border: 3.5px solid #FF8C9A !important;
-    }
+:deep(.calendar--personal .fc-day-today) {
+  background-color: #ddf2ff !important;
+}
 
-    .fc-daygrid-event {
-        /* 기존 height: 15px 를 해제하고, 자동 높이나 최소 높이를 설정 */
-        height: auto !important;
-        min-height: 24px !important;    /* 원하는 최소 높이 */
-        line-height: 24px !important;    /* 텍스트가 세로 가운데 오도록 */
-        padding-bottom: 3px !important;
-        margin-left: 10px !important;
-        margin-right: 10px !important;
-        font-size: 12px !important;      /* 전체 폰트 크기도 살짝 키워보기 */
-        border-radius: 15px !important;
-        margin-bottom: 5px !important;
-    }
+/* 이벤트 색상 */
+:deep(.calendar--personal .event-leave) {
+  background-color: white !important;
+  border: 3.5px solid #8C9FFF !important;
+}
+:deep(.calendar--personal .event-half-am),
+:deep(.calendar--personal .event-half-pm) {
+  background-color: white !important;
+  border: 3.5px solid #8CC2FF !important;
+}
+:deep(.calendar--personal .event-trip) {
+  background-color: white !important;
+  border: 3.5px solid #C5E695 !important;
+}
+:deep(.calendar--personal .event-out) {
+  background-color: white !important;
+  border: 3.5px solid #D0F0B0 !important;
+}
+:deep(.calendar--personal .event-late) {
+  background-color: white !important;
+  border: 3.5px solid #FFD38C !important;
+}
+:deep(.calendar--personal .event-absent) {
+  background-color: white !important;
+  border: 3.5px solid #FF8C9A !important;
+}
+:deep(.calendar--personal .event-personal) {
+  background-color: #a988f7 !important;
+  border: 2px solid #a988f7 !important;
+  opacity: 60% !important;
+}
 
-    /* 라벨 내부 정렬 */
-    .event-label {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 3 4px;
-        width: 100%;
-        height: 30px;
-    }
+/* 이벤트 공통 레이아웃 */
+:deep(.calendar--personal .fc-daygrid-event) {
+  height: auto !important;
+  min-height: 24px !important;
+  line-height: 24px;
+  font-size: 10px;
+  padding: 0 4px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  margin: 5px 10px 1px!important;
+  border-radius: 15px !important;
+  padding-bottom: 3px !important;
+  box-shadow: 0 2px 2px rgba(0,0,0,0.1) !important;
+}
 
-    .event-status {
-        color: black;
-        font-weight: 600;
-        font-size: 18px;
-    }
-    .event-employee {
-        color: black;
-        font-weight: normal;
-        font-size: 16px;
-    }
+/* 이벤트 내부 구조 */
+:deep(.calendar--personal .event-label) {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  height: 30px !important;
+  padding: 3px 4px;
+}
+:deep(.calendar--personal .event-status),
+:deep(.calendar--personal .event-status-schedule) {
+  font-size: 16px;
+  /* font-weight: 600; */
+  color: black;
+}
+:deep(.calendar--personal .event-status),
+:deep(.calendar--personal .event-employee) {
+  color: black;
+  font-size: 16px;
+}
+:deep(.calendar--personal .event-status) {
+  font-weight: 600;
+}
+:deep(.calendar--personal .event-employee),
+:deep(.calendar--personal .event-employee-schedule) {
+  font-size: 16px;
+  color: black;
+}
+:deep(.calendar--personal .event-status) {
+  font-weight: 600;
+}
+/* 스케줄 타입은 white text */
+:deep(.calendar--personal .event-status-schedule),
+:deep(.calendar--personal .event-employee-schedule) {
+  color: white;
+}
 
-    /* 라벨 테두리 제거 */
-    .fc-event {
-        box-shadow: 0 2px 2px rgba(0,0,0,0.1) !important;
-        outline: none !important;
-    }
+/* 버튼들 */
+:deep(.calendar--personal .fc-button) {
+  background-color: #00A8E8 !important;
+  color: white !important;
+  border: 1px solid transparent !important;
+  padding: 4px 10px !important;
+  border-radius: 6px !important;
+  font-size: 12px !important;
+  font-weight: bold !important;
+  height: 30px !important;
+}
+:deep(.calendar--personal .fc-prev-button),
+:deep(.calendar--personal .fc-next-button) {
+  width: 40px !important;
+  margin-left: 4px !important;
 
-    /* 오늘 날짜 */
-    .fc-day-today {
-        background-color: #ddf2ff !important;  /* 연한 파랑 */
-    }
+}
+:deep(.calendar--personal .fc-today-button) {
+  width: 50px !important;
+}
+:deep(.calendar--personal .fc-today-button.fc-button-primary:hover) {
+  background-color: white !important;
+  color: #00A8E8 !important;
+  border: 1px solid #00A8E8 !important;
+  box-shadow: inset 1px 1px 10px rgba(0, 0, 0, 0.25) !important;
+}
+:deep(.calendar--personal .fc-button:hover) {
+  background-color: white !important;
+  color: #00A8E8 !important;
+  border: 1px solid #00A8E8 !important;
+  box-shadow: inset 1px 1px 10px rgba(0, 0, 0, 0.25) !important;
+}
 
-    /* 셀 내부 고정 높이 유지 */
-    .fc-daygrid-day-frame {
-        display: flex;
-        flex-direction: column;
-        justify-content: start;
-        min-height: 100px !important;
-        overflow: hidden;
-    }
+:deep(.calendar--personal .fc-button:disabled) {
+  opacity: 1 !important;
+}
+:deep(.calendar--personal .fc-today-button:disabled) {
+  background-color: #00A8E8 !important;
+  color: white !important;
+}
 
-    /* 이벤트 라벨 높이 고정 */
-    .fc-daygrid-event {
-        height: 15px;
-        line-height: 15px;
-        font-size: 10px;
-        padding: 0 4px;
-        overflow: hidden;
-        white-space: nowrap;
-        text-overflow: ellipsis;
-    }
+/* 헤더 */
+:deep(.calendar--personal .fc-toolbar-title) {
+  font-size: 18px !important;
+  font-weight: 700 !important;
+  color: #333 !important;
+  font-family: 'Pretendard', sans-serif !important;
+}
 
-    /* 현재 연도/월 텍스트 */
-    .fc-toolbar-title {
-        font-size: 18px !important;
-        font-weight: 700 !important;
-        color: #333 !important;
-        font-family: 'Pretendard', sans-serif !important;
-    }
-
-    /* disabled 상태(opacity) 해제 */
-    .fc-button:disabled {
-        opacity: 1 !important;
-    }
-
-    /* disabled Today 버튼에 대한 배경/글자색 고정 */
-    .fc-today-button:disabled {
-        background-color: #00A8E8 !important;
-        color: white       !important;
-        border: 1px solid transparent !important;
-    }
-
-    /* 오늘 버튼 */
-    .fc-today-button {
-        background-color: #00A8E8 !important;
-        color: white !important;
-        border: 1px solid transparent !important;
-        padding: 4px 10px !important;
-        border-radius: 6px !important;
-        font-size: 12px !important;
-        font-weight: bold !important;
-        width: 50px !important;
-        height: 30px !important;
-    }
-
-    /* 이전/다음 버튼 */
-    .fc-prev-button,
-    .fc-next-button {
-        background-color: #00A8E8 !important;
-        color: white !important;
-        border: 1px solid transparent !important;
-        padding: 4px 10px !important;
-        border-radius: 6px !important;
-        font-size: 12px !important;
-        font-weight: bold !important;
-        margin-left: 4px !important;
-        width: 40px !important;
-        height: 30px !important;
-    }
-
-    /* 버튼 hover 효과 */
-    .fc-button:hover {
-        background-color: white !important;
-        color: #00A8E8 !important;
-        border: 1px solid #00A8E8 !important;
-        box-shadow: inset 1px 1px 10px rgba(0, 0, 0, 0.25) !important;
-    }
-
-    /* 개인 일정 라벨 색 */
-    .event-personal {
-        background-color: #AE8CFF !important;
-        border: 3.5px solid #AE8CFF !important;
-        opacity: 50% !important;
-    }
-
-    .event-status-schedule {
-        color: white;
-        font-weight: 600;
-        font-size: 18px;
-    }
-
-    .event-employee-schedule {
-        color: white;
-        font-weight: normal;
-        font-size: 16px;
-    }
 </style>

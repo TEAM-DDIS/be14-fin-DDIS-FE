@@ -3,6 +3,7 @@
 <template>
   <h1 class="page-title">기안함</h1>
   <div class="tabs">
+    <span :class="{active: tab==='전체'}" @click="tab='전체'">전체</span>
     <span :class="{active: tab==='상신'}" @click="tab='상신'">상신</span>
     <span :class="{active: tab==='완료'}" @click="tab='완료'">완료</span>
     <span :class="{active: tab==='반려'}" @click="tab='반려'">반려</span>
@@ -29,7 +30,7 @@
         :rowData="filteredForms"
         :pagination="true"
         rowSelection="single"
-        @rowClicked="onRowClick"
+        @rowClicked="handleFormRowClick"
         style="width:100%; height:100%;"
       />
     </div>
@@ -37,18 +38,19 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { AgGridVue } from 'ag-grid-vue3'
 import { ModuleRegistry, AllCommunityModule } from 'ag-grid-community'
 import axios from 'axios'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 ModuleRegistry.registerModules([AllCommunityModule])
 
 // 1) 상태
 const tab    = ref('상신')
-const search = ref({ date: '', title: '' })
+const search = reactive({ date: '', title: '' })
 const docs   = ref([])
 const route = useRoute()
+const router = useRouter()
 
 // 2) 컬럼 정의 (결재함이랑 동일)
 const columnDefsByTab = {
@@ -57,7 +59,7 @@ const columnDefsByTab = {
     { headerName:"구분", field:"type", width:150 },
     { headerName:"제목", field:"title", flex:1 },
     { headerName:"상신일시", field:"date", width:230 },
-    { headerName:"결재대기자", field:"approver", width:150 },
+    { headerName:"현재 결재자", field:"writer", width:150 },
   ],
   '완료': [
     { headerName:"번호", field:"no", width:100 },
@@ -78,8 +80,8 @@ const columnDefsByTab = {
 }
 const currentColumnDefs = computed(() => columnDefsByTab[tab.value])
 const statusMap = {
-  상신: '대기중',
-  완료: '완료',
+  상신: '심사중',      
+  완료: '결재완료',     // ← '완료' → '결재완료' 으로 변경
   반려: '반려',
   회수: '회수'
 }
@@ -92,16 +94,15 @@ const filteredForms = computed(() => {
     if (expected && doc.status !== expected) return false
 
     // 2) 제목 검색
-    if (search.value.title && !doc.title.includes(search.value.title)) return false
+      if (search.title && !doc.title?.includes(search.title)) return false
 
     // 3) 날짜 검색 (YYYY-MM-DD)
-    if (search.value.date) {
-      const day = (doc.date || doc.createdAt).slice(0, 10)
-      if (day !== search.value.date) return false
-    }
-
-    return true
-  })
+      if (search.date) {
+        const dateOnly = doc.submittedAt?.slice(0, 10)
+        if (dateOnly !== search.date) return false
+      }
+      return true
+    })
 
   // 3) 번호 붙이기 (최신순)
   return filtered.map((doc, i) => ({
@@ -110,25 +111,30 @@ const filteredForms = computed(() => {
   }))
 })
 
+
 // 4) API 호출
+function formatApprover(name, rank) {
+  return name && rank ? `${name} / ${rank}` : '-'
+}
+
+function formatDate(datetime) {
+  return datetime ? datetime.replace('T', ' ').slice(0, 16) : '-'
+}
+
 async function fetchMyDrafts() {
   try {
-    const res = await axios.get('http://localhost:8000/drafts/query', {
+    const res = await axios.get('http://localhost:8000/approvals/draftDoc', {
       headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
     })
-    // 백이 주는 DocumentDTO 필드에 맞춰 맵핑
+
     docs.value = res.data.map(d => ({
       docId: d.docId,
       title: d.title,
       type: d.type,
-      status: d.status,
-
-      // Ag-Grid 상신 탭에 필요한 필드
-      date:        d.submittedAt || d.createdAt, // columnDefs 상신에서 field:"date"
-      approver:    d.approver,                             // 다음 결재대기자 정보를 알고 있으면 넣고, 아니면 빈 문자열
-
-      // 완료 탭
-      completeDate: d.approvedAt || '',            // field:"completeDate"
+      status: d.docStatus,
+      date: formatDate(d.submittedAt || d.createdAt),
+      writer: formatApprover(d.approverName, d.approverRank),  // ✅ 이름 / 직급
+      completeDate: formatDate(d.approvedAt),
       createdAt: d.createdAt
     }))
   } catch (e) {
@@ -136,20 +142,28 @@ async function fetchMyDrafts() {
   }
 }
 
+
+
 // 5) 라이프사이클
 onMounted(() => {
  const queryTab = route.query.tab
- if (['상신', '완료', '반려', '회수'].includes(queryTab)) {
+  if (['상신', '완료', '반려', '회수', '전체'].includes(queryTab)) {
    tab.value = queryTab
  }
-
   fetchMyDrafts()
 })
 
 
 // 6) 행 클릭 핸들러
-function onRowClick(e) {
-  console.log('기안 선택됨:', e.data)
+function handleFormRowClick(params) {
+  console.log('선택된 행:', params.data)
+  const docId = params.data.docId
+  // /drafts/8 같은 경로로 이동
+  router.push({
+    name: 'DraftDetail',
+    params: {docId},
+    query: { box: 'MyDraft' }
+  })
 }
 </script>
 
@@ -191,7 +205,7 @@ function onRowClick(e) {
 }
 .tabs .active {
   color: #1f2937;
-  border-bottom: 3px solid #1f2937;  /* 클릭시 검은색 강조 */
+  border-bottom: 3px solid #00a8e8;  /* 클릭시 검은색 강조 */
   font-weight: bold
 }
 

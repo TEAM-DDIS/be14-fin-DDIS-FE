@@ -162,11 +162,11 @@
                 items: [
                     {
                         name: '기안양식함', 
-                        path: '/draftdoc/draftcreate'
+                        path: '/eapproval/temp'
                     },
                     {
                         name: '임시저장함', 
-                        path: '/draftdoc/temporarydoc'
+                        path: '/eapproval/temporarydoc'
                     },
                 ]
             },
@@ -174,19 +174,19 @@
                 items: [
                     {
                         name: '기안함', 
-                        path: '/draftdoc/mydraft'
+                        path: '/eapproval/mydraft'
                     },
                     {
                         name: '결재함', 
-                        path: '/draftdoc/approve'
+                        path: '/eapproval/approve'
                     },
                     {
                         name: '수신함', 
-                        path: '/draftdoc/inbox'
+                        path: '/eapproval/receiver'
                     },
                     {
                         name: '참조함', 
-                        path: '/draftdoc/reference'
+                        path: '/eapproval/reference'
                     },
                 ]
             },

@@ -24,13 +24,20 @@ const router = createRouter({
         // 내 인사 정보
         {
             path: '/employeeInfo/myInfo',
-            component: () => import('@/components/employeeInfo/EmployeeEnroll.vue')
+            component: () => import('@/components/employeeInfo/MyEmployeePage.vue')
         },
 
         // 사원 목록 조회
         {
             path: '/employeeInfo/employeeList',
             component: () => import('@/components/employeeInfo/EmployeeList.vue')
+        },
+
+        // 사원 상세 조회
+        {
+            path: '/employeeInfo/:id',
+            name: 'EmployeeDetail',
+            component: () => import('@/components/employeeInfo/EmployeeDetailPage.vue')
         },
 
         // 사원 등록 
@@ -161,63 +168,66 @@ const router = createRouter({
 
         // =============== 전자결재 ===============
 
-        // 기안 작성
+        // 기안 양식
         {
-            path: '/draftdoc/draftcreate',
-            component: () => import('@/pages/eapproval/DraftTemplateList.vue')
+            path: '/eapproval/temp',
+            name: 'DraftTempList',
+            component: () => import('@/pages/eapproval/DraftTempListPage.vue')
         },
-
+        // 상세페이지
+        {
+            path: '/eapproval/:docId',
+            name: 'DraftDetail',
+            component: () => import('@/pages/eapproval/DraftDetailPage.vue'),
+            props: true   
+        },
         // 임시저장함
         {
-            path: '/draftdoc/temporarydoc',
+            path: '/eapproval/temporarydoc',
             component: () => import('@/pages/eapproval/TemporaryDoc.vue')
         },
-
         // 기안함
         {
-            path: '/draftdoc/mydraft',
-            component: () => import('@/pages/eapproval/MyDraft.vue')
+            path: '/eapproval/mydraft',
+            name: 'MyDraftBox',
+            component: () => import('@/pages/eapproval/MyDraftBoxPage.vue')
         },
 
         // 결재함
         {
-            path: '/draftdoc/approve',
-            component: () => import('@/pages/eapproval/ApproveDoc.vue')
+            path: '/eapproval/approve',
+            name: 'ApprovalBox',
+            component: () => import('@/pages/eapproval/ApprovalBoxPage.vue')
         },
-        {
-            path: '/drafts/:docId',
-            name: 'DraftDetail',
-            component: () => import('@/pages/eapproval/DetailTest.vue'),
-            props: true   
-        },
-
         // 수신함 
         {
-            path: '/draftdoc/inbox',
-            component: () => import('@/pages/eapproval/InBox.vue')
+            path: '/eapproval/receiver',
+            name: 'ReceiverBox',
+            component: () => import('@/pages/eapproval/ReceiverBoxPage.vue')
         },
         // 참조함
         {
-            path: '/draftdoc/reference',
-            component: () => import('@/pages/eapproval/ReferenceDoc.vue')
+            path: '/eapproval/reference',
+            name: 'ReferenceBox',
+            component: () => import('@/pages/eapproval/ReferenceBoxPage.vue')
         },
 
         // 기안양식 (일반기안문서)
         {
-            path: '/draft/formA',
+            path: '/eapproval/formA',
             component: () => import('@/pages/eapproval/DraftFormA.vue')
         },
         // 기안양식 (외근신청서)
         {
-            path: '/draft/formB',
+            path: '/eapproval/formB',
             component: () => import('@/pages/eapproval/DraftFormB.vue')
         },        
          // 상세페이지
-        {
-            path: '/draft/:docId', // ← 기안 문서 ID에 따라 상세 조회
-            name: 'DraftDetail',
-            component: () => import('@/pages/eapproval/DetailTest.vue')        
-        },
+        // {
+        //     path: '/drafts/:docId', // ← 기안 문서 ID에 따라 상세 조회
+        //     name: 'DraftDetail',
+        //     component: () => import('@/pages/eapproval/DetailTest.vue')        
+        // },
         // =============== 급여 관리 ===============
 
         // 내  급여 명세서 조회

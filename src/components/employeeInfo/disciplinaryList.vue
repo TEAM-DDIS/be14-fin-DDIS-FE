@@ -65,8 +65,10 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
+import axios from 'axios'
 import { useRouter } from 'vue-router'
+import { useUserStore } from '@/stores/user'
 import { AgGridVue } from 'ag-grid-vue3'
 import {
   ModuleRegistry,
@@ -90,10 +92,22 @@ ModuleRegistry.registerModules([
   ValidationModule
 ])
 
-const router = useRouter()
-let gridApi = null
+// 라우터, Pinia 스토어
+const router    = useRouter()
+const userStore = useUserStore()
 
-// 1) 컬럼 정의
+// 그리드 API 참조
+let gridApi = null
+function onGridReady(params) {
+  gridApi = params.api
+}
+
+// JWT 토큰 헤더
+function authHeaders() {
+  return { Authorization: `Bearer ${userStore.accessToken}` }
+}
+
+// 컬럼 정의
 const columnDefs = ref([
   {
     headerName: '',
@@ -101,222 +115,99 @@ const columnDefs = ref([
     checkboxSelection: true,
     headerCheckboxSelection: true,
     width: 50,
-    pinned: 'left',
-    cellClass: 'checkbox-cell',
-    headerClass: 'checkbox-header-cell'
+    pinned: 'left'
   },
-  {
-    headerName: '번호',
-    field: 'id',
-    width: 80,
-    cellClass: 'center-align',
-    headerClass: 'header-number'
-  },
-  {
-    headerName: '사원명',
-    field: 'name',
-    width: 150,
-    // cellRenderer로 <span>을 감싸서 렌더링
-    cellRenderer: (params) => {
-      return `<span class="clickable-name">${params.value}</span>`
-    },
-    headerClass: 'header-name'
-  },
-  {
-    headerName: '사원번호',
-    field: 'employeeNumber',
-    flex: 1.5,
-    cellClass: 'center-align',
-    headerClass: 'header-employeeNumber'
-  },
-  {
-    headerName: '징계 서류',
-    field: 'disciplinary',
-    flex: 1.7,
-    // ▼ 텍스트만 렌더링하고 클릭 시 onCellClick에서 처리
-    cellRenderer: (params) => {
-      return `<span class="clickable-contract">${params.value}</span>`
-    },
-    cellClass: 'center-align',
-    headerClass: 'disciplinarydescrip'
-  },
-  {
-    headerName: '징계 내용',
-    field: 'disciplinarydescrip',
-    flex: 1.5,
-    cellClass: 'center-align',
-    headerClass: 'header-disciplinarydescrip'
-  },
-  {
-    headerName: '징계일자',
-    field: 'disciplinarydate',
-    flex: 1,
-    cellClass: 'center-align',
-    headerClass: 'header-disciplinarydate'
-  }
+  { headerName: '번호',          field: 'disciplinaryId',         width: 80,  cellClass: 'center-align' },
+  { headerName: '사원명',        field: 'employeeName',           flex: 1.5 },
+  { headerName: '징계 서류',     field: 'disciplinaryFileName',   flex: 2 },
+  { headerName: '징계 내용',     field: 'disciplinaryDescription',flex: 2 },
+  { headerName: '징계일자',      field: 'disciplinaryDate',       flex: 1,   cellClass: 'center-align' }
 ])
 
-// 2) 예시 더미 데이터
-const rowData = ref([
-  {
-    id: 1,
-    name: '김철수',
-    employeeNumber: 'EMP001',
-    disciplinary: '경고장',
-    documentUrl: '/images/disciplinary.png',
-    disciplinarydescrip: '근태 불량',
-    disciplinarydate: '2025-06-01'
-  },
-  {
-    id: 2,
-    name: '이영희',
-    employeeNumber: 'EMP002',
-    disciplinary: '근신명령서',
-    disciplinarydescrip: '무단 결근',
-    disciplinarydate: '2025-05-20'
-  },
-  {
-    id: 3,
-    name: '박민수',
-    employeeNumber: 'EMP003',
-    disciplinary: '정직처분서',
-    disciplinarydescrip: '업무 태만',
-    disciplinarydate: '2025-04-15'
-  },
-  {
-    id: 4,
-    name: '최수진',
-    employeeNumber: 'EMP004',
-    disciplinary: '감봉 통지서',
-    disciplinarydescrip: '보고 누락',
-    disciplinarydate: '2025-03-30'
-  },
-  {
-    id: 5,
-    name: '정다은',
-    employeeNumber: 'EMP005',
-    disciplinary: '경고장',
-    disciplinarydescrip: '지각 지속',
-    disciplinarydate: '2025-02-10'
-  },
-  {
-    id: 6,
-    name: '오준호',
-    employeeNumber: 'EMP006',
-    disciplinary: '근신명령서',
-    disciplinarydescrip: '업무 지연',
-    disciplinarydate: '2025-01-25'
-  },
-  {
-    id: 7,
-    name: '한지혜',
-    employeeNumber: 'EMP007',
-    disciplinary: '정직처분서',
-    disciplinarydescrip: '보안 위반',
-    disciplinarydate: '2024-12-05'
-  },
-  {
-    id: 8,
-    name: '유민호',
-    employeeNumber: 'EMP008',
-    disciplinary: '감봉 통지서',
-    disciplinarydescrip: '비용 부당 청구',
-    disciplinarydate: '2024-11-18'
-  },
-  {
-    id: 9,
-    name: '강예린',
-    employeeNumber: 'EMP009',
-    disciplinary: '경고장',
-    disciplinarydescrip: '불성실 근무',
-    disciplinarydate: '2024-10-02'
-  },
-  {
-    id: 10,
-    name: '서동혁',
-    employeeNumber: 'EMP010',
-    disciplinary: '근신명령서',
-    disciplinarydescrip: '회의 불참',
-    disciplinarydate: '2024-09-14'
-  }
-])
-
-
-const searchText = ref('')
-const pageSize = ref(20)
+// 데이터 저장소
+const fullData        = ref([])   // 전체 원본
+const rowData         = ref([])   // AG Grid 바인딩
+const searchText      = ref('')   // 검색어
+const pageSize        = ref(20)   // 페이지당 행 수
 const showDeleteModal = ref(false)
+const showImageModal  = ref(false)
+const selectedImageUrl= ref('')
 
-// ▼ 이미지 미리보기 모달 상태 변수 (추가)
-const showImageModal = ref(false)
-const selectedImageUrl = ref('')
+// 초기 목록 조회
+onMounted(async () => {
+  try {
+    const res = await axios.get('http://localhost:8000/disciplinary', {
+      headers: authHeaders()
+    })
+    fullData.value = res.data
+    rowData.value  = res.data
+  } catch (e) {
+    console.error('징계 목록 조회 실패:', e)
+    alert('징계 목록을 불러오는 중 오류가 발생했습니다.')
+  }
+})
 
-const defaultColDef = {
-  sortable: true,
-  filter: true,
-  resizable: true
-}
-
-// 3) 검색 필터링 로직
+// 검색 필터링
 const filteredData = computed(() => {
-  if (!searchText.value) return rowData.value
-  const lower = searchText.value.toLowerCase()
-  return rowData.value.filter(r =>
-    r.name.toLowerCase().includes(lower)
+  const kw = searchText.value.trim().toLowerCase()
+  if (!kw) return rowData.value
+  return fullData.value.filter(item =>
+    item.employeeName.toLowerCase().includes(kw)
   )
 })
 
-// 4) 그리드 준비
-function onGridReady(params) {
-  gridApi = params.api
-}
-
-// 5) 셀 클릭 이벤트
-function onCellClick(e) {
-  // 사원명 클릭 → 상세 페이지
-  if (e.colDef.field === 'name') {
-    router.push(`/employeeInfo/employeeEnroll`)
-    return
-  }
-  // 징계서류 클릭 → 이미지 모달 띄우기
-  if (e.colDef.field === 'disciplinary') {
-    selectedImageUrl.value = e.data.documentUrl
-    showImageModal.value = true
-  }
-}
-
-// ▼ 이미지 모달 닫기 함수 (추가)
-function closeImageModal() {
-  showImageModal.value = false
-  selectedImageUrl.value = ''
-}
-
-// 6) 삭제 로직
+// 삭제 모달 띄우기
 function onDeleteClick() {
-  const selectedRows = gridApi.getSelectedRows()
-  if (selectedRows.length === 0) {
-    alert('삭제할 문서를 선택하세요.')
-    return
-  }
+  const sel = gridApi?.getSelectedRows() || []
+  if (!sel.length) return alert('삭제할 항목을 선택하세요.')
   showDeleteModal.value = true
 }
 function cancelDelete() {
   showDeleteModal.value = false
 }
-function confirmDelete() {
-  const selectedRows = gridApi.getSelectedRows()
-  if (selectedRows.length > 0) {
-    rowData.value = rowData.value.filter(r =>
-      !selectedRows.includes(r)
-    )
+async function confirmDelete() {
+  const sel = gridApi.getSelectedRows()
+  const ids = sel.map(r => r.disciplinaryId)
+  try {
+    await Promise.all(ids.map(id =>
+      axios.delete(`http://localhost:8000/disciplinary/${id}`, {
+        headers: authHeaders()
+      })
+    ))
+    fullData.value = fullData.value.filter(r => !ids.includes(r.disciplinaryId))
+    rowData.value  = rowData.value.filter(r => !ids.includes(r.disciplinaryId))
     gridApi.deselectAll()
+    showDeleteModal.value = false
+    alert('선택 항목이 삭제되었습니다.')
+  } catch (err) {
+    console.error('삭제 실패:', err)
+    alert('삭제 중 오류가 발생했습니다.')
   }
-  showDeleteModal.value = false
-  alert('삭제가 완료되었습니다.')
 }
 
-// 7) 등록 버튼 클릭 → “징계 등록” 화면으로 이동
+// 등록 화면 이동
 function onRegister() {
   router.push('/employeeInfo/disciplinary/disciplinaryEnroll')
+}
+
+// 셀 클릭 이벤트
+function onCellClick(e) {
+  // 사원명 클릭 → 상세 페이지 이동
+  if (e.colDef.field === 'employeeName') {
+    router.push(`/employeeInfo/disciplinary/${e.data.disciplinaryId}`)
+    return
+  }
+  // 징계 서류 클릭 → 이미지 모달 오픈
+  if (e.colDef.field === 'disciplinaryFileName') {
+    selectedImageUrl.value = e.data.disciplinaryFilePath
+    showImageModal.value = true
+  }
+}
+
+// 이미지 모달 닫기
+function closeImageModal() {
+  showImageModal.value = false
+  selectedImageUrl.value = ''
 }
 </script>
 
