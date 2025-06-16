@@ -8,49 +8,45 @@
       <button @click="collapseAll" class="control-btn">전체 닫기</button>
     </div>
 
-    <div class="org-box">
+     <div class="org-box">
       <ul class="org-list">
         <li v-for="head in hierarchy" :key="head.headId">
-          <div class="node head" @click="toggle('h' + head.headId)">
-            <i
-              :class="expanded['h' + head.headId] ? 'fa fa-chevron-down' : 'fa fa-chevron-right'"
-            />
+          <div class="node head" @click="toggle('h'+head.headId)">
+            <i :class="expanded['h'+head.headId] ? 'fa fa-chevron-down' : 'fa fa-chevron-right'" />
             {{ head.headName }}
           </div>
 
-          <ul v-show="expanded['h' + head.headId]" class="org-list">
+          <ul v-if="expanded['h'+head.headId]" class="org-list">
             <li v-for="dept in head.departments" :key="dept.departmentId">
-              <div class="node dept" @click.stop="onDepartmentClick(dept)">
-                <i
-                  :class="expanded['d' + dept.departmentId] ? 'fa fa-chevron-down' : 'fa fa-chevron-right'"
-                />
+              <div class="node dept" @click.stop="toggle('d'+dept.departmentId)">
+                <i :class="expanded['d'+dept.departmentId] ? 'fa fa-chevron-down' : 'fa fa-chevron-right'" />
                 {{ dept.departmentName }}
               </div>
 
-              <div v-show="expanded['d' + dept.departmentId]" class="dept-children">
-                <div v-if="dept.deptManager" class="node emp emp-manager">
-                  부장: {{ dept.deptManager.employeeName }}
-                </div>
+              <ul v-if="expanded['d'+dept.departmentId]" class="team-list">
+                <li v-for="team in dept.teams" :key="team.teamId">
+                  <div class="node team" @click.stop="fetchTeamRanks(team)">
+                    <i :class="expanded['t'+team.teamId] ? 'fa fa-chevron-down' : 'fa fa-chevron-right'" />
+                    {{ team.teamName }}
+                  </div>
 
-                <ul class="team-list">
-                  <li v-for="team in dept.teams" :key="team.teamId">
-                    <div class="node team" @click.stop="onTeamClick(team)">
-                      <i
-                        :class="expanded['t' + team.teamId] ? 'fa fa-chevron-down' : 'fa fa-chevron-right'"
-                      />
-                      {{ team.teamName }}
-                    </div>
-
-                    <ul v-show="expanded['t' + team.teamId]" class="member-list">
-                      <li v-for="emp in filteredTeamMembers(team)" :key="emp.employeeId">
-                        <div class="node emp">
-                          {{ emp.rankName }} {{ emp.positionName }}: {{ emp.employeeName }}
-                        </div>
-                      </li>
-                    </ul>
-                  </li>
-                </ul>
-              </div>
+                  <!-- API로 받아온 ranks만 보여주기 -->
+                  <ul v-if="props.showRanks && expanded['t' + team.teamId]" class="rank-list">
+                    <li v-for="rank in teamRanks[team.teamId] || []" :key="rank.rankCode">
+                      <div class="node emp rank-option" @click.stop="onRankClick(rank)">
+                        {{ rank.rankName }}
+                      </div>
+                    </li>
+                  </ul>
+                  <ul v-if="props.showJobs && expanded['t' + team.teamId]" class="job-list">
+                    <li v-for="job in teamJobs[team.teamId] || []" :key="job.jobId">
+                      <div class="node emp job-option" @click.stop="onJobClick(job)">
+                        {{ job.jobName }}
+                      </div>
+                    </li>
+                  </ul>
+                </li>
+              </ul>
             </li>
           </ul>
         </li>
@@ -60,16 +56,33 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, computed } from 'vue'
+import axios from 'axios'
+
 
 // 상위로 이벤트 발송
-const emit = defineEmits(['dept-selected', 'team-selected'])
+const emit = defineEmits(['dept-selected', 'team-selected', 'rank-selected'])
 
 // 전체 계층 데이터
 const hierarchy = ref([])
 
 // 펼침/접힘 상태
 const expanded = reactive({})
+const teamRanks = reactive({})
+const teamJobs = reactive({})
+
+
+const props = defineProps({
+  showRanks: {
+    type: Boolean,
+    default: true
+  },
+  showJobs: {
+    type: Boolean,
+    default: true
+  }
+})
+
 
 onMounted(async () => {
   try {
@@ -91,9 +104,95 @@ function onDepartmentClick(dept) {
   emit('dept-selected', dept)
 }
 
-function onTeamClick(team) {
-  toggle('t' + team.teamId)
+function onRankClick(rank) {
+  emit('rank-selected', rank)
+}
+
+function onJobClick(job) {
+  console.log('🔧 직무 클릭됨:', job)
+  emit('job-selected', {
+    jobId: job.jobId,
+    jobName: job.jobName ?? '(이름 없음)',   // 이 줄 중요!
+    jobCode: job.jobCode
+  })
+}
+
+
+const allRanks = computed(() => {
+  const map = new Map()
+  hierarchy.value.forEach(head =>
+    head.departments?.forEach(dept =>
+      dept.teams?.forEach(team =>
+        team.members?.forEach(emp => {
+          const id   = emp.rankCode
+          const name = emp.rankName
+          if (id != null && !map.has(id)) {
+            map.set(id, { rankId: id, rankName: name })
+          }
+        })
+      )
+    )
+  )
+  return Array.from(map.values())
+})
+
+async function fetchTeamJobs(team) {
+  // if (!props.showJobs) return
+
+  if (!teamJobs[team.teamId]) {
+    try {
+      const res = await axios.get(`http://localhost:8000/introduction/team/${team.teamId}/job`)
+      teamJobs[team.teamId] = res.data
+    } catch (e) {
+      console.error('Job fetch error ▶', e)
+      teamJobs[team.teamId] = []
+    }
+  }
+}
+
+async function fetchTeamRanks(team) {
+  const key = 't' + team.teamId
+  // 펼침 토글
+  toggle(key)
   emit('team-selected', team)
+
+  // if (!props.showRanks) return
+
+
+  // 아직 불러온 적 없으면 API 요청
+  if (!teamRanks[team.teamId]) {
+    try {
+      // 1) 이 팀의 job 목록
+      const jobs = (await axios.get(
+        `http://localhost:8000/introduction/team/${team.teamId}/job`
+      )).data
+
+      // 2) 각 jobId로 rank 조회
+      const ranksList = await Promise.all(
+        jobs.map(j =>
+          axios
+            .get(`http://localhost:8000/introduction/job/${j.jobId}/ranks`)
+            .then(r => r.data)
+        )
+      )
+
+      // 3) 중복 제거 후 저장
+      const map = new Map()
+      ranksList.flat().forEach(rk => {
+        if (rk.rankCode != null && !map.has(rk.rankCode)) {
+          map.set(rk.rankCode, rk)
+        }
+      })
+      teamRanks[team.teamId] = Array.from(map.values())
+    } catch (e) {
+      console.error('Rank fetch error ▶', e)
+      teamRanks[team.teamId] = []
+    }
+  }
+  if (props.showJobs) {
+    console.log('🧪 showJobs가 true이므로 fetchTeamJobs 호출됨')
+    await fetchTeamJobs(team)
+  }
 }
 
 // 회사 대표 찾기 (positionCode === 'P005')
@@ -338,3 +437,4 @@ function collapseAll() {
 }
 
 </style>
+

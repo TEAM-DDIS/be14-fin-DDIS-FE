@@ -89,6 +89,19 @@
     @close="showApprovalModal = false"
   />
 
+  <OrgSelectorModal
+  v-if="showOrgSelectorModal"
+  :hierarchy="fullHierarchy"
+  :requiredKeys="typeToKeys[form.type]" 
+  :show-jobs="typeToKeys[form.type].includes('job')"
+  :show-ranks="typeToKeys[form.type].includes('rank')"
+  @select="handleOrgSelected"
+  @close="showOrgSelectorModal = false"
+  @rank-selected="handleOrgSelected"
+  @job-selected="handleOrgSelected"
+/>
+
+
 </template>
 
 <script setup>
@@ -100,10 +113,8 @@ import { AgGridVue } from 'ag-grid-vue3'
 import { ModuleRegistry, AllCommunityModule } from 'ag-grid-community'
 ModuleRegistry.registerModules([AllCommunityModule])
 
-import debounce from 'lodash/debounce';
-
-// 모달 표시 플래그 & 결재선 리스트
 import GetEmployeeModal from '@/components/org/appointment/GetEmployeeModal.vue'
+import OrgSelectorModal from '@/components/org/appointment/OrgSelectorModal.vue'
 const showApprovalModal = ref(false)
 const employeeList = ref([])
 
@@ -252,6 +263,8 @@ async function loadEmployeeInfo() {
   positionsCurrent.value = [{ positionCode: emp.positionCode, positionName: emp.positionName }]
   ranksCurrent.value     = [{ rankCode: emp.rankCode, rankName: emp.rankName }]
 
+  console.log('[✅ API 응답]', emp)
+
   gridApi.value.refreshCells({ columns: ['current'], force: true })
 }
 
@@ -304,6 +317,7 @@ function fillCurrentOrgCells() {
         break
     }
   })
+
   // 그리드에 반영
   gridApi.value.refreshCells({ columns: ['current'], force: true })
 }
@@ -380,7 +394,40 @@ const rowData = reactive([])
 const columnDefs = [
   { field: 'label', headerName: '항목', flex: 1, editable: false },
   { field: 'current', headerName: '현재 소속 조직', flex: 1.8, cellRenderer: params => makeSelect(params, 'currentOrg') },
-  { field: 'new', headerName: '발령 조직', flex: 1.8, cellRenderer: params => makeSelect(params, 'org') }
+  {
+    field: 'new',
+    headerName: '발령 조직',
+    flex: 1.8,
+    cellRenderer: params => makeSelect(params, 'org'),
+    headerComponentParams: {
+      template: `
+        <div style="display:flex; justify-content:space-between; align-items:center; width:100%;">
+          <span>발령 조직</span>
+        <button id="openOrgModal" style="margin-left:auto;" class="btn-plus">✚</button>
+        <style>
+          .btn-plus {
+            font-size: 12px;
+            background-color: #00a8e8;
+            color: white;
+            border: 1px solid transparent;
+            border-radius: 10px;
+            padding: 6px 12px;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            transition: background-color 0.2s, color 0.2s, border-color 0.2s, box-shadow 0.2s;
+          }
+
+          .btn-plus:hover {
+            background-color: white;
+            color: #00a8e8;
+            border-color: #00a8e8;
+            box-shadow: inset 1px 1px 10px rgba(0, 0, 0, 0.25);
+          }
+        </style>
+      </div>
+      `
+    }
+  }
 ]
 
 // 타입별로 보여줄 조직 단계 키(key) 목록
@@ -388,9 +435,18 @@ const typeToKeys = {
   승진:   ['head', 'department'],               // 승진 시: 본부, 부서
   전보:   ['department', 'team'],               // 전보 시: 부서, 팀
   전직:   ['department', 'team', 'job'],        // 전직 시: 부서, 팀, 직무
-  직급조정: ['department', 'team', 'position'], // 직급조정: 부서, 팀, 직책
+  직급조정: ['department', 'team','rank'], // 직급조정: 부서, 팀, 직책
   직무:   ['department', 'team', 'job']         // 직무 변경: 부서, 팀, 직무
 }
+
+const showRanks = computed(() => {
+  const keys = typeToKeys[form.type] || []
+  return keys.includes('rank')
+})
+const showJobs = computed(() => {
+  const keys = typeToKeys[form.type] || []
+  return keys.includes('job')
+})
 
 // form.type이 바뀔 때마다 rowData 초기화
 watch(() => form.type, newType => {
@@ -406,39 +462,98 @@ watch(() => form.type, newType => {
   })
 }, { immediate: true })
 
+const showOrgSelectorModal = ref(false)
+const orgPickerKey = ref(null)
+
+function openOrgModalForKey(key) {
+  orgPickerKey.value = key
+  showOrgSelectorModal.value = true
+}
+
+function syncOrgToGrid() {
+  rowData.forEach(r => {
+    switch (r.key) {
+      case 'head':
+        r.new = dataStore.headquarters.find(h => h.headId === form.org.headId)?.headName || ''
+        break
+      case 'department':
+        r.new = dataStore.department.find(d => d.departmentId === form.org.departmentId)?.departmentName || ''
+        break
+      case 'team':
+        r.new = dataStore.team.find(t => t.teamId === form.org.teamId)?.teamName || ''
+        break
+      case 'rank':
+        r.new = ranksNew.value.find(rk => rk.rankCode === form.org.rankCode)?.rankName || ''
+        break
+      case 'job': {
+        const match = jobsNew.value.find(j => String(j.jobId) === String(form.org.jobId))
+        console.log('🧪 match for job:', match)
+        r.new = match?.jobName || ''
+        break
+      }
+    }
+  })
+  gridApi.value.refreshCells({ columns:['new'], force:true })
+}
+
+
+
+
+function handleOrgSelected(selected) {
+  form.org.headId = selected.headId || null
+  form.org.departmentId = selected.departmentId || null
+  form.org.teamId = selected.teamId || null
+  form.org.jobId = selected.jobId || null
+  form.org.positionCode = selected.positionCode || null
+  form.org.rankCode = selected.rankCode || null
+  form.org.rankName = selected.rankName || null
+
+  // ✅ 추가: 직무 목록 갱신
+  jobsNew.value = [{
+    jobId: selected.jobId,
+    jobName: selected.jobName,
+    jobCode: selected.jobCode
+  }]
+
+  ranksNew.value = [{
+    rankCode: selected.rankCode,
+    rankName: selected.rankName
+  }]
+
+  // 🔥 선택한 조직명 grid 반영
+  syncOrgToGrid()
+
+  showOrgSelectorModal.value = false
+}
+
+
+function handleRankSelected(rank) {
+  // rank = { rankId, rankName }
+  form.org.rankCode = rank.rankId
+  // 그리드 “new” 쪽에 반영
+  syncOrgToGrid()
+}
+
 
 
 function makeSelect(params, context) {
   const key = params.data.key
 
-    if (context === 'org') {
-    const ok = {
-      head:       () => !!form.currentOrg.employeeId,   // 사원 선택 후에만
-      department: () => !!form.org.headId,              // 본부 선택 후에만
-      team:       () => !!form.org.departmentId,        // 부서 선택 후에만
-      job:        () => !!form.org.teamId,              // 팀 선택 후에만
-      position:   () => !!form.org.jobId,               // 직무 선택 후에만
-      rank:       () => !!form.org.positionCode         // 직책 선택 후에만
-    }[ key ]?.();
-
-    if (!ok) {
-      // 이전 단계가 안 채워져 있으면 빈 readonly input 리턴
-      return (() => {
-        const inp = document.createElement('input');
-        inp.type = 'text';
-        inp.readOnly = true;
-        inp.value = '';
-        inp.style.width = '95%';
-        inp.style.height = '70%';
-        inp.style.border = '2px solid #eee';
-        inp.style.borderRadius = '8px'
-        inp.style.background = '#f9f9f9';
-        return inp;
-      })();
-    }
+  // 👉 발령 조직: readOnlyInput만
+  if (context === 'org') {
+    const inp = document.createElement('input')
+    inp.type = 'text'
+    inp.readOnly = true
+    inp.value = params.data.new || ''
+    inp.style.width = '95%'
+    inp.style.height = '70%'
+    inp.style.border = '2px solid #eee'
+    inp.style.borderRadius = '8px'
+    inp.style.background = '#f9f9f9'
+    return inp
   }
 
-  // 현재 소속 조직은 텍스트 표시
+  // 👉 현재 소속 조직: 그대로 유지
   if (context === 'currentOrg') {
     const readOnlyInput = value => {
       const input = document.createElement('input')
@@ -451,106 +566,48 @@ function makeSelect(params, context) {
       input.style.borderRadius = '8px'
       input.style.background = 'transparent'
       input.style.paddingLeft = '15px'
-
-      // 포커스 됐을 때
-      input.addEventListener('focus', () => {
-        input.style.border = '1px solid #000'
-        input.style.outline = 'none'
-      })
-
-      // 포커스 벗어났을을 때
-      input.addEventListener('blur', () => {
-        input.style.border = '2px solid #c8c8c8'
-      })
       return input
     }
+
     if (key === 'head')
-      return readOnlyInput(
-        dataStore.headquarters.find(h => h.headId === form.currentOrg.headId)?.headName
-      )
+      return readOnlyInput(dataStore.headquarters.find(h => h.headId === form.currentOrg.headId)?.headName)
     else if (key === 'department')
-      return readOnlyInput(
-        dataStore.department.find(d => d.departmentId === form.currentOrg.departmentId)?.departmentName
-      )
+      return readOnlyInput(dataStore.department.find(d => d.departmentId === form.currentOrg.departmentId)?.departmentName)
     else if (key === 'team')
-      return readOnlyInput(
-        dataStore.team.find(t => t.teamId === form.currentOrg.teamId)?.teamName
-      )
+      return readOnlyInput(dataStore.team.find(t => t.teamId === form.currentOrg.teamId)?.teamName)
     else if (key === 'job')
-      return readOnlyInput(
-        jobsCurrent.value[0]?.jobName
-      )
+      return readOnlyInput(jobsCurrent.value[0]?.jobName)
     else if (key === 'position')
-      return readOnlyInput(
-        positionsCurrent.value[0]?.positionName
-      )
+      return readOnlyInput(positionsCurrent.value[0]?.positionName)
     else if (key === 'rank')
-      return readOnlyInput(
-        ranksCurrent.value[0]?.rankName
-      )
+      return readOnlyInput(ranksCurrent.value[0]?.rankName)
+    else return readOnlyInput('')
 
-    const span = document.createElement('span')
-    span.textContent = text
-    return span
   }
 
-
-  // 발령 조직은 드롭다운 표시
-  const sel = document.createElement('select')
-  sel.style.width = '100%'
-  sel.appendChild(new Option('선택', ''))
-
-  let list = []
-  if (key==='head')       list = orgHeads.value
-  else if (key==='department') list = departmentsNew.value
-  else if (key==='team')       list = teamsNew.value
-  else if (key==='job')        list = jobsNew.value
-  else if (key==='position')   list = positionsNew.value
-  else if (key==='rank')       list = ranksNew.value
-
-  const idKey =
-    key === 'position'
-      ? 'positionCode'
-      : key === 'rank'
-      ? 'rankCode'
-      : key + 'Id'
-  const labelKey =
-    key === 'position'
-      ? 'positionName'
-      : key === 'rank'
-      ? 'rankName'
-      : key + 'Name'
-
-  list.forEach(item => {
-    const opt = new Option(item[labelKey], item[idKey])
-    if (String(item[idKey]) === String(form[context][idKey])) opt.selected = true
-    sel.appendChild(opt)
-  });
-
-  sel.value = form[context][idKey] || '';
-
-  sel.onchange = e => {
-        form[context][idKey] = e.target.value || null
-    // **jobCode, positionCode, rankCode** 도 함께 세팅
-    if (context === 'currentOrg' && key === 'job') {
-      const chosen = list.find(x => String(x[idKey]) === e.target.value)
-      form.currentOrg.jobCode = chosen?.jobCode || null
-    }
-    gridApi.value.refreshCells({ force: true })
-  }
-
-  return sel
+  return document.createTextNode('-')
 }
+
+
 
 function onGridReady(params) {
   gridApi.value = params.api
   rowData.length = 0
-  Object.entries(orgFields).forEach(([key, label]) =>
-    rowData.push({ key, label, current: null, new: null })
+
+  const keys = typeToKeys[form.type] || []
+  keys.forEach(key =>
+    rowData.push({ key, label: orgFields[key], current: '', new: '' })
   )
 
   fillCurrentOrgCells()
+
+  // 헤더의 + 버튼에 클릭 이벤트 연결
+  nextTick(() => {
+    const btn = document.querySelector('#openOrgModal')
+    if (btn) btn.addEventListener('click', () => openOrgModalForKey('org'))
+  })
 }
+
 
 // async function submit() {
 
@@ -649,7 +706,7 @@ function onGridReady(params) {
 
 .form-grid-container {
   display: flex;
-  gap: 40px;
+  gap: 60px;
   align-items: flex-start;
   margin-bottom: 20px;
   padding: 0 20px;
