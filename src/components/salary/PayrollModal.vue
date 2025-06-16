@@ -3,7 +3,9 @@
   <div class="modal-wrapper" @click.self="emit('close')">
     <div class="modal" ref="pdfContent">
       <button class="close-btn no-print" @click="emit('close')">×</button>
-      <h2 class="modal-title">급여명세서</h2>
+      <h2 class="modal-title">
+        {{ isMySlip ? '급여명세서' : `${slip.employeeName} 님의 급여명세서` }}
+      </h2>
 
       <table class="info-table bordered">
         <tbody>
@@ -26,12 +28,12 @@
             <td>{{ slip.rankName || '-' }}</td>
           </tr>
         </tbody>
-    </table>
+      </table>
 
       <table class="section-title-table">
-      <tbody>
-        <tr><td>세부 내역</td></tr> 
-      </tbody>
+        <tbody>
+          <tr><td>세부 내역</td></tr>
+        </tbody>
       </table>
 
       <div class="slip-tables">
@@ -58,10 +60,10 @@
           <tbody>
             <tr v-for="(item, index) in paddedDeductions" :key="index">
               <td :class="item.label?.includes('총') ? 'bold-label gray-row' : ''">
-                {{ item.label || '\u00A0' }}
+                {{ item.label || ' ' }}
               </td>
               <td :class="['right-align', item.label?.includes('총') ? 'highlight gray-row' : '']">
-                {{ item.amount !== undefined ? formatCurrency(item.amount) : '\u00A0' }}
+                {{ item.amount !== undefined ? formatCurrency(item.amount) : ' ' }}
               </td>
             </tr>
           </tbody>
@@ -76,9 +78,9 @@
       <div class="footer">
         <p class="today bold">{{ today }}</p>
         <button
-          v-if="props.showMailButton"
+          v-if="showMailButton && isMySlip"
           class="btn left no-print"
-          @click="sendMail" 
+          @click="sendMail"
         >
           메일 전송
         </button>
@@ -92,7 +94,7 @@
 import { computed, ref } from 'vue'
 import { useDateFormat } from '@vueuse/core'
 import html2pdf from 'html2pdf.js'
-import axios from 'axios' // ✅ axios 추가
+import axios from 'axios'
 import { useUserStore } from '@/stores/user'
 
 const props = defineProps({
@@ -104,6 +106,9 @@ const props = defineProps({
 })
 const emit = defineEmits(['close'])
 const pdfContent = ref(null)
+
+const userStore = useUserStore()
+const accessToken = computed(() => userStore.accessToken)
 
 const netPay = computed(() => props.slip.netSalary || (props.slip.totalPay - props.slip.totalDeduction))
 
@@ -118,6 +123,27 @@ const paddedDeductions = computed(() => {
   const pad = max - current
   return [...props.slip.deductions, ...Array(pad).fill({})]
 })
+
+function parseJwtPayload() {
+  try {
+    const token = accessToken.value || ''
+    const base64Url = token.split('.')[1]
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split('')
+        .map(c => `%${('00' + c.charCodeAt(0).toString(16)).slice(-2)}`)
+        .join('')
+    )
+    return JSON.parse(jsonPayload)
+  } catch (e) {
+    console.error('JWT 복호화 실패:', e)
+    return {}
+  }
+}
+
+const decoded = parseJwtPayload()
+const isMySlip = computed(() => decoded?.sub == props.slip.employeeId?.toString())
 
 function formatCurrency(val) {
   return val?.toLocaleString() || ''
@@ -141,7 +167,7 @@ async function sendMail() {
 
     await axios.post('http://localhost:8000/payroll/mail', payload, {
       headers: {
-        Authorization: `Bearer ${useUserStore.accessToken}`
+        Authorization: `Bearer ${accessToken.value}`
       }
     })
     alert('메일 전송이 완료되었습니다.')
@@ -165,6 +191,8 @@ function downloadPDF() {
   }).save()
 }
 </script>
+
+
 
 <style scoped>
 /* 모달 전체 배경 */

@@ -160,17 +160,48 @@
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
 import axios from 'axios'
+import { useRouter } from 'vue-router'
 import AgGrid from '@/components/grid/BaseGrid.vue'
 import Modal from '@/components/salary/PayrollModal.vue'
 import { useUserStore } from '@/stores/user'
+
+// ---------------------------------------------------------
+// HR 권한 체크 로직
+// ---------------------------------------------------------
+const router = useRouter()
+const userStore = useUserStore()
+
+function parseJwtPayload(token) {
+  try {
+    const base64Url = token.split('.')[1]
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split('')
+        .map(c => `%${('00' + c.charCodeAt(0).toString(16)).slice(-2)}`)
+        .join('')
+    )
+    return JSON.parse(jsonPayload)
+  } catch (e) {
+    return null
+  }
+}
+
+const token = localStorage.getItem('token')
+const payload = parseJwtPayload(userStore.accessToken || token)
+const isHR = payload?.roles?.includes('HR') || payload?.auth?.includes('HR')
+
+if (!isHR) {
+  alert('접근 권한이 없습니다.')
+  router.push('/error403')
+}
+// ---------------------------------------------------------
 
 const showModal = ref(false)
 const searchKeyword = ref('')
 const employees = ref([])
 const salaryHistory = ref([])
 const salarySection = ref(null)
-const userStore = useUserStore()
-const token = localStorage.getItem('token')
 
 const selectedSlip = reactive({
   yearMonth: '',
@@ -188,7 +219,6 @@ const selectedSlip = reactive({
   salaryDate: ''
 })
 
-// 날짜 선택 기본값 제거
 const dateRange = reactive({ start: '', end: '' })
 
 const filters = reactive({
@@ -254,7 +284,6 @@ function scrollToSalarySection() {
   salarySection.value?.scrollIntoView({ behavior: 'smooth' })
 }
 
-
 async function fetchSalaryHistory() {
   try {
     if (!dateRange.start || !dateRange.end) {
@@ -276,7 +305,6 @@ async function fetchSalaryHistory() {
       headers: { Authorization: `Bearer ${token}` }
     })
 
-    // 필터링된 사원만 추려서 반영 (옵션)
     const filtered = data.filter(item =>
       filteredEmployees.value.some(emp => emp.employeeId === item.employeeId)
     )
@@ -344,19 +372,21 @@ function formatCurrency(val) {
   return val.toLocaleString()
 }
 
-// 초기 날짜 설정 제거
 onMounted(async () => {
-  const res = await axios.get('http://localhost:8000/payroll/employees', {
-    headers: { Authorization: `Bearer ${token}` }
-  }).catch(err => {
+  try {
+    const res = await axios.get('http://localhost:8000/payroll/employees', {
+      headers: { Authorization: `Bearer ${token}` }
+    })
+    employees.value = res.data
+  } catch (err) {
     if (err.response?.status === 403) {
-      alert(err.response.data.message || "접근 권한이 없습니다.");
+      router.push('/error403')
+    } else {
+      console.error('사원 목록 불러오기 실패:', err)
     }
-  });
-  employees.value = res.data
+  }
 })
 
-// 모달
 function openModal() {
   showModal.value = true
 }
