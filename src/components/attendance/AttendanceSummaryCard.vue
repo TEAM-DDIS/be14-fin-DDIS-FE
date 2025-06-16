@@ -199,6 +199,19 @@
     }
   })
 
+  // 9시까지 대기 후 타이머 시작
+  const waitUntilNine = () => {
+    const nowTime = now()
+    const nineAM = now()
+    nineAM.setHours(9, 0, 0, 0)
+
+    const delay = nineAM - nowTime
+
+    setTimeout(() => {
+      startTimer()
+    }, delay)
+  }
+
   // 출근 등록
   const postCheckIn = async () => {
     const token = localStorage.getItem('token')
@@ -220,7 +233,17 @@
       checkIn.value = formatTime(nowTime)
       isCheckedIn.value = true
       workSeconds.value = 0
-      startTimer()
+      
+      // 9시 기준으로 타이머 시작 여부 분기
+      const nineAM = now()
+      nineAM.setHours(9, 0, 0, 0)
+
+      if (nowTime >= nineAM) {
+        startTimer()
+      } else {
+        waitUntilNine()
+      }
+
     } catch (err) {
       console.error('출근 등록 실패:', err.message)
       alert('출근 등록 중 오류가 발생했습니다.\n' + err.message)

@@ -149,9 +149,20 @@ async function handleCheck() {
   checkOutTime.value = data.checkOutTime ? data.checkOutTime.split('.')[0] : null
   workStatusName.value = data.workStatusName
 
-  // ✅ 서버에 출근 기록은 있고 퇴근 기록은 없을 때 출근 상태로 판단
+  // ✅ 출근 기록만 있고 퇴근 기록이 없을 경우
   if (checkInTime.value && !checkOutTime.value) {
-    isCheckedIn.value = true
+    const now = new Date()
+    const nineAM = new Date()
+    nineAM.setHours(9, 0, 0, 0)
+
+    // 🔧추가됨: 9시 전이라면 출근 상태만 표시 (타이머 없음)
+    if (now >= nineAM) {
+      isCheckedIn.value = true
+      // 여기에서 타이머 관련 로직을 표시하려면 startTimer() 호출 위치
+    } else {
+      isCheckedIn.value = false
+      // 출근했지만 9시 전이므로 아직 근무 시작 안 된 상태
+    }
   }
 })
     onBeforeUnmount(() => {
