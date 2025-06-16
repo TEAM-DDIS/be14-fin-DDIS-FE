@@ -29,6 +29,7 @@
   import DateFilter from '@/components/leave/DateFilter.vue'
   import MyCommuteCard from '@/components/commute/MyCommuteCard.vue'
   import MyCommuteSummary from '@/components/commute/MyCommuteSummary.vue'
+  import { useUserStore } from '@/stores/user'
 
   const commuteList = ref([])
   const dateRange = ref({ start: '', end: '' })
@@ -36,7 +37,9 @@
   async function handleSearch(range) {
     dateRange.value = range
 
-    const token = localStorage.getItem('token')
+    const userStore = useUserStore()
+    const token = userStore.accessToken
+    
     if (!token) {
       console.error('토큰이 없습니다. 로그인 후 다시 시도하세요.')
       return

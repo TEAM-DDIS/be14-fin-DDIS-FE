@@ -24,6 +24,9 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import DateFilter from '@/components/leave/DateFilter.vue'
 import AllCommuteCard from '@/components/commute/AllCommuteCard.vue'
+import { useUserStore } from '@/stores/user'
+
+const userStore = useUserStore()
 
 const commuteList = ref([])
 const router = useRouter()
@@ -32,7 +35,7 @@ const dateRange = ref({ start: '', end: '' })
 async function handleSearch(range) {
   dateRange.value = range
 
-  const token = localStorage.getItem('token')
+  const token = userStore.accessToken
   if (!token) {
     console.error('토큰이 없습니다. 로그인 후 다시 시도하세요.')
     return
@@ -48,12 +51,21 @@ async function handleSearch(range) {
         Authorization: `Bearer ${token}`
       }
     })
+
+    if (!res.ok) {
+      const errText = await res.text()
+      throw new Error(errText)
+    }
+
     const json = await res.json()
     commuteList.value = json
   } catch (err) {
     console.error('출퇴근 내역 조회 실패:', err)
+    alert('조회 중 오류가 발생했습니다.')
   }
 }
+
+
 function handleRowClick(row) {
   router.push({
     name: 'OtherCommutePage',

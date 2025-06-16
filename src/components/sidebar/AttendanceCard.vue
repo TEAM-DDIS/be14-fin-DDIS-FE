@@ -27,6 +27,7 @@
 
 <script setup>
     import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
+    import { useUserStore } from '@/stores/user'
 
     const formattedDate = ref('')
     const formattedTime = ref('')
@@ -60,7 +61,9 @@
     }
 
 async function handleCheck() {
-  const token = localStorage.getItem('token')
+  const userStore = useUserStore()
+  const token = userStore.accessToken
+
   if (!token) {
     alert('로그인 정보가 없습니다.')
     return
@@ -129,20 +132,21 @@ async function handleCheck() {
   }
 }
 
-
     let intervalId
     onMounted(async () => {
-  updateTime()
-  intervalId = setInterval(updateTime, 1000)
+      updateTime()
+      intervalId = setInterval(updateTime, 1000)
 
-  const token = localStorage.getItem('token')
-  if (!token) return
+      const userStore = useUserStore()
+      const token = userStore.accessToken
+      
+      if (!token) return
 
-  const res = await fetch('http://localhost:8000/attendance/status/me', {
-    headers: {
-      Authorization: `Bearer ${token}`
-    }
-  })
+      const res = await fetch('http://localhost:8000/attendance/status/me', {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+    })
   const data = await res.json()
 
   checkInTime.value = data.checkInTime ? data.checkInTime.split('.')[0] : null

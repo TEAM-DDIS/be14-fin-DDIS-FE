@@ -55,6 +55,7 @@
 
 <script setup>
   import { ref, computed, onMounted, onUnmounted } from 'vue'
+  import { useUserStore } from '@/stores/user'
 
   // 상태
   const name = ref('')
@@ -82,7 +83,9 @@
 
   // 서버 시간 받아오기 (출근/퇴근 기록 기반)
   onMounted(async () => {
-    const token = localStorage.getItem('token')
+    const userStore = useUserStore()
+    const token = userStore.accessToken
+
     if (!token) {
       console.error('토큰이 없습니다. 로그인 후 다시 시도하세요.')
       return
@@ -214,7 +217,9 @@
 
   // 출근 등록
   const postCheckIn = async () => {
-    const token = localStorage.getItem('token')
+    const userStore = useUserStore()
+    const token = userStore.accessToken
+
     try {
       const res = await fetch('http://localhost:8000/attendance/check-in', {
         method: 'POST',
@@ -252,7 +257,9 @@
 
   // 퇴근 등록
   const postCheckOut = async () => {
-    const token = localStorage.getItem('token')
+    const userStore = useUserStore()
+    const token = userStore.accessToken
+    
     try {
       const res = await fetch('http://localhost:8000/attendance/check-out', {
         method: 'PUT',

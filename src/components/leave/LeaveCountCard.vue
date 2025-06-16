@@ -34,6 +34,7 @@
 
 <script setup>
   import { ref, onMounted } from 'vue'
+  import { useUserStore } from '@/stores/user'
 
   const leaveData = ref({
     total_days: 0,
@@ -45,7 +46,8 @@
   })
 
   onMounted(async () => {
-    const token = localStorage.getItem('token')  // JWT 토큰
+    const userStore = useUserStore()
+    const token = userStore.accessToken
 
     if (!token) {
       console.error('로그인이 필요합니다.')

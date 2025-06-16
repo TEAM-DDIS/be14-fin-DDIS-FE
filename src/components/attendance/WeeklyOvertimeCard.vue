@@ -50,6 +50,7 @@
   import { ref, onMounted, computed } from 'vue'
   import axios from 'axios'
   import OverTimeEventCard from './OverTimeEventCard.vue'
+  import { useUserStore } from '@/stores/user'
 
   const show = ref(false)
 
@@ -87,7 +88,9 @@
   }
 
   const handleSubmit = async (data) => {
-    const token = localStorage.getItem('token')
+    const userStore = useUserStore()
+    const token = userStore.accessToken
+    
     try {
       const res = await fetch('http://localhost:8000/attendance/overtime-request', {
         method: 'POST',
