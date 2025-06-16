@@ -184,6 +184,7 @@
         <div class="ag-theme-alpine ag-grid-box">  
           <AgGridVue
             :columnDefs="appointmentColumnDefs"
+            :gridOptions="{ theme: 'legacy' }"
             :rowData="appointmentData"
             :defaultColDef="defaultColDef"
             :pagination="true"
@@ -199,6 +200,7 @@
         <div class="ag-theme-alpine ag-grid-box">
           <AgGridVue
             :columnDefs="disciplineColumnDefs"
+            :gridOptions="{ theme: 'legacy' }"
             :rowData="disciplineData"
             :defaultColDef="defaultColDef"
             :pagination="true"
@@ -214,6 +216,7 @@
         <div class="ag-theme-alpine ag-grid-box">
           <AgGridVue
             :columnDefs="contractColumnDefs"
+            :gridOptions="{ theme: 'legacy' }"
             :rowData="contractData"
             :defaultColDef="defaultColDef"
             :pagination="true"
@@ -233,8 +236,6 @@ import { ref, reactive, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import axios from 'axios'
 import { useUserStore } from '@/stores/user'
-axios.defaults.baseURL = 'http://localhost:8000'
-
 import { AgGridVue } from 'ag-grid-vue3'
 import {
   ModuleRegistry,
@@ -247,7 +248,10 @@ import {
   ValidationModule
 } from 'ag-grid-community'
 
-// AG Grid 모듈 등록
+// — Axios 기본 URL
+axios.defaults.baseURL = 'http://localhost:8000'
+
+// — AG Grid 모듈 등록
 ModuleRegistry.registerModules([
   AllCommunityModule,
   ClientSideRowModelModule,
@@ -258,72 +262,153 @@ ModuleRegistry.registerModules([
   ValidationModule
 ])
 
-
-
+// — 라우터, 스토어
+const route     = useRoute()
+const router    = useRouter()
 const userStore = useUserStore()
-const route = useRoute()
-const router = useRouter()
 
-// 탭 정의
-const tabs = ['인사정보','개인정보','인사발령','징계','계약']
+// — 탭 정의
+const tabs       = ['인사정보','개인정보','인사발령','징계','계약']
 const currentTab = ref(tabs[0])
 
-// ⑤ AG Grid 공통 설정
+// — AG Grid 공통 설정
 const defaultColDef = { sortable: true, filter: true, resizable: true }
-const pageSize = ref(10)
-let gridApi = null
+const pageSize      = ref(10)
+let gridApi         = null
 function onGridReady(params) { gridApi = params.api }
 
-// 인사발령 그리드
+// — 인사발령 컬럼 정의
 const appointmentColumnDefs = ref([
-  { headerName: '번호', field: 'id', width: 90 },
-  { headerName: '사원번호', field: 'employeeNo', flex: 1, cellClass: 'center-align' },
-  { headerName: '발령유형', field: 'appointment_type', flex: 1, cellClass: 'center-align' },
-  { headerName: '발령일자', field: 'appointment_effective_date', flex: 1, cellClass: 'center-align' },
-  { headerName: '상태', field: 'appointment_status', width: 200 },
-  { headerName: '상세', field: 'detail', width: 100 }
+  { headerName: '번호',                field: 'id',                         width: 90 },
+  { headerName: '사원번호',            field: 'employeeNo', flex: 1,         cellClass: 'center-align' },
+  { headerName: '발령유형',            field: 'appointment_type', flex: 1,  cellClass: 'center-align' },
+  { headerName: '발령일자',            field: 'appointment_effective_date', flex: 1, cellClass: 'center-align' },
+  { headerName: '상태',                field: 'appointment_status',         width: 200 },
+  { headerName: '상세',                field: 'detail',                     width: 100 }
 ])
 
-// 징계 그리드
+// — 징계 컬럼 정의
 const disciplineColumnDefs = ref([
-  { headerName: '징계번호', field: 'disciplineNo', flex: 1, cellClass: 'center-align' },
-  { headerName: '징계내용', field: 'content', flex: 2 },
-  { headerName: '징계일자', field: 'disciplineDate', flex: 1, cellClass: 'center-align' }
+  {
+    headerName: '',
+    field: 'checkbox',
+    checkboxSelection: true,
+    headerCheckboxSelection: true,
+    width: 50,
+    pinned: 'left'
+  },
+  { headerName: '번호',            field: 'disciplinaryId',          width: 80,  cellClass: 'center-align' },
+  { headerName: '사원명',          field: 'employeeName',            flex: 1.2 },
+  {
+    headerName: '징계 서류',
+    field: 'fileList',
+    flex: 2,
+    cellRenderer: params => {
+      const files = Array.isArray(params.value) ? params.value : []
+      if (!files.length) return '-'
+      return `<div class="file-list-cell">${
+        files.map((f,i) => `<a href="#" data-idx="${i}">${f.fileName}</a>`).join('')
+      }</div>`
+    }
+  },
+  { headerName: '징계 내용',     field: 'disciplinaryDescription', flex: 2 },
+  {
+    headerName: '징계일자',
+    field: 'disciplinaryDate',
+    flex: 1,
+    cellClass: 'center-align',
+    valueFormatter: ({ value }) => new Date(value).toISOString().slice(0,10)
+  }
 ])
 
-// 계약 그리드
+// — 계약 컬럼 정의
 const contractColumnDefs = ref([
-  { headerName: '번호', field: 'id', width: 100, cellClass: 'center-align' },
-  { headerName: '요청일자', field: 'requestDate', width: 150 },
-  { headerName: '계약서류', field: 'document', flex: 1, cellRenderer: params => `<a href="${params.data.documentUrl}" target="_blank">${params.value}</a>` },
-  { headerName: '계약일자', field: 'contractDate', width: 150 },
-  { headerName: '만료일자', field: 'expiryDate', width: 150, cellClass: 'center-align' }
+  {
+    headerName: '',
+    field: 'checkbox',
+    checkboxSelection: true,
+    headerCheckboxSelection: true,
+    width: 50,
+    pinned: 'left'
+  },
+  { headerName: 'ID',               field: 'contractId',          width: 80, cellClass: 'center-align' },
+  { headerName: '사원명',           field: 'employeeName',        flex: 1.2 },
+  { headerName: '계약 설명',        field: 'contractDescription', flex: 2 },
+  {
+    headerName: '파일',
+    field: 'fileList',
+    flex: 2,
+    cellRenderer: params => {
+      const files = Array.isArray(params.value) ? params.value : []
+      if (!files.length) return '-'
+      return `<div class="file-list-cell">${
+        files.map((f,i) => `<a href="#" data-idx="${i}">${f.fileName}</a>`).join('')
+      }</div>`
+    }
+  },
+  {
+    headerName: '요청일자',
+    field: 'requestDate',
+    flex: 1,
+    cellClass: 'center-align',
+    valueFormatter: ({ value }) => new Date(value).toISOString().slice(0,10)
+  },
+  {
+    headerName: '계약일자',
+    field: 'contractDate',
+    flex: 1,
+    cellClass: 'center-align',
+    valueFormatter: ({ value }) => new Date(value).toISOString().slice(0,10)
+  },
+  {
+    headerName: '만료일자',
+    field: 'endDate',
+    flex: 1,
+    cellClass: 'center-align',
+    valueFormatter: ({ value }) => new Date(value).toISOString().slice(0,10)
+  }
 ])
 
-// form 초기값
+// — 각 탭의 rowData
+const appointmentData = ref([])
+const disciplineData  = ref([])
+const contractData    = ref([])
+
+// — 인증 헤더 유틸
+function authHeaders() {
+  return { Authorization: `Bearer ${userStore.accessToken}` }
+}
+
+// — 사원 기본 정보 폼
 const form = reactive({
-  employeeId:        '',  
+  employeeId:        '',
   employeeName:      '',
-  employeePwd:       '',
   employeePhotoName: '',
   employeePhotoUrl:  '',
-  employeeNation:    '',
-  employeeGender:    '',
-  employeeBirth:     '',     
-  employeeResident:  '',
+  jobName:           '',
+  workType:          '',
+  headName:          '',
+  positionName:      '',
+  employmentDate:    '',
+  departmentName:    '',
+  rankName:          '',
+  retirementDate:    '',
+  teamName:          '',
   employeeContact:   '',
   employeeEmail:     '',
+  employeeNation:    '',
+  employeeGender:    '',
+  employeeBirth:     '',
+  employeeResident:  '',
   employeeAddress:   '',
-  employmentDate:    '',     
-  retirementDate:    '',    
-  workType:          '',    
+  isFourInsurances:  '',
   bankName:          '',
   bankDepositor:     '',
   bankAccount:       '',
-  isDisorder:        '',     
-  militaryType:      '',     
-  isMarriage:        '',     
-  marriageDate:      '',     
+  isDisorder:        '',
+  militaryType:      '',
+  isMarriage:        '',
+  marriageDate:      '',
   familyCount:       '',
   careerYearCount:   '',
   previousCompany:   '',
@@ -331,109 +416,131 @@ const form = reactive({
   employeeSchool:    '',
   employeeDept:      '',
   graduationYear:    '',
-  isFourInsurances:  '',  
-  positionId:        '',   
-  positionName:      '',
-  rankId:            '',
-  rankName:          '',
-  jobId:             '',
-  jobName:           '',
-  headId:            '',
-  headName:          '',
-  departmentName:    '',
-  teamId:            '',
-  teamName:          ''
+  positionId:       '',
+  rankId:           '',
+  jobId:            '',
+  headId:           '',
+  departmentId:     '',
+  teamId:           ''
 })
 
-// 뒤로가기
+// — 뒤로가기
 function goBack() {
   router.back()
 }
 
-// 데이터 가져오기
+// — mounted 시점에 한 번에 데이터 모두 로드
 onMounted(async () => {
   const { id } = route.params
+
+  // 1) 사원 기본 정보 조회
   try {
-    const { data } = await axios.get(`/employees/${id}`, {
-      headers: { Authorization: `Bearer ${userStore.accessToken}` }
+    const { data: emp } = await axios.get(
+      `/employees/${id}`,
+      { headers: authHeaders() }
+    )
+    Object.assign(form, {
+      employeeId:       emp.employeeId,
+      employeeName:     emp.employeeName,
+      jobName:          emp.jobName,
+      workType:         emp.workType,
+      headName:         emp.headName,
+      positionName:     emp.positionName,
+      employmentDate:   emp.employmentDate,
+      departmentName:   emp.departmentName,
+      rankName:         emp.rankName,
+      retirementDate:   emp.retirementDate,
+      teamName:         emp.teamName,
+      employeeContact:  emp.employeeContact,
+      employeeEmail:    emp.employeeEmail,
+      employeeNation:   emp.employeeNation,
+      employeeGender:   emp.employeeGender,
+      employeeBirth:    emp.employeeBirth,
+      employeeResident: emp.employeeResident,
+      employeeAddress:  emp.employeeAddress,
+      isFourInsurances: emp.isFourInsurances,
+      bankName:         emp.bankName,
+      bankDepositor:    emp.bankDepositor,
+      bankAccount:      emp.bankAccount,
+      isDisorder:       emp.isDisorder,
+      militaryType:     emp.militaryType,
+      isMarriage:       emp.isMarriage,
+      marriageDate:     emp.marriageDate,
+      familyCount:      emp.familyCount,
+      careerYearCount:  emp.careerYearCount,
+      previousCompany:  emp.previousCompany,
+      finalAcademic:    emp.finalAcademic,
+      employeeSchool:   emp.employeeSchool,
+      employeeDept:     emp.employeeDept,
+      graduationYear:   emp.graduationYear,
+      positionId:       emp.positionId,
+      rankId:           emp.rankId,
+      jobId:            emp.jobId,
+      headId:           emp.headId,
+      departmentId:     emp.departmentId,
+      teamId:           emp.teamId
     })
 
-    // S3 컨트롤러를 통해 프록시로 이미지 불러오기
-    form.employeePhotoUrl  = data.employeePhotoUrl
-    form.employeePhotoName   = data.employeePhotoName
-    form.employeeId          = data.employeeId
-    form.employeeName        = data.employeeName
-    form.employeeNation      = data.employeeNation
-    form.employeeGender      = data.employeeGender
-    form.employeeBirth       = data.employeeBirth
-    form.employeeResident    = data.employeeResident
-    form.employeeContact     = data.employeeContact
-    form.employeeEmail       = data.employeeEmail
-    form.employeeAddress     = data.employeeAddress
-
-    form.employmentDate      = data.employmentDate
-    form.retirementDate      = data.retirementDate
-
-    form.workType            = data.workType
-    form.bankName            = data.bankName
-    form.bankDepositor       = data.bankDepositor
-    form.bankAccount         = data.bankAccount
-
-    form.isDisorder          = data.isDisorder
-    form.militaryType        = data.militaryType
-    form.isMarriage          = data.isMarriage
-    form.marriageDate        = data.marriageDate
-    form.familyCount         = data.familyCount
-    form.careerYearCount     = data.careerYearCount
-    form.previousCompany     = data.previousCompany
-
-    form.finalAcademic       = data.finalAcademic
-    form.employeeSchool      = data.employeeSchool
-    form.employeeDept        = data.employeeDept
-    form.graduationYear      = data.graduationYear
-    form.isFourInsurances    = data.isFourInsurances
-
-    form.positionId          = data.positionId
-    form.positionName        = data.positionName
-
-    form.rankId              = data.rankId
-    form.rankName            = data.rankName
-
-    form.jobId               = data.jobId
-    form.jobName             = data.jobName
-
-    form.headId              = data.headId
-    form.headName            = data.headName
-
-    form.departmentId        = data.departmentId
-    form.departmentName      = data.departmentName
-
-    form.teamId              = data.teamId
-    form.teamName            = data.teamName
-
-    if (form.employeePhotoUrl) {
+    // 사진이 S3 에 있을 경우 presigned URL로 교체
+    if (emp.employeePhotoUrl) {
       try {
-        const resp = await axios.get(`/s3/download-url`, {
-          params: {
-            filename: form.employeePhotoUrl,
-            contentType: 'image/png'   // 실제 업로드하신 파일 타입에 맞춰 주세요
+        const { data: url } = await axios.get(
+          '/s3/download-url',
+          {
+            params: {
+              filename:    emp.employeePhotoUrl,
+              contentType: 'image/png'
+            },
+            headers: authHeaders()
           }
-        })
-        form.employeePhotoUrl = resp.data  // 이제 이 값이 <img> src 가 됩니다
-      } catch (e) {
-        console.error('S3 presigned download URL fetch failed', e)
-        // 실패 시, 그냥 빈 상태로 두거나 placeholder를 보여줄 수 있습니다
+        )
+        form.employeePhotoUrl = url
+      } catch {
         form.employeePhotoUrl = ''
       }
     }
-
   } catch (err) {
     console.error(err)
     alert('사원 정보를 불러오는 데 실패했습니다.')
     router.back()
+    return
+  }
+
+  // 2) 인사발령 목록
+  try {
+    const { data: appts } = await axios.get(
+      '/appointments',
+      { params: { employeeId: id }, headers: authHeaders() }
+    )
+    appointmentData.value = appts
+  } catch (err) {
+    console.error('인사발령 조회 실패:', err)
+  }
+
+  // 3) 징계 목록
+  try {
+    const { data: discs } = await axios.get(
+      `/disciplinary/employee/${id}`,
+      { headers: authHeaders() }
+    )
+    disciplineData.value = discs
+  } catch (err) {
+    console.error('징계 조회 실패:', err)
+  }
+
+  // 4) 계약 목록
+  try {
+    const { data: contracts } = await axios.get(
+      `/contract/employee/${id}`,
+      { headers: authHeaders() }
+    )
+    contractData.value = contracts
+  } catch (err) {
+    console.error('계약 조회 실패:', err)
   }
 })
 </script>
+
 
 <style scoped>
 /* 페이지 타이틀과 설명 */
