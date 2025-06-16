@@ -42,13 +42,23 @@
                 v-show="expanded['d' + dept.departmentId]"
                 class="dept-children"
               >
-                <!-- 부서장 표시: dept.deptManager가 있을 때 -->
-                <div
-                  v-if="dept.deptManager"
-                  class="node emp emp-manager"
-                >
-                  부장: {{ dept.deptManager.employeeName }}
-                </div>
+               <!-- 부서장 -->
+                  <ul class="member-list">
+                    <li v-if="dept.deptManager">
+                      <label
+                        class="node emp emp-manager"
+                        @click.stop="onEmployeeClick(dept.deptManager)"
+                      >
+                        <input
+                          type="checkbox"
+                          :value="dept.deptManager.employeeId"
+                          v-model.number="selectedEmployees"
+                        />
+                        <i class="fa fa-user-tie" style="margin-right:6px;" />
+                        부장: {{ dept.deptManager.employeeName }}
+                      </label>
+                    </li>
+                  </ul>
   
                 <!-- 팀 리스트 반복 -->
                 <ul class="team-list">
@@ -84,7 +94,7 @@
                                 v-model.number="selectedEmployees"
                             />
                             {{ emp.rankName }} {{ emp.positionName }}: {{ emp.employeeName }}
-                            </label>
+                          </label>
                         </li>
                     </ul>
                   </li>
@@ -115,6 +125,14 @@
     try {
       const res = await fetch('http://localhost:8000/structure/hierarchy')
       hierarchy.value = await res.json()
+          hierarchy.value.forEach(head => {
+      head.headManager = findManager(head.departments, '본부장')
+
+      head.departments.forEach(dept => {
+        dept.deptManager = findManager(dept.teams, '부서장')
+      })
+    })
+
       emit('loaded-hierarchy', hierarchy.value)
     } catch (err) {
       console.error('조직 계층 로드 실패:', err)
@@ -129,6 +147,8 @@
   emit('employees-selected', [emp.employeeId], emp) // 단일 선택 우선 처리
 }
   
+
+
   // 부서 클릭 처리: 토글 및 dept-selected 이벤트 emit
   function onDepartmentClick(dept) {
     toggle('d' + dept.departmentId)
@@ -160,6 +180,18 @@
   function filteredTeamMembers(team) {
     return team.members.filter(emp => !isDeptManager(emp))
   }
+
+  function findManager(target, positionName) {
+  // target: departments[]  or  teams[]
+  const teams = Array.isArray(target[0]?.teams)
+    ? target.flatMap(d => d.teams) // 본부 ⇒ 부서의 팀 펼치기
+    : target                       // 이미 팀 배열
+  for (const t of teams) {
+    const found = t.members.find(m => m.positionName === positionName)
+    if (found) return found
+  }
+  return null
+}
   
   // selectedEmployees가 변경되면 부모에게 employees-selected 이벤트 emit
   watch(selectedEmployees, (newList) => {
