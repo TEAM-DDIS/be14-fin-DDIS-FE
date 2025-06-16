@@ -3,20 +3,20 @@
     <div class="modal-content">
       <!-- 모달 제목 -->
       <div class="model-text">
-        <h3 class="modal-title">사원 선택</h3>
+        <h2 class="modal-title">사원 선택</h2>
       </div>
 
       <!-- 상단: 탭/정렬/검색/삭제 -->
       <div class="modal-header">
-        <div class="tab-group">
-          <button class="active">조직도</button>
-        </div>
-        <div class="sort-search-group">
-          <select v-model="sortKey">
-            <option value="name">이름</option>
-            <option value="department">부서</option>
+        
+        <div class="search-bar">
+          <select v-model="searchType">
+            <option value="name">사원명</option>
+            <option value="id">사원번호</option>
+            <option value="position">직책</option>
+            <option value="rank">직급</option>
           </select>
-          <input type="text" v-model="search" placeholder="검색" />
+          <input v-model="search" type="text" placeholder="검색어 입력" />
         </div>
         <button class="delete-btn btn-delete" @click="deleteSelectedEmployees">
           삭제
@@ -27,7 +27,23 @@
       <div class="modal-body">
         <!-- 좌측: 조직도 트리 + 직원 리스트 -->
         <div class="org-tree-area">
-          <!-- Listen for employees-selected event -->
+          <!-- 검색 결과 리스트 -->
+          <ul class="employee-search-result scrollbar" v-if="search.trim() && filteredAndSortedNodes.length">
+            <li
+              v-for="emp in filteredAndSortedNodes"
+              :key="emp.employeeId"
+              :class="{ selected: selectedNode?.employeeId === emp.employeeId }"
+              @click="onEmployeesSelected([emp.employeeId], emp)"
+            >
+              {{ emp.employeeName }} ({{ emp.positionName }}, {{ emp.rankName }})
+            </li>
+          </ul>
+          <!-- 검색 결과 없을 때 -->
+          <div v-else-if="search.trim() && filteredAndSortedNodes.length === 0" class="no-result">
+            검색 결과가 없습니다.
+          </div>
+
+          <!-- 조직도 트리 -->
           <EHierarchy
             @loaded-hierarchy="onHierarchyLoaded"
             @employees-selected="onEmployeesSelected"
@@ -85,7 +101,7 @@ const props = defineProps({
 const emit = defineEmits(['submit', 'close', 'update'])
 
 // 정렬 및 검색 상태
-const sortKey = ref('name')
+const searchType = ref('name')
 const search = ref('')
 
 // 결재선 리스트 및 선택 상태
@@ -173,19 +189,32 @@ function onEmployeesSelected(ids, emp) {
 
 // 검색 + 필터
 const filteredNodes = computed(() => {
-  const q = search.value.trim().toLowerCase()
-  return q
-    ? selectedNodes.value.filter(
-        e => e.employeeName.toLowerCase().includes(q) || e.positionName.toLowerCase().includes(q)
-      )
-    : selectedNodes.value
+ const q = search.value.trim().toLowerCase()
+  const type = searchType.value
+
+  if (!q) return selectedNodes.value
+
+  return selectedNodes.value.filter(emp => {
+    if (type === 'name') {
+      return emp.employeeName?.toLowerCase().includes(q)
+    } else if (type === 'id') {
+      return emp.employeeId?.toLowerCase().includes(q)
+    } else if (type === 'position') {
+      return emp.positionName?.toLowerCase().includes(q)
+    } else if (type === 'rank') {
+      return emp.rankName?.toLowerCase().includes(q)
+    }    
+    return false
+  })
 })
+
 const filteredAndSortedNodes = computed(() => {
   const arr = [...filteredNodes.value]
-  return sortKey.value === 'name'
+  return searchType.value === 'name'
     ? arr.sort((a, b) => a.employeeName.localeCompare(b.employeeName))
     : arr.sort((a, b) => (a.departmentName || '').localeCompare(b.departmentName))
 })
+
 
 // 사원 정보 load
 function onHierarchyLoaded(loaded) {
@@ -301,8 +330,6 @@ function submitSelection() {
   text-align: center;
 }
 .modal-title {
-  font-size: 20px;
-  font-weight: bold;
   margin-bottom: 30px;
   margin-left: 0;
 }
@@ -388,18 +415,103 @@ function submitSelection() {
   min-width: 320px;
   max-width: 420px;
   height: 410px;
-  background: #fafbfc;
-  border: 1px solid #e0e0e0;
+  background: #fff;
+  border: none;
   border-radius: 18px;
   padding: 24px 16px 24px 16px;
   overflow-y: auto;
   box-sizing: border-box;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.1);
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   justify-content: flex-start;
 }
+
+.search-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 12px 0;
+  margin-left: 12px;
+  flex-shrink: 0;
+}
+
+.search-bar select {
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 14px;
+  min-width: 90px;
+  background-color: #fff;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+}
+
+.search-bar input {
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 14px;
+  width: 180px;
+  background-color: #fff;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+}
+
+.search-bar input:focus,
+.search-bar select:focus {
+  border: 1px solid black;
+  outline: none;
+  box-shadow: none;
+}
+
+.employee-search-result {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 12px 0;
+  width: 100%;
+  font-size: 14px;
+  max-height: 180px;
+  overflow-y: auto;
+  background: #ffffff;
+  border: 1px solid #d0d0d0;
+  border-radius: 8px;
+  box-shadow: 0 1px 6px rgba(0,0,0,0.1);
+}
+
+.employee-search-result li {
+  padding: 8px 12px;
+  cursor: pointer;
+  border-bottom: 1px solid #f0f0f0;
+  transition: background 0.2s;
+  overflow-y: auto;
+}
+
+.employee-search-result.scrollbar {
+  scrollbar-width: none;
+}
+
+.employee-search-result li:last-child {
+  border-bottom: none;
+}
+
+.employee-search-result li:hover {
+  background-color: #d8d8d8;
+}
+
+.employee-search-result li.selected {
+  background-color: #d8d8d8;
+  font-weight: bold;
+}
+
+.no-result {
+  padding: 12px;
+  color: #888;
+  font-size: 14px;
+  text-align: center;
+}
+
+
+
 .action-btns {
   display: flex;
   flex-direction: column;
@@ -488,6 +600,7 @@ function submitSelection() {
   cursor: pointer;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   transition: background-color 0.2s, box-shadow 0.2s;
+  margin-right: 12px;
   box-sizing: border-box;
 }
 .btn-delete:hover {
