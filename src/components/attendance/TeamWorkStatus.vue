@@ -47,6 +47,7 @@
   })
 
   const displayStatus = computed(() => {
+    if (props.checkOutTime && (props.status === '지각' || props.status === '정상근무')) return '퇴근'
     if (props.status === '정상근무') return '근무 중'
     return props.status
   })
