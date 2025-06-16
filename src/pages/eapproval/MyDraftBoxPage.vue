@@ -134,7 +134,7 @@ async function fetchMyDrafts() {
 
     docs.value = res.data.map(d => ({
       docId: d.docId,
-      title: d.docTitle,
+      title: d.title,
       type: d.type,
       status: d.docStatus,
       date: formatDate(d.submittedAt || d.createdAt),

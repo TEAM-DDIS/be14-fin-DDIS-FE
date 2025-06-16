@@ -49,7 +49,7 @@ import { ModuleRegistry, AllCommunityModule } from 'ag-grid-community'
 ModuleRegistry.registerModules([AllCommunityModule])
 
 const tab = ref('읽지않음')
-const search = ref({ date: '', title: '' })
+const search = ref({ date: '', docTitle: '' })
 
 const docs = ref([])
 const router = useRouter()
@@ -101,12 +101,12 @@ onMounted(() => {
         { headerName: '기안자', field: 'writerName', width: 150 }
     ],
     '읽지않음': [
-        { headerName: '번호', field: 'no', flex: 1 },
-        { headerName: '구분', field: 'role', flex: 1 },
-        { headerName: '제목', field: 'title', flex: 3 },
-        { headerName: '상신일시', field: 'createdAt', valueFormatter: params => formatDateTime(params.value),flex: 1 },
-        { headerName: '열람일시', field: 'readAt', valueFormatter: params => formatDateTime(params.value),flex: 1 },
-        { headerName: '기안자', field: 'writerName', flex: 1 }
+        { headerName: '번호', field: 'no',  width: 100 },
+        { headerName: '구분', field: 'role', width: 150 },
+        { headerName: '제목', field: 'title', flex: 1 },
+        { headerName: '상신일시', field: 'createdAt', valueFormatter: params => formatDateTime(params.value),width: 230 },
+        { headerName: '열람일시', field: 'readAt', valueFormatter: params => formatDateTime(params.value),width: 230 },
+        { headerName: '기안자', field: 'writerName', width: 150 }
     ]}
 
 const currentColumnDefs = computed(() => columnDefsByTab[tab.value])
