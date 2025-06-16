@@ -51,7 +51,6 @@ const search = reactive({ date: '', title: '' })
 const docs   = ref([])
 const route = useRoute()
 const router = useRouter()
-
 // 2) 컬럼 정의 (결재함이랑 동일)
 const columnDefsByTab = {
   '상신': [ 
@@ -80,6 +79,12 @@ const columnDefsByTab = {
 }
 const currentColumnDefs = computed(() => columnDefsByTab[tab.value])
 const statusMap = {
+// 
+//   상신: ['대기중','심사중'],
+//   완료: ['완료'],
+//   반려: ['반려'],
+//   회수: ['회수']
+// 
   상신: '심사중',      
   완료: '결재완료',     // ← '완료' → '결재완료' 으로 변경
   반려: '반려',
@@ -88,10 +93,10 @@ const statusMap = {
 
 // 3) 필터 & 번호붙이기
 const filteredForms = computed(() => {
-  const expected = statusMap[tab.value]     // 예: '상신' → '대기중'
+  const expectedStatuses = statusMap[tab.value]     // 예: '상신' → '대기중'
   const filtered = docs.value.filter(doc => {
     // 1) 탭 필터
-    if (expected && doc.status !== expected) return false
+    if (!expectedStatuses .includes(doc.status)) return false
 
     // 2) 제목 검색
       if (search.title && !doc.title?.includes(search.title)) return false
@@ -155,6 +160,7 @@ onMounted(() => {
 
 
 // 6) 행 클릭 핸들러
+
 function handleFormRowClick(params) {
   console.log('선택된 행:', params.data)
   const docId = params.data.docId

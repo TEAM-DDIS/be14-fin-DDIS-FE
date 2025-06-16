@@ -63,8 +63,8 @@
               <SelectionModal
                 v-if="showReceiverModal"
                 mode="수신자"
-                :defaultList="receiverList"
-                @submit="onReceiverSubmit"
+                :initial-approvers="receiverList"
+                @submit-receivers="onReceiverSubmit"
                 @close="showReceiverModal = false"
               />
             </td>
@@ -77,8 +77,8 @@
               <SelectionModal
                 v-if="showReferenceModal"
                 mode="참조자"
-                :defaultList="referenceList"
-                @submit="onReferenceSubmit"
+                :initial-approvers="referenceList"
+                @submit-ccs="onReferenceSubmit"
                 @close="showReferenceModal = false"
               />
             </td>
@@ -197,12 +197,30 @@
 
 <script>
 import { QuillEditor } from '@vueup/vue-quill';
+import { ref, reactive } from 'vue'
 import axios from "axios";
 import SelectionModal from '@/components/eapproval/ApprovalLineModal.vue';
 import SubmitModal from '@/components/eapproval/SubmitModal.vue';
 import DraftSaveModal from '@/components/eapproval/DraftSaveModal.vue';
 import { useUserStore } from '@/stores/user';
 const userStore = useUserStore()
+
+async function getUploadInfo(file) {
+  const token = localStorage.getItem('token')
+  const qs = new URLSearchParams({ filename: file.name, contentType: file.type }).toString()
+  const res = await fetch(`http://localhost:8000/s3/upload-url?${qs}`, {
+    headers: { Authorization: `Bearer ${token}` }
+  })
+  if (!res.ok) throw new Error('Presign URL 요청 실패')
+  return res.json()
+}
+
+async function uploadToS3(uploadUrl, file) {
+  const res = await fetch(uploadUrl, {
+    method: 'PUT', headers: { 'Content-Type': file.type }, body: file
+  })
+  if (!res.ok) throw new Error('S3 업로드 실패')
+}
 
 export default {
   name: "CreateDraftPreview",
@@ -345,8 +363,31 @@ export default {
       this.showReferenceModal = false;
       this.form.reference = list.map(u => u.name).join(', ');
     },
+     handleFileUpload(e) {
+      this.fileError = ''
+      const file = e.target.files[0]
+      if (!file) return
+      if (file.size > this.maxFileSize) { this.fileError='10MB 이하만 가능'; return }
+      if (!this.allowedTypes.includes(file.type)) { this.fileError='허용되지 않는 형식'; return }
+      this.fileInput = file
+    },
+    async addFile() {
+      if (!this.fileInput) return
+      const file = this.fileInput
+      if (this.uploadedFiles.some(f=>f.name===file.name&&f.size===file.size)) { this.fileError='이미 추가됨'; return }
+      try {
+        const { key, url } = await getUploadInfo(file)
+        await uploadToS3(url, file)
+        this.uploadedFiles.push({ name:file.name, size:file.size, type:file.type, key, selected:false })
+        this.fileInput = null
+      } catch(e){ console.error(e); this.fileError='업로드 실패' }
+    },
+    removeSelectedFiles(){ 
+      this.uploadedFiles=this.uploadedFiles.filter(f=>!f.selected) 
+    },
+   
 
-    // ⑤ 임시저장
+
     async confirmDraftSave() {
       const now = new Date();
       const draftData = {
@@ -358,7 +399,7 @@ export default {
         savedAt: now.toISOString(),
       };
       try {
-        await axios.post("/drafts/temp", draftData);
+        await axios.post("http://localhost:8000/drafts/temp", draftData);
         alert("임시저장 완료! 임시저장함에서 확인하세요.");
       } catch (error) {
         alert("임시저장 실패: " + (error.response?.data?.message || error.message));
@@ -368,22 +409,47 @@ export default {
     // ⑥ 최종 상신하기: rankName·role 포함
     async confirmSubmit() {
       const now = new Date();
-      // (a) 전송할 데이터 형식 정의
+      const attachmentKeys = this.uploadedFiles.map(f => f.key);
+      const originalFileNames = this.uploadedFiles.map(f => f.name);
+      const fileTypes         = this.uploadedFiles.map(f => f.type);
+      const fileSizes         = this.uploadedFiles.map(f => f.size);
+
       const submitData = {
-        title:            this.form.title,          // ⑥-1) 문서 제목
-        docContent:       this.form.body,           // ⑥-2) 본문 HTML
-        retentionPeriod:  this.form.retentionPeriod,// ⑥-3) 보존연한
-        receiver:         this.receiverList.map(u => u.id), // ⑥-4) 수신자 ID 리스트
-        reference:        this.referenceList.map(u => u.id),// ⑥-5) 참조자 ID 리스트
-        formId:           1,                        // ⑥-6) 양식 ID (고정)
-        approvalLines:    this.approvalLines.map((line, idx) => ({
-          step:       idx + 1,             // ⑥-7) 순번(step)
-          employeeId: line.employeeId,     // ⑥-8) 사원번호
-          position:   line.position,       // ⑥-9) 직책명
-          rankName:   line.rankName,       // ⑥-10) 직급명 추가
-          type:       line.type,           // ⑥-11) 결재 유형 코드
-          role:       line.role            // ⑥-12) document_box.role 추가
-        }))
+        title: this.form.title,
+        docContent: this.form.body,
+        retentionPeriod: this.form.retentionPeriod,
+        receivers: this.receiverList.map(u => u.employeeId),
+        ccs: this.referenceList.map(u => u.employeeId),
+        formId: 1,
+        approvalLines: this.approvalLines.map((line, index) => ({
+          step: index + 1,
+          employeeId: line.employeeId,
+          position: line.position,
+          rankName:   line.rankName,
+          type: line.type,
+        })),
+        attachmentKeys,
+        originalFileNames,
+        fileTypes,
+        fileSizes,
+// =======
+//       // (a) 전송할 데이터 형식 정의
+//       const submitData = {
+//         title:            this.form.title,          // ⑥-1) 문서 제목
+//         docContent:       this.form.body,           // ⑥-2) 본문 HTML
+//         retentionPeriod:  this.form.retentionPeriod,// ⑥-3) 보존연한
+//         receiver:         this.receiverList.map(u => u.id), // ⑥-4) 수신자 ID 리스트
+//         reference:        this.referenceList.map(u => u.id),// ⑥-5) 참조자 ID 리스트
+//         formId:           1,                        // ⑥-6) 양식 ID (고정)
+//         approvalLines:    this.approvalLines.map((line, idx) => ({
+//           step:       idx + 1,             // ⑥-7) 순번(step)
+//           employeeId: line.employeeId,     // ⑥-8) 사원번호
+//           position:   line.position,       // ⑥-9) 직책명
+//           rankName:   line.rankName,       // ⑥-10) 직급명 추가
+//           type:       line.type,           // ⑥-11) 결재 유형 코드
+//           role:       line.role            // ⑥-12) document_box.role 추가
+//         }))
+// >>>>>>> 270966fb0d9667431b5ede318d54b9208e75a7c5
       };
 
        console.log("상신 데이터", JSON.stringify(submitData, null, 2));
@@ -423,30 +489,40 @@ export default {
       }
       this.fileInput = file;
     },
-    addFile() {
-      if (this.fileInput) {
-        const isDuplicate = this.uploadedFiles.some(
-          f => f.name === this.fileInput.name && f.size === this.fileInput.size
-        );
-        if (isDuplicate) {
-          this.fileError = "이미 추가된 파일입니다.";
-          return;
-        }
-        this.uploadedFiles.push({
-          name: this.fileInput.name,
-          size: this.fileInput.size,
-          type: this.fileInput.type,
-          selected: false,
-        });
-        this.fileInput = null;
-        this.fileError = "";
+     async addFile() {
+      if (!this.fileInput) return;
+      const file = this.fileInput;
+      // 중복 체크
+      if (this.uploadedFiles.some(f => f.name === file.name && f.size === file.size)) {
+        this.fileError = '이미 추가됨';
+        return;
       }
-    },
+      try {
+        // presign URL + key 가져오기
+        const { key, url } = await getUploadInfo(file);
+        // S3에 업로드
+        await uploadToS3(url, file);
+      this.uploadedFiles.push({
+         name: file.name,
+         size: file.size,
+         type: file.type,
+         key,             // ← 나중에 백엔드로 보낼 key
+         selected: false
+       });
+             this.fileInput = null;
+      } catch(e) {
+        console.error(e);
+        this.fileError = '업로드 실패';
+      }
+    }
+      
+      
+      },
     removeSelectedFiles() {
       this.uploadedFiles = this.uploadedFiles.filter(file => !file.selected);
     },
-  },
-};
+  };
+
 </script>
 
 
