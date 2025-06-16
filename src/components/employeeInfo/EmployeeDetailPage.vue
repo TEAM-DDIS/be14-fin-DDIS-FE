@@ -207,6 +207,7 @@
             :paginationPageSize="pageSize"
             rowSelection="multiple"
             @grid-ready="onGridReady"
+            @cell-clicked="onCellClick"
             style="width:100%; height:100%"
           />
         </div>
@@ -223,6 +224,7 @@
             :paginationPageSize="pageSize"
             rowSelection="multiple"
             @grid-ready="onGridReady"
+            @cell-clicked="onCellClick"
             style="width:100%; height:100%"
           />
         </div>
@@ -377,6 +379,53 @@ const contractData    = ref([])
 // — 인증 헤더 유틸
 function authHeaders() {
   return { Authorization: `Bearer ${userStore.accessToken}` }
+}
+
+async function downloadFile(fileUrl, fileName) {
+  try {
+    const { data: presignedUrl } = await axios.get(
+      '/s3/download-url',
+      {
+        params: { filename: fileUrl, contentType: '' },
+        headers: authHeaders()
+      }
+    )
+    const res  = await fetch(presignedUrl)
+    const blob = await res.blob()
+    const url  = URL.createObjectURL(blob)
+    const a    = document.createElement('a')
+    a.href     = url
+    a.download = fileName
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+  } catch (err) {
+    console.error('파일 다운로드 실패:', err)
+    alert('파일 다운로드에 실패했습니다.')
+  }
+}
+
+async function onCellClick(e) {
+  // — “파일” 컬럼 클릭 시 다운로드
+  if (
+    e.colDef.field === 'fileList' &&
+    e.event.target.matches('a') &&
+    e.event.target.dataset.idx != null
+  ) {
+    e.event.preventDefault()
+    const idx  = Number(e.event.target.dataset.idx)
+    const file = (e.data.fileList || [])[idx]
+    if (!file) return
+    // 다운로드 헬퍼 호출
+    await downloadFile(file.fileUrl, file.fileName)
+    return
+  }
+
+  // — 사원명 클릭 시: 상세 페이지 이동
+  if (e.colDef.field === 'employeeName') {
+    router.push(`/employeeInfo/${route.params.id}`)
+  }
 }
 
 // — 사원 기본 정보 폼
