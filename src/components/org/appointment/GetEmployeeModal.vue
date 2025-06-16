@@ -3,7 +3,7 @@
     <div class="modal-content">
       <!-- 모달 제목 -->
       <div class="model-text">
-        <h3 class="modal-title">사원 선택</h3>
+        <h2 class="modal-title">사원 선택</h2>
       </div>
 
       <!-- 상단: 탭/정렬/검색/삭제 -->
@@ -28,12 +28,12 @@
         <!-- 좌측: 조직도 트리 + 직원 리스트 -->
         <div class="org-tree-area">
           <!-- 검색 결과 리스트 -->
-          <ul class="employee-search-result" v-if="search.trim() && filteredAndSortedNodes.length">
+          <ul class="employee-search-result scrollbar" v-if="search.trim() && filteredAndSortedNodes.length">
             <li
               v-for="emp in filteredAndSortedNodes"
               :key="emp.employeeId"
               :class="{ selected: selectedNode?.employeeId === emp.employeeId }"
-              @click="selectedNode = emp"
+              @click="onEmployeesSelected([emp.employeeId], emp)"
             >
               {{ emp.employeeName }} ({{ emp.positionName }}, {{ emp.rankName }})
             </li>
@@ -330,8 +330,6 @@ function submitSelection() {
   text-align: center;
 }
 .modal-title {
-  font-size: 20px;
-  font-weight: bold;
   margin-bottom: 30px;
   margin-left: 0;
 }
@@ -423,7 +421,7 @@ function submitSelection() {
   padding: 24px 16px 24px 16px;
   overflow-y: auto;
   box-sizing: border-box;
-  box-shadow: 0 4px 4px rgba(0,0,0,0.2);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.1);
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -435,6 +433,7 @@ function submitSelection() {
   align-items: center;
   gap: 8px;
   margin: 12px 0;
+  margin-left: 12px;
   flex-shrink: 0;
 }
 
@@ -470,6 +469,7 @@ function submitSelection() {
   padding: 0;
   margin: 0 0 12px 0;
   width: 100%;
+  font-size: 14px;
   max-height: 180px;
   overflow-y: auto;
   background: #ffffff;
@@ -483,6 +483,11 @@ function submitSelection() {
   cursor: pointer;
   border-bottom: 1px solid #f0f0f0;
   transition: background 0.2s;
+  overflow-y: auto;
+}
+
+.employee-search-result.scrollbar {
+  scrollbar-width: none;
 }
 
 .employee-search-result li:last-child {
@@ -490,11 +495,11 @@ function submitSelection() {
 }
 
 .employee-search-result li:hover {
-  background-color: #f0f8ff;
+  background-color: #d8d8d8;
 }
 
 .employee-search-result li.selected {
-  background-color: #e0f4ff;
+  background-color: #d8d8d8;
   font-weight: bold;
 }
 
@@ -595,6 +600,7 @@ function submitSelection() {
   cursor: pointer;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   transition: background-color 0.2s, box-shadow 0.2s;
+  margin-right: 12px;
   box-sizing: border-box;
 }
 .btn-delete:hover {

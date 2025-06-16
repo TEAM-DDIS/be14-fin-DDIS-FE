@@ -1,7 +1,7 @@
 <template>
   <div class="org-container">
     <h3 class="company-title">
-      DDIS <span class="rep">{{ getCompanyRep() }}</span>
+      DDIS
     </h3>
     <div class="control-buttons">
       <button @click="expandAll" class="control-btn">전체 보기</button>
@@ -33,11 +33,12 @@
                   <!-- API로 받아온 ranks만 보여주기 -->
                   <ul v-if="props.showRanks && expanded['t' + team.teamId]" class="rank-list">
                     <li v-for="rank in teamRanks[team.teamId] || []" :key="rank.rankCode">
-                      <div class="node emp rank-option" @click.stop="onRankClick(rank)">
-                        {{ rank.rankName }}
-                      </div>
+                          <div class="node emp rank-option" @click.stop="onRankClick(rank)">
+                            {{ rank.rankName }}  <!-- 👈 positionName은 안 보이게 -->
+                          </div>
                     </li>
                   </ul>
+
                   <ul v-if="props.showJobs && expanded['t' + team.teamId]" class="job-list">
                     <li v-for="job in teamJobs[team.teamId] || []" :key="job.jobId">
                       <div class="node emp job-option" @click.stop="onJobClick(job)">
@@ -105,11 +106,16 @@ function onDepartmentClick(dept) {
 }
 
 function onRankClick(rank) {
-  emit('rank-selected', rank)
+  emit('rank-selected', {
+    rankCode: rank.rankCode,
+    rankName: rank.rankName,
+    positionCode: rank.positionCode,
+    positionName: rank.positionName
+  })
 }
 
+
 function onJobClick(job) {
-  console.log('🔧 직무 클릭됨:', job)
   emit('job-selected', {
     jobId: job.jobId,
     jobName: job.jobName ?? '(이름 없음)',   // 이 줄 중요!
@@ -152,48 +158,65 @@ async function fetchTeamJobs(team) {
 
 async function fetchTeamRanks(team) {
   const key = 't' + team.teamId
-  // 펼침 토글
   toggle(key)
   emit('team-selected', team)
 
-  // if (!props.showRanks) return
-
-
-  // 아직 불러온 적 없으면 API 요청
   if (!teamRanks[team.teamId]) {
     try {
-      // 1) 이 팀의 job 목록
+      // 1) 이 팀의 job 목록 조회
       const jobs = (await axios.get(
         `http://localhost:8000/introduction/team/${team.teamId}/job`
       )).data
 
-      // 2) 각 jobId로 rank 조회
+      // 2) 각 jobId로 rank, position 동시 조회
       const ranksList = await Promise.all(
-        jobs.map(j =>
-          axios
-            .get(`http://localhost:8000/introduction/job/${j.jobId}/ranks`)
-            .then(r => r.data)
-        )
+        jobs.map(async (j) => {
+          const [ranks, positions] = await Promise.all([
+            axios.get(`http://localhost:8000/introduction/job/${j.jobId}/ranks`).then(r => r.data),
+            axios.get(`http://localhost:8000/introduction/job/${j.jobId}/positions`).then(r => r.data)
+          ])
+
+         const rankToPosition = {
+          R001: { code: 'P001', name: '팀원' },
+          R002: { code: 'P001', name: '팀원' },
+          R003: { code: 'P002', name: '팀장' },
+          R004: { code: 'P003', name: '부서장' },
+          R005: { code: 'P004', name: '본부장' },
+          R006: { code: 'P005', name: '대표' }
+        }
+
+        return ranks.map(rk => ({
+          ...rk,
+          positionCode: rankToPosition[rk.rankCode]?.code ?? null,
+          positionName: rankToPosition[rk.rankCode]?.name ?? '직책없음'
+        }))
+
+
+        })
       )
 
-      // 3) 중복 제거 후 저장
+      // 3) 중복 제거 및 병합
       const map = new Map()
       ranksList.flat().forEach(rk => {
         if (rk.rankCode != null && !map.has(rk.rankCode)) {
           map.set(rk.rankCode, rk)
         }
       })
+
       teamRanks[team.teamId] = Array.from(map.values())
     } catch (e) {
-      console.error('Rank fetch error ▶', e)
+      console.error('Rank/Position fetch error ▶', e)
       teamRanks[team.teamId] = []
     }
   }
+
+  // 직무 목록은 별도 조건
   if (props.showJobs) {
     console.log('🧪 showJobs가 true이므로 fetchTeamJobs 호출됨')
     await fetchTeamJobs(team)
   }
 }
+
 
 // 회사 대표 찾기 (positionCode === 'P005')
 function getCompanyRep() {
@@ -250,7 +273,7 @@ function collapseAll() {
   margin-bottom: 20px;
 }
 .company-title {
-  font-size: 18px;
+  font-size: 20px;
   margin-bottom: 8px;
 }
 .company-title .rep {
@@ -318,28 +341,10 @@ function collapseAll() {
   background-color: rgba(0,0,0,0.3);
 }
 
-/* 모든 화살표 버튼(위/아래, 좌/우) 완전 제거 */
-/* .org-box::-webkit-scrollbar-button,
-.org-box::-webkit-scrollbar-button:start,
-.org-box::-webkit-scrollbar-button:end,
-.org-box::-webkit-scrollbar-button:vertical:decrement,
-.org-box::-webkit-scrollbar-button:vertical:increment,
-.org-box::-webkit-scrollbar-button:horizontal:decrement,
-.org-box::-webkit-scrollbar-button:horizontal:increment {
-  display: none;
-  width: 0;
-  height: 0;
-} */
-
 /* (선택) 모서리 코너 부분도 투명 처리 */
 .org-box::-webkit-scrollbar-corner {
   background: transparent;
 }
-
-/* 
-.org-box.scrollbar {
- scrollbar-width: none;
-} */
 
 .org-list li {
   position: relative;
@@ -434,6 +439,10 @@ function collapseAll() {
 .member-list > li {
   position: relative;
   padding-left: 24px;
+}
+
+.rank-option {
+  padding-left: 16px;
 }
 
 </style>
