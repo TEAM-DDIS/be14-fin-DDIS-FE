@@ -22,11 +22,11 @@
     <div class="notice-box">
       <div class="notice-item">
         <span class="label">1차촉진(사용계획작성)</span>
-        <span class="value blue">{{ leaveData.first_notice_date }}</span>
+        <span class="value blue">{{ leaveData.first_notice_date || '-' }}</span>
       </div>
       <div class="notice-item">
         <span class="label">2차촉진(사용시기통보)</span>
-        <span class="value">{{ leaveData.second_notice_date || '-' }}</span>
+        <span class="value blue">{{ leaveData.second_notice_date || '-' }}</span>
       </div>
     </div>
   </div>
