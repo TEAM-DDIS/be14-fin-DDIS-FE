@@ -53,12 +53,19 @@ const route = useRoute()
 const router = useRouter()
 // 2) 컬럼 정의 (결재함이랑 동일)
 const columnDefsByTab = {
+  '전체': [ 
+    { headerName:"번호", field:"no", width:100 },
+    { headerName:"구분", field:"type", width:150 },
+    { headerName:"제목", field:"title", flex:1 },
+    { headerName:"상신일시", field:"date", width:230 },
+    { headerName:"문서상태", field:"docStatus", width:150 },
+  ],
   '상신': [ 
     { headerName:"번호", field:"no", width:100 },
     { headerName:"구분", field:"type", width:150 },
     { headerName:"제목", field:"title", flex:1 },
     { headerName:"상신일시", field:"date", width:230 },
-    { headerName:"현재 결재자", field:"writer", width:150 },
+    { headerName:"현재 결재자", field:"approver", width:150 },
   ],
   '완료': [
     { headerName:"번호", field:"no", width:100 },
@@ -79,28 +86,26 @@ const columnDefsByTab = {
 }
 const currentColumnDefs = computed(() => columnDefsByTab[tab.value])
 const statusMap = {
-// 
-//   상신: ['대기중','심사중'],
-//   완료: ['완료'],
-//   반려: ['반려'],
-//   회수: ['회수']
-// 
-  상신: '심사중',      
-  완료: '결재완료',     // ← '완료' → '결재완료' 으로 변경
-  반려: '반려',
-  회수: '회수'
+  전체: ['심사중', '대기중', '결재완료', '반려', '회수'],
+  상신: ['심사중', '대기중'],
+  완료: ['결재완료'],
+  반려: ['반려'],
+  회수: ['회수']
 }
 
 // 3) 필터 & 번호붙이기
+
 const filteredForms = computed(() => {
-  const expectedStatuses = statusMap[tab.value]     // 예: '상신' → '대기중'
-  const filtered = docs.value.filter(doc => {
-    // 1) 탭 필터
-    if (!expectedStatuses .includes(doc.status)) return false
 
-    // 2) 제목 검색
+const expectedStatuses = statusMap[tab.value]  // 예: ['심사중', '대기중']
+return docs.value
+    .filter(doc => {
+      if (!doc || !doc.docStatus) return false
+      // 탭 조건에 맞는 docStatus만 통과
+      if (!expectedStatuses.includes(doc.docStatus)) return false
+
+      // 추가 검색 조건 처리
       if (search.title && !doc.title?.includes(search.title)) return false
-
     // 3) 날짜 검색 (YYYY-MM-DD)
       if (search.date) {
         const dateOnly = doc.submittedAt?.slice(0, 10)
@@ -108,14 +113,12 @@ const filteredForms = computed(() => {
       }
       return true
     })
-
-  // 3) 번호 붙이기 (최신순)
-  return filtered.map((doc, i) => ({
-    ...doc,
-    no: filtered.length - i
-  }))
+        .map((doc, idx, arr) => ({
+      ...doc,
+      no: arr.length - idx,  // 번호는 뒤에서부터
+      approver: formatApprover(doc.approverName, doc.approverRank) // ✅ 현재 결재자
+    }))
 })
-
 
 // 4) API 호출
 function formatApprover(name, rank) {
@@ -132,21 +135,27 @@ async function fetchMyDrafts() {
       headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
     })
 
+    // 🔽 여기에 콘솔 출력 추가
+    console.log('📦 서버에서 받아온 기안문 목록:', res.data)
+
     docs.value = res.data.map(d => ({
       docId: d.docId,
       title: d.title,
       type: d.type,
-      status: d.docStatus,
+      docStatus: d.docStatus, // ✅ 이걸로 수정
+      approver: formatApprover(d.approverName, d.approverRank), // '현재 결재자' 컬럼에 표시될 데이터
       date: formatDate(d.submittedAt || d.createdAt),
-      writer: formatApprover(d.approverName, d.approverRank),  // ✅ 이름 / 직급
       completeDate: formatDate(d.approvedAt),
-      createdAt: d.createdAt
+      createdAt: d.createdAt,
+      lineStatus: d.lineStatus,
+      drafter: d.drafter,
+      approverName: d.approverName,
+      approverRank: d.approverRank
     }))
   } catch (e) {
     console.error('기안함 불러오기 실패', e)
   }
 }
-
 
 
 // 5) 라이프사이클
