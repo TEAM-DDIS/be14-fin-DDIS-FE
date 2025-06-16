@@ -116,7 +116,7 @@ import { computed, ref } from 'vue'
 import html2pdf from 'html2pdf.js'
 import axios from 'axios' // ✅ axios 추가
 import { useUserStore } from '@/stores/user'
-
+const token = localStorage.getItem('token')
 // Props 및 이벤트 정의
 const props = defineProps({ slip: Object })
 const emit = defineEmits(['close'])
@@ -210,7 +210,7 @@ async function sendMail() {
         amount: row.amount
       }))
     }, {
-      headers: { Authorization: `Bearer ${useUserStore.accessToken}` }
+      headers: { Authorization: `Bearer ${token}` }
     })
     alert('메일 전송 완료')
   } catch (err) {

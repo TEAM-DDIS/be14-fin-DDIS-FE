@@ -170,6 +170,7 @@ import { useUserStore } from '@/stores/user'
 // ---------------------------------------------------------
 const router = useRouter()
 const userStore = useUserStore()
+const token = localStorage.getItem('token')
 
 function parseJwtPayload(token) {
   try {
@@ -187,9 +188,9 @@ function parseJwtPayload(token) {
   }
 }
 
-const token = localStorage.getItem('token')
-const payload = parseJwtPayload(userStore.accessToken || token)
-const isHR = payload?.roles?.includes('HR') || payload?.auth?.includes('HR')
+// const token = localStorage.getItem('token')
+const payload = parseJwtPayload(userStore.accessToken)
+const isHR = payload?.role?.includes('ROLE_HR') || payload?.auth?.includes('ROLE_HR')
 
 if (!isHR) {
   alert('접근 권한이 없습니다.')
