@@ -273,7 +273,12 @@ async function onCellClick(e) {
 
   // (2) 사원명 클릭 → 상세 페이지 이동
   if (e.colDef.field === 'employeeName') {
-    router.push(`/employeeInfo/disciplinary/${e.data.disciplinaryId}`)
+    const empId = e.data.employeeId
+    if (!empId) {
+      console.warn('employeeId가 없습니다:', e.data)
+      return
+    }
+    router.push(`/employeeInfo/${empId}`)
   }
 }
 </script>
