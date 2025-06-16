@@ -63,8 +63,8 @@
               <SelectionModal
                 v-if="showReceiverModal"
                 mode="수신자"
-                :defaultList="receiverList"
-                @submit="onReceiverSubmit"
+                :initial-approvers="receiverList"
+                @submit-receivers="onReceiverSubmit"
                 @close="showReceiverModal = false"
               />
             </td>
@@ -77,8 +77,8 @@
               <SelectionModal
                 v-if="showReferenceModal"
                 mode="참조자"
-                :defaultList="referenceList"
-                @submit="onReferenceSubmit"
+                :initial-approvers="referenceList"
+                @submit-ccs="onReferenceSubmit"
                 @close="showReferenceModal = false"
               />
             </td>
@@ -415,7 +415,7 @@ export default {
         savedAt: now.toISOString(),
       };
       try {
-        await axios.post("/drafts/temp", draftData);
+        await axios.post("http://localhost:8000/drafts/temp", draftData);
         alert("임시저장 완료! 임시저장함에서 확인하세요.");
       } catch (error) {
         alert("임시저장 실패: " + (error.response?.data?.message || error.message));
@@ -423,19 +423,28 @@ export default {
     },
     async confirmSubmit() {
       const now = new Date();
+      const attachmentKeys = this.uploadedFiles.map(f => f.key);
+      const originalFileNames = this.uploadedFiles.map(f => f.name);
+      const fileTypes         = this.uploadedFiles.map(f => f.type);
+      const fileSizes         = this.uploadedFiles.map(f => f.size);
+
       const submitData = {
         title: this.form.title,
         docContent: this.form.body,
         retentionPeriod: this.form.retentionPeriod,
-        receiver: this.receiverList.map(u => u.id),
-        reference: this.referenceList.map(u => u.id),
+        receivers: this.receiverList.map(u => u.employeeId),
+        ccs: this.referenceList.map(u => u.employeeId),
         formId: 1,
         approvalLines: this.approvalLines.map((line, index) => ({
           step: index + 1,
           employeeId: line.employeeId,
           position: line.position,
           type: line.type,
-        }))
+        })),
+        attachmentKeys,
+        originalFileNames,
+        fileTypes,
+        fileSizes,
       };
        console.log("상신 데이터", JSON.stringify(submitData, null, 2));
       try {
@@ -467,30 +476,40 @@ export default {
       }
       this.fileInput = file;
     },
-    addFile() {
-      if (this.fileInput) {
-        const isDuplicate = this.uploadedFiles.some(
-          f => f.name === this.fileInput.name && f.size === this.fileInput.size
-        );
-        if (isDuplicate) {
-          this.fileError = "이미 추가된 파일입니다.";
-          return;
-        }
-        this.uploadedFiles.push({
-          name: this.fileInput.name,
-          size: this.fileInput.size,
-          type: this.fileInput.type,
-          selected: false,
-        });
-        this.fileInput = null;
-        this.fileError = "";
+     async addFile() {
+      if (!this.fileInput) return;
+      const file = this.fileInput;
+      // 중복 체크
+      if (this.uploadedFiles.some(f => f.name === file.name && f.size === file.size)) {
+        this.fileError = '이미 추가됨';
+        return;
       }
-    },
+      try {
+        // presign URL + key 가져오기
+        const { key, url } = await getUploadInfo(file);
+        // S3에 업로드
+        await uploadToS3(url, file);
+      this.uploadedFiles.push({
+         name: file.name,
+         size: file.size,
+         type: file.type,
+         key,             // ← 나중에 백엔드로 보낼 key
+         selected: false
+       });
+             this.fileInput = null;
+      } catch(e) {
+        console.error(e);
+        this.fileError = '업로드 실패';
+      }
+    }
+      
+      
+      },
     removeSelectedFiles() {
       this.uploadedFiles = this.uploadedFiles.filter(file => !file.selected);
     },
-  },
-};
+  };
+
 </script>
 
 

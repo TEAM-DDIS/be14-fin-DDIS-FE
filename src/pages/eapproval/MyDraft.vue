@@ -41,7 +41,7 @@ import { ref, computed, onMounted } from 'vue'
 import { AgGridVue } from 'ag-grid-vue3'
 import { ModuleRegistry, AllCommunityModule } from 'ag-grid-community'
 import axios from 'axios'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 ModuleRegistry.registerModules([AllCommunityModule])
 
 // 1) 상태
@@ -49,7 +49,7 @@ const tab    = ref('상신')
 const search = ref({ date: '', title: '' })
 const docs   = ref([])
 const route = useRoute()
-
+const router = useRouter()
 // 2) 컬럼 정의 (결재함이랑 동일)
 const columnDefsByTab = {
   '상신': [ 
@@ -78,18 +78,18 @@ const columnDefsByTab = {
 }
 const currentColumnDefs = computed(() => columnDefsByTab[tab.value])
 const statusMap = {
-  상신: '대기중',
-  완료: '완료',
-  반려: '반려',
-  회수: '회수'
+  상신: ['대기중','심사중'],
+  완료: ['완료'],
+  반려: ['반려'],
+  회수: ['회수']
 }
 
 // 3) 필터 & 번호붙이기
 const filteredForms = computed(() => {
-  const expected = statusMap[tab.value]     // 예: '상신' → '대기중'
+  const expectedStatuses = statusMap[tab.value]     // 예: '상신' → '대기중'
   const filtered = docs.value.filter(doc => {
     // 1) 탭 필터
-    if (expected && doc.status !== expected) return false
+    if (!expectedStatuses .includes(doc.status)) return false
 
     // 2) 제목 검색
     if (search.value.title && !doc.title.includes(search.value.title)) return false
@@ -119,7 +119,7 @@ async function fetchMyDrafts() {
     // 백이 주는 DocumentDTO 필드에 맞춰 맵핑
     docs.value = res.data.map(d => ({
       docId: d.docId,
-      title: d.title,
+      title: d.docTitle,
       type: d.type,
       status: d.status,
 
@@ -149,7 +149,10 @@ onMounted(() => {
 
 // 6) 행 클릭 핸들러
 function onRowClick(e) {
-  console.log('기안 선택됨:', e.data)
+   console.log('선택된 행:', e.data)
+  const docId = e.data.docId
+  // /drafts/8 같은 경로로 이동
+  router.push({ name: 'DraftDetail', params: { docId } })
 }
 </script>
 

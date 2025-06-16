@@ -40,71 +40,139 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { AgGridVue } from 'ag-grid-vue3'
+import { useRouter } from 'vue-router'
 import { ModuleRegistry, AllCommunityModule } from 'ag-grid-community'
 ModuleRegistry.registerModules([AllCommunityModule])
 
 const tab = ref('읽지않음')
 const search = ref({ date: '', title: '' })
 
-const docs = ref([
-    { no: 1, type: '지출품의서', title: '[지출품의서] 이수민 - 구매요청', date: '2025-06-01 09:00', writer: '이수민', readAt: '', status: '읽지않음' },
-    { no: 2, type: '휴가신청서', title: '[휴가신청서] 김태연 - 연차', date: '2025-05-31 13:20', writer: '김태연', readAt: '', status: '읽지않음' },
-    { no: 3, type: '사업기안', title: '[사업기안] 장도윤 - 신규사업 제안', date: '2025-05-30 11:10', writer: '장도윤', readAt: '', status: '읽지않음' },
-    { no: 4, type: '지출품의서', title: '[지출품의서] 전지우 - 홍보비', date: '2025-05-29 10:45', writer: '전지우', readAt: '', status: '읽지않음' },
-    { no: 5, type: '사업기안', title: '[사업기안] 백서현 - 마케팅 캠페인', date: '2025-05-28 14:00', writer: '백서현', readAt: '', status: '읽지않음' },
-    { no: 6, type: '휴가신청서', title: '[휴가신청서] 윤소희 - 병가', date: '2025-05-27 08:30', writer: '윤소희', readAt: '', status: '읽지않음' },
-    { no: 7, type: '지출품의서', title: '[지출품의서] 민지현 - 교육비', date: '2025-05-26 10:20', writer: '민지현', readAt: '', status: '읽지않음' },
-    { no: 8, type: '사업기안', title: '[사업기안] 김하늘 - 기술제휴', date: '2025-05-25 15:10', writer: '김하늘', readAt: '', status: '읽지않음' },
-    { no: 9, type: '휴가신청서', title: '[휴가신청서] 이한결 - 조퇴', date: '2025-05-24 17:15', writer: '이한결', readAt: '', status: '읽지않음' },
-    { no: 10, type: '지출품의서', title: '[지출품의서] 정하윤 - 회의비', date: '2025-05-23 12:40', writer: '정하윤', readAt: '', status: '읽지않음' },
-    { no: 11, type: '지출품의서', title: '[지출품의서] 최현우 - 운영비', date: '2025-05-22 11:30', writer: '최현우', readAt: '2025-06-04 09:20', status: '읽음' },
-    { no: 12, type: '사업기안', title: '[사업기안] 김도영 - 협업제안', date: '2025-05-21 13:45', writer: '김도영', readAt: '2025-06-04 10:15', status: '읽음' },
-    { no: 13, type: '휴가신청서', title: '[휴가신청서] 이지수 - 반차', date: '2025-05-20 14:50', writer: '이지수', readAt: '2025-06-04 11:00', status: '읽음' }
-])
+const docs = ref([])
+const router = useRouter()
 
-const columnDefsByTab = {
+
+const fetchDocs = async () => {
+  try {
+    const token = localStorage.getItem('token')
+
+    const params = new URLSearchParams({
+      status: tab.value,
+      title: search.value.title || '',
+      date: search.value.date || ''
+    })
+
+    const res = await fetch(`http://localhost:8000/drafts/query/receiver?${params.toString()}`, {
+       method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,  // ✅ 핵심
+        'Content-Type': 'application/json'
+      }
+    })
+
+    if (!res.ok) throw new Error('문서 목록 조회 실패')
+
+    const data = await res.json()
+    docs.value = data
+  } catch (err) {
+    console.error(err)
+  }
+}
+
+
+// 탭이 바뀔 때마다 다시 조회
+watch([tab, () => search.value.title, () => search.value.date], fetchDocs)
+
+onMounted(() => {
+  fetchDocs()
+})
+
+
+    const columnDefsByTab = {
     '읽음': [
         { headerName: '번호', field: 'no', width: 100 },
-        { headerName: '구분', field: 'type', width: 150 },
+        { headerName: '구분', field: 'role', width: 150 },
         { headerName: '제목', field: 'title', flex: 1 },
-        { headerName: '상신일시', field: 'date', width: 230 },
-        { headerName: '열람일시', field: 'readAt', width: 230 },
-        { headerName: '기안자', field: 'writer', width: 150 }
+        { headerName: '상신일시', field: 'createdAt',valueFormatter: params => formatDateTime(params.value), width: 230 },
+        { headerName: '열람일시', field: 'readAt',valueFormatter: params => formatDateTime(params.value), width: 230 },
+        { headerName: '기안자', field: 'writerName', width: 150 }
     ],
     '읽지않음': [
-        { headerName: '번호', field: 'no', width: 100 },
-        { headerName: '구분', field: 'type', width: 150 },
-        { headerName: '제목', field: 'title', flex: 1 },
-        { headerName: '상신일시', field: 'date', width: 230 },
-        { headerName: '열람일시', field: 'readAt', width: 230 },
-        { headerName: '기안자', field: 'writer', width: 150 }
-    ]
-}
+        { headerName: '번호', field: 'no', flex: 1 },
+        { headerName: '구분', field: 'role', flex: 1 },
+        { headerName: '제목', field: 'title', flex: 3 },
+        { headerName: '상신일시', field: 'createdAt',valueFormatter: params => formatDateTime(params.value), flex: 1 },
+        { headerName: '열람일시', field: 'readAt',valueFormatter: params => formatDateTime(params.value), flex: 1 },
+        { headerName: '기안자', field: 'writerName', flex: 1 }
+    ]}
 
 const currentColumnDefs = computed(() => columnDefsByTab[tab.value])
 
 const filteredForms = computed(() => {
-const filtered = docs.value.filter(doc => {
+  const enriched = docs.value.map(doc => ({
+    ...doc,
+    status: doc.readAt ? '읽음' : '읽지않음'
+  }))
+
+  const filtered = enriched.filter(doc => {
     if (tab.value && doc.status !== tab.value) return false
     if (search.value.title && !doc.title.includes(search.value.title)) return false
-    if (search.value.Date) {
-        const docDate = doc.date?.substring(0, 10)
-        if (docDate !== search.value.Date) return false
+    if (search.value.date) {
+      const docDate = doc.createdAt?.substring(0, 10)
+      if (docDate !== search.value.date) return false
     }
     return true
-    })
-    return filtered.map((doc, idx) => ({ ...doc, no: filtered.length - idx }))
+  })
+
+  return filtered.map((doc, idx) => ({ ...doc, no: filtered.length - idx }))
 })
 
 function handleFormRowClick(params) {
-    const row = docs.value.find(d => d.no === params.data.no)
-    if (row && !row.readAt) {
-        row.readAt = new Date().toISOString().slice(0, 16).replace('T', ' ')
-        row.status = '읽음'
-    }
+  const doc = params.data
+  const token = localStorage.getItem('token')
+
+  if (!doc.readAt) {
+    fetch(`http://localhost:8000/drafts/query/reference/${doc.docId}/read`, {
+      method: 'PATCH',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    })
+      .then(res => {
+        if (!res.ok) throw new Error('읽음 처리 실패')
+          const contentType = res.headers.get('Content-Type') || ''
+            if (res.status === 204 || !contentType.includes('application/json')) {
+                return null // 응답 본문 없음
+            }
+
+            return res.json()
+      })
+      .then(() => {
+        doc.readAt = new Date().toISOString()
+        doc.status = '읽음'
+        router.push({ name: 'DraftDetail', params: { docId: doc.docId } })
+      })
+      .catch(console.error)
+  } else {
+    router.push({ name: 'DraftDetail', params: { docId: doc.docId } })
+  }
 }
+
+const formatDateTime = (isoString) => {
+  if (!isoString) return ''
+  const date = new Date(isoString)
+  return date.toLocaleString('ko-KR', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit'
+  })
+}
+
+
 </script>
 
 <style>

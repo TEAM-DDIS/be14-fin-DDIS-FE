@@ -97,20 +97,31 @@
         <!-- 기안내용 섹션 -->
         <table class="title-table">
           <thead>
-            <tr v-if="draftDetail && draftDetail.content">
-              <th>제목</th>
-                <td colspan="1">{{ draftDetail.docTitle }}</td>
-            </tr>
-            <tr>
+             <tr>
               <th>첨부파일</th>
-                <td colspan="1">
-                  <template v-if="draftDetail.content.refFile.length">
-                    <div v-for="file in draftDetail.content.refFile" :key="file.name">
-                      {{ file.name }} <span class="file-info">({{ file.size }}, {{ file.type }})</span>
-                    </div>
-                  </template>
-                  <template v-else>-</template>
-                </td>
+              <td>
+                <template v-if="draftDetail.content.refFile.length">
+                  <ul>
+                    <li
+                      v-for="file in draftDetail.content.refFile"
+                      :key="file.key"
+                    >
+                      <!-- presignedUrls 대신 file.url 사용 -->
+                      <a
+                        v-if="file.url"
+                        :href="file.url"
+                        target="_blank"
+                      >
+                        {{ file.name }}
+                      </a>
+                      <span v-else class="file-info error">
+                        {{ file.name }} (URL 생성 실패)
+                      </span>
+                    </li>
+                  </ul>
+                </template>
+                <template v-else>-</template>
+              </td>
             </tr>
           </thead>
         </table>
@@ -153,7 +164,7 @@ const docId = route.params.docId
 const draftDetail = ref(null)         // 기안 상세 데이터
 const isLoading = ref(true)           // 로딩 상태 표시용
 const error = ref(null)               // 에러 정보 저장
-
+const presignedUrls = ref([])
 
 // 📌 모달 관련 상태 변수
 const showApprovalModal = ref(false)  // 결재 모달 열림 여부
@@ -168,6 +179,28 @@ const selectedLine = computed(() => {
     line => Number(line.id) === Number(currentLineId.value)
   ) || null
 })
+
+// 4) S3 다운로드용 presigned URL 요청
+async function fetchPresignedUrls() {
+  presignedUrls.value = []
+  const token = localStorage.getItem('token')
+  for (const file of draftDetail.value.content.refFile) {
+    const qs = new URLSearchParams({
+      filename:    file.key,       // DB에 저장된 S3 key
+      contentType: file.type       // MIME 타입
+    }).toString()
+
+    const res = await fetch(
+      `http://localhost:8000/s3/download-url?${qs}`,
+      { headers: { Authorization: `Bearer ${token}` } }
+    )
+    if (!res.ok) {
+      presignedUrls.value.push(null)
+    } else {
+      presignedUrls.value.push(await res.text())
+    }
+  }
+}
 
 // 📌 기안 상세 조회 API 호출 함수
 async function fetchDetail() {

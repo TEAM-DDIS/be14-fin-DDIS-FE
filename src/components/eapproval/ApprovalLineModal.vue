@@ -3,7 +3,9 @@
     <div class="modal-content">
       <!-- 모달 제목 -->
       <div class="model-text">
-        <h3 class="modal-title">결재선 설정</h3>
+        <h3 class="modal-title">{{ mode === '수신자'  ? '수신자 선택'
+            : mode === '참조자' ? '참조자 선택'
+            :                    '결재선 설정' }}</h3>
       </div>
 
       <!-- 상단: 탭/정렬/검색/삭제 -->
@@ -18,7 +20,7 @@
           </select>
           <input type="text" v-model="search" placeholder="검색" />
         </div>
-        <button class="delete-btn btn-delete" @click="deleteSelectedApprovers">
+        <button class="delete-btn btn-delete" @click="deleteSelected">
           삭제
         </button>
       </div>
@@ -36,12 +38,29 @@
 
         <!-- 중앙: 결재/협조 버튼 -->
         <div class="action-btns">
-          <button class="action-btn btn-save" @click="addApprover('결재')" :disabled="!selectedNode?.employeeId">
-            결재
-          </button>
-          <button class="action-btn btn-save" @click="addApprover('협조')" :disabled="!selectedNode?.employeeId">
-            협조
-          </button>
+          <template v-if="mode ==='결재선'">
+            <button class="action-btn btn-save" @click="addApprover('결재')" :disabled="!selectedNode?.employeeId">
+              결재
+            </button>
+            <button class="action-btn btn-save" @click="addApprover('협조')" :disabled="!selectedNode?.employeeId">
+              협조
+            </button>
+          </template>
+          <template v-else-if="mode === '수신자'">
+            <button
+              class="action-btn btn-save"
+              @click="addApprover('수신자')"
+              :disabled="!selectedNode?.employeeId"
+            >수신</button>
+          </template>
+          <template v-else-if="mode === '참조자'">
+            <button class="action-btn btn-save"
+            @click="addApprover('참조자')"
+            :disabled="!selectedNode?.employeeId"
+            >참조
+            </button>
+
+          </template>
         </div>
 
         <!-- 우측: 결재선 테이블 -->
@@ -49,17 +68,31 @@
           <table class="approver-table">
             <thead>
               <tr>
-                <th><input type="checkbox" @change="toggleAllApprovers" :checked="allSelected"/></th>
+                <th><input type="checkbox" @change="toggleAll" :checked="allSelected"/></th>
                 <th>순서</th>
                 <th>결재유형</th>
                 <th>이름</th>
               </tr>
             </thead>
             <tbody>
-              <tr v-for="(item, idx) in approverList" :key="item.employeeId">
+              <tr v-if="mode==='결재선'" v-for="(item, idx) in approverList" :key="item.employeeId">
                 <td><input type="checkbox" :value="item.employeeId" v-model="selectedApprovers"/></td>
                 <td>{{ idx + 1 }}</td>
                 <td>{{ item.type }}</td>
+                <td>{{ item.name }}</td>
+              </tr>
+              <tr v-else-if="mode==='수신자'"
+                  v-for="(item, idx) in receiverList" :key="`수신자-${item.employeeId}`">
+                <td><!-- 체크박스 필요 없으면 빈칸 --></td>
+                <td>{{ idx + 1 }}</td>
+                <td>수신</td>
+                <td>{{ item.name }}</td>
+              </tr>
+              <tr v-else
+                  v-for="(item, idx) in referenceList" :key="`참조자-${item.employeeId}`">
+                <td></td>
+                <td>{{ idx + 1 }}</td>
+                <td>참조</td>
                 <td>{{ item.name }}</td>
               </tr>
             </tbody>
@@ -81,44 +114,68 @@ import { ref, computed, onMounted } from 'vue'
 import EHierarchy from '@/components/eapproval/EHierarchy.vue'
 
 const props = defineProps({
-  hierarchy: { type: Array, default: () => [] },
-  initialApprovers: { type: Array, default: () => [] }
+  mode:             { type: String, default: '결재선' },
+  hierarchy:        { type: Array,  default: () => [] },
+  initialApprovers: { type: Array,  default: () => [] }
 })
-const emit = defineEmits(['submit', 'close'])
+const emit = defineEmits(['submit', 'close', 'submitReceivers', 'submitCcs'])
 
-// 정렬 및 검색 상태
+// — 정렬·검색 상태
 const sortKey = ref('name')
-const search = ref('')
+const search  = ref('')
 
-// 결재선 리스트 및 선택 상태
-const approverList = ref([])
+// — 각 모드별 리스트
+const approverList    = ref([])
+const receiverList    = ref([])
+const referenceList   = ref([])
+const hierarchyData   = ref([])
+
+// — 각 모드별 선택 배열
 const selectedApprovers = ref([])
-const hierarchy = ref([])
-// 현재 직원 목록 & 선택된 사원
-const selectedNodes = ref([])
-const selectedNode = ref(null)
+const selectedReceivers = ref([])
+const selectedReferences = ref([])
 
-// 초기 부모 결재선 복사 & 전체 직원 세팅
+// — 조직도에서 선택된 사원
+const selectedNodes = ref([])
+const selectedNode  = ref(null)
+
+// 초기 데이터 세팅
 onMounted(() => {
-  // copy initial approvers
-  approverList.value = props.initialApprovers.map((a, i) => ({
-    step: a.step || i + 1,
-    name: a.name,
-    employeeId: a.employeeId,
-    position: a.position,
-    team: a.team,
-    status: a.status,
-    type: a.type,
-    lineTypeLabel: a.lineTypeLabel,
-    viewedAt: a.viewedAt,
-    approvedAt: a.approvedAt,
-    comment: a.comment
-  }))
-  // flatten all employees into selectedNodes
+  if (props.mode === '수신자') {
+    receiverList.value = props.initialApprovers.map(a => ({
+      employeeId: a.employeeId,
+      name:       a.name,
+      position:   a.position
+    }))
+  }
+  else if (props.mode === '참조자') {
+    referenceList.value = props.initialApprovers.map(a => ({
+      employeeId: a.employeeId,
+      name:       a.name,
+      position:   a.position
+    }))
+  }
+  else {
+    approverList.value = props.initialApprovers.map((a, i) => ({
+      step:          a.step || i + 1,
+      employeeId:    a.employeeId,
+      name:          a.name,
+      position:      a.position,
+      team:          a.team,
+      status:        a.status,
+      type:          a.type,
+      lineTypeLabel: a.lineTypeLabel,
+      viewedAt:      a.viewedAt,
+      approvedAt:    a.approvedAt,
+      comment:       a.comment
+    }))
+  }
+
+  // 조직도 초기화
   selectedNodes.value = flattenAllEmployees(props.hierarchy)
 })
 
-// flatten helper
+// 조직도 helper
 function flattenAllEmployees(tree) {
   const list = []
   tree.forEach(head => {
@@ -131,33 +188,27 @@ function flattenAllEmployees(tree) {
   return list
 }
 
-// EHierarchy 선택 이벤트 수신
-function onEmployeesSelected(ids, emp) {
-  console.log('선택된 ID:', ids)
-  console.log('선택된 객체:', emp)
-
-  selectedNodes.value = flattenAllEmployees(hierarchy.value).filter(emp =>
-    ids.includes(Number(emp.employeeId))
-  )
-
-  // 수동으로 선택된 객체가 있을 경우 우선 사용
-  selectedNode.value = emp || (selectedNodes.value.length > 0 ? selectedNodes.value[0] : null)
-
-  console.log('선택된 사원 객체:', selectedNode.value)
+// 조직도 이벤트 핸들러
+function onHierarchyLoaded(loaded) {
+  hierarchyData.value = loaded
+  selectedNodes.value  = flattenAllEmployees(loaded)
 }
-
-// 직원 클릭
+function onEmployeesSelected(ids, emp) {
+  selectedNodes.value = flattenAllEmployees(hierarchyData.value)
+    .filter(e => ids.includes(Number(e.employeeId)))
+  selectedNode.value = emp || selectedNodes.value[0] || null
+}
 function selectEmployee(emp) {
-  console.log('Selected:', emp)
   selectedNode.value = emp
 }
 
-// 검색 + 필터
+// 좌측 필터·정렬
 const filteredNodes = computed(() => {
   const q = search.value.trim().toLowerCase()
   return q
-    ? selectedNodes.value.filter(
-        e => e.employeeName.toLowerCase().includes(q) || e.positionName.toLowerCase().includes(q)
+    ? selectedNodes.value.filter(e =>
+        e.employeeName.toLowerCase().includes(q) ||
+        e.positionName.toLowerCase().includes(q)
       )
     : selectedNodes.value
 })
@@ -167,45 +218,152 @@ const filteredAndSortedNodes = computed(() => {
     ? arr.sort((a, b) => a.employeeName.localeCompare(b.employeeName))
     : arr.sort((a, b) => (a.departmentName || '').localeCompare(b.departmentName))
 })
-function onHierarchyLoaded(loaded) {
-  hierarchy.value = loaded
-  selectedNodes.value = flattenAllEmployees(loaded)
+
+// — 화면에 뿌릴 리스트 (step, type 보강)
+const displayList = computed(() => {
+  if (props.mode === '수신자') {
+    return receiverList.value.map((u, i) => ({
+      employeeId: u.employeeId,
+      name:       u.name,
+      type:       '수신',
+      step:       i + 1
+    }))
+  }
+  else if (props.mode === '참조자') {
+    return referenceList.value.map((u, i) => ({
+      employeeId: u.employeeId,
+      name:       u.name,
+      type:       '참조',
+      step:       i + 1
+    }))
+  }
+  else {
+    return approverList.value
+  }
+})
+
+// — 현재 모드 리스트 참조
+const currentList = computed(() => {
+  if (props.mode === '수신자')   return receiverList.value
+  if (props.mode === '참조자')   return referenceList.value
+  return approverList.value
+})
+
+// — 체크박스 바인딩 대상 computed
+const selectedList = computed({
+  get() {
+    if (props.mode === '수신자')   return selectedReceivers.value
+    if (props.mode === '참조자')   return selectedReferences.value
+    return selectedApprovers.value
+  },
+  set(v) {
+    if (props.mode === '수신자')   selectedReceivers.value = v
+    else if (props.mode === '참조자') selectedReferences.value = v
+    else                              selectedApprovers.value = v
+  }
+})
+
+// — 전체선택 상태
+const allSelected = computed(() =>
+  currentList.value.length > 0 &&
+  selectedList.value.length === currentList.value.length
+)
+
+// — 전체선택 토글
+function toggleAll(e) {
+  selectedList.value = e.target.checked
+    ? currentList.value.map(item => item.employeeId)
+    : []
 }
-// 결재/협조 버튼
+
+// — 선택 항목 삭제
+function deleteSelected() {
+  const keep = currentList.value.filter(item =>
+    !selectedList.value.includes(item.employeeId)
+  )
+
+  if (props.mode === '수신자')      receiverList.value  = keep
+  else if (props.mode === '참조자')  referenceList.value = keep
+  else                              approverList.value  = keep
+
+  selectedList.value = []
+}
+
+// — 결재/수신/참조 추가
 function addApprover(type) {
   if (!selectedNode.value) return
-  console.log('Adding:', type, selectedNode.value)
-  if (!approverList.value.some(a => a.employeeId === selectedNode.value.employeeId)) {
-    approverList.value.push({
-      step: approverList.value.length + 1,
-      name: selectedNode.value.employeeName,
-      employeeId: selectedNode.value.employeeId,
-      position: selectedNode.value.positionName,
-      team: selectedNode.value.teamName || '',
-      status: '대기중',
-      type: type,
-      lineTypeLabel: '양식 결재선',
-      viewedAt: null,
-      approvedAt: null,
-      comment: ''
-    })
+
+  if (props.mode === '수신자') {
+    if (!receiverList.value.some(u => u.employeeId === selectedNode.value.employeeId)) {
+      receiverList.value.push({
+        employeeId: selectedNode.value.employeeId,
+        name:       selectedNode.value.employeeName,
+        position:   selectedNode.value.positionName
+      })
+    }
+  }
+  else if (props.mode === '참조자') {
+    if (!referenceList.value.some(u => u.employeeId === selectedNode.value.employeeId)) {
+      referenceList.value.push({
+        employeeId: selectedNode.value.employeeId,
+        name:       selectedNode.value.employeeName,
+        position:   selectedNode.value.positionName
+      })
+    }
+  }
+  else {
+    if (!approverList.value.some(a => a.employeeId === selectedNode.value.employeeId)) {
+      approverList.value.push({
+        step:          approverList.value.length + 1,
+        employeeId:    selectedNode.value.employeeId,
+        name:          selectedNode.value.employeeName,
+        position:      selectedNode.value.positionName,
+        team:          selectedNode.value.teamName || '',
+        status:        '대기중',
+        type,
+        lineTypeLabel: '양식 결재선',
+        viewedAt:      null,
+        approvedAt:    null,
+        comment:       ''
+      })
+    }
   }
 }
 
-// 전체선택, 삭제, 등록
-const allSelected = computed(() =>
-  approverList.value.length && selectedApprovers.value.length === approverList.value.length
-)
-function toggleAllApprovers(e) { selectedApprovers.value = e.target.checked ? approverList.value.map(a => a.employeeId) : [] }
-function deleteSelectedApprovers() { approverList.value = approverList.value.filter(a => !selectedApprovers.value.includes(a.employeeId)); selectedApprovers.value = [] }
-function submitSelection() {   
-  const approvers = approverList.value.map(item => ({
-    ...item,
-    employeeId: Number(item.employeeId) // ← string → number (Long)
-  }))
-  console.log('🟡 등록될 결재선 리스트:', approvers); // 이걸 추가
-  emit('submit', approvers) }
+// — 최종 등록
+function submitSelection() {
+  let payload
+
+  if (props.mode === '수신자') {
+    payload = receiverList.value.map(u => ({
+      employeeId: Number(u.employeeId),
+      name:       u.name
+    }))
+    console.log('🔔 submitSelection called, mode=수신자, payload=', payload)
+    emit('submitReceivers', payload)
+
+  } else if (props.mode === '참조자') {
+    payload = referenceList.value.map(u => ({
+      employeeId: Number(u.employeeId),
+      name:       u.name
+    }))
+    console.log('🔔 submitSelection called, mode=참조자, payload=', payload)
+    emit('submitCcs', payload)
+
+  } else {
+    payload = approverList.value.map(a => ({
+      ...a,
+      employeeId: Number(a.employeeId)
+    }))
+    console.log('🔔 submitSelection called, mode=결재선, payload=', payload)
+    emit('submit', payload)
+  }
+
+  console.log('✅ emit done, closing modal')
+  emit('close')
+}
 </script>
+
 
 
   
