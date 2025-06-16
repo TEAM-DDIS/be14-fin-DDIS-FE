@@ -1,8 +1,9 @@
-<!-- 전자결재 > 문서함 > 수신함 -->
+<!-- 전자결재 > 문서함 > 참조함 -->
 
 <template>
     <!-- 1. 상단: 페이지 제목 -->
-    <h1 class="page-title">수신함</h1>
+    <h1 class="page-title">참조함</h1>
+
     <!-- 2. 탭 -->
     <div class="tabs">
         <span :class="{active: tab==='읽지않음'}" @click="tab='읽지않음'">읽지않음</span>
@@ -17,26 +18,27 @@
                 <label>기안상신일</label>
                 <input type="date" v-model="search.Date" />
             </div>
-        <div class="search-item">
-            <label>기안 제목</label>
-            <input type="text" v-model="search.title" placeholder="기안 제목 입력" />
+            <div class="search-item">
+                <label>기안 제목</label>
+                <input type="text" v-model="search.title" placeholder="기안 제목 입력" />
+            </div>
         </div>
-    </div>
+
         <!-- 3-2. 목록 테이블 영역 -->
         <div class="table-box">
-        <AgGridVue
-            class="ag-theme-alpine custom-theme ag-custom"
-            :gridOptions="{ theme: 'legacy' }"
-            :columnDefs="currentColumnDefs"
-            :rowData="filteredForms"
-            :pagination="true"
-            rowSelection="single"
-            @rowClicked="handleFormRowClick"
-            :overlayNoRowsTemplate="'<span class=\'ag-empty\'>데이터가 없습니다.</span>'"
-            style="width:100%; height:100%;"
-        />
+            <AgGridVue
+                class="ag-theme-alpine custom-theme ag-custom"
+                :gridOptions="{ theme: 'legacy' }"
+                :columnDefs="currentColumnDefs"
+                :rowData="filteredForms"
+                :pagination="true"
+                rowSelection="single"
+                @rowClicked="handleFormRowClick"
+                :overlayNoRowsTemplate="'<span class=\'ag-empty\'>데이터가 없습니다.</span>'"
+                style="width:100%; height:100%;"
+            />
         </div>
-    </div>
+    </div>    
 </template>
 
 <script setup>
@@ -63,7 +65,7 @@ const fetchDocs = async () => {
       date: search.value.date || ''
     })
 
-    const res = await fetch(`http://localhost:8000/drafts/query/receiver?${params.toString()}`, {
+    const res = await fetch(`http://localhost:8000/drafts/query/reference?${params.toString()}`, {
        method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`,  // ✅ 핵심
@@ -102,8 +104,8 @@ onMounted(() => {
         { headerName: '번호', field: 'no', flex: 1 },
         { headerName: '구분', field: 'role', flex: 1 },
         { headerName: '제목', field: 'title', flex: 3 },
-        { headerName: '상신일시', field: 'createdAt',valueFormatter: params => formatDateTime(params.value), flex: 1 },
-        { headerName: '열람일시', field: 'readAt',valueFormatter: params => formatDateTime(params.value), flex: 1 },
+        { headerName: '상신일시', field: 'createdAt', valueFormatter: params => formatDateTime(params.value),flex: 1 },
+        { headerName: '열람일시', field: 'readAt', valueFormatter: params => formatDateTime(params.value),flex: 1 },
         { headerName: '기안자', field: 'writerName', flex: 1 }
     ]}
 
@@ -152,12 +154,13 @@ function handleFormRowClick(params) {
       .then(() => {
         doc.readAt = new Date().toISOString()
         doc.status = '읽음'
-        router.push({ name: 'DraftDetail', params: { docId: doc.docId } })
+        router.push({ name: 'DraftDetail', params: { docId: doc.docId },query: { box: 'ReferenceBox' } })
       })
       .catch(console.error)
   } else {
-    router.push({ name: 'DraftDetail', params: { docId: doc.docId } })
+    router.push({ name: 'DraftDetail', params: { docId: doc.docId },query: { box: 'ReferenceBox' } })
   }
+
 }
 
 const formatDateTime = (isoString) => {
