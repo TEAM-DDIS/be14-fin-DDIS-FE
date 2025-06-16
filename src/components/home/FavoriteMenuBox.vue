@@ -94,6 +94,8 @@ defineExpose({ fetchFavorites })
   padding: 5px;
   align-items: center;
   width: 100%;
+  max-height: 550px;
+  overflow-y: auto;
 }
 
 .menu-item,
@@ -145,5 +147,13 @@ defineExpose({ fetchFavorites })
   box-shadow: 1px 1px 20px 1px rgba(0, 0, 0, 0.05);
   font-size: 17px;
   font-weight: bold;
+}
+
+.menu-list::-webkit-scrollbar {
+  width: 6px;
+}
+.menu-list::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 10px;
 }
 </style>
