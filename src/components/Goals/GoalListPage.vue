@@ -12,6 +12,7 @@
       <!-- 1) 목표 목록 및 등록 패널 -->
       <section class="panel goals-panel">
         <div class="goal-container">
+          <button class="btn-primary" style="margin-bottom: 10px;" @click="openMyPerfModal">내 실적 보기</button>
           <!-- 목표가 없고 등록 폼도 안 보일 때 -->
           <div v-if="goals.length === 0 && !showGoalForm" class="placeholder">
             <p class="placeholder-text">목표를 등록해보세요! </p>
@@ -78,7 +79,7 @@
           <!-- 목표 리스트 -->
           <div v-else class="goals-list">
             <div
-              v-for="goal in goals"
+              v-for="goal in currentYearGoals"
               :key="goal.goalId"
               class="goal-card"
               :class="{ selected: selected === goal.goalId }"
@@ -173,7 +174,7 @@
                   <span class="file-name">{{ form.fileName }}</span>
                   <span class="file-size">{{ form.fileSize }}</span>
                 </template>
-                <button class="btn-attach" @click="$refs.fileInput.click()">첨부파일 등록</button>
+                <button v-if="isCurrentYearGoal" class="btn-attach" @click="$refs.fileInput.click()">첨부파일 등록</button>
                 <input ref="fileInput" type="file" class="sr-only" @change="onFileChange" />
               </div>
             </div>
@@ -186,25 +187,34 @@
               <textarea v-model="form.comment" placeholder="자기 평가"></textarea>
             </div>
             <div class="btn-save-wrap">
-              <button class="btn-save" @click="submitPerf">{{ hasPerformance ? '수정' : '등록' }}</button>
+              <button v-if="isCurrentYearGoal" class="btn-save" @click="submitPerf">{{ hasPerformance ? '수정' : '등록' }}</button>
             </div>
           </div>
         </div>
       </section>
     </div>
   </div>
+    
+
+  <MyPerfModal
+    :show="showMyPerfModal"
+    :performances="pastPerformances"
+    @close="closeMyPerfModal"
+    @select="handleModalSelect" 
+  />
 </template>
 
 <script setup>
 import { ref, reactive, computed, watch, onMounted } from 'vue'
 import { useUserStore } from '@/stores/user'
 import { v4 as uuidv4 } from 'uuid'
+import MyPerfModal from '@/components/Goals/MyPerfModal.vue'
 
 const goals = ref([])
 const selected = ref(null)
 const showGoalForm = ref(false)
 const userStore = useUserStore()
-
+const showMyPerfModal = ref(false)
 // presigned URL 저장
 const presignedUrls = ref([])
 
@@ -222,6 +232,8 @@ const totalWeight = computed(() =>
   goals.value.reduce((sum, g) => sum + (g.goalWeight || 0), 0)
 )
 
+function openMyPerfModal() { showMyPerfModal.value = true }
+function closeMyPerfModal() { showMyPerfModal.value = false }
 
 // 실적 폼 데이터
 const form = reactive({
@@ -251,8 +263,33 @@ function formatDate(isoString) {
   if (!isoString) return ''
   return isoString.slice(0, 10)
 }
+// 1) 올해(현재년도) 필터
+const currentYear = new Date().getFullYear()
+const currentYearGoals = computed(() =>
+  goals.value.filter(g =>
+    new Date(g.goalCreatedAt).getFullYear() === currentYear
+  )
+)
 
-// 한국 시각 기준 ISO 날짜 문자열 반환
+// 2) 과거 실적만 (작년 이하) & 내 실적만
+const pastPerformances = computed(() =>
+  goals.value
+    .filter(g =>
+      g.performance &&
+      new Date(g.goalCreatedAt).getFullYear() < currentYear &&
+      g.performance.employeeIdSelfreviewer === userStore.employeeId
+    )
+    .map(g => ({
+      performanceId: g.performance.performanceId,
+      goalId: g.goalId, 
+      goalTitle: g.goalTitle,
+      actual: g.performance.performanceValue,
+      comment: g.performance.selfreviewContent,
+      year: new Date(g.goalCreatedAt).getFullYear()
+    }))
+)
+
+// 한국 시각 기준 ISO 날짜 문자열 반환  
 function getKoreaLocalDateTimeString() {
   const now = new Date()
   const tzOffset = now.getTimezoneOffset() * 60000
@@ -311,6 +348,10 @@ function selectGoal(goal) {
     }
   }
 }
+const isCurrentYearGoal = computed(() => {
+  if (!selectedGoal.value) return false
+  return new Date(selectedGoal.value.goalCreatedAt).getFullYear() === currentYear
+})
 
 // 폼 초기화
 function resetForm() {
@@ -340,14 +381,24 @@ async function fetchPresignedUrls() {
   presignedUrls.value = []
 
   for (let i = 0; i < form.existingAttachmentKeys.length; i++) {
-    const s3Key = form.existingAttachmentKeys[i]
+    const s3Key   = form.existingAttachmentKeys[i]
     const fileType = form.existingAttachmentFileTypes[i]
+
     try {
+      // 1) URLSearchParams 로 쿼리스트링 생성 (소문자 키)
+      const qs = new URLSearchParams({
+        filename:    s3Key,
+        contentType: fileType
+      }).toString()
+
+      // 2) GET /s3/download-url?filename=…&contentType=…
       const res = await fetch(
-        `http://localhost:8000/s3/download-url?fileName=${encodeURIComponent(s3Key)}&ContentType=${encodeURIComponent(fileType)}`,
+        `http://localhost:8000/s3/download-url?${qs}`,
         { headers: { Authorization: `Bearer ${token}` } }
       )
       if (!res.ok) throw new Error("프리사인드 URL 생성 실패")
+
+      // 3) plain text 로 온 presigned GET URL
       const url = await res.text()
       presignedUrls.value.push(url)
     } catch (err) {
@@ -380,21 +431,37 @@ function getDownloadUrlWithDisposition(presignedUrl, filename) {
 // -----------------------------
 async function downloadAttachment(fileKey, fileType) {
   try {
-    const token = localStorage.getItem('token')
+    const token = localStorage.getItem('token');
+    // 쿼리스트링 생성
+    const qs = new URLSearchParams({
+      filename: fileKey,
+      contentType: fileType
+    }).toString();
+
+    // ① 다운로드용 presign URL 요청
     const res = await fetch(
-      `http://localhost:8000/s3/download-url?fileName=${encodeURIComponent(fileKey)}&ContentType=${encodeURIComponent(fileType)}`,
-      { headers: { Authorization: `Bearer ${token}` } }
-    )
-    if (!res.ok) throw new Error('다운로드 URL 생성 실패')
-    const presignedUrl = await res.text()
-    window.open(presignedUrl, '_blank')
+      `http://localhost:8000/s3/download-url?${qs}`,
+      {
+        headers: { Authorization: `Bearer ${token}` }
+      }
+    );
+    if (!res.ok) throw new Error('다운로드 URL 생성 실패');
+
+    // ② 백엔드가 반환한 presigned GET URL (plain text)
+    const downloadUrl = await res.text();
+
+    // ③ 새 탭으로 열기
+    window.open(downloadUrl, '_blank');
   } catch (err) {
-    console.error(err)
-    alert('파일 다운로드 중 오류가 발생했습니다.')
+    console.error(err);
+    alert('파일 다운로드 중 오류가 발생했습니다.');
   }
 }
+function handleModalSelect(goalId) {
+  selected.value = goalId       // 오른쪽에 해당 goal 데이터 바인딩
+  closeMyPerfModal()
+}
 
-// 파일 선택 시 처리
 function onFileChange(e) {
   const f = e.target.files[0]
   if (!f) return
@@ -499,32 +566,46 @@ async function submitPerf() {
   let fileSizesToSend = [...form.existingAttachmentFileSizes]
 
   // 새로 파일을 골랐다면 presign→PUT
-  if (form.file) {
-    try {
-      const key = `performance/${uuidv4()}-${form.file.name}`
-      const presignRes = await fetch(
-        `http://localhost:8000/s3/upload-url?fileName=${encodeURIComponent(key)}&ContentType=${encodeURIComponent(form.file.type)}`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      )
-      if (!presignRes.ok) throw new Error('Presign URL 요청 실패')
-      const uploadUrl = await presignRes.text()
+if (form.file) {
+  try {
+    // GET /s3/upload-url?filename=...&contentType=...
+    const qs = new URLSearchParams({
+      filename: form.file.name,
+      contentType: form.file.type
+    }).toString();
 
-      const putRes = await fetch(uploadUrl, {
-        method: 'PUT',
-        headers: { 'Content-Type': form.file.type },
-        body: form.file
-      })
-      if (!putRes.ok) throw new Error('S3 파일 업로드 실패')
+    const presignRes = await fetch(
+      `http://localhost:8000/s3/upload-url?${qs}`,
+      {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      }
+    );
+    if (!presignRes.ok) throw new Error('Presign URL 요청 실패');
 
-      attachmentUrlsToSend = [key]
-      fileNamesToSend = [form.fileName]
-      fileTypesToSend = [form.file.type]
-      fileSizesToSend = [form.file.size]
-    } catch (err) {
-      console.error(err)
-      return alert('파일 업로드 중 오류가 발생했습니다.')
-    }
+    // 백엔드가 { key, url } 형태로 응답하니 그대로 파싱
+    const { key, url: uploadUrl } = await presignRes.json();
+
+    // S3에 PUT
+    const putRes = await fetch(uploadUrl, {
+      method: 'PUT',
+      headers: { 'Content-Type': form.file.type },
+      body: form.file
+    });
+    if (!putRes.ok) throw new Error('S3 파일 업로드 실패');
+
+    // payload용 데이터 업데이트
+    attachmentUrlsToSend = [key];
+    fileNamesToSend      = [form.fileName];
+    fileTypesToSend      = [form.file.type];
+    fileSizesToSend      = [form.file.size];
+  } catch (err) {
+    console.error(err);
+    return alert('파일 업로드 중 오류가 발생했습니다.');
   }
+}
 
   const payload = {
     performanceValue: form.actual,
@@ -600,6 +681,7 @@ async function deletePerf() {
     alert('실적 삭제 중 오류가 발생했습니다.')
   }
 }
+
 </script>
 
 <style scoped>
