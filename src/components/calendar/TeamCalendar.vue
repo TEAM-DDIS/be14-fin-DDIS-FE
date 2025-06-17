@@ -25,6 +25,18 @@
         </div>
       </div>
     </Teleport>
+    <Teleport to="body">
+      <div v-if="showEditModal" class="overlay">
+        <div class="modal">
+          <span class="modal-desc">회의 일정 수정</span>
+          <MeetingEventEditCard
+            :initialData="selectedEvent"
+            @update="handleUpdate"
+            @delete="handleDelete"
+          />
+        </div>
+      </div>
+    </Teleport>
   </div>
 </template>
 
@@ -35,9 +47,13 @@
   import interactionPlugin from '@fullcalendar/interaction'
   import koLocale from '@fullcalendar/core/locales/ko'
   import MeetingEventCard from '../attendance/MeetingEventCard.vue'
+  import MeetingEventEditCard from '../attendance/MeetingEventEditCard.vue'
   import { useUserStore } from '@/stores/user'
 
   const show = ref(false)
+  
+  const showEditModal = ref(false)
+  const selectedEvent = ref(null)
 
   const convertStatusToClass = (status) => {
     switch (status) {
@@ -82,6 +98,21 @@
             <span class="event-employee">${props.employee}</span>
           </div>`
       }
+    },
+    eventClick: function(info) {
+      const props = info.event.extendedProps
+
+      console.log('[이벤트 클릭] extendedProps:', props)
+
+      if (props.type === 'meeting') {
+        selectedEvent.value = {
+          id: props.id,
+          date: info.event.startStr,
+          title: props.title,
+          time: props.time
+        }
+        showEditModal.value = true
+      }
     }
   })
 
@@ -108,23 +139,70 @@
               throw new Error(errorText)
           }
 
+          const saved = await res.json()
+
+          console.log('[등록 응답]', saved)
+
           // 일정 등록 성공 시 캘린더에 추가
           calendarOptions.events.push({
-              title: '',
-              start: date,
-              className: 'event-meeting',
-              extendedProps: {
-                  type: 'meeting',
-                  title,
-                  time
-              }
-          })
+          title: '',
+          start: saved.meetingDate,
+          className: 'event-meeting',
+          extendedProps: {
+            id: saved.id,
+            type: 'meeting',
+            title: saved.meetingTitle,
+            time: saved.meetingTime
+          }
+        })
 
           show.value = false
       } catch (err) {
           console.error('회의 일정 등록 실패:', err.message)
           alert('회의 일정 등록 중 오류가 발생했습니다.\n' + err.message)
       }
+  }
+
+  const handleUpdate = async (updated) => {
+  const token = useUserStore().accessToken
+
+  await fetch(`http://localhost:8000/attendance/schedule/meeting/${updated.id}`, {
+    method: 'PUT',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      meetingDate: updated.date,
+      meetingTitle: updated.title,
+      meetingTime: updated.time
+    })
+  })
+
+  // 캘린더에서 수정
+  const target = calendarOptions.events.find(e => e.extendedProps.id === updated.id)
+    if (target) {
+      target.start = updated.date
+      target.extendedProps.title = updated.title
+      target.extendedProps.time = updated.time
+    }
+
+    showEditModal.value = false
+  }
+
+  const handleDelete = async (id) => {
+    const token = useUserStore().accessToken
+
+    await fetch(`http://localhost:8000/attendance/schedule/meeting/${id}`, {
+      method: 'DELETE',
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    })
+
+    calendarOptions.events = calendarOptions.events.filter(e => e.extendedProps.id !== id)
+
+    showEditModal.value = false
   }
 
   onMounted(async () => {
@@ -140,11 +218,22 @@
     const data = await res.json()
 
     calendarOptions.events = data.map(item => ({
-      title: '',
-      start: item.date,
-      className: item.type === 'meeting' ? 'event-meeting' : convertStatusToClass(item.status),
-      extendedProps: item
-    }))
+        title: '',
+        start: item.date,
+        className: item.type === 'meeting' ? 'event-meeting' : convertStatusToClass(item.status),
+        extendedProps: item.type === 'meeting'
+          ? {
+              id: item.meetingId,
+              type: 'meeting',
+              title: item.title,
+              time: item.time
+            }
+          : {
+              type: item.type,
+              status: item.status,
+              employee: item.employee
+            }
+      }))
   })
 </script>
 

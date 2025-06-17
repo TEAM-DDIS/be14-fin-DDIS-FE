@@ -41,6 +41,18 @@
         </div>
       </div>
     </Teleport>
+    <Teleport to="body">
+      <div v-if="showEditModal" class="overlay">
+        <div class="modal">
+          <span class="modal-desc">개인 일정 수정</span>
+          <PersonalEventEditCard
+            :initialData="selectedEvent"
+            @update="handleUpdate"
+            @delete="handleDelete"
+          />
+        </div>
+      </div>
+    </Teleport>
   </div>
 </template>
 
@@ -51,9 +63,13 @@
   import interactionPlugin from '@fullcalendar/interaction'
   import koLocale from '@fullcalendar/core/locales/ko'
   import PersonalEventCard from '../attendance/PersonalEventCard.vue'
+  import PersonalEventEditCard from '../attendance/PersonalEventEditCard.vue'
   import { useUserStore } from '@/stores/user'
 
   const show = ref(false)
+
+  const showEditModal = ref(false)
+  const selectedEvent = ref(null)
 
   async function onAdd({ date, title, time }) {
       const userStore = useUserStore()
@@ -78,17 +94,22 @@
               throw new Error(errorText)
       }
 
+      const saved = await res.json()
+
+      console.log('[등록 응답]', saved)
+
       // 일정 등록 성공 시 캘린더에 추가
       calendarOptions.events.push({
-          title: '',
-          start: date,
-          className: 'event-personal',
-          extendedProps: {
-              type: 'personal',
-              title,
-              time
+      title: '',
+      start: saved.scheduleDate,
+      className: 'event-personal',
+      extendedProps: {
+        id: saved.id,
+        type: 'personal',
+        title: saved.scheduleTitle,
+        time: saved.scheduleTime
       }
-  })
+    })
 
   show.value = false
   } catch (err) {
@@ -148,8 +169,65 @@
                   </div>
               `
           }
+      },
+      eventClick: function(info) {
+        const props = info.event.extendedProps
+
+        console.log('[이벤트 클릭] extendedProps:', props)
+
+        if (props.type === 'personal') {
+          selectedEvent.value = {
+            id: props.id,
+            date: info.event.startStr,
+            title: props.title,
+            time: props.time
+          }
+          showEditModal.value = true
+        }
       }
   })
+
+  const handleUpdate = async (updated) => {
+  const token = useUserStore().accessToken
+
+  await fetch(`http://localhost:8000/attendance/schedule/personal/${updated.id}`, {
+    method: 'PUT',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      scheduleDate: updated.date,
+      scheduleTitle: updated.title,
+      scheduleTime: updated.time
+    })
+  })
+
+  // 캘린더에서 수정
+  const target = calendarOptions.events.find(e => e.extendedProps.id === updated.id)
+    if (target) {
+      target.start = updated.date
+      target.extendedProps.title = updated.title
+      target.extendedProps.time = updated.time
+    }
+
+    showEditModal.value = false
+  }
+
+  const handleDelete = async (id) => {
+    const token = useUserStore().accessToken
+
+    await fetch(`http://localhost:8000/attendance/schedule/personal/${id}`, {
+      method: 'DELETE',
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    })
+
+    calendarOptions.events = calendarOptions.events.filter(e => e.extendedProps.id !== id)
+
+    showEditModal.value = false
+  }
 
   onMounted(async () => {
       const userStore = useUserStore()
@@ -167,10 +245,21 @@
       const data = await res.json()
 
       calendarOptions.events = data.map(item => ({
-          title: '',
-          start: item.date,
-          className: item.type === 'personal' ? 'event-personal' : convertStatusToClass(item.status),
-          extendedProps: item
+        title: '',
+        start: item.date,
+        className: item.type === 'personal' ? 'event-personal' : convertStatusToClass(item.status),
+        extendedProps: item.type === 'personal'
+          ? {
+              id: item.personalScheduleId,
+              type: 'personal',
+              title: item.title,
+              time: item.time
+            }
+          : {
+              type: item.type,
+              status: item.status,
+              employee: item.employee
+            }
       }))
   })
 </script>
