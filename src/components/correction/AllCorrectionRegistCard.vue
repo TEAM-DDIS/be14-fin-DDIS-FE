@@ -235,7 +235,6 @@
         employees.value = json
     } catch (err) {
         console.error('출근 정정 신청 내역 조회 실패:', err)
-        alert('권한이 없거나 요청에 실패했습니다.')
     }
     })
 

@@ -36,13 +36,45 @@
 </template>
 
 <script setup>
-    import { ref } from 'vue'
+    import { ref, onMounted } from 'vue'
     import DateFilter from '@/components/leave/DateFilter.vue'
     import AllLeaveUsedCard from '@/components/leave/AllLeaveUsedCard.vue'
     import AllLeaveRegistCard from '@/components/leave/AllLeaveRegistCard.vue'
+    import { useRouter } from 'vue-router'
+    import { useUserStore } from '@/stores/user'
+
+    const router = useRouter()
+    const userStore = useUserStore()
 
     const activeTab = ref('used')
     const dateRange = ref({ start: '', end: '' })
+
+    function parseJwt(token) {
+  try {
+    const base64Url = token.split('.')[1]
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split('')
+        .map(c => `%${('00' + c.charCodeAt(0).toString(16)).slice(-2)}`)
+        .join('')
+    )
+    return JSON.parse(jsonPayload)
+  } catch (e) {
+    return null
+  }
+}
+
+const decoded = parseJwt(userStore.accessToken)
+console.log('디코딩된 JWT:', decoded)
+
+// 접근 권한 확인
+onMounted(() => {
+  if (!decoded?.auth?.includes('ROLE_HR')) {
+      alert('접근 권한이 없습니다.')
+      router.push('/error403')
+    }
+})
 
     function handleSearch(range) {
         dateRange.value = range
