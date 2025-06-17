@@ -1,6 +1,20 @@
 <template>
     <div class="correction-event-card">
         <el-form :model="form" label-width="100px" class="event-form">
+            <!-- 날짜 선택 -->
+            <el-form-item 
+                label="날짜"
+                label-position="top"
+                >
+                <el-date-picker
+                    v-model="form.date"
+                    type="date"
+                    format="YYYY-MM-DD"
+                    value-format="YYYY-MM-DD"
+                    placeholder="날짜 선택"
+                    style="width: 100%;"
+                />
+                </el-form-item>
             <!-- 변경요청 시각 -->
             <el-form-item 
                 label="변경 요청 시각"
@@ -53,18 +67,20 @@
 
 <script setup>
     import { reactive } from 'vue'
-    import { ElForm, ElFormItem, ElInput, ElTimePicker, ElButton } from 'element-plus'
+    import { ElForm, ElFormItem, ElInput, ElTimePicker,ElDatePicker, ElButton } from 'element-plus'
 
     const emit = defineEmits(['submit', 'cancel'])
 
     const form = reactive({
+        date: '',
         time: '',
         reason: ''
     })
 
     function onSubmit() {
-        if (!form.time || !form.reason) return
-        emit('submit', { time: form.time, reason: form.reason })
+        if (!form.date || !form.time || !form.reason) return
+        emit('submit', { date: form.date, time: form.time, reason: form.reason })
+        form.date = ''
         form.time = ''
         form.reason = ''
     }

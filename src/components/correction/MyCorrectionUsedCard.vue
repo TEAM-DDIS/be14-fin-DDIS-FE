@@ -6,7 +6,7 @@
                 :gridOptions="{ theme: 'legacy' }"
                 :columnDefs="columnDefs"
                 :rowData="leaveUsedData"
-                height="400px"
+                height="500px"
                 :pagination="true"
                 :paginationPageSize="10"
             />
@@ -26,8 +26,9 @@
     { headerName: '번호', valueGetter: params => params.api.getDisplayedRowCount() - params.node.rowIndex, sortable: false },
     { headerName: '처리상태', field: 'approvalStatus' },
     { headerName: '신청일', field: 'requestTime' },
+    { headerName: '정정요청일', field: 'workDate'},
     { headerName: '출근시각', field: 'beforeCheckInTime', valueFormatter: ({ value }) => value ? value.split('.')[0] : '' },
-    { headerName: '변경요청시각', field: 'requestedTimeChange',
+    { headerName: '정정요청시각', field: 'requestedTimeChange',
       valueFormatter: ({ value }) => {
         if (!value) return ''
         const time = new Date(value).toTimeString().split(' ')[0]
@@ -74,7 +75,7 @@
         justify-content: space-between;
         background: #fff;
         padding: 30px;
-        border-radius: 12px;
+        border-radius: 0px 12px 12px 12px;
         box-shadow: 1px 1px 20px 1px rgba(0, 0, 0, 0.05);
         flex-wrap: wrap;
     }

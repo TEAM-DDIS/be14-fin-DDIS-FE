@@ -203,8 +203,9 @@
         { headerName: '성명', field: 'employeeName' },
         { headerName: '처리상태', field: 'approvalStatus' },
         { headerName: '신청일', field: 'requestTime' },
+        { headerName: '정정요청일', field: 'workDate'},
         { headerName: '출근시각', field: 'beforeCheckInTime', valueFormatter: ({ value }) => value ? value.split('.')[0] : '' },
-        { headerName: '변경요청시각', field: 'requestedTimeChange',
+        { headerName: '정정요청시각', field: 'requestedTimeChange',
             valueFormatter: ({ value }) => {
                 if (!value) return ''
                 const time = new Date(value).toTimeString().split(' ')[0]
@@ -281,7 +282,7 @@
         }
 
         const headers = [
-            '사번', '성명', '처리상태', '신청일',
+            '사번', '성명', '처리상태', '신청일', '변경요청날짜',
             '출근시각', '변경요청시각', '처리시간',
             '사유', '반려사유'
         ]
@@ -290,6 +291,7 @@
             `\t${item.employeeId}`,
             item.employeeName,
             item.approvalStatus || '',
+            item.workDate || '',
             item.requestTime || '',
             item.beforeCheckInTime?.split('.')[0] || '',
             item.requestedTimeChange
