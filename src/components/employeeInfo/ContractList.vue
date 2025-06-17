@@ -31,15 +31,16 @@
         @cell-clicked="onCellClick"
       />
     </div>
-  </div>
-
-  <!-- 하단 버튼 -->
-  <div class="pagination-control">
-    <div class="button-group">
-      <button class="btn-delete" @click="onDeleteClick">삭제</button>
-      <button class="btn-save" @click="onRegister">등록</button>
+        <!-- 하단 버튼 -->
+    <div class="pagination-control">
+      <div class="button-group">
+        <button class="btn-delete" @click="onDeleteClick">삭제</button>
+        <button class="btn-save" @click="onRegister">등록</button>
+      </div>
     </div>
   </div>
+
+
 
   <!-- 삭제 확인 모달 -->
   <div v-if="showDeleteModal" class="modal-overlay">
@@ -346,10 +347,10 @@ async function onCellClick(e) {
 .pagination-control {
   display: flex;
   justify-content: flex-end;
-  margin: 0 20px 20px;
 }
 .button-group {
   display: flex;
+  margin-top: 20px;
   gap: 10px;
 }
 .btn-save {
