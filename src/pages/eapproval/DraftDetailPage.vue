@@ -169,11 +169,11 @@
           </tr>
         </table>
     </div>
-  </div>
-  <!-- 하단 버튼 그룹 -->
+      <!-- 하단 버튼 그룹 -->
       <div class="button-group">
         <button class="button gray" @click="handleCancel">취소</button>
         <button class="button" @click="handleConfirm">확인</button>
+  </div>
 
         <!-- 반려 또는 회수 탭일 때 재상신 버튼 -->
         <!-- <button v-if="isBanryeoDoc || isHoesuDoc" @click="handleResubmit">재상신</button> -->

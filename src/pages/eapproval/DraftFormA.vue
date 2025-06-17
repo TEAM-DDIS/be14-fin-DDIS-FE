@@ -143,8 +143,8 @@
             <td colspan="2">
               <div class="file-input-row">
                 <input type="file" @change="handleFileUpload" />
-                <button class="button" @click="addFile">추가</button>
                 <button class="button gray" @click="removeSelectedFiles">삭제</button>
+                <button class="button" @click="addFile">추가</button>
               </div>
               <div class="file-list">
                 <div v-for="(file, idx) in uploadedFiles" :key="idx" class="file-item">
@@ -162,7 +162,7 @@
         <li>특수기호 또는 이모지 포함 시 문자가 깨질 수 있습니다.</li>
       </ul>
       <!-- ◆ 본문 에디터 (Quill 사용) 영역 -->
-      <table class="content-table">
+      <div class="content-editor-section">
         <div class="editor-wrapper">
           <div class="editor-toolbar-row">
             <label class="editor-label">본문</label>
@@ -176,13 +176,14 @@
             class="quill-editor-area"
           />
         </div>
-      </table>
+      </div>
     </div>
+      <div class="button-group">
+      <button class="button gray" @click="showDraftSaveModal = true">임시저장</button>
+      <button class="button" @click="showSubmitModal = true">상신하기</button>
+      </div>
   </div>
-  <div class="button-group">
-    <button class="button gray" @click="showDraftSaveModal = true">임시저장</button>
-    <button class="button" @click="showSubmitModal = true">상신하기</button>
-  </div>
+  
   <DraftSaveModal
     v-if="showDraftSaveModal"
     @close="showDraftSaveModal = false"
@@ -383,9 +384,9 @@ export default {
       status:        "대기중",
       type:          item.type,
       lineTypeLabel: item.lineTypeLabel
-                   || (item.lineType === "ACTURE"
-                       ? "실제 결재선"
-                       : "양식 결재선"),
+                  || (item.lineType === "ACTURE"
+                      ? "실제 결재선"
+                      : "양식 결재선"),
       viewedAt:      null,
       approvedAt:    null,
       comment:       ""
@@ -396,12 +397,10 @@ export default {
     console.error("❌ 자동 결재선 조회 실패:", error);
   }
     },
-
     // ③ 임시저장 모달 열기/닫기
     openApprovalModal() { this.showApprovalModal = true; },
     openReceiverModal() { this.showReceiverModal = true; },
     openReferenceModal() { this.showReferenceModal = true; },
-
     // ④ 사용자 선택 모달 결과 처리
     onApprovalLineSubmit(lines) {
       console.log('🟢 수신된 커스텀 결재선:', lines);
@@ -553,13 +552,13 @@ async confirmDraftSave() {
         // S3에 업로드
         await uploadToS3(url, file);
       this.uploadedFiles.push({
-         name: file.name,
-         size: file.size,
-         type: file.type,
+        name: file.name,
+        size: file.size,
+        type: file.type,
          key,             // ← 나중에 백엔드로 보낼 key
-         selected: false
-       });
-             this.fileInput = null;
+        selected: false
+      });
+        this.fileInput = null;
       } catch(e) {
         console.error(e);
         this.fileError = '업로드 실패';
@@ -905,7 +904,6 @@ textarea {
 
 .icon-button {
   background-color: #00a8e8;
-  border: none;
   padding: 6px 10px;
   border-radius: 4px;
   cursor: pointer;
@@ -969,7 +967,7 @@ textarea {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-top: 40px;
+  margin-top: 10px;
   margin-bottom: 10px;
 }
 
@@ -1030,4 +1028,79 @@ textarea {
 .hidden-input {
   display: none;
 }
+
+/* ==== 표 스타일: 헤더는 굵게, 본문은 일반체 ==== */
+.info-table th,
+.info-table td {
+  height: 55px; /* 고정 높이 설정 */
+  vertical-align: middle; /* 내용 수직 가운데 정렬 */
+  padding: 8px; /* 기존 패딩 유지 */
+}
+
+.info-table .flex-row {
+  height: 100%;
+  display: flex;
+  align-items: center; /* 내부 요소 수직 가운데 정렬 */
+}
+
+.info-table input[type="text"],
+.info-table select {
+  height: 38px; /* input과 select의 높이를 td 높이에 맞게 조정 */
+  box-sizing: border-box;
+}
+
+/* 기존 테이블 스타일 */
+th {
+  font-weight: 600;
+  background: #f8f9fa;
+  border: 1px solid #e3e6ea;
+  padding: 8px;
+  text-align: left;
+}
+
+td {
+  font-weight: normal;
+  border: 1px solid #e3e6ea;
+  padding: 8px;
+  text-align: left;
+  white-space: normal;    /* ✅ 줄바꿈 허용 */
+  word-break: break-word; /* ✅ 단어 중간이라도 줄바꿈 */
+}
+
+/* 테이블 공통 */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 16px;
+}
+
+/* Quill Editor의 최소 높이 설정 */
+.quill-editor-area {
+  min-height: 200px; /* QuillEditor 컴포넌트 자체의 최소 높이 */
+  /* overflow: hidden; 이 속성은 이제 필요하지 않거나 다른 곳으로 이동 */
+}
+
+/* Quill Editor의 본문 입력 영역 (ql-editor) 스타일 */
+.quill-editor-area ::v-deep(.ql-editor) {
+  min-height: 200px; /* 본문 영역의 최소 높이 */
+  height: 300px; /* 본문 영역의 고정 높이 */
+  max-height: 300px; /* 본문 영역의 최대 높이 (고정 높이와 동일하게) */
+  overflow-y: auto; /* 내용 초과 시 수직 스크롤바 생성 */
+  box-sizing: border-box;
+  padding: 12px; /* 에디터 내부 여백 */
+}
+
+/* Quill Editor의 컨테이너 (ql-container) 스타일 */
+.quill-editor-area ::v-deep(.ql-container) {
+  /* height, overflow-y 설정은 ql-editor로 이동 */
+  border: 1px solid #e3e6ea; /* 컨테이너 테두리 */
+  box-sizing: border-box;
+}
+
+/* Quill Editor의 툴바 (ql-toolbar) 스타일 */
+.quill-editor-area ::v-deep(.ql-toolbar) {
+  border: 1px solid #e3e6ea; /* 툴바 테두리 */
+  border-bottom: none; /* 툴바 하단 테두리는 컨테이너와 겹치지 않도록 제거 */
+}
+
 </style>
