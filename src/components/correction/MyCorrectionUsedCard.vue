@@ -17,8 +17,10 @@
 <script setup>
   import { ref, onMounted } from 'vue'
   import AgGrid from '@/components/grid/BaseGrid.vue'
+  import { useUserStore } from '@/stores/user'
 
   const leaveUsedData = ref([])
+  const loading = ref(false)
 
   const columnDefs = [
     { headerName: '번호', valueGetter: params => params.api.getDisplayedRowCount() - params.node.rowIndex, sortable: false },
@@ -38,7 +40,9 @@
   ]
 
   onMounted(async () => {
-    const token = localStorage.getItem('token')
+    const userStore = useUserStore()
+    const token = userStore.accessToken
+
     if (!token) {
       console.error('토큰이 없습니다. 로그인 후 다시 시도하세요.')
       return

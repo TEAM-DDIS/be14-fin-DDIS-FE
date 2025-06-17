@@ -30,18 +30,48 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import DateFilter from '@/components/leave/DateFilter.vue'
 import EmployeeInfo from '@/components/commute/EmployeeInfo.vue'
 import OtherCommuteSummary from '@/components/commute/OtherCommuteSummary.vue'
 import OtherCommuteCard from '@/components/commute/OtherCommuteCard.vue'
+import { useUserStore } from '@/stores/user'
+
+const userStore = useUserStore()
 
 const route = useRoute()
 const router = useRouter()
 const employeeId = route.params.employeeId
 const commuteList = ref([])
 const dateRange = ref({ start: '', end: '' })
+
+function parseJwt(token) {
+  try {
+    const base64Url = token.split('.')[1]
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split('')
+        .map(c => `%${('00' + c.charCodeAt(0).toString(16)).slice(-2)}`)
+        .join('')
+    )
+    return JSON.parse(jsonPayload)
+  } catch (e) {
+    return null
+  }
+}
+
+const decoded = parseJwt(userStore.accessToken)
+console.log('디코딩된 JWT:', decoded)
+
+// 접근 권한 확인
+onMounted(() => {
+  if (!decoded?.auth?.includes('ROLE_HR')) {
+      alert('접근 권한이 없습니다.')
+      router.push('/error403')
+    }
+})
 
 function goBack() {
   router.back()
@@ -50,7 +80,7 @@ function goBack() {
 async function handleSearch(range) {
   dateRange.value = range
 
-  const token = localStorage.getItem('token')
+  const token = userStore.accessToken // ✅ userStore에서 토큰 가져오기
   if (!token) {
     console.error('토큰이 없습니다. 로그인 후 다시 시도하세요.')
     return
@@ -61,17 +91,26 @@ async function handleSearch(range) {
       startDate: range.start,
       endDate: range.end
     })
+
     const res = await fetch(`http://localhost:8000/attendance/commute/${employeeId}?${query}`, {
       headers: {
-        Authorization: `Bearer ${token}`
+        Authorization: `Bearer ${token}` // ✅ 헤더에 토큰 추가
       }
     })
+
+    if (!res.ok) {
+      const errText = await res.text()
+      throw new Error(errText || '출퇴근 내역 조회 실패')
+    }
+
     const json = await res.json()
     commuteList.value = json.commuteList
   } catch (err) {
     console.error('출퇴근 내역 조회 실패:', err)
+    alert('권한이 없거나 요청에 실패했습니다.')
   }
 }
+
 
 </script>
 

@@ -93,9 +93,13 @@
   v-if="showOrgSelectorModal"
   :hierarchy="fullHierarchy"
   :requiredKeys="typeToKeys[form.type]" 
+  :show-jobs="typeToKeys[form.type].includes('job')"
+  :show-ranks="typeToKeys[form.type].includes('rank')"
   @select="handleOrgSelected"
+  
   @close="showOrgSelectorModal = false"
   @rank-selected="handleOrgSelected"
+  @job-selected="handleOrgSelected"
 />
 
 
@@ -137,12 +141,14 @@ const form = reactive({
     rankCode: null
   },
   org: { 
-    headId: null, 
-    departmentId: null, 
-    teamId: null, 
-    jobId: null, 
+    headId: null,
+    departmentId: null,
+    teamId: null,
+    jobId: null,
+    jobCode: null,
     positionCode: null,
-    rankCode: null
+    rankCode: null,
+    rankName: null
   }
 })
 
@@ -153,6 +159,19 @@ const dataStore = reactive({
   team: [],
   job: []
 })
+
+// form.org를 대체할 전역변수
+const pureOrg = {
+  headId: null,
+  departmentId: null,
+  teamId: null,
+  jobId: null,
+  jobCode: null,
+  positionCode: null,
+  rankCode: null
+}
+
+
 const currentHeads = ref([])
 const departmentsCurrent = ref([])  
 const teamsCurrent       = ref([])  
@@ -314,9 +333,6 @@ function fillCurrentOrgCells() {
         break
     }
   })
-  console.log('[📌 포지션코드]', form.currentOrg.positionCode)
-  console.log('[📌 직책 목록]', positionsCurrent.value)
-
 
   // 그리드에 반영
   gridApi.value.refreshCells({ columns: ['current'], force: true })
@@ -394,29 +410,59 @@ const rowData = reactive([])
 const columnDefs = [
   { field: 'label', headerName: '항목', flex: 1, editable: false },
   { field: 'current', headerName: '현재 소속 조직', flex: 1.8, cellRenderer: params => makeSelect(params, 'currentOrg') },
- {
+  {
     field: 'new',
     headerName: '발령 조직',
     flex: 1.8,
     cellRenderer: params => makeSelect(params, 'org'),
     headerComponentParams: {
       template: `
-        <div style="display:flex; justify-content:space-between; align-items:center">
+        <div style="display:flex; justify-content:space-between; align-items:center; width:100%;">
           <span>발령 조직</span>
-          <button id="openOrgModal" style="margin-left:8px; padding:4px 10px; border-radius:6px; background:#00a8e8; color:white; border:none;">+</button>
-        </div>
+        <button id="openOrgModal" style="margin-left:auto;" class="btn-plus">✚</button>
+        <style>
+          .btn-plus {
+            font-size: 12px;
+            background-color: #00a8e8;
+            color: white;
+            border: 1px solid transparent;
+            border-radius: 10px;
+            padding: 6px 12px;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            transition: background-color 0.2s, color 0.2s, border-color 0.2s, box-shadow 0.2s;
+          }
+
+          .btn-plus:hover {
+            background-color: white;
+            color: #00a8e8;
+            border-color: #00a8e8;
+            box-shadow: inset 1px 1px 10px rgba(0, 0, 0, 0.25);
+          }
+        </style>
+      </div>
       `
     }
-  }]
+  }
+]
 
 // 타입별로 보여줄 조직 단계 키(key) 목록
 const typeToKeys = {
-  승진:   ['head', 'department'],               // 승진 시: 본부, 부서
+  승진:   ['head', 'department', 'team'],               // 승진 시: 본부, 부서
   전보:   ['department', 'team'],               // 전보 시: 부서, 팀
   전직:   ['department', 'team', 'job'],        // 전직 시: 부서, 팀, 직무
-  직급조정: ['department', 'team','rank'], // 직급조정: 부서, 팀, 직책
+  직급조정: ['department', 'team', 'position', 'rank'], // 직급조정: 부서, 팀, 직책
   직무:   ['department', 'team', 'job']         // 직무 변경: 부서, 팀, 직무
 }
+
+const showRanks = computed(() => {
+  const keys = typeToKeys[form.type] || []
+  return keys.includes('rank')
+})
+const showJobs = computed(() => {
+  const keys = typeToKeys[form.type] || []
+  return keys.includes('job')
+})
 
 // form.type이 바뀔 때마다 rowData 초기화
 watch(() => form.type, newType => {
@@ -444,17 +490,26 @@ function syncOrgToGrid() {
   rowData.forEach(r => {
     switch (r.key) {
       case 'head':
-        r.new = dataStore.headquarters.find(h => h.headId === form.org.headId)?.headName || ''
+        r.new = dataStore.headquarters.find(h => h.headId === pureOrg.headId)?.headName || ''
         break
       case 'department':
-        r.new = dataStore.department.find(d => d.departmentId === form.org.departmentId)?.departmentName || ''
+        r.new = dataStore.department.find(d => d.departmentId === pureOrg.departmentId)?.departmentName || ''
         break
       case 'team':
-        r.new = dataStore.team.find(t => t.teamId === form.org.teamId)?.teamName || ''
+        r.new = dataStore.team.find(t => t.teamId === pureOrg.teamId)?.teamName || ''
         break
       case 'rank':
-        r.new = ranksNew.value.find(rk => rk.rankCode === form.org.rankCode)?.rankName || ''
+        r.new = ranksNew.value.find(rk => rk.rankCode === pureOrg.rankCode)?.rankName || ''
         break
+      case 'position':
+        r.new = positionsNew.value.find(p => p.positionCode === pureOrg.positionCode)?.positionName || ''
+        break
+      case 'job': {
+        const match = jobsNew.value.find(j => String(j.jobId) === String(pureOrg.jobId))
+        console.log('🧪 match for job:', match)
+        r.new = match?.jobName || ''
+        break
+      }
     }
   })
   gridApi.value.refreshCells({ columns:['new'], force:true })
@@ -464,20 +519,75 @@ function syncOrgToGrid() {
 
 
 function handleOrgSelected(selected) {
-  form.org.headId = selected.headId || null
-  form.org.departmentId = selected.departmentId || null
-  form.org.teamId = selected.teamId || null
-  form.org.jobId = selected.jobId || null
-  form.org.positionCode = selected.positionCode || null
-  form.org.rankCode = selected.rankCode || null
-  form.org.rankName     = selected.rankName || null
-  ranksNew.value = [{ rankCode: selected.rankCode, rankName: selected.rankName }]
+  // form.org.headId = selected.headId || null
+  // form.org.departmentId = selected.departmentId || null
+  // form.org.teamId = selected.teamId || null
+  // form.org.jobId = selected.jobId || null
+  // form.org.jobCode = selected.jobCode || null
+  // form.org.positionCode = selected.positionCode || null
+  // form.org.rankCode = selected.rankCode || null
+  // form.org.rankName = selected.rankName || null
+
+  // // ✅ 추가: 직무 목록 갱신
+  // // jobsNew.value = [{
+  // //   jobId: selected.jobId,
+  // //   jobName: selected.jobName,
+  // //   jobCode: selected.jobCode
+  // // }]
+
+  // // ranksNew.value = [{
+  // //   rankCode: selected.rankCode,
+  // //   rankName: selected.rankName
+  // // }]
+
+  //   jobsNew.value = selected.jobId ? [{
+  //   jobId: selected.jobId,
+  //   jobName: selected.jobName,
+  //   jobCode: selected.jobCode
+  // }] : []
+
+  // ranksNew.value = selected.rankCode ? [{
+  //   rankCode: selected.rankCode,
+  //   rankName: selected.rankName
+  // }] : []
+
+    pureOrg.headId        = selected.headId || null
+  pureOrg.departmentId  = selected.departmentId || null
+  pureOrg.teamId        = selected.teamId || null
+  pureOrg.jobId         = selected.jobId || null
+  pureOrg.jobCode       = selected.jobCode || null
+  pureOrg.positionCode  = selected.positionCode || null
+  pureOrg.rankCode      = selected.rankCode || null
+
+  // 기존 form.org 갱신은 제거 가능
+  // form.org = { ...pureOrg } 등으로 연결할 수도 있음
+
+  // 선택된 job, rank 이름 저장용
+  jobsNew.value = selected.jobId ? [{
+    jobId: selected.jobId,
+    jobName: selected.jobName,
+    jobCode: selected.jobCode
+  }] : []
+
+  ranksNew.value = selected.rankCode ? [{
+    rankCode: selected.rankCode,
+    rankName: selected.rankName
+  }] : []
+
+  positionsNew.value = selected.positionCode ? [{
+    positionCode: selected.positionCode,
+    positionName: selected.positionName
+  }] : []
+
 
   // 🔥 선택한 조직명 grid 반영
   syncOrgToGrid()
 
+  console.log('[form.org 저장된 값]', JSON.stringify(form.org, null, 2))
+
   showOrgSelectorModal.value = false
 }
+
 
 function handleRankSelected(rank) {
   // rank = { rankId, rankName }
@@ -561,69 +671,74 @@ function onGridReady(params) {
 }
 
 
-// async function submit() {
+async function submit() {
 
-//     // --- helper: id → code 매핑 함수 추가 ---
-//   const findById = (arr, idKey, codeKey) => id => {
-//     const it = arr.find(x => String(x[idKey]) === String(id));
-//     return it ? it[codeKey] : null;
-//   };
+    await nextTick()
 
-//   const headCodeFrom    = findById(dataStore.headquarters,'headId',   'headCode');
-//   const deptCodeFrom    = findById(dataStore.department,   'departmentId','departmentCode');
-//   const teamCodeFrom    = findById(dataStore.team,         'teamId',   'teamCode');
+    console.log('✅ departmentId in form.org:', form.org.departmentId)
+    console.log('✅ teamId in form.org:', form.org.teamId)
+    console.log('✅ dataStore.department:', dataStore.department)
+    console.log('✅ dataStore.team:', dataStore.team)
 
-//   const headCodeTo      = findById(orgHeads.value,        'headId',   'headCode');
-//   const deptCodeTo      = findById(departmentsNew.value,  'departmentId','departmentCode');
-//   const teamCodeTo      = findById(teamsNew.value,        'teamId',   'teamCode');
-//   const jobCodeTo       = findById(jobsNew.value,         'jobId',    'jobCode');
 
-//   const payload = {
-//     employeeId: Number(form.name),
-//     appointmentReason: form.title,
-//     appointmentType: form.type,
-//     appointmentEffectiveDate: form.effectiveDate,
+    // form.org의 Proxy 문제를 회피하기 위해 얕은 복사
+    const org = { ...form.org };
+    const current = { ...form.currentOrg };
 
-//     fromHeadCode:      headCodeFrom(form.currentOrg.headId),
-//     fromDepartmentCode:deptCodeFrom(form.currentOrg.departmentId),
-//     fromTeamCode:      teamCodeFrom(form.currentOrg.teamId),
-//     fromJobCode:       form.currentOrg.jobCode,
-//     fromPositionCode:  form.currentOrg.positionCode,
-//     fromRankCode:      form.currentOrg.rankCode,
+    const getCode = (list, idKey, codeKey, idVal) => {
+      if (!idVal) return null;
+      const found = list.find(item => String(item[idKey]) === String(idVal));
+      return found ? found[codeKey] : null;
+    };
 
-//     toHeadCode:        headCodeTo(form.org.headId),
-//     toDepartmentCode:  deptCodeTo(form.org.departmentId),
-//     toTeamCode:        teamCodeTo(form.org.teamId),
-//     toJobCode:         jobCodeTo(form.org.jobId),
-//     toPositionCode:    form.org.positionCode,
-//     toRankCode:        form.org.rankCode,
+  const payload = {
+  employeeId: Number(current.employeeId),
+  appointmentReason: form.title,
+  appointmentType: form.type,
+  appointmentEffectiveDate: form.effectiveDate,
 
-//     appointmentStatus: '대기',
-//     isApplied: false
-//   };
-  
-//   console.log('▶ 전송 payload:', payload);
+  fromHeadCode:      getCode(dataStore.headquarters, 'headId', 'headCode', current.headId),
+  fromDepartmentCode:getCode(dataStore.department, 'departmentId', 'departmentCode', current.departmentId),
+  fromTeamCode:      getCode(dataStore.team, 'teamId', 'teamCode', current.teamId),
+  fromJobCode:       current.jobCode,
+  fromPositionCode:  current.positionCode,
+  fromRankCode:      current.rankCode,
 
-//   try {
-//     await axios.post(
-//       'http://localhost:8000/appointment/create',
-//       payload,
-//       { headers: { 'Content-Type': 'application/json' } }
-//     );
-//     alert('등록 성공!');
-//     router.push('/appointment');
-//   } catch (err) {
-//     console.error('▶ AxiosError:', err);
-//     alert(
-//       `등록 중 오류가 발생했습니다.\n` +
-//       `${err.response?.data?.message || err.message}`
-//     );
-//   }
-// }
+  toHeadCode:        getCode(dataStore.headquarters, 'headId', 'headCode', pureOrg.headId || current.headId),
+  toDepartmentCode:  getCode(dataStore.department, 'departmentId', 'departmentCode', pureOrg.departmentId) || pureOrg.departmentId,
+  toTeamCode:        getCode(dataStore.team, 'teamId', 'teamCode', pureOrg.teamId) || pureOrg.teamId,
+  toJobCode:         pureOrg.jobCode || current.jobCode,
+  toPositionCode:    pureOrg.positionCode || current.positionCode,
+  toRankCode:        pureOrg.rankCode || current.rankCode,
 
-// function cancel() {
-//   router.back()
-// }
+  appointmentStatus: '대기',
+  isApplied: false
+}
+
+
+  console.log('▶ 전송 payload:', payload);
+
+  try {
+    await axios.post(
+      'http://localhost:8000/appointment/create',
+      payload,
+      { headers: { 'Content-Type': 'application/json' } }
+    );
+    alert('등록 성공!');
+    router.push('/org/appointment');
+  } catch (err) {
+    console.error('▶ AxiosError:', err);
+    alert(
+      `등록 중 오류가 발생했습니다.\n` +
+      `${err.response?.data?.message || err.message}`
+    );
+  }
+}
+
+
+function cancel() {
+  router.back()
+}
 </script>
 
 
@@ -658,7 +773,7 @@ function onGridReady(params) {
 
 .form-grid-container {
   display: flex;
-  gap: 40px;
+  gap: 60px;
   align-items: flex-start;
   margin-bottom: 20px;
   padding: 0 20px;

@@ -64,12 +64,44 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import axios from 'axios'
 import AgGrid from '@/components/grid/BaseGrid.vue'
 import RetirementModal from '@/components/salary/RetirementModal.vue'
 import { useUserStore } from '@/stores/user'
+import { useRouter } from 'vue-router'
 
+// 토큰 디코딩 함수
+function parseJwtPayload(token) {
+  try {
+    const base64Url = token.split('.')[1]
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split('')
+        .map(c => `%${('00' + c.charCodeAt(0).toString(16)).slice(-2)}`)
+        .join('')
+    )
+    return JSON.parse(jsonPayload)
+  } catch (e) {
+    return null
+  }
+}
+
+// 유저 스토어 및 라우터
+const userStore = useUserStore()
+const router = useRouter()
+
+// HR 권한 체크
+const payload = parseJwtPayload(userStore.accessToken)
+const isHR = payload?.role?.includes('ROLE_HR') || payload?.auth?.includes('ROLE_HR')
+
+if (!isHR) {
+  alert('접근 권한이 없습니다.')
+  router.push('/error403')
+}
+
+// 페이지 내부 로직 (HR인 경우만 실행)
 const listSection = ref(null)
 const searchKeyword = ref('')
 const provisionSituation = ref('')
@@ -122,7 +154,7 @@ async function fetchRetirements() {
         provisionSituation: provisionSituation.value || '',
         keyword: searchKeyword.value || ''
       },
-      headers: { Authorization: `Bearer ${useUserStore.accessToken}` }
+      headers: { Authorization: `Bearer ${userStore.accessToken}` }
     })
     retirements.value = Array.isArray(data) ? data : []
     selectedSlip.value = null
@@ -132,7 +164,6 @@ async function fetchRetirements() {
   }
 }
 
-// 스크롤을 급여 내역 섹션으로 이동
 function scrollToList() {
   listSection.value?.scrollIntoView({ behavior: 'smooth' })
 }
@@ -142,13 +173,11 @@ function formatCurrency(params) {
 }
 
 function onGridReady(params) {
-    console.log('🟢 그리드 준비 완료')
   gridApi.value = params.api
 }
 
 function onRowClicked(event) {
   selectedSlip.value = event.data
-  console.log('✅ 선택된 행:', selectedSlip.value)
 }
 
 async function openModal() {
@@ -159,9 +188,9 @@ async function openModal() {
 
   try {
     const { data } = await axios.get(`http://localhost:8000/payroll/retirements/${selectedSlip.value.employeeId}`, {
-      headers: { Authorization: `Bearer ${useUserStore.accessToken}` }
+      headers: { Authorization: `Bearer ${userStore.accessToken}` }
     })
-    selectedSlip.value = data // 상세 데이터로 덮어쓰기
+    selectedSlip.value = data
     showModal.value = true
   } catch (e) {
     console.error('상세정보 불러오기 실패:', e)
@@ -174,6 +203,7 @@ watch(filterMode, () => {
   dateRange.value.end = ''
 })
 </script>
+
 
 
 <style scoped>	

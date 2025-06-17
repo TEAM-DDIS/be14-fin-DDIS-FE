@@ -27,6 +27,7 @@
 
 <script setup>
     import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
+    import { useUserStore } from '@/stores/user'
 
     const formattedDate = ref('')
     const formattedTime = ref('')
@@ -60,7 +61,9 @@
     }
 
 async function handleCheck() {
-  const token = localStorage.getItem('token')
+  const userStore = useUserStore()
+  const token = userStore.accessToken
+
   if (!token) {
     alert('로그인 정보가 없습니다.')
     return
@@ -129,29 +132,41 @@ async function handleCheck() {
   }
 }
 
-
     let intervalId
     onMounted(async () => {
-  updateTime()
-  intervalId = setInterval(updateTime, 1000)
+      updateTime()
+      intervalId = setInterval(updateTime, 1000)
 
-  const token = localStorage.getItem('token')
-  if (!token) return
+      const userStore = useUserStore()
+      const token = userStore.accessToken
+      
+      if (!token) return
 
-  const res = await fetch('http://localhost:8000/attendance/status/me', {
-    headers: {
-      Authorization: `Bearer ${token}`
-    }
-  })
+      const res = await fetch('http://localhost:8000/attendance/status/me', {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+    })
   const data = await res.json()
 
   checkInTime.value = data.checkInTime ? data.checkInTime.split('.')[0] : null
   checkOutTime.value = data.checkOutTime ? data.checkOutTime.split('.')[0] : null
   workStatusName.value = data.workStatusName
 
-  // ✅ 서버에 출근 기록은 있고 퇴근 기록은 없을 때 출근 상태로 판단
+  // ✅ 출근 기록만 있고 퇴근 기록이 없을 경우
   if (checkInTime.value && !checkOutTime.value) {
-    isCheckedIn.value = true
+    const now = new Date()
+    const nineAM = new Date()
+    nineAM.setHours(9, 0, 0, 0)
+
+    // 🔧추가됨: 9시 전이라면 출근 상태만 표시 (타이머 없음)
+    if (now >= nineAM) {
+      isCheckedIn.value = true
+      // 여기에서 타이머 관련 로직을 표시하려면 startTimer() 호출 위치
+    } else {
+      isCheckedIn.value = false
+      // 출근했지만 9시 전이므로 아직 근무 시작 안 된 상태
+    }
   }
 })
     onBeforeUnmount(() => {

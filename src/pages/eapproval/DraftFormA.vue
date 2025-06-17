@@ -235,7 +235,7 @@ export default {
     return {
       form: {
         departmentName: "",
-        rankName:"",
+        approvalLine_rankName:"",
         drafter: "",
         draftDate: "",
         retentionPeriod: "",
@@ -598,7 +598,7 @@ body, html {
   padding: 0;
 }
 
-/* ✅ 전체 화면 스크롤 영역 (사용하지 않음) */
+/* ✅전체 화면 스크롤 영역 (사용하지 않음) */
 .full-scroll {
   height: 100vh;
   overflow-y: auto;
@@ -607,18 +607,23 @@ body, html {
 
 /* ✅ 메인 박스: 전체 레이아웃 래퍼 */
 .main-box {
-  max-width: 1500px;
-  margin: 20px auto;
-  background: #fff;
-  padding: 18px;
-  box-shadow: 1px 1px 20px 1px rgba(0, 0, 0, 0.05);
+  background: #ffffff;
   border-radius: 12px;
+  padding: 20px 32px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  margin: 24px;
+  max-width: 100%;
+  display: flex;
+  flex-direction: column;
+  min-height: fit-content;
 }
 
 /* ✅ 내부 컨텐츠 컨테이너 */
 .container {
   font-family: Arial, sans-serif;
-  max-width: 1350px;
+  min-width: 850px;
+  max-width: 1600px;
+  max-height: 1500px;
   margin: 20px auto;
 }
 

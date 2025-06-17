@@ -51,11 +51,13 @@
     import interactionPlugin from '@fullcalendar/interaction'
     import koLocale from '@fullcalendar/core/locales/ko'
     import PersonalEventCard from '../attendance/PersonalEventCard.vue'
+    import { useUserStore } from '@/stores/user'
 
     const show = ref(false)
 
     async function onAdd({ date, title, time }) {
-        const token = localStorage.getItem('token')
+        const userStore = useUserStore()
+        const token = userStore.accessToken
 
         try {
             const res = await fetch('http://localhost:8000/attendance/schedule/personal', {
@@ -150,7 +152,8 @@
     })
 
     onMounted(async () => {
-        const token = localStorage.getItem('token')
+        const userStore = useUserStore()
+        const token = userStore.accessToken
 
         if (!token) {
             console.error('토큰이 없습니다. 로그인 후 다시 시도하세요.')

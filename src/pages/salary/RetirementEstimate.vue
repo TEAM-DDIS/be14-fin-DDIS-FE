@@ -180,10 +180,10 @@ function handleSalaryInput(e) {
   annualSalary.value = raw ? Number(raw) : ''
 }
 
-// 컴포넌트 마운트 시 사용자 정보 호출 → 입사일 자동 설정
+// 내 정보 불러오기 (employeeId 따로 필요 없음)
 onMounted(async () => {
   try {
-    const { data } = await axios.get(`http://localhost:8000/payroll/employees/${userStore.user.employeeId}`, {
+    const { data } = await axios.get(`http://localhost:8000/payroll/me`, {
       headers: { Authorization: `Bearer ${userStore.accessToken}` }
     })
     employee.value = data
@@ -237,8 +237,8 @@ function calculate() {
   let totalPay = 0
   let totalDayCount = 0
 
-  // 최근 3개월 급여 데이터 계산 (해당 월의 총일수 기준으로 일할 계산)
-  displayedMonths.value = displayedMonths.value.map((month, idx) => {
+  // 최근 3개월 급여 데이터 계산
+  displayedMonths.value = displayedMonths.value.map((month) => {
     const [startStr, endStr] = month.range.split(' ~ ')
     const startDate = new Date(startStr)
     const endDate = new Date(endStr)
@@ -265,7 +265,7 @@ function calculate() {
   })
 }
 
-// 퇴사일 기준으로 최근 3~4개월간의 급여 계산 기간 설정
+// 퇴사일 기준으로 최근 3~4개월간 급여 범위 생성
 function generateMonthData(retireDateStr) {
   const retireDate = new Date(retireDateStr)
   if (isNaN(retireDate.getTime())) return
@@ -276,7 +276,6 @@ function generateMonthData(retireDateStr) {
   const retireYear = retireDate.getFullYear()
   const rangeDefinitions = []
 
-  // 퇴사일이 월초일인 경우: 정확히 1개월 단위로 3개 구간 생성
   if (retireDay === 1) {
     const base = new Date(retireYear, retireMonth, 1)
     for (let i = 1; i <= 3; i++) {
@@ -285,7 +284,6 @@ function generateMonthData(retireDateStr) {
       rangeDefinitions.push({ label: `${i}개월 전`, start, end })
     }
   } else {
-    // 퇴사일이 중간일인 경우: 월 단위 + 날짜 기준으로 4개 구간 생성
     rangeDefinitions.push(
       { label: '1개월 전', start: new Date(retireYear, retireMonth, 1), end: new Date(retireYear, retireMonth, retireDay - 1) },
       { label: '2개월 전', start: new Date(retireYear, retireMonth - 1, 1), end: new Date(retireYear, retireMonth, 0) },
@@ -294,7 +292,6 @@ function generateMonthData(retireDateStr) {
     )
   }
 
-  // 각 구간별 근무일수 및 날짜 범위 문자열 구성
   rangeDefinitions.forEach(({ label, start, end }) => {
     const days = Math.floor((end - start) / (1000 * 60 * 60 * 24)) + 1
     ranges.push({
@@ -307,6 +304,7 @@ function generateMonthData(retireDateStr) {
   displayedMonths.value = ranges
 }
 </script>
+
 
 
 <style scoped>
