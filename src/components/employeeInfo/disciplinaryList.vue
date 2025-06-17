@@ -81,10 +81,10 @@ import {
   ValidationModule
 } from 'ag-grid-community'
 
-// — Axios 기본 URL
+// — Axios 기본 URL 설정
 axios.defaults.baseURL = 'http://localhost:8000'
 
-// — AG Grid 모듈 등록 (한 번만)
+// — AG Grid 필요한 모듈 등록 (한 번만)
 ModuleRegistry.registerModules([
   AllCommunityModule,
   ClientSideRowModelModule,
@@ -95,36 +95,40 @@ ModuleRegistry.registerModules([
   ValidationModule
 ])
 
-// — Pinia 스토어, 라우터
+// — Pinia 스토어와 라우터
 const router    = useRouter()
 const userStore = useUserStore()
 
-// — 그리드 API 참조
+// — 그리드 API 레퍼런스
 let gridApi = null
 function onGridReady(params) {
   gridApi = params.api
 }
 
-// — JWT 토큰 헤더
+// — JWT 토큰 헤더 반환
 function authHeaders() {
   return { Authorization: `Bearer ${userStore.accessToken}` }
 }
 
 // — 컬럼 정의
 const columnDefs = ref([
-  { 
-    headerName: '', field: 'checkbox', checkboxSelection: true,
-    headerCheckboxSelection: true, width: 50, pinned: 'left'
+  {
+    headerName: '',
+    field: 'checkbox',
+    checkboxSelection: true,
+    headerCheckboxSelection: true,
+    width: 50,
+    pinned: 'left'
   },
-  { headerName: '번호', field: 'disciplinaryId', width: 80, cellClass: 'center-align' },
-  { headerName: '사원명', field: 'employeeName', flex: 1.2 },
+  { headerName: '번호',            field: 'disciplinaryId',          width: 80, cellClass: 'center-align' },
+  { headerName: '사원명',          field: 'employeeName',            flex: 1.2 },
   {
     headerName: '징계 서류',
     field: 'fileList',
     flex: 2,
     cellRenderer: params => {
-      const files = Array.isArray(params.value)
-        ? params.value.filter(f => f && f.fileName)
+      const files = Array.isArray(params.value) 
+        ? params.value.filter(f => f && f.fileName) 
         : []
       if (!files.length) return '-'
       return `<div class="file-list-cell">${
@@ -134,7 +138,7 @@ const columnDefs = ref([
       }</div>`
     }
   },
-  { headerName: '징계 내용', field: 'disciplinaryDescription', flex: 2 },
+  { headerName: '징계 내용',      field: 'disciplinaryDescription', flex: 2 },
   {
     headerName: '징계일자',
     field: 'disciplinaryDate',
@@ -147,14 +151,14 @@ const columnDefs = ref([
   }
 ])
 
-// — 상태
+// — 상태 변수
 const fullData        = ref([])
 const rowData         = ref([])
 const searchText      = ref('')
 const pageSize        = ref(20)
 const showDeleteModal = ref(false)
 
-// — 초기 목록 조회 (인사팀 전용)
+// — 데이터 로드 (인사팀 전용 API)
 onMounted(async () => {
   try {
     const res = await axios.get('/disciplinary', {
@@ -177,32 +181,48 @@ const filteredData = computed(() => {
   )
 })
 
-// — 삭제 처리
+// — 삭제 버튼 클릭 → 모달 열기
 function onDeleteClick() {
   const sel = gridApi?.getSelectedRows() || []
-  if (!sel.length) return alert('삭제할 항목을 선택하세요.')
+  if (!sel.length) {
+    alert('삭제할 항목을 선택하세요.')
+    return
+  }
   showDeleteModal.value = true
 }
+
+// — 모달 닫기
 function cancelDelete() {
   showDeleteModal.value = false
 }
+
+// — 확인 클릭 → 실제 삭제
 async function confirmDelete() {
-  const sel = gridApi.getSelectedRows()
-  const ids = sel.map(r => r.disciplinaryId)
-  try {
-    await Promise.all(ids.map(id =>
-      axios.delete(`/disciplinary/${id}`, {
-        headers: authHeaders()
-      })
-    ))
-    fullData.value = fullData.value.filter(r => !ids.includes(r.disciplinaryId))
-    rowData.value  = rowData.value.filter(r => !ids.includes(r.disciplinaryId))
-    gridApi.deselectAll()
+  const selected = gridApi.getSelectedRows()
+  if (!selected.length) {
     showDeleteModal.value = false
+    return
+  }
+  try {
+    // 1) 백엔드 삭제 API 호출
+    await Promise.all(
+      selected.map(row =>
+        axios.delete(`/disciplinary/${row.disciplinaryId}`, {
+          headers: authHeaders()
+        })
+      )
+    )
+    // 2) 로컬 데이터 제거
+    const deleteIds = selected.map(r => r.disciplinaryId)
+    fullData.value = fullData.value.filter(r => !deleteIds.includes(r.disciplinaryId))
+    rowData.value  = rowData.value.filter(r => !deleteIds.includes(r.disciplinaryId))
+    gridApi.deselectAll()
     alert('선택 항목이 삭제되었습니다.')
   } catch (err) {
     console.error('삭제 실패:', err)
     alert('삭제 중 오류가 발생했습니다.')
+  } finally {
+    showDeleteModal.value = false
   }
 }
 
@@ -211,9 +231,9 @@ function onRegister() {
   router.push('/employeeInfo/disciplinary/disciplinaryEnroll')
 }
 
-// — 셀 클릭 이벤트 (파일 다운로드 및 상세 이동)
+// — 셀 클릭: 파일 다운로드 / 사원명 클릭 이동
 async function onCellClick(e) {
-  // 파일 링크 클릭
+  // (1) 징계 서류 링크 클릭
   if (
     e.colDef.field === 'fileList' &&
     e.event.target.matches('a') &&
@@ -225,7 +245,7 @@ async function onCellClick(e) {
     if (!file) return
 
     try {
-      // presigned GET URL 요청
+      // presigned URL 요청
       const { data: presignedUrl } = await axios.get(
         '/s3/download-url',
         {
@@ -233,7 +253,7 @@ async function onCellClick(e) {
           headers: authHeaders()
         }
       )
-      // blob 다운로드
+      // Blob으로 받아 강제 다운로드
       const res  = await fetch(presignedUrl)
       const blob = await res.blob()
       const url  = URL.createObjectURL(blob)
@@ -251,12 +271,18 @@ async function onCellClick(e) {
     return
   }
 
-  // 사원명 클릭 → 상세 페이지 (필요 시)
+  // (2) 사원명 클릭 → 상세 페이지 이동
   if (e.colDef.field === 'employeeName') {
-    router.push(`/employeeInfo/disciplinary/${e.data.disciplinaryId}`)
+    const empId = e.data.employeeId
+    if (!empId) {
+      console.warn('employeeId가 없습니다:', e.data)
+      return
+    }
+    router.push(`/employeeInfo/${empId}`)
   }
 }
 </script>
+
 
 <style scoped>
 .page-title {

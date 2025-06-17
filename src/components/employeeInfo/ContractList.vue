@@ -1,10 +1,9 @@
-<!-- EmployeeList.vue -->
 <template>
-  <h1 class="page-title">계약서/법정서류</h1>
-  <p class="desc">계약서 및 법정서류 목록</p>
+  <h1 class="page-title">계약서/법정서류 관리</h1>
+  <p class="desc">계약서/법정서류 목록</p>
 
   <div class="card">
-    <!-- 1) 검색창 -->
+    <!-- 검색창 -->
     <div class="search-bar-in-card">
       <img src="@/assets/icons/search.svg" alt="검색" class="search-icon" />
       <input
@@ -15,15 +14,15 @@
       />
     </div>
 
-    <!-- 2) AG Grid -->
+    <!-- AG Grid -->
     <div class="ag-theme-alpine ag-grid-box">
       <AgGridVue
         class="ag-theme-alpine custom-theme"
         :gridOptions="{ theme: 'legacy' }"
         :style="`width: 100%; height: 500px;`"
         :columnDefs="columnDefs"
-        :rowData="filteredData"
         :defaultColDef="defaultColDef"
+        :rowData="filteredData"
         rowSelection="multiple"
         :pagination="true"
         :paginationPageSize="pageSize"
@@ -34,7 +33,7 @@
     </div>
   </div>
 
-  <!-- 3) 하단 버튼 -->
+  <!-- 하단 버튼 -->
   <div class="pagination-control">
     <div class="button-group">
       <button class="btn-delete" @click="onDeleteClick">삭제</button>
@@ -42,10 +41,10 @@
     </div>
   </div>
 
-  <!-- 4) 삭제 확인 모달 -->
+  <!-- 삭제 확인 모달 -->
   <div v-if="showDeleteModal" class="modal-overlay">
     <div class="modal-content">
-      <p>정말로 선택된 서류를 삭제하시겠습니까?</p>
+      <p>선택된 항목을 삭제하시겠습니까?</p>
       <div class="modal-buttons">
         <button class="btn-delete cancel" @click="cancelDelete">취소</button>
         <button class="btn-save confirm" @click="confirmDelete">확인</button>
@@ -53,20 +52,20 @@
     </div>
   </div>
 
-  <!-- 5) 계약서 이미지 미리보기 모달 (▼ 추가된 부분) -->
+  <!-- 이미지 미리보기 모달 -->
   <div v-if="showImageModal" class="modal-overlay">
     <div class="modal-content image-modal">
-      <!-- 닫기 버튼 -->
       <button class="close-btn" @click="closeImageModal">✕</button>
-      <!-- 실제 이미지 -->
-      <img :src="selectedImageUrl" alt="계약서 이미지" class="preview-image" />
+      <img :src="selectedImageUrl" alt="파일 미리보기" class="preview-image" />
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
+import axios from 'axios'
 import { useRouter } from 'vue-router'
+import { useUserStore } from '@/stores/user'
 import { AgGridVue } from 'ag-grid-vue3'
 import {
   ModuleRegistry,
@@ -79,7 +78,10 @@ import {
   ValidationModule
 } from 'ag-grid-community'
 
-// AG Grid 모듈 등록 (한 번만)
+// Axios 기본 URL
+axios.defaults.baseURL = 'http://localhost:8000'
+
+// AG Grid 모듈 등록
 ModuleRegistry.registerModules([
   AllCommunityModule,
   ClientSideRowModelModule,
@@ -90,10 +92,28 @@ ModuleRegistry.registerModules([
   ValidationModule
 ])
 
-const router = useRouter()
-let gridApi = null
+const router    = useRouter()
+const userStore = useUserStore()
 
-// 1) 컬럼 정의
+// 그리드 API
+let gridApi = null
+function onGridReady(params) {
+  gridApi = params.api
+}
+
+// JWT 헤더
+function authHeaders() {
+  return { Authorization: `Bearer ${userStore.accessToken}` }
+}
+
+// defaultColDef (정렬·필터·리사이즈 활성화)
+const defaultColDef = {
+  sortable: true,
+  filter: true,
+  resizable: true,
+}
+
+// 컬럼 정의
 const columnDefs = ref([
   {
     headerName: '',
@@ -101,248 +121,166 @@ const columnDefs = ref([
     checkboxSelection: true,
     headerCheckboxSelection: true,
     width: 50,
-    pinned: 'left',
-    cellClass: 'checkbox-cell',
-    headerClass: 'checkbox-header-cell'
+    pinned: 'left'
   },
+  { headerName: 'ID',               field: 'contractId',          width: 80, cellClass: 'center-align' },
+  { headerName: '사원명',           field: 'employeeName',        flex: 1.2 },
+  { headerName: '계약 설명',        field: 'contractDescription', flex: 2 },
   {
-    headerName: '번호',
-    field: 'id',
-    width: 80,
-    cellClass: 'center-align',
-    headerClass: 'header-number'
-  },
-  {
-    headerName: '사원명',
-    field: 'name',
-    width: 150,
-    // cellRenderer로 <span>을 감싸서 렌더링
-    cellRenderer: (params) => {
-      return `<span class="clickable-name">${params.value}</span>`
-    },
-    headerClass: 'header-name'
-  },
-  {
-    headerName: '사원번호',
-    field: 'employeeNumber',
-    flex: 1.5,
-    cellClass: 'center-align',
-    headerClass: 'header-employeeNumber'
-  },
-  {
-    headerName: '계약서/법정서류',
-    field: 'contract',
-    flex: 1.7,
-    // ▼ 텍스트만 렌더링하고 클릭 시 onCellClick에서 처리
-    cellRenderer: (params) => {
-      return `<span class="clickable-contract">${params.value}</span>`
-    },
-    cellClass: 'center-align',
-    headerClass: 'header-contract'
-  },
-  {
-    headerName: '요청일자',
-    field: 'requestdate',
-    flex: 1,
-    cellClass: 'center-align',
-    headerClass: 'header-requestdate'
+    headerName: '파일',
+    field: 'fileList',
+    flex: 2,
+    cellRenderer: params => {
+      const files = Array.isArray(params.value)
+        ? params.value.filter(f => f && f.fileName)
+        : []
+      if (!files.length) return '-'
+      return `<div class="file-list-cell">${
+        files.map((f,i) =>
+          `<a href="#" data-idx="${i}">${f.fileName}</a>`
+        ).join('')
+      }</div>`
+    }
   },
   {
     headerName: '계약일자',
-    field: 'contractdate',
+    field: 'contractDate',
     flex: 1,
     cellClass: 'center-align',
-    headerClass: 'header-contractdate'
+    valueFormatter: ({ value }) => new Date(value).toISOString().slice(0,10)
+  },
+  {
+    headerName: '요청일자',
+    field: 'requestDate',
+    flex: 1,
+    cellClass: 'center-align',
+    valueFormatter: ({ value }) => new Date(value).toISOString().slice(0,10)
   },
   {
     headerName: '만료일자',
-    field: 'enddate',
+    field: 'endDate',
     flex: 1,
     cellClass: 'center-align',
-    headerClass: 'header-enddate'
+    valueFormatter: ({ value }) => new Date(value).toISOString().slice(0,10)
   }
 ])
 
-// 2) 예시 더미 데이터
-const rowData = ref([
-  {
-    id: 1,
-    name: '김철수',
-    employeeNumber: 'EMP001',
-    contract: '근로계약서',
-    // 실제 미리보기할 이미지 URL
-    documentUrl: '/images/contract.png',
-    requestdate: '2025-05-01',
-    contractdate: '2025-05-10',
-    enddate: '2026-05-09'
-  },
-  {
-    id: 2,
-    name: '이영희',
-    employeeNumber: 'EMP002',
-    contract: '비밀유지계약서',
-    documentUrl: '/images/contract2.jpg',
-    requestdate: '2025-05-02',
-    contractdate: '2025-05-12',
-    enddate: '2026-05-11'
-  },
-  {
-    id: 3,
-    name: '박민수',
-    employeeNumber: 'EMP003',
-    contract: '근로계약서',
-    documentUrl: '/images/contract3.jpg',
-    requestdate: '2025-05-03',
-    contractdate: '2025-05-15',
-    enddate: '2026-05-14'
-  },
-  {
-    id: 4,
-    name: '최수진',
-    employeeNumber: 'EMP004',
-    contract: '비밀유지계약서',
-    documentUrl: '/images/contract4.jpg',
-    requestdate: '2025-05-04',
-    contractdate: '2025-05-18',
-    enddate: '2026-05-17'
-  },
-  {
-    id: 5,
-    name: '정다은',
-    employeeNumber: 'EMP005',
-    contract: '근로계약서',
-    documentUrl: '/images/contract5.jpg',
-    requestdate: '2025-05-05',
-    contractdate: '2025-05-20',
-    enddate: '2026-05-19'
-  },
-  {
-    id: 6,
-    name: '오준호',
-    employeeNumber: 'EMP006',
-    contract: '비밀유지계약서',
-    documentUrl: '/images/contract6.jpg',
-    requestdate: '2025-05-06',
-    contractdate: '2025-05-22',
-    enddate: '2026-05-21'
-  },
-  {
-    id: 7,
-    name: '한지혜',
-    employeeNumber: 'EMP007',
-    contract: '근로계약서',
-    documentUrl: '/images/contract7.jpg',
-    requestdate: '2025-05-07',
-    contractdate: '2025-05-24',
-    enddate: '2026-05-23'
-  },
-  {
-    id: 8,
-    name: '유민호',
-    employeeNumber: 'EMP008',
-    contract: '비밀유지계약서',
-    documentUrl: '/images/contract8.jpg',
-    requestdate: '2025-05-08',
-    contractdate: '2025-05-26',
-    enddate: '2026-05-25'
-  },
-  {
-    id: 9,
-    name: '강예린',
-    employeeNumber: 'EMP009',
-    contract: '근로계약서',
-    documentUrl: '/images/contract9.jpg',
-    requestdate: '2025-05-09',
-    contractdate: '2025-05-28',
-    enddate: '2026-05-27'
-  },
-  {
-    id: 10,
-    name: '서동혁',
-    employeeNumber: 'EMP010',
-    contract: '비밀유지계약서',
-    documentUrl: '/images/contract10.jpg',
-    requestdate: '2025-05-10',
-    contractdate: '2025-05-30',
-    enddate: '2026-05-29'
-  }
-])
-
-const searchText = ref('')
-const pageSize = ref(20)
+// 상태
+const fullData        = ref([])
+const rowData         = ref([])
+const searchText      = ref('')
+const pageSize        = ref(20)
 const showDeleteModal = ref(false)
 
-// ▼ 이미지 미리보기 모달 상태 변수 (추가)
-const showImageModal = ref(false)
+// 이미지 모달
+const showImageModal   = ref(false)
 const selectedImageUrl = ref('')
 
-const defaultColDef = {
-  sortable: true,
-  filter: true,
-  resizable: true
-}
+// 목록 조회 (HR 전용)
+onMounted(async () => {
+  try {
+    const res = await axios.get('/contract', {
+      headers: authHeaders()
+    })
+    fullData.value = res.data
+    rowData.value  = res.data
+  } catch (e) {
+    console.error('계약 목록 조회 실패:', e)
+    alert('계약 목록을 불러오는 중 오류가 발생했습니다.')
+  }
+})
 
-// 3) 검색 필터링 로직
+// 검색 필터링
 const filteredData = computed(() => {
-  if (!searchText.value) return rowData.value
-  const lower = searchText.value.toLowerCase()
-  return rowData.value.filter(r =>
-    r.name.toLowerCase().includes(lower)
+  const kw = searchText.value.trim().toLowerCase()
+  if (!kw) return rowData.value
+  return fullData.value.filter(item =>
+    item.employeeName.toLowerCase().includes(kw)
   )
 })
 
-// 4) 그리드 준비
-function onGridReady(params) {
-  gridApi = params.api
-}
-
-// 5) 셀 클릭 이벤트
-function onCellClick(e) {
-  // 사원명 클릭 → 상세 페이지
-  if (e.colDef.field === 'name') {
-    router.push(`/employeeInfo/employeeEnroll`)
-    return
-  }
-  // 계약서/법정서류 클릭 → 이미지 모달 띄우기
-  if (e.colDef.field === 'contract') {
-    selectedImageUrl.value = e.data.documentUrl
-    showImageModal.value = true
-  }
-}
-
-// ▼ 이미지 모달 닫기 함수 (추가)
-function closeImageModal() {
-  showImageModal.value = false
-  selectedImageUrl.value = ''
-}
-
-// 6) 삭제 로직
+// 삭제
 function onDeleteClick() {
-  const selectedRows = gridApi.getSelectedRows()
-  if (selectedRows.length === 0) {
-    alert('삭제할 문서를 선택하세요.')
-    return
-  }
+  const sel = gridApi?.getSelectedRows()||[]
+  if (!sel.length) return alert('삭제할 항목을 선택하세요.')
   showDeleteModal.value = true
 }
 function cancelDelete() {
   showDeleteModal.value = false
 }
-function confirmDelete() {
-  const selectedRows = gridApi.getSelectedRows()
-  if (selectedRows.length > 0) {
-    rowData.value = rowData.value.filter(r =>
-      !selectedRows.includes(r)
-    )
+async function confirmDelete() {
+  const sel = gridApi.getSelectedRows()
+  const ids = sel.map(r=>r.contractId)
+  try {
+    await Promise.all(ids.map(id=>
+      axios.delete(`/contracts/${id}`,{ headers: authHeaders() })
+    ))
+    fullData.value = fullData.value.filter(r=>!ids.includes(r.contractId))
+    rowData.value  = rowData.value.filter(r=>!ids.includes(r.contractId))
     gridApi.deselectAll()
+    alert('삭제되었습니다.')
+  } catch(err) {
+    console.error(err)
+    alert('삭제 중 오류가 발생했습니다.')
+  } finally {
+    showDeleteModal.value = false
   }
-  showDeleteModal.value = false
-  alert('삭제가 완료되었습니다.')
 }
 
-// 7) 등록 버튼 클릭 → “사원 등록” 화면으로 이동
+// 등록 페이지 이동
 function onRegister() {
   router.push('/employeeInfo/Contract/ContractEnroll')
+}
+
+// 셀 클릭: 파일 다운로드 / 상세 이동
+async function onCellClick(e) {
+  // (1) 계약 서류 링크 클릭
+  if (
+    e.colDef.field === 'fileList' &&
+    e.event.target.matches('a') &&
+    e.event.target.dataset.idx != null
+  ) {
+    e.event.preventDefault()
+    const idx  = Number(e.event.target.dataset.idx)
+    const file = (e.data.fileList || [])[idx]
+    if (!file) return
+
+    try {
+      // presigned URL 요청
+      const { data: presignedUrl } = await axios.get(
+        '/s3/download-url',
+        {
+          params: { filename: file.fileUrl, contentType: '' },
+          headers: authHeaders()
+        }
+      )
+      // Blob으로 받아 강제 다운로드
+      const res  = await fetch(presignedUrl)
+      const blob = await res.blob()
+      const url  = URL.createObjectURL(blob)
+      const a    = document.createElement('a')
+      a.href     = url
+      a.download = file.fileName
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      URL.revokeObjectURL(url)
+    } catch (err) {
+      console.error('파일 다운로드 실패:', err)
+      alert('파일 다운로드에 실패했습니다.')
+    }
+    return
+  }
+
+  // (2) 사원명 클릭 → 상세 페이지 이동
+  if (e.colDef.field === 'employeeName') {
+    const empId = e.data.employeeId
+    if (!empId) {
+      console.warn('employeeId가 없습니다:', e.data)
+      return
+    }
+    router.push(`/employeeInfo/${empId}`)
+  }
 }
 </script>
 
