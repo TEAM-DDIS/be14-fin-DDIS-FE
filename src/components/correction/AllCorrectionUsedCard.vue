@@ -57,6 +57,9 @@
 <script setup>
     import { ref, reactive, computed, onMounted } from 'vue'
     import AgGrid from '@/components/grid/BaseGrid.vue'
+    import { useUserStore } from '@/stores/user'
+
+    const userStore = useUserStore()
 
     const employees = ref([])
     const searchKeyword = ref('')
@@ -94,13 +97,26 @@
         ]
 
     onMounted(async () => {
-        try {
-            const res = await fetch('http://localhost:8000/attendance/correction/history/process/all')
-            const json = await res.json()
-            employees.value = json
-        } catch (err) {
-            console.error('출근 정정 내역 조회 실패:', err)
+    try {
+        const token = userStore.accessToken  // ✅ 유저 스토어에서 토큰 가져오기
+
+        const res = await fetch('http://localhost:8000/attendance/correction/history/process/all', {
+        method: 'GET',
+        headers: {
+            Authorization: `Bearer ${token}`  // ✅ 꼭 넣어야 403 안 남
         }
+        })
+
+        if (!res.ok) {
+        const text = await res.text()
+        throw new Error(text || '출근 정정 내역 조회 실패')
+        }
+
+        const json = await res.json()
+        employees.value = json
+    } catch (err) {
+        console.error('출근 정정 내역 조회 실패:', err)
+    }
     })
 
     const uniqueHeads = computed(() =>

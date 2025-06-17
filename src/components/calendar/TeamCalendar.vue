@@ -35,6 +35,7 @@ import dayGridPlugin from '@fullcalendar/daygrid'
 import interactionPlugin from '@fullcalendar/interaction'
 import koLocale from '@fullcalendar/core/locales/ko'
 import MeetingEventCard from '../attendance/MeetingEventCard.vue'
+import { useUserStore } from '@/stores/user'
 
 const show = ref(false)
 
@@ -85,7 +86,8 @@ const calendarOptions = reactive({
 })
 
     async function onAdd({ date, title, time }) {
-    const token = localStorage.getItem('token')
+    const userStore = useUserStore()
+    const token = userStore.accessToken
 
     try {
         const res = await fetch('http://localhost:8000/attendance/schedule/meeting', {
@@ -126,7 +128,9 @@ const calendarOptions = reactive({
 }
 
 onMounted(async () => {
-  const token = localStorage.getItem('token')
+  const userStore = useUserStore()
+  const token = userStore.accessToken
+
   if (!token) return
 
   const res = await fetch('http://localhost:8000/attendance/calendar/team', {

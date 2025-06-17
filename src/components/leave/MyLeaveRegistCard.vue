@@ -21,6 +21,7 @@
 <script setup>
   import { ref, onMounted } from 'vue'
   import AgGrid from '@/components/grid/BaseGrid.vue'
+  import { useUserStore } from '@/stores/user'
 
   const leaveRegistData = ref([])
 
@@ -42,7 +43,9 @@
   ]
 
   onMounted(async () => {
-    const token = localStorage.getItem('token')
+    const userStore = useUserStore()
+    const token = userStore.accessToken
+
     if (!token) {
       console.error('로그인이 필요합니다.')
       return

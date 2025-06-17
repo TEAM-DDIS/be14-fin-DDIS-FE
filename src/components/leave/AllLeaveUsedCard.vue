@@ -57,6 +57,9 @@
 <script setup>
   import { ref, reactive, computed, onMounted } from 'vue'
   import AgGrid from '@/components/grid/BaseGrid.vue'
+  import { useUserStore } from '@/stores/user'
+
+  const userStore = useUserStore()
 
   const employees = ref([])
   const searchKeyword = ref('')
@@ -90,7 +93,20 @@
 
   onMounted(async () => {
     try {
-      const res = await fetch('http://localhost:8000/attendance/leave/history/used/all')
+      const token = userStore.accessToken // ✅ 토큰 가져오기
+
+      const res = await fetch('http://localhost:8000/attendance/leave/history/used/all', {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${token}` // ✅ 필수
+        }
+      })
+
+      if (!res.ok) {
+        const errorText = await res.text()
+        throw new Error(errorText || '연차 사용 내역 조회 실패')
+      }
+
       const json = await res.json()
       employees.value = json
     } catch (err) {
