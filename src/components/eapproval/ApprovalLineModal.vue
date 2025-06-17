@@ -192,15 +192,12 @@ function flattenAllEmployees(tree) {
     head.departments?.forEach(dept => {
       dept.teams?.forEach(team => {
         team.members?.forEach(emp => {
-          rank.rank?.forEach(rank =>{
-          })
           // emp 자체에 teamName, departmentName, headName 을 붙여서
           list.push({
             ...emp,
             teamName:       team.teamName,
             departmentName: dept.departmentName,
-            headName:       head.headName,
-            rank:           rank.rank
+            headName:       head.headName
           });
         });
       });
@@ -416,7 +413,16 @@ function submitSelection() {
       text-align: center;
     }
     
-    /* 좌측 팀원 스타일 */
+    /* ... 나머지 기존 스타일 유지 ... */
+    
+    
+    
+    
+    /* 좌측 팀원 리스트 스타일 */
+    
+    /* =========================
+       모달 전체 오버레이/컨테이너
+    ========================= */
     .modal-overlay {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
