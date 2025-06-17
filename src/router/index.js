@@ -18,6 +18,11 @@ const router = createRouter({
             meta: { hideLayout : true}
         },
 
+        {
+            path: '/org/findpassword',
+            component: () => import('@/components/login/PasswordFindPage.vue')
+        },
+
 
         // =============== 인사 정보 ===============
 
