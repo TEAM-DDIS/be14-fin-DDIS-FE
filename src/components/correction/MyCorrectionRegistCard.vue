@@ -30,13 +30,17 @@
     import { ref, onMounted } from 'vue'
     import AgGrid from '@/components/grid/BaseGrid.vue'
     import CorrectionRegistEvent from './CorrectionRegistEvent.vue'
+    import { useUserStore } from '@/stores/user'
 
     const leaveRegistData = ref([])
     const showModal = ref(false)
+    const loading = ref(false)
 
     async function handleSubmit(data) {
       console.log('제출된 데이터:', data)
-      const token = localStorage.getItem('token')
+      const userStore = useUserStore()
+      const token = userStore.accessToken
+
       if (!token) {
         alert('로그인이 필요합니다.')
         return
@@ -89,7 +93,9 @@
   ]
 
   onMounted(async () => {
-    const token = localStorage.getItem('token')
+    const userStore = useUserStore()
+    const token = userStore.accessToken
+
     if (!token) {
       console.error('토큰이 없습니다. 로그인 후 다시 시도하세요.')
       return

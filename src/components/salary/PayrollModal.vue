@@ -96,7 +96,7 @@ import { useDateFormat } from '@vueuse/core'
 import html2pdf from 'html2pdf.js'
 import axios from 'axios'
 import { useUserStore } from '@/stores/user'
-
+const token = localStorage.getItem('token')
 const props = defineProps({
   slip: Object,
   showMailButton: {
@@ -143,7 +143,9 @@ function parseJwtPayload() {
 }
 
 const decoded = parseJwtPayload()
-const isMySlip = computed(() => decoded?.sub == props.slip.employeeId?.toString())
+const isHR = computed(() => decoded?.auth?.includes('ROLE_HR'))
+const isMySlip = computed(() => decoded?.sub == props.slip.employeeId?.toString() || isHR.value)
+
 
 function formatCurrency(val) {
   return val?.toLocaleString() || ''
@@ -167,7 +169,7 @@ async function sendMail() {
 
     await axios.post('http://localhost:8000/payroll/mail', payload, {
       headers: {
-        Authorization: `Bearer ${accessToken.value}`
+        Authorization: `Bearer ${token}`
       }
     })
     alert('메일 전송이 완료되었습니다.')

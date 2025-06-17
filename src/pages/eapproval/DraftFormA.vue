@@ -557,6 +557,16 @@ body, html {
 
 /* ✅ 메인 박스: 전체 레이아웃 래퍼 */
 .main-box {
+
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 20px 32px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  margin: 24px;
+  max-width: 100%;
+  display: flex;
+  flex-direction: column;
+  min-height: fit-content;
   max-width: 1500px;
   margin: 20px auto;
   background: #fff;
@@ -569,6 +579,7 @@ body, html {
 .container {
   font-family: Arial, sans-serif;
   max-width: 1350px;
+  max-height: 1500px;
   margin: 20px auto;
 }
 

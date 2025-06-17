@@ -1,5 +1,12 @@
 <template>
-  <h1 class="page-title">공지사항</h1>
+    <h1 class="page-title">
+        <img
+        src="@/assets/icons/back_btn.svg"
+        alt="back"
+        class="back-btn"
+        @click="goBack"
+       />공지사항
+    </h1>
   <p class="desc">공지사항 상세조회</p>
 
   <!-- 로딩 / 에러 -->
@@ -177,6 +184,11 @@ const allFiles = computed(() => {
 const editorRef        = ref(null)
 const editorPlaceholder = '내용을 입력해주세요.'
 
+// 뒤로가기
+function goBack() {
+  router.back()
+}
+
 function authHeaders() {
   return { Authorization: `Bearer ${userStore.accessToken}` }
 }
@@ -329,6 +341,12 @@ onMounted(fetchNotice)
   display: block;
   margin-left: 20px;
   margin-bottom: 10px;
+}
+
+.back-btn {
+  width: 24px;
+  margin-right: -2px;
+  cursor: pointer;
 }
 
 /* 로딩 / 에러 메시지 */
