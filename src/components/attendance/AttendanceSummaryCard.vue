@@ -81,6 +81,19 @@
   // 현재 시각
   const now = () => new Date()
 
+  // 9시까지 대기 후 타이머 시작
+  const waitUntilNine = () => {
+    const nowTime = now()
+    const nineAM = now()
+    nineAM.setHours(9, 0, 0, 0)
+
+    const delay = nineAM - nowTime
+
+    setTimeout(() => {
+      startTimer()
+    }, delay)
+  }
+
   // 서버 시간 받아오기 (출근/퇴근 기록 기반)
   onMounted(async () => {
     const userStore = useUserStore()
@@ -158,8 +171,10 @@
 
         workSeconds.value = Math.max(elapsed, 0)
         isCheckedIn.value = true
-        if (!(nowTime >= noonStart && nowTime < noonEnd)) {
+        if (nowTime >= nineAM && !(nowTime >= noonStart && nowTime < noonEnd)) {
           startTimer()
+        } else {
+          waitUntilNine()
         }
       }
 
@@ -201,19 +216,6 @@
       console.error('내 근무 현황 API 호출 실패:', err)
     }
   })
-
-  // 9시까지 대기 후 타이머 시작
-  const waitUntilNine = () => {
-    const nowTime = now()
-    const nineAM = now()
-    nineAM.setHours(9, 0, 0, 0)
-
-    const delay = nineAM - nowTime
-
-    setTimeout(() => {
-      startTimer()
-    }, delay)
-  }
 
   // 출근 등록
   const postCheckIn = async () => {

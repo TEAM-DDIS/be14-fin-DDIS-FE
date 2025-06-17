@@ -83,8 +83,9 @@
         { headerName: '성명', field: 'employeeName' },
         { headerName: '처리상태', field: 'approvalStatus' },
         { headerName: '신청일', field: 'requestTime' },
+        { headerName: '정정요청일', field: 'workDate'},
         { headerName: '출근시각', field: 'beforeCheckInTime', valueFormatter: ({ value }) => value ? value.split('.')[0] : '' },
-        { headerName: '변경요청시각', field: 'requestedTimeChange',
+        { headerName: '정정요청시각', field: 'requestedTimeChange',
             valueFormatter: ({ value }) => {
             if (!value) return ''
             const time = new Date(value).toTimeString().split(' ')[0]
@@ -98,13 +99,13 @@
 
     onMounted(async () => {
     try {
-        const token = userStore.accessToken  // ✅ 유저 스토어에서 토큰 가져오기
+        const token = userStore.accessToken 
 
         const res = await fetch('http://localhost:8000/attendance/correction/history/process/all', {
-        method: 'GET',
-        headers: {
-            Authorization: `Bearer ${token}`  // ✅ 꼭 넣어야 403 안 남
-        }
+            method: 'GET',
+            headers: {
+                Authorization: `Bearer ${token}`  
+            }
         })
 
         if (!res.ok) {
@@ -162,8 +163,8 @@
         }
 
         const headers = [
-            '사번', '성명', '처리상태', '신청일',
-            '출근시각', '변경요청시각', '처리시간',
+            '사번', '성명', '처리상태', '신청일', '정정요청일',
+            '출근시각', '정정요청시각', '처리시간',
             '사유', '반려사유'
         ]
 
@@ -171,6 +172,7 @@
             `\t${item.employeeId}`,
             item.employeeName,
             item.approvalStatus || '',
+            item.workDate || '',
             item.requestTime || '',
             item.beforeCheckInTime?.split('.')[0] || '',
             item.requestedTimeChange

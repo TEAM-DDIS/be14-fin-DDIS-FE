@@ -24,7 +24,6 @@
   import TeamWorkStatus from './TeamWorkStatus.vue'
   import { useUserStore } from '@/stores/user'
 
-
   const teamName = ref('')
   const statuses = ref([])
   const loading = ref(true)

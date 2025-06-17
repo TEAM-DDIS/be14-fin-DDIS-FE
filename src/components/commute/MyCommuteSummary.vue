@@ -1,14 +1,14 @@
 <template>
-    <div class="summary-wrapper">
-        <div
-            v-for="item in summaryList"
-            :key="item.label"
-            class="summary-badge"
-            :style="{ backgroundColor: item.color }"
-            >
-            {{ item.label }} {{ item.count }}
-        </div>
+  <div class="summary-wrapper">
+    <div
+      v-for="item in summaryList"
+      :key="item.label"
+      class="summary-badge"
+      :style="{ backgroundColor: item.color }"
+      >
+      {{ item.label }} {{ item.count }}
     </div>
+  </div>
 </template>
 
 <script setup>
@@ -78,21 +78,21 @@
 
 
 <style scoped>
-    .summary-wrapper {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 20px;
-      margin-top: 16px;
-      margin-bottom: 16px;
-      justify-content: center;
-    }
+  .summary-wrapper {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    margin-top: 16px;
+    margin-bottom: 16px;
+    justify-content: center;
+  }
 
-    .summary-badge {
-      padding: 8px 16px;
-      border-radius: 20px;
-      font-weight: bold;
-      font-size: 20px;
-      color: #ffffff;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    }
+  .summary-badge {
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-weight: bold;
+    font-size: 20px;
+    color: #ffffff;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  }
 </style>

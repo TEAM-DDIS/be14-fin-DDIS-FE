@@ -132,7 +132,7 @@
         const res = await fetch(`http://localhost:8000/attendance/correction/approve`, {
         method: 'POST',
         headers: {
-            Authorization: `Bearer ${token}`,        // ✅ 인증 토큰 추가
+            Authorization: `Bearer ${token}`,        
             'Content-Type': 'application/json'
         },
         body: JSON.stringify({ attendanceId: selectedRow.value.attendanceId })
@@ -156,12 +156,12 @@
     }
 
     try {
-        const token = userStore.accessToken // ✅ userStore에서 토큰 가져오기
+        const token = userStore.accessToken 
 
         const res = await fetch(`http://localhost:8000/attendance/correction/reject`, {
         method: 'POST',
         headers: {
-            Authorization: `Bearer ${token}`,        // ✅ 인증 토큰 추가
+            Authorization: `Bearer ${token}`,        
             'Content-Type': 'application/json'
         },
         body: JSON.stringify({
@@ -203,8 +203,9 @@
         { headerName: '성명', field: 'employeeName' },
         { headerName: '처리상태', field: 'approvalStatus' },
         { headerName: '신청일', field: 'requestTime' },
+        { headerName: '정정요청일', field: 'workDate'},
         { headerName: '출근시각', field: 'beforeCheckInTime', valueFormatter: ({ value }) => value ? value.split('.')[0] : '' },
-        { headerName: '변경요청시각', field: 'requestedTimeChange',
+        { headerName: '정정요청시각', field: 'requestedTimeChange',
             valueFormatter: ({ value }) => {
                 if (!value) return ''
                 const time = new Date(value).toTimeString().split(' ')[0]
@@ -217,25 +218,25 @@
     ]
 
     onMounted(async () => {
-    try {
-        const token = userStore.accessToken
-        const res = await fetch('http://localhost:8000/attendance/correction/history/request/all', {
-        method: 'GET',
-        headers: {
-            Authorization: `Bearer ${token}`
-        }
-        })
+        try {
+            const token = userStore.accessToken
+            const res = await fetch('http://localhost:8000/attendance/correction/history/request/all', {
+            method: 'GET',
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+            })
 
-        if (!res.ok) {
-        const errorText = await res.text()
-        throw new Error(errorText || '출근 정정 신청 내역 조회 실패')
-        }
+            if (!res.ok) {
+            const errorText = await res.text()
+            throw new Error(errorText || '출근 정정 신청 내역 조회 실패')
+            }
 
-        const json = await res.json()
-        employees.value = json
-    } catch (err) {
-        console.error('출근 정정 신청 내역 조회 실패:', err)
-    }
+            const json = await res.json()
+            employees.value = json
+        } catch (err) {
+            console.error('출근 정정 신청 내역 조회 실패:', err)
+        }
     })
 
     const uniqueHeads = computed(() =>
@@ -271,7 +272,7 @@
             (!props.dateRange.start || requestMonth >= props.dateRange.start) &&
             (!props.dateRange.end || requestMonth <= props.dateRange.end)
         return inKeyword && inOrgFilter && inDateRange
-    })
+        })
     })
 
     function downloadCSV() {
@@ -281,7 +282,7 @@
         }
 
         const headers = [
-            '사번', '성명', '처리상태', '신청일',
+            '사번', '성명', '처리상태', '신청일', '변경요청날짜',
             '출근시각', '변경요청시각', '처리시간',
             '사유', '반려사유'
         ]
@@ -290,6 +291,7 @@
             `\t${item.employeeId}`,
             item.employeeName,
             item.approvalStatus || '',
+            item.workDate || '',
             item.requestTime || '',
             item.beforeCheckInTime?.split('.')[0] || '',
             item.requestedTimeChange
