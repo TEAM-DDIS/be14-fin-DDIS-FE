@@ -32,13 +32,13 @@
         @cell-clicked="onCellClick"
       />
     </div>
-  </div>
 
-  <!-- 3) 하단 버튼 -->
-  <div class="pagination-control">
-    <div class="button-group">
-      <button class="btn-delete" @click="onDeleteClick">삭제</button>
-      <button class="btn-save" @click="onRegister">등록</button>
+        <!-- 3) 하단 버튼 -->
+    <div class="pagination-control">
+      <div class="button-group">
+        <button class="btn-delete" @click="onDeleteClick">삭제</button>
+        <button class="btn-save" @click="onRegister">등록</button>
+      </div>
     </div>
   </div>
 
@@ -339,6 +339,7 @@ async function onCellClick(e) {
 .ag-grid-box {
   height: 500px;
   border: 1px solid #d9d9d9;
+  margin-bottom: 20px;
   border-radius: 8px;
   overflow: hidden;
 }
@@ -346,7 +347,6 @@ async function onCellClick(e) {
 .pagination-control {
   display: flex;
   justify-content: flex-end;
-  margin: 0 20px 20px;
 }
 .button-group {
   display: flex;
