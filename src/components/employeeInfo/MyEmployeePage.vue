@@ -248,6 +248,7 @@
         <div class="ag-theme-alpine ag-grid-box">  
           <AgGridVue
             :columnDefs="appointmentColumnDefs"
+            :gridOptions="{ theme: 'legacy' }"
             :rowData="appointmentData"
             :defaultColDef="defaultColDef"
             :pagination="true"
@@ -263,12 +264,14 @@
         <div class="ag-theme-alpine ag-grid-box">
           <AgGridVue
             :columnDefs="disciplineColumnDefs"
+            :gridOptions="{ theme: 'legacy' }"            
             :rowData="disciplineData"
             :defaultColDef="defaultColDef"
             :pagination="true"
             :paginationPageSize="pageSize"
             rowSelection="multiple"
             @grid-ready="onGridReady"
+            @cell-clicked="onCellClick"
             style="width:100%; height:100%"
           />
         </div>
@@ -278,12 +281,14 @@
         <div class="ag-theme-alpine ag-grid-box">
           <AgGridVue
             :columnDefs="contractColumnDefs"
+            :gridOptions="{ theme: 'legacy' }"
             :rowData="contractData"
             :defaultColDef="defaultColDef"
             :pagination="true"
             :paginationPageSize="pageSize"
             rowSelection="multiple"
             @grid-ready="onGridReady"
+            @cell-clicked="onCellClick"
             style="width:100%; height:100%"
           />
         </div>
@@ -366,19 +371,90 @@ const appointmentColumnDefs = ref([
 
 // 징계 그리드
 const disciplineColumnDefs = ref([
-  { headerName: '징계번호', field: 'disciplineNo', flex: 1, cellClass: 'center-align' },
-  { headerName: '징계내용', field: 'content', flex: 2 },
-  { headerName: '징계일자', field: 'disciplineDate', flex: 1, cellClass: 'center-align' }
+  {
+    headerName: '',
+    field: 'checkbox',
+    checkboxSelection: true,
+    headerCheckboxSelection: true,
+    width: 50,
+    pinned: 'left'
+  },
+  { headerName: '번호',            field: 'disciplinaryId',          width: 80,  cellClass: 'center-align' },
+  { headerName: '사원명',          field: 'employeeName',            flex: 1.2 },
+  {
+    headerName: '징계 서류',
+    field: 'fileList',
+    flex: 2,
+    cellRenderer: params => {
+      const files = Array.isArray(params.value) ? params.value : []
+      if (!files.length) return '-'
+      return `<div class="file-list-cell">${
+        files.map((f,i) => `<a href="#" data-idx="${i}">${f.fileName}</a>`).join('')
+      }</div>`
+    }
+  },
+  { headerName: '징계 내용',     field: 'disciplinaryDescription', flex: 2 },
+  {
+    headerName: '징계일자',
+    field: 'disciplinaryDate',
+    flex: 1,
+    cellClass: 'center-align',
+    valueFormatter: ({ value }) => new Date(value).toISOString().slice(0,10)
+  }
 ])
 
 // 계약 그리드
 const contractColumnDefs = ref([
-  { headerName: '번호', field: 'id', width: 100, cellClass: 'center-align' },
-  { headerName: '요청일자', field: 'requestDate', width: 150 },
-  { headerName: '계약서류', field: 'document', flex: 1, cellRenderer: params => `<a href="${params.data.documentUrl}" target="_blank">${params.value}</a>` },
-  { headerName: '계약일자', field: 'contractDate', width: 150 },
-  { headerName: '만료일자', field: 'expiryDate', width: 150, cellClass: 'center-align' }
+  {
+    headerName: '',
+    field: 'checkbox',
+    checkboxSelection: true,
+    headerCheckboxSelection: true,
+    width: 50,
+    pinned: 'left'
+  },
+  { headerName: 'ID',               field: 'contractId',          width: 80, cellClass: 'center-align' },
+  { headerName: '사원명',           field: 'employeeName',        flex: 1.2 },
+  { headerName: '계약 설명',        field: 'contractDescription', flex: 2 },
+  {
+    headerName: '파일',
+    field: 'fileList',
+    flex: 2,
+    cellRenderer: params => {
+      const files = Array.isArray(params.value) ? params.value : []
+      if (!files.length) return '-'
+      return `<div class="file-list-cell">${
+        files.map((f,i) => `<a href="#" data-idx="${i}">${f.fileName}</a>`).join('')
+      }</div>`
+    }
+  },
+  {
+    headerName: '요청일자',
+    field: 'requestDate',
+    flex: 1,
+    cellClass: 'center-align',
+    valueFormatter: ({ value }) => new Date(value).toISOString().slice(0,10)
+  },
+  {
+    headerName: '계약일자',
+    field: 'contractDate',
+    flex: 1,
+    cellClass: 'center-align',
+    valueFormatter: ({ value }) => new Date(value).toISOString().slice(0,10)
+  },
+  {
+    headerName: '만료일자',
+    field: 'endDate',
+    flex: 1,
+    cellClass: 'center-align',
+    valueFormatter: ({ value }) => new Date(value).toISOString().slice(0,10)
+  }
 ])
+
+// — 각 탭의 rowData
+const appointmentData = ref([])
+const disciplineData  = ref([])
+const contractData    = ref([])
 
 // form 초기값
 const form = reactive({
@@ -426,70 +502,86 @@ const form = reactive({
   teamName:          ''
 })
 
+async function downloadFile(fileUrl, fileName) {
+  try {
+    const { data: presignedUrl } = await axios.get(
+      '/s3/download-url',
+      {
+        params: { filename: fileUrl, contentType: '' },
+        headers: { Authorization: `Bearer ${userStore.accessToken}` }
+      }
+    )
+    const res  = await fetch(presignedUrl)
+    const blob = await res.blob()
+    const url  = URL.createObjectURL(blob)
+    const a    = document.createElement('a')
+    a.href     = url
+    a.download = fileName
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+  } catch (err) {
+    console.error('파일 다운로드 실패:', err)
+    alert('파일 다운로드에 실패했습니다.')
+  }
+}
+
+async function onCellClick(e) {
+  // — “파일” 컬럼 클릭 시 다운로드
+  if (
+    e.colDef.field === 'fileList' &&
+    e.event.target.matches('a') &&
+    e.event.target.dataset.idx != null
+  ) {
+    e.event.preventDefault()
+    const idx  = Number(e.event.target.dataset.idx)
+    const file = (e.data.fileList || [])[idx]
+    if (!file) return
+    // 다운로드 헬퍼 호출
+    await downloadFile(file.fileUrl, file.fileName)
+    return
+  }
+}
+
 // 페이지 진입 시 데이터 로드
 onMounted(async () => {
   try {
+    // 기본 사원 정보
     const { data } = await axios.get(
-      `/employees/myinfo`,
+      '/employees/myinfo',
       { headers: { Authorization: `Bearer ${userStore.accessToken}` } }
     )
-
-    // form 필드에 S3 키(=data.employeePhotoUrl)만 할당
-    form.employeePhotoName   = data.employeePhotoName
-    form.employeePhotoUrl    = data.employeePhotoUrl
-    form.employeeId          = data.employeeId
-    form.employeeName        = data.employeeName
-    form.employeeNation      = data.employeeNation
-    form.employeeGender      = data.employeeGender
-    form.employeeBirth       = data.employeeBirth
-    form.employeeResident    = data.employeeResident
-    form.employeeContact     = data.employeeContact
-    form.employeeEmail       = data.employeeEmail
-    form.employeeAddress     = data.employeeAddress
-    form.employmentDate      = data.employmentDate
-    form.retirementDate      = data.retirementDate
-    form.workType            = data.workType
-    form.bankName            = data.bankName
-    form.bankDepositor       = data.bankDepositor
-    form.bankAccount         = data.bankAccount
-    form.isDisorder          = data.isDisorder
-    form.militaryType        = data.militaryType
-    form.isMarriage          = data.isMarriage
-    form.marriageDate        = data.marriageDate
-    form.familyCount         = data.familyCount
-    form.careerYearCount     = data.careerYearCount
-    form.previousCompany     = data.previousCompany
-    form.finalAcademic       = data.finalAcademic
-    form.employeeSchool      = data.employeeSchool
-    form.employeeDept        = data.employeeDept
-    form.graduationYear      = data.graduationYear
-    form.isFourInsurances    = data.isFourInsurances
-    form.positionId          = data.positionId
-    form.positionName        = data.positionName
-    form.rankId              = data.rankId
-    form.rankName            = data.rankName
-    form.jobId               = data.jobId
-    form.jobName             = data.jobName
-    form.headId              = data.headId
-    form.headName            = data.headName
-    form.departmentId        = data.departmentId
-    form.departmentName      = data.departmentName
-    form.teamId              = data.teamId
-    form.teamName            = data.teamName
-
-    // 미리보기 URL만 previewSrc에 저장
+    Object.assign(form, data)
     if (data.employeePhotoUrl) {
-      const resp = await axios.get('/s3/download-url', {
-        params: {
-          filename:    data.employeePhotoUrl,
-          contentType: 'image/png'
-        }
+      const { data: url } = await axios.get('/s3/download-url', {
+        params: { filename: data.employeePhotoUrl, contentType: 'image/png' }
       })
-      previewSrc.value = resp.data
+      previewSrc.value = url
     }
+
+    // // 인사발령 목록
+    // const appts = await axios.get('/appointments', {
+    //   params: { employeeId: data.employeeId },
+    //   headers: { Authorization: `Bearer ${userStore.accessToken}` }
+    // })
+    // appointmentData.value = appts.data
+
+    // 징계 목록
+    const discs = await axios.get(`/disciplinary/employee/${data.employeeId}`, {
+      headers: { Authorization: `Bearer ${userStore.accessToken}` }
+    })
+    disciplineData.value = discs.data
+
+    // 계약 목록
+    const contracts = await axios.get(`/contract/employee/${data.employeeId}`, {
+      headers: { Authorization: `Bearer ${userStore.accessToken}` }
+    })
+    contractData.value = contracts.data
+
   } catch (err) {
     console.error(err)
-    alert('사원 정보를 불러오는 데 실패했습니다.')
+    alert('데이터를 불러오는 데 실패했습니다.')
     router.back()
   }
 })
@@ -887,5 +979,20 @@ async function onPhotoSelected(e) {
 input[readonly] {
   background-color: #f9f9f9;
   border: none;
+}
+
+:deep(.file-list-cell) {
+  display: flex;
+  flex-wrap: nowrap;
+  /* 링크들 사이 간격을 8px로 설정 */
+  gap: 8px;
+  max-height: 36px;
+  padding-right: 8px;
+}
+/* a 태그는 줄바꿈 없이 */
+.file-list-cell a {
+  white-space: nowrap;
+  text-decoration: underline;
+  cursor: pointer;
 }
 </style>
