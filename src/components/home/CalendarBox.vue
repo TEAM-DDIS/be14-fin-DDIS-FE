@@ -151,7 +151,7 @@ onMounted(async () => {
   const teamData = await resTeam.json()
 
   calendarOptionsPersonal.events = personalData.map(item => ({
-    title: item.title || '',
+    title: '',
     start: item.date,
     className: item.type === 'personal' ? 'event-personal' : convertStatusToClass(item.status),
     extendedProps: item
