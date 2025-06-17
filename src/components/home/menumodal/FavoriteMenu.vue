@@ -32,14 +32,15 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import axios from 'axios'
 import draggable from 'vuedraggable'
 import { useUserStore } from '@/stores/user'
+import {HR_ONLY_PATHS} from '@/constants/hronlypaths.js'
 
 // 사용자 토큰
 const userStore = useUserStore()
-const token = userStore.token
+const token = localStorage.getItem('token')
 
 // 드래그 관련 상태
 const dragging = ref(false)
@@ -52,7 +53,18 @@ const props = defineProps({
     required: true
   }
 })
-
+const isHrTeam = computed(() => {
+  try {
+    const payload = JSON.parse(
+      atob(userStore.accessToken.split('.')[1].replace(/-/g,'+').replace(/_/g,'/'))
+    )
+    return (
+      payload.deptName === '인사부서' ||        // 부서명
+      payload.auth?.includes('ROLE_HR')             // roles 배열
+    )
+  } catch { return false }
+})
+console.log('isHrTeam', isHrTeam.value)
 // 자주 쓰는 메뉴 리스트
 const favorites = ref([])
 
@@ -69,6 +81,9 @@ const fetchFavorites = async () => {
     )
     // 표시 순서대로 정렬
     favorites.value = data.sort((a, b) => a.displayOrder - b.displayOrder)
+    favorites.value = data
+    .sort((a, b) => a.displayOrder - b.displayOrder)
+    .filter(m => !(HR_ONLY_PATHS.includes(m.menuPath) && !isHrTeam.value))
   } catch (err) {
     console.error('자주 쓰는 메뉴 불러오기 실패:', err)
     alert('자주 쓰는 메뉴 데이터를 불러올 수 없습니다.')
@@ -124,6 +139,10 @@ async function handleDragEnd() {
       }
     })
     console.log('순서 저장 성공')
+        favorites.value = data.sort((a, b) => a.displayOrder - b.displayOrder)
+    favorites.value = data
+    .sort((a, b) => a.displayOrder - b.displayOrder)
+    .filter(m => !(HR_ONLY_PATHS.includes(m.menuPath) && !isHrTeam.value))
   } catch (err) {
     console.error('순서 저장 실패:', err.response?.data || err.message)
     alert('드래그 후 순서 저장 실패')

@@ -24,6 +24,7 @@
         <div class="column-middle" v-if="currentSections.length">
           <SubSidebar
             :sections="currentSections"
+            :key="selectedTopId"
             @add-favorite="addFavorite"
           />
         </div>
@@ -52,6 +53,7 @@ import axios from 'axios'
 import Sidebar from './MenuSidebar.vue'
 import SubSidebar from './MenuSubSidebar.vue'
 import FavoriteMenu from './FavoriteMenu.vue'
+import {HR_ONLY_PATHS} from '@/constants/hronlypaths.js'
 
 // 부모 컴포넌트에서 전달된 사용자 ID props
 const props = defineProps({
@@ -80,7 +82,19 @@ const childMap = ref({})
 
 // 사용자 인증 토큰 가져오기
 const userStore = useUserStore()
-const token = userStore.token
+const token = localStorage.getItem('token')
+
+const isHrTeam = computed(() => {
+  try {
+    const payload = JSON.parse(
+      atob(userStore.accessToken.split('.')[1].replace(/-/g,'+').replace(/_/g,'/'))
+    )
+    return (
+      payload.deptName === '인사부서' ||        // 부서명
+      payload.auth?.includes('ROLE_HR')             // roles 배열
+    )
+  } catch { return false }
+})
 
 // 컴포넌트가 마운트되면 메뉴 데이터를 API에서 불러옴
 onMounted(async () => {
@@ -91,10 +105,16 @@ onMounted(async () => {
       }
     })
     allMenus.value = data
+    /* ① HR 권한에 따라 메뉴 필터링 */
+    const filtered = !isHrTeam.value
+      ? data.filter(m => !HR_ONLY_PATHS.includes(m.menuPath))
+      : data
+
+    allMenus.value = filtered
 
     // 자식 메뉴 매핑 생성
     const map = {}
-    data.forEach(menu => {
+    filtered.forEach(menu => {
       if (menu.parentMenuId !== null) {
         if (!map[menu.parentMenuId]) map[menu.parentMenuId] = []
         map[menu.parentMenuId].push(menu)
