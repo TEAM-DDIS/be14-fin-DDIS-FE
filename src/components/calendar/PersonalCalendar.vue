@@ -244,7 +244,24 @@
 
       const data = await res.json()
 
-      calendarOptions.events = data.map(item => ({
+      calendarOptions.events = data
+      .sort((a, b) => {
+        // 날짜 기준 정렬 먼저
+        if (a.date < b.date) return -1
+        if (a.date > b.date) return 1
+
+        // 날짜가 같은 경우
+        if (a.type === 'personal' && b.type === 'personal') {
+          return a.time.localeCompare(b.time)
+        }
+
+        // meeting은 항상 위로 정렬
+        if (a.type === 'personal') return -1
+        if (b.type === 'personal') return 1
+
+        return 0 // attendance 간 순서 유지
+      })
+      .map(item => ({
         title: '',
         start: item.date,
         className: item.type === 'personal' ? 'event-personal' : convertStatusToClass(item.status),
