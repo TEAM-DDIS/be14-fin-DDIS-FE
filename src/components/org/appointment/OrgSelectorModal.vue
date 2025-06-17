@@ -2,43 +2,65 @@
   <div class="modal-overlay" @click.self="$emit('close')">
     <div class="modal-content">
       <header class="modal-header">
-        <h3 class="modal-title">조직 선택</h3>
-        <button class="modal-close" @click="$emit('close')">×</button>
+        <p class="modal-title">조직 선택</p>
       </header>
+
+      <!-- 검색 결과 리스트 -->
 
       <OrgTree
         :hierarchy="props.hierarchy"
+        :show-ranks="props.showRanks"
+        :show-jobs="props.showJobs"
         @dept-selected="handleSelect"
         @team-selected="handleSelect"
+        
         @rank-selected="handleRankSelect"
+        @job-selected="handleJobSelect"
       />
 
       <footer class="modal-footer">
-        <button @click="handleConfirm" :disabled="!isComplete">선택</button>
-        <button @click="$emit('close')">닫기</button>
+        <button @click="$emit('close')" class="btn-close">닫기</button>
+        <button @click="handleConfirm" :disabled="!isComplete" class="btn-select">선택</button>
       </footer>
     </div>
   </div>
+  
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
-import OrgTree from '@/components/org/structure/HierarchyAppointment.vue'
+  import { ref, computed, watch } from 'vue'
+  import OrgTree from '@/components/org/structure/HierarchyAppointment.vue'
 
-const props = defineProps({
-  hierarchy: Array,
-  requiredKeys: Array
-})
+  const props = defineProps({
+    hierarchy: Array,
+    requiredKeys: Array,
 
-const emit = defineEmits(['select', 'close'])
+    showRanks: {
+      type: Boolean,
+      default: true
+    },
+    showJobs: {
+      type: Boolean,
+      default: true
+    }
+  })
+
+  const emit = defineEmits(['select', 'close'])
+  const searchResults = ref([]) 
 
 const selectedOrg = ref({
-      headId:       null,
-      departmentId: null,
-      teamId:       null,
-      rankCode:     null,
-      rankName:     null
+  headId: null,
+  departmentId: null,
+  teamId: null,
+  jobId: null,
+  jobCode: null,
+  jobName: null,
+  positionCode: null,
+  positionName: null,
+  rankCode: null,
+  rankName: null
 })
+
 
 function handleSelect(item) {
   if ('teamId' in item) {
@@ -50,7 +72,7 @@ function handleSelect(item) {
   } else if ('departmentId' in item) {
     console.log('[DEPT 선택됨]', item)
     selectedOrg.value.departmentId = item.departmentId
-    selectedOrg.value.team.teamId = null
+    selectedOrg.value.teamId = null
     selectedOrg.value.headId = findHeadIdByDepartmentId(item.departmentId)
   }
 }
@@ -63,15 +85,26 @@ function findHeadIdByDepartmentId(deptId) {
   }
   return null
 }
+
  function handleRankSelect(rank) {
    selectedOrg.value.rankCode = rank.rankCode
    selectedOrg.value.rankName = rank.rankName
+   selectedOrg.value.positionCode = rank.positionCode ?? null
+   selectedOrg.value.positionName = rank.positionName ?? null
    console.log('[RANK 선택됨]', rank)
+}
+
+function handleJobSelect(job) {
+  selectedOrg.value.jobId = job.jobId
+  selectedOrg.value.jobName = job.jobName       // ✅ 이거 빠졌으면 grid에 안 뜸!
+  selectedOrg.value.jobCode = job.jobCode || null
+  console.log('🟢 직무 선택됨:', job)
 }
 
 const isComplete = computed(() =>
   props.requiredKeys.every(key => {
     if (key === 'rank') return !!selectedOrg.value.rankCode
+    if (key === 'position') return !!selectedOrg.value.positionCode
     return !!selectedOrg.value[`${key}Id`]
   })
 )
@@ -93,11 +126,18 @@ function handleConfirm() {
   align-items: center;
   justify-content: center;
 }
+.modal-title {
+  font-size: 24px;
+  font-weight: bold;
+  text-align: center;
+  width: 100%; 
+  
+}
 .modal-content {
   background: white;
-  padding: 20px;
+  padding: 30px;
   border-radius: 10px;
-  min-width: 300px;
+  width: 400px;
 }
 .modal-header {
   display: flex;
@@ -106,6 +146,50 @@ function handleConfirm() {
 }
 .modal-footer {
   margin-top: 20px;
-  text-align: right;
+  display: flex;
+  justify-content: flex-end;
+  gap: 15px;
+  margin-bottom: 10px;
+}
+.btn-select {
+  font-size: 14px;
+  font-weight: bold;
+  background-color: #00a8e8;
+  color: white;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  padding: 10px 30px;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: background-color 0.2s, box-shadow 0.2s;
+}
+.btn-select:hover {
+  background-color: white;
+  color: #00a8e8;
+  border-color: #00a8e8;
+  box-shadow: inset 1px 1px 10px rgba(0, 0, 0, 0.25);
+}
+
+.btn-close {
+  font-size: 14px;
+  font-weight: bold;
+  background-color: #D3D3D3;
+  color: #000;
+  border: none;
+  border-radius: 10px;
+  padding: 10px 30px;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: background-color 0.2s, box-shadow 0.2s;
+  box-sizing: border-box;
+
+  display: flex;
+  justify-content: flex-end;
+  float: right;
+}
+.btn-close:hover {
+  background-color: #000;
+  color: #fff;
 }
 </style>

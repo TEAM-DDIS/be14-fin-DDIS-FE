@@ -218,7 +218,7 @@ const formatDateTime = (isoString) => {
 
 .tabs .active {
     color: #1f2937;
-    border-bottom: 3px solid #1f2937;  /* 클릭시 검은색 강조 */
+    border-bottom: 3px solid #00a8e8;  /* 클릭시 검은색 강조 */
     font-weight: bold
 }
 

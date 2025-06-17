@@ -58,6 +58,14 @@ const tab = reactive({ value: '결재' })
 const search = reactive({ date: '', title: '' })
 const docs = ref([])
 const router = useRouter()  
+
+// 기안자 및 직급 포맷팅 헬퍼 함수
+function formatWriter(name, rank) {
+  if (name && rank) return `${name} / ${rank}`
+  if (name) return name
+  return '-'
+}
+
 // 탭별 그리드 컬럼 설정
 const columnDefsByTab = {
   '전체': [
@@ -115,11 +123,11 @@ function formatDateTime(dateString) {
 async function fetchApprovals() {
   console.log('✅ fetchApprovals 호출됨. 현재 탭:', tab.value)  // 👈 무조건 찍혀야 함
   try {
-    const res = await axios.get(`http://localhost:8000/approvals?tab=${tab.value}`, {
+    const res = await axios.get(`http://localhost:8000/approvals/ApprovalBox?tab=${tab.value}`, {
       headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
     })
     console.log('📦 응답 데이터:', res.data)
-
+    
     const list = Array.isArray(res.data) ? res.data : res.data.documents || []
 
     docs.value = list
@@ -131,8 +139,11 @@ async function fetchApprovals() {
       approvedAt:  formatDateTime(doc.approvedAt),
       docStatus:   doc.docStatus || '',
       lineStatus:  doc.lineStatus || '',
-      writer:      doc.writer || '',
+      drafter:     doc.drafter || '',       // 기안자 이름
+      drafterRank: doc.drafterRank || '', // 기안자 직급
       type:        doc.type   || '',
+      approverName: doc.approverName || '', // 현재 결재자 이름 추가
+      approverRank: doc.approverRank || '', // 현재 결재자 직급 추가
       no:          idx + 1
     }))
   } catch (e) {
@@ -145,7 +156,7 @@ watch(tab, fetchApprovals)
 
 // 검색/탭 조건에 따른 필터링
 const filteredForms = computed(() => {
-  const expected = statusMap[tab.value]
+    const expected = statusMap[tab.value]
   return docs.value
     .filter(doc => {
       if (!doc) return false  // ✅ null 또는 undefined 방지
@@ -173,7 +184,11 @@ const filteredForms = computed(() => {
       }
       return true
     })
-    .map((doc, idx, arr) => ({ ...doc, no: arr.length - idx }))
+    .map((doc, idx, arr) => ({
+      ...doc,
+      no: arr.length - idx,  // 번호는 뒤에서부터
+      writer: formatWriter(doc.drafter, doc.drafterRank) // 기안자 이름과 직급을 포맷하여 할당
+    }))
 })
 
 // 행 클릭 핸들러
@@ -185,8 +200,9 @@ function handleFormRowClick(params) {
     name: 'DraftDetail',
     params: {docId},
     query: { box: 'ApprovalBox' }
-})
+  })
 }
+
 </script>
 
 <style>

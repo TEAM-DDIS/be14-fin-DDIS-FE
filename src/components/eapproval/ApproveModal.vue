@@ -49,6 +49,10 @@ const props = defineProps({
   lineId: {
     type: [String, Number],
     required: true
+  },
+  rankName: {
+    type: String,
+    required: false   // 필수는 아니지만 가능하면 항상 넘기는 게 좋아요
   }
 })
 // close, submit 이벤트 정의 (submit은 부모가 실제 API 호출)
@@ -61,12 +65,14 @@ const opinion = ref('')
 // 제출 이벤트만 emit; API 호출은 부모 컴포넌트에서 처리
 function submitApproval() {
   const text = opinion.value.trim()
-  emit('submit', { lineId: props.lineId, status: status.value, opinion: text })
+  emit('submit', { 
+    lineId: props.lineId,
+    status: status.value, 
+    opinion: text, 
+    rankName: props.rankName })
   emit('close')
 }
 </script>
-
-
 
 <style scoped>
 .modal-overlay {
