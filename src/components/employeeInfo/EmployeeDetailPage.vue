@@ -421,11 +421,6 @@ async function onCellClick(e) {
     await downloadFile(file.fileUrl, file.fileName)
     return
   }
-
-  // — 사원명 클릭 시: 상세 페이지 이동
-  if (e.colDef.field === 'employeeName') {
-    router.push(`/employeeInfo/${route.params.id}`)
-  }
 }
 
 // — 사원 기본 정보 폼
@@ -877,5 +872,20 @@ onMounted(async () => {
 input[readonly] {
   background-color: #f9f9f9;
   border: none;
+}
+
+:deep(.file-list-cell) {
+  display: flex;
+  flex-wrap: nowrap;
+  /* 링크들 사이 간격을 8px로 설정 */
+  gap: 8px;
+  max-height: 36px;
+  padding-right: 8px;
+}
+/* a 태그는 줄바꿈 없이 */
+.file-list-cell a {
+  white-space: nowrap;
+  text-decoration: underline;
+  cursor: pointer;
 }
 </style>

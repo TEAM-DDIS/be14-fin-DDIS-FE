@@ -15,8 +15,8 @@
           <tr>
             <th>기안부서</th>
             <td>{{ draftDetail.team }}</td>
-            <th>직책</th>
-            <td>{{ draftDetail.position }}</td>
+            <th>직급</th>
+            <td>{{ draftDetail.rankName }}</td>
           </tr>
           <tr>
             <th>기안자</th>
@@ -38,27 +38,26 @@
           </tr>
         </table>
 
-        <!-- 결재선 섹션 with single button -->
-          <div class="retrieve-header">
-            <button
-              class="retrieve-button"
-              :disabled="!selectedLine || selectedLine.status !== '미결'"
-              @click="openRetrieveModal"
-            >회수하기 </button>
-        </div>
-
-
-        <div class="approval-header">
+        <!-- Conditional Button Section: 회수하기 or 결재하기 -->
+        <div class="action-header">
             <span class="section-title">결재선</span>
+            <!-- 회수하기 버튼 -->
             <button
-              class="approval-button"
+              v-if="isDrafterViewingMyDraftBox"
+              class="action-button"
+              :disabled="!isRetractable"
+              @click="openRetrieveModal"
+            >회수하기</button>
+            <!-- 결재하기 버튼 -->
+            <button
+              v-else-if="isApproverViewingApprovalBox"
+              class="action-button"
               :disabled="!selectedLine || selectedLine.status !== '미결'"
               @click="openApprovalModal"
             >결재하기</button>
         </div>
 
       <hr class="section-divider" />
-    
 
         <!-- 결재라인 리스트: 클릭하여 선택 후 상단 버튼 사용 -->
         <table class="line-table" v-if="draftDetail.approvalLine.length">
@@ -94,49 +93,69 @@
         </table>
 
         <!-- 승인/반려 모달 -->
-        <!-- ApprovalModal에도 안전하게 넘기기 -->
           <ApprovalModal
             v-if="showApprovalModal"
             :line-id="Number(currentLineId)"
+            :approval-line="selectedLine"
+            :rank-name="selectedLine?.rankName"
             @close="closeModal"
             @submit="handleApprove"
           />
+
+        <!-- 회수 모달 -->
+        <RetrieveModal
+          v-if="showRetrieveModal"
+          :doc-id="docId"
+          @close="showRetrieveModal = false"
+          @submit="handleWithdraw"
+        />
 
         <!-- ◆ 기안 내용 작성 영역 -->
         <div class="section-title">기안내용</div>
           <hr class="section-divider" />
 
-        <!-- 기안내용 섹션 -->
-        <table class="title-table">
-          <thead>
-             <tr>
-              <th>첨부파일</th>
+        <!-- 제목 및 첨부파일 섹션 통합 테이블 -->
+        <table class="section-content-table">
+          <tbody>
+            <tr>
+              <th class="label-cell">제&nbsp;&nbsp;&nbsp;목</th>
               <td>
-                <template v-if="draftDetail.content.refFile.length">
-                  <ul>
-                    <li
-                      v-for="file in draftDetail.content.refFile"
-                      :key="file.key"
-                    >
-                      <!-- presignedUrls 대신 file.url 사용 -->
-                      <a
-                        v-if="file.url"
-                        :href="file.url"
-                        target="_blank"
-                      >
-                        {{ file.name }}
-                      </a>
-                      <span v-else class="file-info error">
-                        {{ file.name }} (URL 생성 실패)
-                      </span>
-                    </li>
-                  </ul>
-                </template>
-                <template v-else>-</template>
+                <div>
+                  {{ draftDetail.docTitle }}
+                </div>
               </td>
             </tr>
-          </thead>
+            <tr>
+              <th class="label-cell">첨부파일</th>
+              <td>
+                <div >
+                  <template v-if="draftDetail.content.refFile.length">
+                    <ul>
+                      <li
+                        v-for="file in draftDetail.content.refFile"
+                        :key="file.key"
+                      >
+                        <a
+                          v-if="file.url"
+                          :href="file.url"
+                          target="_blank"
+                        >
+                          {{ file.name }}
+                        </a>
+                        <span v-else class="file-info error">
+                          {{ file.name }} (URL 생성 실패)
+                        </span>
+                      </li>
+                    </ul>
+                  </template>
+                  <template v-else>-</template>
+                </div>
+              </td>
+            </tr>
+          </tbody>
         </table>
+
+        <!-- 본문 섹션 -->
         <table class="content-table">
           <tr>
             <th colspan="4" class="content-header">본문</th>
@@ -155,11 +174,9 @@
       <div class="button-group">
         <button class="button gray" @click="handleCancel">취소</button>
         <button class="button" @click="handleConfirm">확인</button>
-        <!-- 상신 탭일 때 조건부 회수 버튼 -->
-        <button v-if="isRetractable" @click="handleWithdraw">회수</button>
 
         <!-- 반려 또는 회수 탭일 때 재상신 버튼 -->
-        <button v-if="isBanryeoDoc || isHoesuDoc" @click="handleResubmit">재상신</button>
+        <!-- <button v-if="isBanryeoDoc || isHoesuDoc" @click="handleResubmit">재상신</button> -->
       </div>
 
         </div>
@@ -173,8 +190,8 @@ import { onMounted, ref, computed } from 'vue'           // 상태 관리와 생
 import axios from 'axios'                                 // HTTP 요청 라이브러리
 import { useRoute, useRouter } from 'vue-router'                     // 현재 URL의 파라미터(docId 등)를 읽기 위함
 import ApprovalModal from '@/components/eapproval/ApproveModal.vue'  // 결재 모달 컴포넌트
-import RetrieveModal from '@/components/eapproval/RetrieveModal.vue'
-
+import RetrieveModal from '@/components/eapproval/RetrieveModal.vue'  // 회수 모달 컴포넌트
+import { useUserStore } from '@/stores/user'
 
 // 📌 현재 페이지의 URL에서 docId 추출 (예: /drafts/123 → docId = 123)
 const route = useRoute()
@@ -190,6 +207,7 @@ const presignedUrls = ref([])
 
 // 📌 모달 관련 상태 변수
 const showApprovalModal = ref(false)  // 결재 모달 열림 여부
+const showRetrieveModal = ref(false)  // 회수 모달 열림 여부
 const currentLineId = ref(null)       // 선택된 결재선의 ID
 
 
@@ -216,21 +234,47 @@ const currentDesc = computed(() => {
 })
 
 //  로그인 사용자 ID
-const myId = localStorage.getItem('employeeId') || ''
+const myId = ref('') // myId를 ref로 선언하여 반응성 추가
 
 //  문서 상태 기반 조건
-const isSangsinDoc = computed(() => draftDetail.value?.docStatus === '대기중')
+const isSangsinDoc = computed(() => draftDetail.value?.docStatus === '심사중')
 const isBanryeoDoc = computed(() => draftDetail.value?.docStatus === '반려')
 const isHoesuDoc   = computed(() => draftDetail.value?.docStatus === '회수')
+const userStore = useUserStore()
 
-// 회수 가능 조건
+// 회수 가능 조건 (DraftDetailPage에서만 사용)
 const isRetractable = computed(() => {
-  if (!draftDetail.value) return false
-  const isDrafter = draftDetail.value.drafterId == myId
-  const firstApproverStatus = draftDetail.value.approvalLine?.[0]?.status
+  if (!draftDetail.value || !myId.value) return false // myId가 초기화되지 않았으면 false
+  const isDrafter = String(draftDetail.value.drafterId) === myId.value // drafterId도 String으로 변환하여 비교
+  const firstApproverStatus = draftDetail.value.approvalLine?.[1]?.status // 첫 번째 결재자(기안자 다음)의 상태
+  console.log('회수 가능 여부 체크:', {
+    isDrafter,
+    boxKey,
+    docStatus: draftDetail.value.docStatus,
+    firstApproverStatus,
+    myId: myId.value,
+    drafterId: draftDetail.value.drafterId,
+    approvalLine: draftDetail.value.approvalLine
+  })
   return isDrafter &&
-         draftDetail.value.docStatus === '심사중' &&
-         (firstApproverStatus === '대기중' || firstApproverStatus === '심사중')
+         boxKey === 'MyDraftBox' && // Only in MyDraftBox
+        draftDetail.value.docStatus === '심사중' &&
+         (firstApproverStatus === '대기중' || firstApproverStatus === '미결')
+})
+
+// 새롭게 추가되는 computed 속성
+const isDrafterViewingMyDraftBox = computed(() => {
+  if (!draftDetail.value || !myId.value) return false
+  return String(draftDetail.value.drafterId) === myId.value &&
+         boxKey === 'MyDraftBox' &&
+         draftDetail.value.docStatus !== '회수' // '회수' 상태일 때는 보이지 않음
+})
+
+const isApproverViewingApprovalBox = computed(() => {
+  if (!draftDetail.value || !myId.value) return false
+  return String(draftDetail.value.drafterId) !== myId.value &&
+         boxKey === 'ApprovalBox' &&
+         draftDetail.value.docStatus !== '회수' // '회수' 상태일 때는 보이지 않음
 })
 
 // 📌 선택된 결재선
@@ -266,6 +310,41 @@ async function fetchPresignedUrls() {
 async function fetchDetail() {
   isLoading.value = true
     try {
+    // --- START: Ensure employeeId is in localStorage and myId ref is set --- BEGIN
+    let employeeIdFromLocalStorage = userStore.employeeId
+    console.log('fetchDetail: Initial userStore employeeId:', employeeIdFromLocalStorage)
+
+    if (!employeeIdFromLocalStorage || employeeIdFromLocalStorage === 'null' || employeeIdFromLocalStorage === 'undefined') {
+      console.log('fetchDetail: employeeId not found in localStorage, trying to fetch from /drafter/me')
+      try {
+        const token = localStorage.getItem("token")
+        if (!token) {
+          console.warn('fetchDetail: No token found in localStorage. Cannot fetch user info.')
+          // router.push({ name: 'LoginPage' }); // 로그인 페이지로 리다이렉트
+          // return; // 토큰이 없으면 함수 종료
+        }
+
+        const userRes = await axios.get("http://localhost:8000/drafter/me", {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        })
+        if (userRes.data && userRes.data.empId) {
+          localStorage.setItem('employeeId', String(userRes.data.empId)) // String으로 저장
+          myId.value = String(userRes.data.empId) // myId ref 업데이트
+          console.log('fetchDetail: Fetched employeeId from /drafter/me and set in localStorage and myId ref:', myId.value)
+        } else {
+          console.warn('fetchDetail: ⚠️ /drafter/me did not return empId. Response data:', userRes.data)
+        }
+      } catch (userFetchError) {
+        console.error('fetchDetail: ❌ Failed to fetch user info from /drafter/me:', userFetchError)
+      }
+    } else {
+      myId.value = employeeIdFromLocalStorage // localStorage에서 가져온 값을 myId ref에 설정
+      console.log('fetchDetail: employeeId already exists in localStorage, set to myId ref:', myId.value)
+    }
+    // --- END: Ensure employeeId is in localStorage and myId ref is set --- END
+
     const res = await axios.get(`http://localhost:8000/drafts/query/${docId}`, {
       headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
     })
@@ -286,14 +365,20 @@ async function fetchDetail() {
     draftDetail.value = {
       docId: data.docId,
       docTitle: data.docTitle,
+      docStatus: data.docStatus,
       team: data.team,
-      position: data.position,
+      position: data.position, // 이 필드는 더 이상 직급으로 사용되지 않음
       drafter: data.drafter,
+      drafterId: String(data.drafterId), // drafterId 추가 및 문자열 변환
+      rankName: data.rankName, // 기안자 직급 추가
       date: data.date?.replace('T', ' ').slice(0, 16) || '',
       keepYear: data.keepYear,
       receiver: parsed.receiver?.join(', ') || '-',
       referer: parsed.reference?.join(', ') || '-',
-      approvalLine: data.approvalLine || [],
+      approvalLine: data.approvalLine.map(line => ({
+        ...line,
+        rankName: line.approvalLine_rankName || line.rankName || '', // approvalLine_rankName 우선 사용
+      })) || [],
       content: {
         refFile: parsed.refFile || [],
         body: parsed.body || ''
@@ -319,32 +404,57 @@ onMounted(fetchDetail)
 
 // 📌 결재라인 목록 중 하나를 클릭하면 해당 ID를 저장
 function selectLine(id) {
-  currentLineId.value = Number(id)     // 🔧 여기서도 숫자로 강제 변환
-  console.log('✅ currentLineId 선택됨:', currentLineId.value)
+  currentLineId.value = Number(id)
+  console.log('✅ 선택된 결재선:', draftDetail.value?.approvalLine.find(line => line.id === id))
 }
 
 // 📌 '결재하기' 버튼 클릭 시 모달 열기
 function openApprovalModal() {
   console.log('🟡 모달 열기 시도')
 
-  // 아무것도 선택되지 않았거나 상태가 '미결'이 아니면 모달 안 열림
+  // 아무것도 선택되지 않았으면 모달 안 열림
   if (!selectedLine.value) {
     console.warn('❌ selectedLine 없음')
     return
   }
 
-  if (selectedLine.value.status !== '미결') {
-    console.warn('❌ 상태가 미결 아님:', selectedLine.value.status)
+  // 현재 로그인한 사용자 ID (ref에서 가져옴)
+  
+  // 결재선의 결재자 ID와 현재 로그인한 사용자의 ID를 문자열로 변환하여 비교
+  if (String(selectedLine.value.employeeId) !== myId.value) {
+    alert('결재 권한이 없습니다.')
     return
+  }
+
+  // 결재선 상태가 '미결'이 아니면 모달 열리지 않음
+  if (selectedLine.value.status !== '미결') {
+      console.warn('❌ 상태가 미결 아님:', selectedLine.value.status)
+      alert('미결 상태의 결재만 처리할 수 있습니다.') // 사용자에게 알림
+      return
   }
 
   console.log('✅ 조건 통과, 모달 오픈')
   showApprovalModal.value = true
 }
 
+// 📌 '회수하기' 버튼 클릭 시 모달 열기
+function openRetrieveModal() {
+  console.log('🟡 회수 모달 열기 시도', {
+    isRetractable: isRetractable.value,
+    showRetrieveModal: showRetrieveModal.value
+  })
+  if (!isRetractable.value) {
+    console.warn('❌ 회수할 수 없는 상태')
+    return
+  }
+  showRetrieveModal.value = true
+  console.log('✅ 모달 상태 변경:', showRetrieveModal.value)
+}
+
 // 📌 모달 닫기
 function closeModal() {
   showApprovalModal.value = false
+  showRetrieveModal.value = false // 회수 모달도 닫기
 }
 
 // 📌 승인 또는 반려 처리 후 다시 기안 상세정보 갱신
@@ -373,6 +483,32 @@ async function handleApprove({ lineId, status, opinion }) {
     showApprovalModal.value = false  // 모달 닫기
   }
 }
+
+async function handleWithdraw() {
+  console.log('📤 handleWithdraw 호출 –', { docId: draftDetail.value.docId })
+  try {
+    const token = localStorage.getItem('token') || ''
+    const headers = token ? { Authorization: `Bearer ${token}` } : {}
+
+    await axios.post(
+      `http://localhost:8000/drafts/query/${draftDetail.value.docId}/recall`,
+      {},
+      { headers }
+    )
+    alert('문서가 성공적으로 회수되었습니다.')
+    // 회수 탭으로 이동하도록 수정
+    router.push({
+      name: 'MyDraftBox',
+      query: { tab: '회수' }
+    })
+  } catch (e) {
+    console.error('❗ 회수 처리 실패', e)
+    alert('회수 처리에 실패했습니다: ' + (e.response?.data?.message || e.message))
+  } finally {
+    showRetrieveModal.value = false
+  }
+}
+
   // 📌 하단 버튼 동작
   // 확인, 취소, 회수, 재상신 버튼
   function handleConfirm() {
@@ -380,10 +516,6 @@ async function handleApprove({ lineId, status, opinion }) {
   }
   function handleCancel() {
     router.back()
-  }
-  function handleWithdraw() {
-    console.log('🌀 회수 요청')
-    // 회수 처리 로직 추가 필요
   }
   function handleResubmit() {
     if (draftDetail.value?.docId) {
@@ -409,7 +541,7 @@ async function handleApprove({ lineId, status, opinion }) {
   }
 
 /* 결재선,버튼 한줄 */
-.approval-header {
+.action-header { /* Renamed from approval-header to be more general */
   display: flex;
   justify-content: space-between; /* 좌우 양끝 정렬 */
   align-items: center;             /* 수직 가운데 정렬 */
@@ -435,7 +567,8 @@ async function handleApprove({ lineId, status, opinion }) {
 /* ✅ 내부 컨텐츠 컨테이너 */
 .container {
   font-family: Arial, sans-serif;
-  max-width: 1350px;
+  min-width: 850px;
+  max-width: 1600px;
   max-height: 1500px;
   margin: 20px auto;
 }
@@ -486,15 +619,19 @@ table {
   margin-bottom: 16px;
 }
 
+.file-attachments-table {
+  margin-bottom: 16px; /* Adjust spacing as needed */
+}
+
 .title-table {
   margin-bottom: 32px; /* 제목 테이블과 본문 테이블 간 간격 */
 }
 
 /* 결재선, 본문용 구조 */
-.approval-header {
-  align-items:baseline;
-  justify-content: space-between;   /* ← 양쪽 끝 정렬 */
-}
+/* .approval-header { */ /* Replaced by .action-header */
+/*   align-items:baseline; */
+/*   justify-content: space-between; */   /* ← 양쪽 끝 정렬 */
+/* } */
 
 .section-title {
   font-weight: bold;
@@ -511,7 +648,7 @@ table {
 }
 
 /* 버튼 기본 */
-.approval-button,
+.action-button, /* Renamed from .approval-button */
 .button {
   font-size: 14px;
   font-weight: bold;
@@ -533,12 +670,12 @@ table {
   box-shadow: inset 1px 1px 10px rgba(0, 0, 0, 0.25);
 }
 
-.approval-button {
+.action-button {
   display: inline-block;
   margin-bottom: 0px;
 }
 
-.approval-button:hover {
+.action-button:hover {
   background-color: white;
   color: #00a8e8;
   border-color: #00a8e8;
@@ -573,7 +710,7 @@ table {
 
 /* 본문영역 */
 .content-header {
-  margin-top: 100px; /* 제목 테이블과 간격 */
+  margin-top: 0; /* 제목 섹션과 병합되었으므로 마진 제거 */
   text-align: center;
   background-color: #f7f8fa;
   font-size: 16px;
@@ -624,5 +761,69 @@ table {
 .line-table tr.hovered:not(.selected) {
   background-color: #D3D3D3;
   transition: background-color 0.3s ease;
+}
+
+/* 테이블 공통 */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 16px;
+}
+
+.section-content-table {
+  margin-bottom: 24px; /* 본문 테이블과의 간격 */
+}
+
+.section-content-table th.label-cell {
+  width: 100px; /* 라벨 칸 너비 고정 */
+  background-color: #f8f9fa;
+  font-weight: bold;
+  text-align: center; /* 라벨 텍스트 중앙 정렬 */
+}
+
+.section-content-table td {
+  text-align: left;
+}
+
+.content-display-box {
+  min-height: 36px; /* 최소 높이 설정 (입력 필드 높이와 유사하게) */
+  padding: 6px; /* 내부 여백 */
+  box-sizing: border-box;
+  border: 1px solid #ccc; /* 테두리 */
+  border-radius: 8px; /* 둥근 모서리 */
+  background-color: #fff;
+  display: flex;
+  align-items: center; /* 세로 중앙 정렬 */
+}
+
+.content-display-box ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.content-display-box li {
+  margin-bottom: 4px;
+}
+
+.content-display-box li:last-child {
+  margin-bottom: 0;
+}
+
+/* 본문영역 */
+.content-header {
+  margin-top: 0; /* 제목 섹션과 병합되었으므로 마진 제거 */
+  text-align: center;
+  background-color: #f7f8fa;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.content-body {
+  min-height: 300px;        /* ✅ 기본 높이 고정 */
+  padding: 16px;
+  white-space: pre-wrap;
+  background-color: #fdfdfd;
+  line-height: 1.6;
 }
 </style>

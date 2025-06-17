@@ -197,7 +197,8 @@
 
 <script>
 import { QuillEditor } from '@vueup/vue-quill';
-import { ref, reactive } from 'vue'
+import { ref, reactive, watch, onBeforeMount } from 'vue'
+import debounce from 'lodash-es/debounce'
 import axios from "axios";
 import SelectionModal from '@/components/eapproval/ApprovalLineModal.vue';
 import SubmitModal from '@/components/eapproval/SubmitModal.vue';
@@ -234,7 +235,7 @@ export default {
     return {
       form: {
         departmentName: "",
-        rankName:"",
+        approvalLine_rankName:"",
         drafter: "",
         draftDate: "",
         retentionPeriod: "",
@@ -265,6 +266,9 @@ export default {
       showDraftSaveModal: false
     };
   },
+  created() {
+    this.autoSave = debounce(this.saveDraftAuto, 5000)
+  },
   mounted() {
     this.loadDrafterInfo();
     const now = new Date();
@@ -274,11 +278,62 @@ export default {
     const hh = String(now.getHours()).padStart(2, '0');
     const min = String(now.getMinutes()).padStart(2, '0');
     this.form.draftDate = `${yyyy}-${mm}-${dd}`; // datetime-local 초기값
+       /* ③ 로컬 캐시가 있으면 복원 ─────────────── */
+    const cached = localStorage.getItem('draft-auto-cache')  // ★ NEW
+    if (cached) {
+      try {
+        const {
+          form, approvalLines,
+          receiverList, referenceList, uploadedFiles
+        } = JSON.parse(cached)
+        Object.assign(this.form, form)
+        this.approvalLines = approvalLines
+        this.receiverList  = receiverList
+        this.referenceList = referenceList
+        this.uploadedFiles = uploadedFiles
+        console.log('🟢 임시저장본 복원 완료')              // ★ NEW
+      } catch { console.warn('⚠️ 캐시 파싱 실패') }        // ★ NEW
+    }
     },
     formattedDraftDate() {
     return this.form.draftDate?.slice(0, 10) || '';
   },
+    beforeUnmount() {                                           // ★ NEW
+    /* 페이지/탭을 떠날 때 마지막 한 번 더 자동 저장 */
+    this.saveDraftAuto()
+  },
+    watch: {                                                    // ★ NEW
+    form:          { deep:true, handler() { this.autoSave() } },
+    approvalLines: { deep:true, handler() { this.autoSave() } },
+    receiverList:  { deep:true, handler() { this.autoSave() } },
+    referenceList: { deep:true, handler() { this.autoSave() } },
+    uploadedFiles: { deep:true, handler() { this.autoSave() } }
+  },
   methods: {
+    async saveDraftAuto() {                                   // ★ NEW
+      const payload = {
+        employeeId:   userStore.user.employeeId,
+        form:         { ...this.form },
+        approvalLines:[ ...this.approvalLines ],
+        receiverList: [ ...this.receiverList ],
+        referenceList:[ ...this.referenceList ],
+        uploadedFiles:[ ...this.uploadedFiles ],
+        savedAt:      new Date().toISOString()
+      }
+
+      /* 1) 서버에 temp 저장 */
+      try {
+        await axios.post('http://localhost:8000/drafts/temp', payload, {
+          headers:{ Authorization:`Bearer ${localStorage.getItem('token')}` }
+        })
+        console.log('💾 [auto] 서버 임시저장 성공')
+      } catch(e){
+        console.warn('⚠️ [auto] 서버 임시저장 실패:', e.message)
+      }
+
+      /* 2) 로컬 캐시 */
+      localStorage.setItem('draft-auto-cache', JSON.stringify(payload))
+    },
     // ① 기안자 정보 불러오기
     async loadDrafterInfo() {
       try {
@@ -388,23 +443,18 @@ export default {
    
 
 
-    async confirmDraftSave() {
-      const now = new Date();
-      const draftData = {
-        form: { ...this.form },
-        approvalLines: [...this.approvalLines],
-        receiverList: [...this.receiverList],
-        referenceList: [...this.referenceList],
-        uploadedFiles: [...this.uploadedFiles],
-        savedAt: now.toISOString(),
-      };
-      try {
-        await axios.post("http://localhost:8000/drafts/temp", draftData);
-        alert("임시저장 완료! 임시저장함에서 확인하세요.");
-      } catch (error) {
-        alert("임시저장 실패: " + (error.response?.data?.message || error.message));
-      }
-    },
+async confirmDraftSave() {
+  try {
+    // 1) 디바운스 기다리지 말고 즉시 저장
+    await this.saveDraftAuto()                       // ← 자동저장 메서드 재사용
+
+    // 2) 사용자 안내
+    alert('임시저장 완료! ‟임시저장함”에서 확인하세요.')
+    this.showDraftSaveModal = false
+  } catch (err) {
+    alert('임시저장 실패: ' + (err.response?.data?.message || err.message))
+  }
+},
 
     // ⑥ 최종 상신하기: rankName·role 포함
     async confirmSubmit() {
@@ -548,7 +598,7 @@ body, html {
   padding: 0;
 }
 
-/* ✅ 전체 화면 스크롤 영역 (사용하지 않음) */
+/* ✅전체 화면 스크롤 영역 (사용하지 않음) */
 .full-scroll {
   height: 100vh;
   overflow-y: auto;
@@ -557,7 +607,6 @@ body, html {
 
 /* ✅ 메인 박스: 전체 레이아웃 래퍼 */
 .main-box {
-
   background: #ffffff;
   border-radius: 12px;
   padding: 20px 32px;
@@ -567,18 +616,13 @@ body, html {
   display: flex;
   flex-direction: column;
   min-height: fit-content;
-  max-width: 1500px;
-  margin: 20px auto;
-  background: #fff;
-  padding: 18px;
-  box-shadow: 1px 1px 20px 1px rgba(0, 0, 0, 0.05);
-  border-radius: 12px;
 }
 
 /* ✅ 내부 컨텐츠 컨테이너 */
 .container {
   font-family: Arial, sans-serif;
-  max-width: 1350px;
+  min-width: 850px;
+  max-width: 1600px;
   max-height: 1500px;
   margin: 20px auto;
 }
