@@ -67,7 +67,6 @@
 
       const json = await res.json()
 
-      // camelCase → snake_case 매핑
       leaveData.value = {
         total_days: json.totalLeave,
         used_days: json.usedLeave,

@@ -99,13 +99,13 @@
 
     onMounted(async () => {
     try {
-        const token = userStore.accessToken  // ✅ 유저 스토어에서 토큰 가져오기
+        const token = userStore.accessToken 
 
         const res = await fetch('http://localhost:8000/attendance/correction/history/process/all', {
-        method: 'GET',
-        headers: {
-            Authorization: `Bearer ${token}`  // ✅ 꼭 넣어야 403 안 남
-        }
+            method: 'GET',
+            headers: {
+                Authorization: `Bearer ${token}`  
+            }
         })
 
         if (!res.ok) {

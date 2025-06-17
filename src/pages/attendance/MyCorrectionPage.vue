@@ -2,29 +2,29 @@
     <h1 class="page-title">내 출근 정정 관리</h1>
     <div class="my-correction-page">
         <!-- 겹치는 탭 -->
-            <div class="tab-wrapper">
-                <div class="tab-menu">
-                    <button
-                    :class="{ active: activeTab === 'used' }"
-                    @click="activeTab = 'used'"
-                    >
-                    사용내역
-                    </button>
-                    <button
-                    :class="{ active: activeTab === 'regist' }"
-                    @click="activeTab = 'regist'"
-                    >
-                    신청내역
-                    </button>
-                </div>
+        <div class="tab-wrapper">
+            <div class="tab-menu">
+                <button
+                :class="{ active: activeTab === 'used' }"
+                @click="activeTab = 'used'"
+                >
+                정정내역
+                </button>
+                <button
+                :class="{ active: activeTab === 'regist' }"
+                @click="activeTab = 'regist'"
+                >
+                신청내역
+                </button>
             </div>
-            <!-- 탭 내용 -->
-            <div class="tab-content">
-                <MyCorrectionUsedCard v-if="activeTab === 'used'"
-                :dateRange="dateRange" />
-                <MyCorrectionRegistCard v-if="activeTab === 'regist'"
-                :dateRange="dateRange" />
-            </div>
+        </div>
+        <!-- 탭 내용 -->
+        <div class="tab-content">
+            <MyCorrectionUsedCard v-if="activeTab === 'used'"
+            :dateRange="dateRange" />
+            <MyCorrectionRegistCard v-if="activeTab === 'regist'"
+            :dateRange="dateRange" />
+        </div>
     </div>
 </template>
 

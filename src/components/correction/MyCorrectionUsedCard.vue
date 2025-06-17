@@ -1,17 +1,17 @@
 <template>
-    <div class="correction-used-wrapper">
-        <div class="section">
-            <AgGrid
-                class="ag-theme-alpine custom-theme"
-                :gridOptions="{ theme: 'legacy' }"
-                :columnDefs="columnDefs"
-                :rowData="leaveUsedData"
-                height="500px"
-                :pagination="true"
-                :paginationPageSize="10"
-            />
-        </div>
+  <div class="correction-used-wrapper">
+    <div class="section">
+      <AgGrid
+        class="ag-theme-alpine custom-theme"
+        :gridOptions="{ theme: 'legacy' }"
+        :columnDefs="columnDefs"
+        :rowData="leaveUsedData"
+        height="500px"
+        :pagination="true"
+        :paginationPageSize="10"
+      />
     </div>
+  </div>
 </template>
 
 <script setup>
@@ -70,17 +70,17 @@
 </script>
 
 <style scoped>
-    .correction-used-wrapper {
-        display: flex;
-        justify-content: space-between;
-        background: #fff;
-        padding: 30px;
-        border-radius: 0px 12px 12px 12px;
-        box-shadow: 1px 1px 20px 1px rgba(0, 0, 0, 0.05);
-        flex-wrap: wrap;
-    }
+  .correction-used-wrapper {
+    display: flex;
+    justify-content: space-between;
+    background: #fff;
+    padding: 30px;
+    border-radius: 0px 12px 12px 12px;
+    box-shadow: 1px 1px 20px 1px rgba(0, 0, 0, 0.05);
+    flex-wrap: wrap;
+  }
 
-    .section {
-        width: 100%;
-    }
+  .section {
+    width: 100%;
+  }
 </style>

@@ -132,7 +132,7 @@
         const res = await fetch(`http://localhost:8000/attendance/correction/approve`, {
         method: 'POST',
         headers: {
-            Authorization: `Bearer ${token}`,        // ✅ 인증 토큰 추가
+            Authorization: `Bearer ${token}`,        
             'Content-Type': 'application/json'
         },
         body: JSON.stringify({ attendanceId: selectedRow.value.attendanceId })
@@ -156,12 +156,12 @@
     }
 
     try {
-        const token = userStore.accessToken // ✅ userStore에서 토큰 가져오기
+        const token = userStore.accessToken 
 
         const res = await fetch(`http://localhost:8000/attendance/correction/reject`, {
         method: 'POST',
         headers: {
-            Authorization: `Bearer ${token}`,        // ✅ 인증 토큰 추가
+            Authorization: `Bearer ${token}`,        
             'Content-Type': 'application/json'
         },
         body: JSON.stringify({
@@ -218,25 +218,25 @@
     ]
 
     onMounted(async () => {
-    try {
-        const token = userStore.accessToken
-        const res = await fetch('http://localhost:8000/attendance/correction/history/request/all', {
-        method: 'GET',
-        headers: {
-            Authorization: `Bearer ${token}`
-        }
-        })
+        try {
+            const token = userStore.accessToken
+            const res = await fetch('http://localhost:8000/attendance/correction/history/request/all', {
+            method: 'GET',
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+            })
 
-        if (!res.ok) {
-        const errorText = await res.text()
-        throw new Error(errorText || '출근 정정 신청 내역 조회 실패')
-        }
+            if (!res.ok) {
+            const errorText = await res.text()
+            throw new Error(errorText || '출근 정정 신청 내역 조회 실패')
+            }
 
-        const json = await res.json()
-        employees.value = json
-    } catch (err) {
-        console.error('출근 정정 신청 내역 조회 실패:', err)
-    }
+            const json = await res.json()
+            employees.value = json
+        } catch (err) {
+            console.error('출근 정정 신청 내역 조회 실패:', err)
+        }
     })
 
     const uniqueHeads = computed(() =>
@@ -272,7 +272,7 @@
             (!props.dateRange.start || requestMonth >= props.dateRange.start) &&
             (!props.dateRange.end || requestMonth <= props.dateRange.end)
         return inKeyword && inOrgFilter && inDateRange
-    })
+        })
     })
 
     function downloadCSV() {

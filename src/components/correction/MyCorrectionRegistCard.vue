@@ -1,49 +1,49 @@
 <template>
-    <div>
-        <div class="section leave-regist-section">
-            <AgGrid
-                class="ag-theme-alpine custom-theme"
-                :gridOptions="{ theme: 'legacy' }"
-                :columnDefs="columnDefs"
-                :rowData="leaveRegistData"
-                height="500px"
-                :pagination="true"
-                :paginationPageSize="10"
-                :style="{ width: '100%' }"
-            />
-            <div class="btn-area">
-                <button class="apply-btn" @click="showModal = true">신청하기</button>
-            </div>
-        </div>
-        <Teleport to="body">
-            <div v-if="showModal" class="overlay">
-                <div class="modal">
-                    <span class="modal-desc">출근 시각 정정 신청</span>
-                    <CorrectionRegistEvent @submit="handleSubmit" @cancel="showModal = false" />
-                </div>
-            </div>
-        </Teleport>
+  <div>
+    <div class="section leave-regist-section">
+      <AgGrid
+        class="ag-theme-alpine custom-theme"
+        :gridOptions="{ theme: 'legacy' }"
+        :columnDefs="columnDefs"
+        :rowData="leaveRegistData"
+        height="500px"
+        :pagination="true"
+        :paginationPageSize="10"
+        :style="{ width: '100%' }"
+      />
+      <div class="btn-area">
+        <button class="apply-btn" @click="showModal = true">신청하기</button>
+      </div>
     </div>
+    <Teleport to="body">
+      <div v-if="showModal" class="overlay">
+        <div class="modal">
+          <span class="modal-desc">출근 시각 정정 신청</span>
+          <CorrectionRegistEvent @submit="handleSubmit" @cancel="showModal = false" />
+        </div>
+      </div>
+    </Teleport>
+  </div>
 </template>
 
 <script setup>
-    import { ref, onMounted } from 'vue'
-    import AgGrid from '@/components/grid/BaseGrid.vue'
-    import CorrectionRegistEvent from './CorrectionRegistEvent.vue'
-    import { useUserStore } from '@/stores/user'
+  import { ref, onMounted } from 'vue'
+  import AgGrid from '@/components/grid/BaseGrid.vue'
+  import CorrectionRegistEvent from './CorrectionRegistEvent.vue'
+  import { useUserStore } from '@/stores/user'
 
-    const leaveRegistData = ref([])
-    const showModal = ref(false)
-    const loading = ref(false)
+  const leaveRegistData = ref([])
+  const showModal = ref(false)
+  const loading = ref(false)
 
-    async function handleSubmit(data) {
-      console.log('제출된 데이터:', data)
-      const userStore = useUserStore()
-      const token = userStore.accessToken
+  async function handleSubmit(data) {
+    console.log('제출된 데이터:', data)
+    const userStore = useUserStore()
+    const token = userStore.accessToken
 
-      if (!token) {
-        alert('로그인이 필요합니다.')
-        return
+    if (!token) {
+      alert('로그인이 필요합니다.')
+      return
     }
 
     try {
@@ -124,70 +124,70 @@
 </script>
 
 <style scoped>
-    .section {
-        background: #fff;
-        padding: 30px;
-        border-radius: 0px 12px 12px 12px;
-        box-shadow: 1px 1px 20px 1px rgba(0, 0, 0, 0.05);
-        flex-wrap: wrap;
-    }
+  .section {
+    background: #fff;
+    padding: 30px;
+    border-radius: 0px 12px 12px 12px;
+    box-shadow: 1px 1px 20px 1px rgba(0, 0, 0, 0.05);
+    flex-wrap: wrap;
+  }
 
-    .btn-area {
-        width: 100%;
-        display: flex;
-        justify-content: flex-end;
-        margin-top: 20px;
-    }
+  .btn-area {
+    width: 100%;
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 20px;
+  }
 
-    .apply-btn {
-        background-color: #00a8e8;
-        color: white;
-        font-weight: bold;
-        border: 1px solid transparent;
-        border-radius: 10px;
-        padding: 10px 30px;
-        cursor: pointer;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-        transition: background-color 0.2s, box-shadow 0.2s;
-        box-sizing: border-box;
-    }
+  .apply-btn {
+    background-color: #00a8e8;
+    color: white;
+    font-weight: bold;
+    border: 1px solid transparent;
+    border-radius: 10px;
+    padding: 10px 30px;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    transition: background-color 0.2s, box-shadow 0.2s;
+    box-sizing: border-box;
+  }
 
-    .apply-btn:hover {
-        background-color: white;
-        color: #00a8e8;
-        border-color: #00a8e8;
-        box-shadow:
-        inset 1px 1px 10px rgba(0, 0, 0, 0.25);
-    }
+  .apply-btn:hover {
+    background-color: white;
+    color: #00a8e8;
+    border-color: #00a8e8;
+    box-shadow:
+    inset 1px 1px 10px rgba(0, 0, 0, 0.25);
+  }
 
-    .overlay {
-        position: fixed; top:0; left:0; right:0; bottom:0;
-        background: rgba(0,0,0,0.4);
-        display: flex; align-items: center; justify-content: center;
-        z-index: 2000;
-    }
+  .overlay {
+    position: fixed; top:0; left:0; right:0; bottom:0;
+    background: rgba(0,0,0,0.4);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 2000;
+  }
 
-    .modal {
-        background: white;
-        padding: 30px;
-        border-radius: 20px;
-        width: 420px;
-        box-shadow: 0 2px 12px rgba(0,0,0,0.2);
-    }
+  .modal {
+    background: white;
+    padding: 30px;
+    border-radius: 20px;
+    width: 420px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.2);
+  }
 
-    .modal-desc {
-        display: block;
-        text-align: center;
-        font-weight: bold;
-        font-size: 20px;
-        margin-bottom: 20px;
-    }
+  .modal-desc {
+    display: block;
+    text-align: center;
+    font-weight: bold;
+    font-size: 20px;
+    margin-bottom: 20px;
+  }
 
-    .desc {
-        display: block;
-        font-size: 18px;
-        color: #666;
-        line-height: 1.4;
-        margin-bottom: 20px;
-    }
+  .desc {
+    display: block;
+    font-size: 18px;
+    color: #666;
+    line-height: 1.4;
+    margin-bottom: 20px;
+  }
 </style>
