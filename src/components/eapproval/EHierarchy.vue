@@ -4,6 +4,10 @@
       <h3 class="company-title">
         DDIS <span class="rep">{{ getCompanyRep() }}</span>
       </h3>
+      <div class="control-buttons">
+        <button @click="expandAll" class="control-btn">전체 보기</button>
+        <button @click="collapseAll" class="control-btn">전체 닫기</button>
+      </div>
       <!-- 본부 리스트 반복 -->
       <ul class="org-list">
         <li v-for="head in hierarchy" :key="head.headId">
@@ -144,7 +148,7 @@
     expanded[key] = !expanded[key]
   }
   function onEmployeeClick(emp) {
-  // emit('employees-selected', [emp.employeeId], emp) // 단일 선택 우선 처리 (이제 필요 없음, watch가 처리)
+  emit('employees-selected', [emp.employeeId], emp) // 단일 선택 우선 처리
 }
   
 
@@ -197,6 +201,33 @@
   watch(selectedEmployees, (newList) => {
     emit('employees-selected', newList)
   })
+
+// 전체 열기
+function expandAll() {
+  hierarchy.value.forEach(head => {
+    expanded['h' + head.headId] = true
+    head.departments.forEach(dept => {
+      expanded['d' + dept.departmentId] = true
+      dept.teams.forEach(team => {
+        expanded['t' + team.teamId] = true
+      })
+    })
+  })
+}
+
+// 전체 닫기
+function collapseAll() {
+  hierarchy.value.forEach(head => {
+    expanded['h' + head.headId] = false
+    head.departments.forEach(dept => {
+      expanded['d' + dept.departmentId] = false
+      dept.teams.forEach(team => {
+        expanded['t' + team.teamId] = false
+      })
+    })
+  })
+}
+
   </script>
   
   <style scoped>
@@ -205,6 +236,8 @@
     font-size: 14px;
     color: #333;
     padding: 0 12px;
+    margin-bottom: 20px;
+    position: relative;  /* 버튼 절대 위치의 기준이 될 요소 */
   }
   
   /* 회사 제목 및 대표자 스타일 */
@@ -291,5 +324,43 @@
   .member-list { list-style: none; margin: 0; padding: 0; }
   .team-list > li,
   .member-list > li { position: relative; padding-left: 24px; }
+  
+  /* 버튼 고정 영역 */
+.control-buttons {
+  position: absolute;
+  top: 12px;             /* 조직도 영역 내부 기준 top */
+  left: 160px;            /* DDIS 텍스트보다 살짝 오른쪽 */
+  display: flex;
+  gap: 8px;
+  z-index: 10;
+  width: auto;
+  height: 32px;          /* 고정 높이 */
+}
+
+/* 버튼 스타일 */
+.control-btn {
+  min-width: 64px;       /* 고정 너비 */
+  height: 32px;          /* 고정 높이 */
+  background-color: #3f3f3f;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  padding: 6px 0px;
+  font-size: 12px;
+  font-weight: bold;
+  color: #ffffff;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: background-color 0.2s, box-shadow 0.2s;
+  box-sizing: border-box;
+  text-align: center;
+}
+
+/* 호버 효과 */
+.control-btn:hover {
+  background-color: white;
+  color: #3f3f3f;
+  border-color: #3f3f3f;
+  box-shadow: inset 1px 1px 10px rgba(0, 0, 0, 0.25);
+}
   </style>
   

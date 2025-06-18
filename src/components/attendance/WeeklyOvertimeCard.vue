@@ -44,6 +44,7 @@
       </div>
     </Teleport>
   </div>
+  <BaseToast ref="toastRef" />
 </template>
 
 <script setup lang="ts">
@@ -51,6 +52,13 @@
   import axios from 'axios'
   import OverTimeEventCard from './OverTimeEventCard.vue'
   import { useUserStore } from '@/stores/user'
+  import BaseToast from '@/components/toast/BaseToast.vue'
+
+  const toastRef = ref(null)
+
+  function showToast(msg) {
+    toastRef.value?.show(msg)
+  }
 
   const show = ref(false)
 
@@ -113,7 +121,7 @@
       throw new Error(message)
     }
 
-    alert('근무 신청이 완료되었습니다.')
+    showToast('근무 신청이 완료되었습니다.')
     show.value = false
 
       const summaryRes = await axios.get('http://localhost:8000/attendance/overtime-summary', {
@@ -121,7 +129,8 @@
       })
       summary.value = summaryRes.data
     } catch (err) {
-      alert('신청 실패: ' + err.message)
+      showToast('초과 근무는 주당 누적 12시간을 초과할 수 없습니다.')
+      show.value = false
     }
   }
 

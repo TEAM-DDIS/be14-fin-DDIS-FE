@@ -1,36 +1,35 @@
 <!-- 퇴직금명세서 상세 모달 -->
 <template>
-  <!-- 모달 바깥 영역 클릭 시 닫기 -->
-  <div class="modal-wrapper" @click.self="emit('close')">
+  <!-- 모달: 배경 클릭 시 닫기 제거 -->
+  <div class="modal-wrapper">
     <div class="modal" ref="pdfContent">
-      <!-- 닫기 버튼 -->
       <button class="close-btn no-print" @click="emit('close')">×</button>
       <h2 class="modal-title">퇴직금 명세서</h2>
 
       <!-- 인사 정보 테이블 -->
       <table class="info-table bordered">
-          <tbody>
-        <tr>
-          <th class="gray label-left">사번</th><td class="white-bg">{{ slip.employeeId }}</td>
-          <th class="gray label-left">성명</th><td class="white-bg">{{ slip.employeeName }}</td>
-        </tr>
-        <tr>
-          <th class="gray label-left">본부</th><td class="white-bg">{{ slip.headName }}</td>
-          <th class="gray label-left">부서</th><td class="white-bg">{{ slip.departmentName }}</td>
-        </tr>
-        <tr>
-          <th class="gray label-left">팀</th><td class="white-bg">{{ slip.teamName }}</td>
-          <th class="gray label-left">직급</th><td class="white-bg">{{ slip.rankName }}</td>
-        </tr>
-        <tr>
-          <th class="gray label-left">입사일자</th><td class="white-bg">{{ formatDate2(slip.employmentDate) }}</td>
-          <th class="gray label-left">퇴사일자</th><td class="white-bg">{{ formatDate2(slip.retirementDate) }}</td>
-        </tr> 
-        <tr>
-          <th class="gray label-left">근속일수</th><td class="white-bg">{{ slip.totalWorkDays?.toLocaleString() }}일</td>
-          <th class="gray label-left">근속년수</th><td class="white-bg">{{ totalYears }}년</td>
-        </tr>
-          </tbody>
+        <tbody>
+          <tr>
+            <th class="gray label-left">사번</th><td class="white-bg">{{ slip.employeeId }}</td>
+            <th class="gray label-left">성명</th><td class="white-bg">{{ slip.employeeName }}</td>
+          </tr>
+          <tr>
+            <th class="gray label-left">본부</th><td class="white-bg">{{ slip.headName }}</td>
+            <th class="gray label-left">부서</th><td class="white-bg">{{ slip.departmentName }}</td>
+          </tr>
+          <tr>
+            <th class="gray label-left">팀</th><td class="white-bg">{{ slip.teamName }}</td>
+            <th class="gray label-left">직급</th><td class="white-bg">{{ slip.rankName }}</td>
+          </tr>
+          <tr>
+            <th class="gray label-left">입사일자</th><td class="white-bg">{{ formatDate2(slip.employmentDate) }}</td>
+            <th class="gray label-left">퇴사일자</th><td class="white-bg">{{ formatDate2(slip.retirementDate) }}</td>
+          </tr> 
+          <tr>
+            <th class="gray label-left">근속일수</th><td class="white-bg">{{ slip.totalWorkDays?.toLocaleString() }}일</td>
+            <th class="gray label-left">근속년수</th><td class="white-bg">{{ totalYears }}년</td>
+          </tr>
+        </tbody>
       </table>
 
       <!-- 세부 내역 제목 -->
@@ -51,12 +50,10 @@
           </tr>
         </thead>
         <tbody>
-          <!-- 최근 3개월 급여 및 기타 정보 -->
           <tr v-for="(row, idx) in monthlySalaryRows" :key="row.label">
             <td class="text-left">{{ row.label }}</td>
             <td class="right-align">{{ formatCurrency(row.amount) }}</td>
-
-            <td>                      
+            <td>
               <span v-show="idx === 0">3개월 일수</span>
               <span v-show="idx === 1">일 평균임금</span>
               <span v-show="idx === 2">상여금 총합</span>
@@ -67,8 +64,6 @@
               <span v-show="idx === 2">{{ formatCurrency(slip.totalBonus) }}</span>
             </td>
           </tr>
-
-          <!-- 총 지급액 표시 -->
           <tr class="highlight-row">
             <td class="bold-label" colspan="2">총지급</td>
             <td colspan="2" class="right-align highlight">{{ formatCurrency(slip.retireTotal) }}</td>
@@ -100,53 +95,44 @@
         </tbody>
       </table>
 
-      <!-- 하단 버튼 영역 -->
-      <div class="footer">
+<div class="footer">
         <p class="today">{{ formatDate(slip.provisionDate, true) }}</p>
-        <button class="btn left no-print" @click="sendMail">메일 전송</button>
+        <button class="btn left no-print" @click="sendMail">
+          메일 전송
+        </button>
         <button class="btn right no-print" @click="downloadPDF">PDF 다운로드</button>
       </div>
     </div>
+
+    <!-- Toast 알림 -->
+    <BaseToast ref="toastRef" />
   </div>
 </template>
 
 <script setup>
-// 외부 라이브러리 및 Vue API 불러오기
 import { computed, ref } from 'vue'
 import html2pdf from 'html2pdf.js'
-import axios from 'axios' // ✅ axios 추가
+import axios from 'axios'
+import BaseToast from '@/components/toast/BaseToast.vue'
 import { useUserStore } from '@/stores/user'
-const token = localStorage.getItem('token')
-// Props 및 이벤트 정의
+
+const token = useUserStore().accessToken
 const props = defineProps({ slip: Object })
 const emit = defineEmits(['close'])
 
-// PDF 변환 대상 요소 참조
 const pdfContent = ref(null)
+const toastRef = ref(null)
+const sending = ref(false)
 
-// 근속년수 계산
 const totalYears = computed(() => {
   const start = new Date(props.slip.employmentDate)
   const end = new Date(props.slip.retirementDate)
-  const diffTime = Math.abs(end - start)
-  return Math.floor(diffTime / (1000 * 60 * 60 * 24 * 365.25))
+  return Math.floor((end - start) / (1000 * 60 * 60 * 24 * 365.25))
 })
 
-// 숫자 통화 포맷 함수
 const formatCurrency = val =>
   typeof val === 'number' ? val.toLocaleString() : '0'
 
-// 날짜 포맷 (YYYY-MM-DD 또는 YYYY년 MM월 DD일)
-const formatDate2 = (date, full = false) => {
-  if (!date) return '-'
-  const d = new Date(date)
-  const year = d.getFullYear()
-  const month = String(d.getMonth() + 1).padStart(2, '0')
-  const day = String(d.getDate()).padStart(2, '0')
-  return full ? `${year}년 ${month}월 ${day}일` : `${year}-${month}-${day}`
-}
-
-// 날짜 포맷 (기본: YYYY-MM-DD, 전체: YYYY년 M월 D일)
 const formatDate = (date, full = false) => {
   if (!date) return '-'
   const d = new Date(date)
@@ -155,7 +141,8 @@ const formatDate = (date, full = false) => {
     : `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${d.getDate()}`
 }
 
-// 일 평균 임금 계산
+const formatDate2 = formatDate
+
 const averageDailySalary = computed(() => {
   const total =
     (props.slip.month1Salary || 0) +
@@ -167,11 +154,9 @@ const averageDailySalary = computed(() => {
     : 0
 })
 
-// 90일 간의 월별 급여 정보 생성
 const monthlySalaryRows = computed(() => {
   const retirementDate = new Date(props.slip.retirementDate)
   const start = new Date(retirementDate.getTime() - 89 * 86400000)
-  const end = new Date(retirementDate.getTime() - 1 * 86400000)
   const range = Array.from({ length: 90 }, (_, i) => new Date(start.getTime() + i * 86400000))
 
   const months = [
@@ -195,11 +180,15 @@ const monthlySalaryRows = computed(() => {
     }
 
     return { label, amount: prorated, sortDate: new Date(year, m - 1) }
-  }).sort((a, b) => b.sortDate - a.sortDate) // 최신순 정렬
+  }).sort((a, b) => b.sortDate - a.sortDate)
 })
 
-// 메일 전송 API 호출
 async function sendMail() {
+  if (sending.value) return
+
+  sending.value = true
+  toastRef.value?.show('메일 전송 중입니다...')
+
   try {
     await axios.post('http://localhost:8000/retirement/mail', {
       ...props.slip,
@@ -212,18 +201,25 @@ async function sendMail() {
     }, {
       headers: { Authorization: `Bearer ${token}` }
     })
-    alert('메일 전송 완료')
+
+    toastRef.value?.show('메일이 전송되었습니다.')
   } catch (err) {
     console.error('메일 전송 실패:', err)
-    alert('메일 전송 실패')
+    toastRef.value?.show('메일 전송에 실패했습니다.')
+  } finally {
+    sending.value = false
   }
 }
 
-
-// PDF 다운로드 처리
 function downloadPDF() {
+  if (!pdfContent.value) {
+    console.warn('PDF content is not yet available')
+    return
+  }
+
   const clone = pdfContent.value.cloneNode(true)
   clone.querySelectorAll('.no-print').forEach(el => el.remove())
+
   html2pdf().from(clone).set({
     margin: 0.5,
     filename: `${props.slip.employeeName}_퇴직금명세서.pdf`,
@@ -232,7 +228,6 @@ function downloadPDF() {
   }).save()
 }
 </script>
-
 
 <style scoped>
 /* 텍스트 정렬 유틸 */

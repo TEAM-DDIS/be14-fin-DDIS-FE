@@ -53,10 +53,19 @@
         <el-button class="submit-btn" type="primary" @click="submit">신청</el-button>
         </div>
     </div>
+    <BaseToast ref="toastRef" />
 </template>
 
 <script setup>
-    import { reactive } from 'vue'
+    import { ref, reactive } from 'vue'
+    import BaseToast from '@/components/toast/BaseToast.vue'
+
+    const toastRef = ref(null)
+
+    function showToast(msg) {
+    toastRef.value?.show(msg)
+    }
+
     const emit = defineEmits(['cancel', 'submit'])
 
     const form = reactive({
@@ -70,11 +79,10 @@
         (form.type === '휴일 근무' && !form.date) ||
         ((form.type === '시간 외 근무' || form.type === '야간 근무') && !form.duration)
     ) {
-        alert('모든 필드를 입력하세요.')
+        showToast('모든 항목을 입력하세요.')
         return
     }
 
-    // ✅ 서버에 맞게 type 변환
     const typeMap = {
         '시간 외 근무': '시간외근무',
         '야간 근무': '야간근무',

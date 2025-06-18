@@ -32,6 +32,7 @@
 import { onMounted, ref } from 'vue'
 import axios from 'axios'
 import { useRouter } from 'vue-router'
+import { useUserStore } from '@/stores/user'
 
 // 라우터 인스턴스 가져오기
 const router = useRouter()
@@ -45,8 +46,13 @@ function goToDetail(id) {
 
 // 컴포넌트 마운트 시 공지사항 데이터 불러오기
 onMounted(async () => {
+  const token = useUserStore().accessToken
   try {
-    const res = await axios.get('http://localhost:8000/boards/lists')
+    const res = await axios.get('http://localhost:8000/boards/lists', {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    })
     notices.value = res.data
   } catch (e) {
     console.error('공지사항 로딩 오류:', e)

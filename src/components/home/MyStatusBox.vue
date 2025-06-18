@@ -65,12 +65,15 @@
       </div>
     </div>
   </div>
+  <BaseToast ref="toastRef" />
+
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-
+import { useUserStore } from '@/stores/user'
+import BaseToast from '@/components/toast/BaseToast.vue' 
 const router = useRouter()
 
 const user = ref(null)
@@ -81,7 +84,11 @@ const rejectCount = ref(0)
 const remainLeave = ref(0)
 const weeklyWorkHours = ref(0)
 const weeklyOvertimeHours = ref(0)
+const toastRef = ref(null)
 
+function showToast(msg) {
+  toastRef.value?.show(msg)
+}
 function navigateTo(path, tab = '') {
   if (tab) {
     router.push({ path, query: { tab } })
@@ -99,41 +106,39 @@ function onImageError(e) {
 }
 
 onMounted(async () => {
-  const token = localStorage.getItem('token')
+  const token = useUserStore().accessToken
   if (!token) {
     console.error('토큰 없음')
     return
   }
 
-  const headers = {
-    Authorization: `Bearer ${token}`
-  }
+  const headers = { Authorization: `Bearer ${token}` }
 
   try {
-    // 프로필
+    // 유저 정보
     const resUser = await fetch('http://localhost:8000/employees/myinfo', { headers })
-    if (!resUser.ok) throw new Error('유저 정보 실패')
+    if (!resUser.ok) throw new Error('유저 정보 조회 실패')
     user.value = await resUser.json()
 
     // 잔여 연차
     const resLeave = await fetch('http://localhost:8000/attendance/leave/status/me', { headers })
     if (resLeave.ok) {
       const data = await resLeave.json()
-      remainLeave.value = data.remainingLeave
+      remainLeave.value = data?.remainingLeave ?? 0
     }
 
     // 주 근무 시간
     const resWork = await fetch('http://localhost:8000/attendance/work-duration-summary', { headers })
     if (resWork.ok) {
       const data = await resWork.json()
-      weeklyWorkHours.value = convertMinutesToHours(data.totalWorkDuration)
+      weeklyWorkHours.value = convertMinutesToHours(data?.totalWorkDuration ?? 0)
     }
 
     // 주 초과 근무 시간
     const resOvertime = await fetch('http://localhost:8000/attendance/overtime-summary', { headers })
     if (resOvertime.ok) {
       const data = await resOvertime.json()
-      weeklyOvertimeHours.value = convertMinutesToHours(data.totalOvertime)
+      weeklyOvertimeHours.value = convertMinutesToHours(data?.totalOvertime ?? 0)
     }
 
     // 상신 문서
@@ -144,17 +149,18 @@ onMounted(async () => {
       rejectCount.value = data.filter(doc => doc.status === '반려').length
     }
 
-    // 결재 대기 문서                         
+    // 결재 대기 문서
     const resApprovals = await fetch('http://localhost:8000/approvals', { headers })
     if (resApprovals.ok) {
       const data = await resApprovals.json()
       approveWaitingCount.value = data.filter(doc => doc.status === '대기중').length
     }
-
   } catch (err) {
     console.error('데이터 불러오기 실패:', err)
+    showToast('나의 현황 데이터를 불러오지 못했습니다.')
   }
 })
+
 
 </script>
 

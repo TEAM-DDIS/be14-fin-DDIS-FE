@@ -123,6 +123,8 @@
       </section>
     </div>
   </div>
+
+  <BaseToast ref="toastRef" />
 </template>
 
 
@@ -130,10 +132,14 @@
 import { ref, onMounted, nextTick, watch, computed } from 'vue'
 import { useUserStore } from '@/stores/user'
 import axios from 'axios'
+import BaseToast from '@/components/toast/BaseToast.vue'
 
-const userStore = useUserStore()
+
+const token = useUserStore().accessToken
 const resultSection = ref(null)
 const employee = ref(null)
+
+const toastRef = ref(null)
 
 // 날짜 및 연봉, 결과 표시 여부 관련 변수들
 const dateRange = ref({ start: '', end: '' })
@@ -184,7 +190,7 @@ function handleSalaryInput(e) {
 onMounted(async () => {
   try {
     const { data } = await axios.get(`http://localhost:8000/payroll/me`, {
-      headers: { Authorization: `Bearer ${userStore.accessToken}` }
+      headers: { Authorization: `Bearer ${token}` }
     })
     employee.value = data
     if (employee.value?.employmentDate) {
@@ -211,7 +217,7 @@ function calculate() {
   showInsufficient.value = false
 
   if (!dateRange.value.end || Number(annualSalary.value) === 0) {
-    alert('퇴사일과 연봉을 모두 입력해주세요.')
+    showToast('퇴사일과 연봉을 모두 입력해주세요.')
     return
   }
 
@@ -302,6 +308,12 @@ function generateMonthData(retireDateStr) {
     })
   })
   displayedMonths.value = ranges
+}
+
+
+// 메세지 Toast
+function showToast(msg) {
+  toastRef.value?.show(msg)
 }
 </script>
 
