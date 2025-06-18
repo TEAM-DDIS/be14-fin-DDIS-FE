@@ -114,8 +114,9 @@ import { computed, ref } from 'vue'
 import html2pdf from 'html2pdf.js'
 import axios from 'axios'
 import BaseToast from '@/components/toast/BaseToast.vue'
+import { useUserStore } from '@/stores/user'
 
-const token = localStorage.getItem('token')
+const token = useUserStore().accessToken
 const props = defineProps({ slip: Object })
 const emit = defineEmits(['close'])
 
@@ -211,8 +212,14 @@ async function sendMail() {
 }
 
 function downloadPDF() {
+  if (!pdfContent.value) {
+    console.warn('PDF content is not yet available')
+    return
+  }
+
   const clone = pdfContent.value.cloneNode(true)
   clone.querySelectorAll('.no-print').forEach(el => el.remove())
+
   html2pdf().from(clone).set({
     margin: 0.5,
     filename: `${props.slip.employeeName}_퇴직금명세서.pdf`,

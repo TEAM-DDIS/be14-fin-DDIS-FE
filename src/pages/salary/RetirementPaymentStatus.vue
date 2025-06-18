@@ -48,7 +48,7 @@
         :rowData="filteredData"
         height="400px"
         :pagination="true"
-        :paginationPageSize="10"
+        :paginationPageSize="20"
         @row-click="onRowClicked"
         @grid-ready="onGridReady"
       />
@@ -99,6 +99,7 @@ function parseJwtPayload(token) {
 
 // 유저 스토어 및 라우터
 const userStore = useUserStore()
+const token = userStore.accessToken
 const router = useRouter()
 
 // HR 권한 체크
@@ -163,7 +164,7 @@ async function fetchRetirements() {
         provisionSituation: provisionSituation.value || '',
         keyword: searchKeyword.value || ''
       },
-      headers: { Authorization: `Bearer ${userStore.accessToken}` }
+      headers: { Authorization: `Bearer ${token}` }
     })
     retirements.value = Array.isArray(data) ? data : []
     selectedSlip.value = null
@@ -197,7 +198,7 @@ async function openModal() {
 
   try {
     const { data } = await axios.get(`http://localhost:8000/payroll/retirements/${selectedSlip.value.employeeId}`, {
-      headers: { Authorization: `Bearer ${userStore.accessToken}` }
+      headers: { Authorization: `Bearer ${token}` }
     })
     selectedSlip.value = data
     showModal.value = true

@@ -44,6 +44,7 @@ import FullCalendar from '@fullcalendar/vue3'
 import dayGridPlugin from '@fullcalendar/daygrid'
 import interactionPlugin from '@fullcalendar/interaction'
 import koLocale from '@fullcalendar/core/locales/ko'
+import { useUserStore } from '@/stores/user'
 
 // 현재 활성화된 탭 (personal/team)
 const activeTab = ref('personal')
@@ -135,7 +136,7 @@ const calendarOptionsTeam = reactive({
 
 // 일정 데이터 로드
 onMounted(async () => {
-  const token = localStorage.getItem('token')
+  const token = useUserStore().accessToken
   if (!token) return
 
   const [resPersonal, resTeam] = await Promise.all([
@@ -151,7 +152,7 @@ onMounted(async () => {
   const teamData = await resTeam.json()
 
   calendarOptionsPersonal.events = personalData.map(item => ({
-    title: item.title || '',
+    title: '',
     start: item.date,
     className: item.type === 'personal' ? 'event-personal' : convertStatusToClass(item.status),
     extendedProps: item

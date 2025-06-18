@@ -32,9 +32,9 @@
           </tr>
           <tr>
             <th>수신자</th>
-            <td>{{ draftDetail.receiver || '-' }}</td>
+            <td>{{ draftDetail.receiver?.join(', ') || '-' }}</td>
             <th>참조자</th>
-            <td>{{ draftDetail.referer || '-' }}</td>
+            <td>{{ draftDetail.referer?.join(', ') || '-' }}</td>
           </tr>
         </table>
 
@@ -111,6 +111,7 @@
         />
 
         <!-- ◆ 기안 내용 작성 영역 -->
+      <div class = "draft-content">
         <div class="section-title">기안내용</div>
           <hr class="section-divider" />
 
@@ -128,32 +129,32 @@
             <tr>
               <th class="label-cell">첨부파일</th>
               <td>
-                <div >
-                  <template v-if="draftDetail.content.refFile.length">
-                    <ul>
-                      <li
-                        v-for="file in draftDetail.content.refFile"
-                        :key="file.key"
+                <template v-if="draftDetail.attachments?.length">
+                  <ul>
+                    <li
+                      v-for="(file, index) in draftDetail.attachments"
+                      :key="index"
+                    >
+                      <!-- presignedUrls 대신 file.url 사용 -->
+                      <a
+                        v-if="presignedUrls[index]"
+                        :href="presignedUrls[index]"
+                        target="_blank"
+                        rel="noopener noreferrer"
                       >
-                        <a
-                          v-if="file.url"
-                          :href="file.url"
-                          target="_blank"
-                        >
-                          {{ file.name }}
-                        </a>
-                        <span v-else class="file-info error">
-                          {{ file.name }} (URL 생성 실패)
-                        </span>
-                      </li>
-                    </ul>
-                  </template>
-                  <template v-else>-</template>
-                </div>
+                        {{ file.name }} ({{ (file.size / 1024).toFixed(1) }} KB)                      </a>
+                      <span v-else class="file-info error">
+                        {{ file.name }} (URL 생성 실패)
+                      </span>
+                    </li>
+                  </ul>
+                </template>
+                <template v-else>-</template>
               </td>
             </tr>
           </tbody>
         </table>
+      </div>
 
         <!-- 본문 섹션 -->
         <table class="content-table">
@@ -288,12 +289,11 @@ const selectedLine = computed(() => {
 async function fetchPresignedUrls() {
   presignedUrls.value = []
   const token = localStorage.getItem('token')
-  for (const file of draftDetail.value.content.refFile) {
+  for (const file of draftDetail.value.attachments) {
     const qs = new URLSearchParams({
       filename:    file.key,       // DB에 저장된 S3 key
       contentType: file.type       // MIME 타입
     }).toString()
-
     const res = await fetch(
       `http://localhost:8000/s3/download-url?${qs}`,
       { headers: { Authorization: `Bearer ${token}` } }
@@ -305,6 +305,7 @@ async function fetchPresignedUrls() {
     }
   }
 }
+
 
 // 📌 기안 상세 조회 API 호출 함수
 async function fetchDetail() {
@@ -373,21 +374,24 @@ async function fetchDetail() {
       rankName: data.rankName, // 기안자 직급 추가
       date: data.date?.replace('T', ' ').slice(0, 16) || '',
       keepYear: data.keepYear,
-      receiver: parsed.receiver?.join(', ') || '-',
-      referer: parsed.reference?.join(', ') || '-',
+      receiver: data.receiver,
+      referer: Array.isArray(parsed.reference) ? parsed.reference : [],
+
       approvalLine: data.approvalLine.map(line => ({
         ...line,
         rankName: line.approvalLine_rankName || line.rankName || '', // approvalLine_rankName 우선 사용
       })) || [],
       content: {
-        refFile: parsed.refFile || [],
+        refFile: Array.isArray(parsed.refFile) ? parsed.refFile : [],
         body: parsed.body || ''
-      }
+      },
+      attachments: Array.isArray(data.attachments) ? data.attachments : []  // ⬅️ 꼭 포함해야 presigned URL 생성 가능
+
     }
 
 console.log('📦 백엔드에서 받은 제목 - title:', data.docTitle)
 console.log('📦 백엔드에서 받은 내용 - content:',{
-        refFile: parsed.refFile || [],
+        refFile: Array.isArray(parsed.refFile) ? parsed.refFile : [],
         body: parsed.body || ''
       })
 
@@ -400,7 +404,10 @@ console.log('📦 백엔드에서 받은 내용 - content:',{
 }
 
 // 📌 컴포넌트가 화면에 처음 보여질 때 API 호출
-onMounted(fetchDetail)
+onMounted(async () => {
+  await fetchDetail()
+  await fetchPresignedUrls()
+})
 
 // 📌 결재라인 목록 중 하나를 클릭하면 해당 ID를 저장
 function selectLine(id) {
@@ -540,17 +547,18 @@ async function handleWithdraw() {
     font-size: 18px;
   }
 
-/* 결재선,버튼 한줄 */
-.action-header { /* Renamed from approval-header to be more general */
+/* ✅ 액션 헤더 (결재선, 회수하기/결재하기 버튼 포함) */
+.action-header {
   display: flex;
-  justify-content: space-between; /* 좌우 양끝 정렬 */
-  align-items: center;             /* 수직 가운데 정렬 */
-  margin: 16px 0 8px;
-  padding: 0 12px;
-  width: 100%;
-  box-sizing: border-box;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 50px; /* 섹션 전체의 상단 여백 조정 */
+  margin-bottom: 10px;
 }
 
+.draft-content{
+  margin-top: 50px;
+}
 /* ✅ 메인 박스: 전체 레이아웃 래퍼 */
 .main-box {
   background: #ffffff;
@@ -633,18 +641,19 @@ table {
 /*   justify-content: space-between; */   /* ← 양쪽 끝 정렬 */
 /* } */
 
+/* ✅ 섹션 제목 스타일 */
 .section-title {
   font-weight: bold;
-  margin-top: 50px;
+  margin-top: 0px; /* 제목 위 여백을 0으로 설정하여 부모 컨테이너가 제어하도록 함 */
   margin-bottom: 0px;
 }
 
 /* 하단 버튼 그룹 */
 .button-group {
   display: flex;
-  justify-content: center;
-  gap: 8px;
-  margin-top: 16px;
+  justify-content: flex-end; /* 🔧 오른쪽 정렬 */
+  gap: 12px;
+  margin-top: 24px;
 }
 
 /* 버튼 기본 */
@@ -672,7 +681,7 @@ table {
 
 .action-button {
   display: inline-block;
-  margin-bottom: 0px;
+  margin-top: 0px; /* 버튼의 개별 margin-top 제거 */
 }
 
 .action-button:hover {
