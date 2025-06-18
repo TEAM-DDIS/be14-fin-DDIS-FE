@@ -13,7 +13,6 @@
     <!-- 메뉴 편집 모달 -->
     <MenuModal
       v-if="showModal"
-      :employee-id="userStore.user.employeeId"
       @close="handleModalClose"
     />
   </div>

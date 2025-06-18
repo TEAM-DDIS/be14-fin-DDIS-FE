@@ -29,6 +29,8 @@
     </draggable>
 
   </div>
+  <BaseToast ref="toastRef" />
+
 </template>
 
 <script setup>
@@ -36,73 +38,52 @@ import { ref, onMounted, computed } from 'vue'
 import axios from 'axios'
 import draggable from 'vuedraggable'
 import { useUserStore } from '@/stores/user'
-import {HR_ONLY_PATHS} from '@/constants/hronlypaths.js'
-
-// 사용자 토큰
+import { HR_ONLY_PATHS } from '@/constants/hronlypaths.js'
+import BaseToast from '@/components/toast/BaseToast.vue'
+// 인증 및 드래그 상태
 const userStore = useUserStore()
-const token = localStorage.getItem('token')
-
-// 드래그 관련 상태
+const token = useUserStore().accessToken
 const dragging = ref(false)
 const draggingItem = ref(null)
 
-// props: 사원 ID
-const props = defineProps({
-  employeeId: {
-    type: Number,
-    required: true
-  }
-})
-const isHrTeam = computed(() => {
-  try {
-    const payload = JSON.parse(
-      atob(userStore.accessToken.split('.')[1].replace(/-/g,'+').replace(/_/g,'/'))
-    )
-    return (
-      payload.deptName === '인사부서' ||        // 부서명
-      payload.auth?.includes('ROLE_HR')             // roles 배열
-    )
-  } catch { return false }
-})
-console.log('isHrTeam', isHrTeam.value)
 // 자주 쓰는 메뉴 리스트
 const favorites = ref([])
+const toastRef = ref(null)
 
-// API 호출로 자주 쓰는 메뉴 목록 가져오기
+function showToast(msg) {
+  toastRef.value?.show(msg)
+}
+const isHrTeam = computed(() => {
+  try {
+    const payload = JSON.parse(atob(userStore.accessToken.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')))
+    return payload.deptName === '인사부서' || payload.auth?.includes('ROLE_HR')
+  } catch {
+    return false
+  }
+})
+
+// 자주 쓰는 메뉴 불러오기
 const fetchFavorites = async () => {
   try {
-    const { data } = await axios.get(
-      `http://localhost:8000/menus/favorites/${props.employeeId}`,
-      {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
+    const { data } = await axios.get('http://localhost:8000/menus/favorites/me', {
+      headers: {
+        'Authorization': `Bearer ${token}`
       }
-    )
-    // 표시 순서대로 정렬
-    favorites.value = data.sort((a, b) => a.displayOrder - b.displayOrder)
+    })
     favorites.value = data
-    .sort((a, b) => a.displayOrder - b.displayOrder)
-    .filter(m => !(HR_ONLY_PATHS.includes(m.menuPath) && !isHrTeam.value))
+      .sort((a, b) => a.displayOrder - b.displayOrder)
+      .filter(m => !(HR_ONLY_PATHS.includes(m.menuPath) && !isHrTeam.value))
   } catch (err) {
     console.error('자주 쓰는 메뉴 불러오기 실패:', err)
-    alert('자주 쓰는 메뉴 데이터를 불러올 수 없습니다.')
+    showToast('자주 쓰는 메뉴 데이터를 불러올 수 없습니다.')
   }
 }
 
-// 외부에서 자주 쓰는 메뉴 목록을 얻기 위한 메서드
-function getList() {
-  return favorites.value
-}
-
-// 자주 쓰는 메뉴 항목 삭제
-async function remove(menuId) {
+// 자주 쓰는 메뉴 삭제
+const remove = async (menuId) => {
   try {
     await axios.delete('http://localhost:8000/menus/favorites', {
-      params: {
-        employeeId: props.employeeId,
-        menuId
-      },
+      params: { menuId },
       headers: {
         'Authorization': `Bearer ${token}`
       }
@@ -110,52 +91,38 @@ async function remove(menuId) {
     favorites.value = favorites.value.filter(m => m.menuId !== menuId)
   } catch (err) {
     console.error('삭제 실패:', err)
-    alert('삭제 중 오류 발생')
+    showToast('삭제 중 오류 발생했습니다.')
   }
 }
 
-// 드래그 종료 후 순서 저장 처리
-async function handleDragEnd() {
+// 순서 저장
+const handleDragEnd = async () => {
   dragging.value = false
   draggingItem.value = null
 
-  // 새 순서 정보 구성
   const orders = favorites.value.map((item, index) => ({
     menuId: item.menuId,
     displayOrder: index + 1
   }))
 
-  const payload = {
-    employeeId: Number(props.employeeId),
-    orders
-  }
-
-  // 순서 PATCH 요청
   try {
-    await axios.patch('http://localhost:8000/menus/favorites/order', payload, {
+    await axios.patch('http://localhost:8000/menus/favorites/order', { orders }, {
       headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
       }
     })
-    console.log('순서 저장 성공')
-        favorites.value = data.sort((a, b) => a.displayOrder - b.displayOrder)
-    favorites.value = data
-    .sort((a, b) => a.displayOrder - b.displayOrder)
-    .filter(m => !(HR_ONLY_PATHS.includes(m.menuPath) && !isHrTeam.value))
+    // 정렬 반영
+    favorites.value.sort((a, b) => a.displayOrder - b.displayOrder)
   } catch (err) {
-    console.error('순서 저장 실패:', err.response?.data || err.message)
-    alert('드래그 후 순서 저장 실패')
+    console.error('순서 저장 실패:', err)
+    showToast('드래그 후 순서 저장에 실패했습니다.')
   }
 }
 
-// 외부 접근을 위해 메서드 노출
-defineExpose({
-  fetchFavorites,
-  getList
-})
+// 외부에 노출
+defineExpose({ fetchFavorites, getList: () => favorites.value })
 
-// 컴포넌트 마운트 시 데이터 로딩
 onMounted(fetchFavorites)
 </script>
 
