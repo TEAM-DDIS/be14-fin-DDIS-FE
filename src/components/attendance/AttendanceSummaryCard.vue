@@ -71,6 +71,8 @@
     set: val => attendanceStore.workSeconds = val
   })
 
+  let interval = null
+
   let timer = null
   let checkInDate = null
   let isLunchBreak = false
@@ -110,6 +112,11 @@
         waitUntilNine()
       }
     }
+  })
+
+  onUnmounted(() => {
+    if (timer) stopTimer()
+    if (interval) clearInterval(interval)
   })
 
   onMounted(async () => {
@@ -188,7 +195,6 @@
         }
       }, 1000)
 
-      onUnmounted(() => clearInterval(interval))
     } catch (err) {
       console.error('내 근무 현황 API 호출 실패:', err)
     }
@@ -302,10 +308,6 @@
     clearInterval(timer)
     timer = null
   }
-
-  onUnmounted(() => {
-    if (timer) stopTimer()
-  })
 
   const status = computed(() => {
     const nowTime = now()

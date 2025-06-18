@@ -20,10 +20,8 @@
         </div>
         <!-- 탭 내용 -->
         <div class="tab-content">
-            <MyCorrectionUsedCard v-if="activeTab === 'used'"
-            :dateRange="dateRange" />
-            <MyCorrectionRegistCard v-if="activeTab === 'regist'"
-            :dateRange="dateRange" />
+            <MyCorrectionUsedCard v-if="activeTab === 'used'"/>
+            <MyCorrectionRegistCard v-if="activeTab === 'regist'"/>
         </div>
     </div>
 </template>

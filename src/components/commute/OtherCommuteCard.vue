@@ -8,7 +8,7 @@
         :rowData="filteredCommuteList"
         height="600px"
         :pagination="true"
-        :paginationPageSize="10"
+        :paginationPageSize="20"
       />
       <button @click="downloadCSV" class="download-btn">CSV 다운로드</button>
     </div>
