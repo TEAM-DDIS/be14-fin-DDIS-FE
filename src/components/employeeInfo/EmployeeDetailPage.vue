@@ -191,6 +191,7 @@
             :paginationPageSize="pageSize"
             rowSelection="multiple"
             @grid-ready="onGridReady"
+            @cell-clicked="onCellClick"
             style="width:100%; height:100%"
           />
         </div>
@@ -239,6 +240,7 @@ import { useRoute, useRouter } from 'vue-router'
 import axios from 'axios'
 import { useUserStore } from '@/stores/user'
 import { AgGridVue } from 'ag-grid-vue3'
+import detailIconUrl from '@/assets/icons/detail_appointment.svg'
 import {
   ModuleRegistry,
   AllCommunityModule,
@@ -280,14 +282,30 @@ let gridApi         = null
 function onGridReady(params) { gridApi = params.api }
 
 // — 인사발령 컬럼 정의
-const appointmentColumnDefs = ref([
-  { headerName: '번호',                field: 'id',                         width: 90 },
-  { headerName: '사원번호',            field: 'employeeNo', flex: 1,         cellClass: 'center-align' },
-  { headerName: '발령유형',            field: 'appointment_type', flex: 1,  cellClass: 'center-align' },
-  { headerName: '발령일자',            field: 'appointment_effective_date', flex: 1, cellClass: 'center-align' },
-  { headerName: '상태',                field: 'appointment_status',         width: 200 },
-  { headerName: '상세',                field: 'detail',                     width: 100 }
-])
+  const appointmentColumnDefs = ref([
+    // 순번
+    {
+      headerName: '번호',
+      width: 90,
+      valueGetter: params => params.node.rowIndex + 1,
+      sortable: false,
+      suppressMenu: true
+    },
+    // 사원번호
+    { headerName: '사원번호', field: 'employeeId',             flex: 1 },
+    // 발령사유
+    { headerName: '발령사유', field: 'appointmentReason',      flex: 1 },
+    // 발령유형
+    { headerName: '발령유형', field: 'appointmentType',        flex: 1 },
+    // 발령일자
+    { headerName: '발령일자', field: 'appointmentEffectiveDate', flex: 1 },
+    {
+    headerName: '상세',
+    field: 'detail',
+    width: 80,
+    cellRenderer: () => `<img src="${detailIconUrl}" class="detail-btn"/>`
+    }
+  ])
 
 // — 징계 컬럼 정의
 const disciplineColumnDefs = ref([
@@ -407,20 +425,24 @@ async function downloadFile(fileUrl, fileName) {
 }
 
 async function onCellClick(e) {
-  // — “파일” 컬럼 클릭 시 다운로드
-  if (
-    e.colDef.field === 'fileList' &&
-    e.event.target.matches('a') &&
-    e.event.target.dataset.idx != null
-  ) {
-    e.event.preventDefault()
-    const idx  = Number(e.event.target.dataset.idx)
-    const file = (e.data.fileList || [])[idx]
-    if (!file) return
-    // 다운로드 헬퍼 호출
-    await downloadFile(file.fileUrl, file.fileName)
-    return
-  }
+    // 1) 상세 버튼 클릭
+    if (e.colDef.field === 'detail') {
+      router.push(`/org/appointment/${e.data.appointmentHistoryId}`)
+      return
+    }
+
+    // 2) 파일 목록 클릭 시 다운로드
+    if (
+      e.colDef.field === 'fileList' &&
+      e.event.target.matches('a') &&
+      e.event.target.dataset.idx != null
+    ) {
+      e.event.preventDefault()
+      const idx  = Number(e.event.target.dataset.idx)
+      const file = (e.data.fileList || [])[idx]
+      if (!file) return
+      await downloadFile(file.fileUrl, file.fileName)
+    }
 }
 
 // — 사원 기본 정보 폼
@@ -553,8 +575,8 @@ onMounted(async () => {
   // 2) 인사발령 목록
   try {
     const { data: appts } = await axios.get(
-      '/appointments',
-      { params: { employeeId: id }, headers: authHeaders() }
+      `/appointment-history/employee/${id}`,
+      { headers: authHeaders() }
     )
     appointmentData.value = appts
   } catch (err) {
