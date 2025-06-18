@@ -38,7 +38,7 @@
         @cell-click="onCellClick"
       />
     </div>
-    <div class="actions">
+    <div v-if="isHR" class="actions">
       <!-- selectedCount가 0이면 등록, 아니면 삭제 -->
       <button
         :class="['action-btn', selectedCount > 0 ? 'delete' : 'register']"
@@ -55,6 +55,7 @@
 import { ModuleRegistry, AllCommunityModule } from 'ag-grid-community'
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { useUserStore } from '@/stores/user'
 import BaseGrid from '@/components/grid/BaseGrid.vue'
 import detailIconUrl from '@/assets/icons/detail_appointment.svg'
 
@@ -67,6 +68,28 @@ const rowData         = ref([])
 const selectedCount   = ref(0)
 let gridApi           = null
 const router          = useRouter()
+
+// 인사팀에서만 등록, 삭제버튼 
+const userStore = useUserStore()
+const token = localStorage.getItem('token')
+const payload = parseJwtPayload(userStore.accessToken || token)
+const isHR = payload?.role?.includes('ROLE_HR') || payload?.auth?.includes('ROLE_HR')
+
+function parseJwtPayload(token) {
+  try {
+    const base64Url = token.split('.')[1]
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split('')
+        .map(c => `%${('00' + c.charCodeAt(0).toString(16)).slice(-2)}`)
+        .join('')
+    )
+    return JSON.parse(jsonPayload)
+  } catch (e) {
+    return null
+  }
+}
 
 // 그리드 옵션 (checkbox 포함)
 const gridOptions = {
