@@ -154,6 +154,8 @@
     <!-- 급여명세서 모달 컴포넌트 -->
     <Modal v-if="showModal" :slip="selectedSlip" @close="showModal = false" />
   </div>
+  <BaseToast ref="toastRef" />
+
 </template>
 
 
@@ -164,6 +166,7 @@ import { useRouter } from 'vue-router'
 import AgGrid from '@/components/grid/BaseGrid.vue'
 import Modal from '@/components/salary/PayrollModal.vue'
 import { useUserStore } from '@/stores/user'
+import BaseToast from '@/components/toast/BaseToast.vue' 
 
 // ---------------------------------------------------------
 // HR 권한 체크 로직
@@ -171,7 +174,11 @@ import { useUserStore } from '@/stores/user'
 const router = useRouter()
 const userStore = useUserStore()
 const token = localStorage.getItem('token')
+const toastRef = ref(null)
 
+function showToast(msg) {
+  toastRef.value?.show(msg)
+}
 function parseJwtPayload(token) {
   try {
     const base64Url = token.split('.')[1]
@@ -193,7 +200,7 @@ const payload = parseJwtPayload(userStore.accessToken)
 const isHR = payload?.role?.includes('ROLE_HR') || payload?.auth?.includes('ROLE_HR')
 
 if (!isHR) {
-  alert('접근 권한이 없습니다.')
+  showToast('접근 권한이 없습니다.')
   router.push('/error403')
 }
 // ---------------------------------------------------------
@@ -288,7 +295,7 @@ function scrollToSalarySection() {
 async function fetchSalaryHistory() {
   try {
     if (!dateRange.start || !dateRange.end) {
-      alert('조회기간을 설정해주세요.')
+      showToast('조회기간을 설정해주세요.')
       return
     }
 
