@@ -374,8 +374,12 @@ async function fetchDetail() {
       rankName: data.rankName, // 기안자 직급 추가
       date: data.date?.replace('T', ' ').slice(0, 16) || '',
       keepYear: data.keepYear,
-      receiver: data.receiver,
-      referer: Array.isArray(parsed.reference) ? parsed.reference : [],
+      receiver: Array.isArray(data.receiver)
+        ? data.receiver
+        : (typeof data.receiver === 'string' && data.receiver ? data.receiver.split(',') : []),
+      referer: Array.isArray(data.referer)
+        ? data.referer
+        : (typeof data.referer === 'string' && data.referer ? data.referer.split(',') : []),
 
       approvalLine: data.approvalLine.map(line => ({
         ...line,
