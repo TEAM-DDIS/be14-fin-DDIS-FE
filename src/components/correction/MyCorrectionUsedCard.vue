@@ -8,7 +8,7 @@
         :rowData="leaveUsedData"
         height="500px"
         :pagination="true"
-        :paginationPageSize="10"
+        :paginationPageSize="20"
       />
     </div>
   </div>

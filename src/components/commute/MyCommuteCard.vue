@@ -8,7 +8,7 @@
         :rowData="filteredCommuteList"
         height="600px"
         :pagination="true"
-        :paginationPageSize="10"
+        :paginationPageSize="20"
       />
     </div>
   </div>

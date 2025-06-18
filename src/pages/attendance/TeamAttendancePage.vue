@@ -13,7 +13,7 @@
         </div>
         <div class="right-panel">
             <span class="desc">팀 캘린더</span>
-            <TeamCalendar @add="handleAddPersonalEvent"/>
+            <TeamCalendar/>
         </div>
     </div>
 </template>
