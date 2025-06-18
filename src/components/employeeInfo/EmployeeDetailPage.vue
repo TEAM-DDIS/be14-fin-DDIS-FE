@@ -15,98 +15,292 @@
   <div class="employee-detail">
     <div class="card compact-card adjusted-card short-height-card overflow-scroll-wrapper top-card">
       <div class="top-card-layout">
-        <!-- 프로필 -->
+                <!-- 프로필 -->
         <div class="profile-area">
-          <img
-            v-if="form.employeePhotoUrl"
-            :src="form.employeePhotoUrl"
-            class="profile-img"
-          />
-          <div v-else class="profile-placeholder-box">
-            <span>사진 없음</span>
+          <div class="profile-wrapper">
+            <!-- 실제 이미지(또는 placeholder)를 클릭 가능하게 -->
+            <img
+              v-if="previewSrc"
+              :src="previewSrc"
+              class="profile-img"
+              :class="{ editable: isEditing }"
+              @click="isEditing && triggerFileSelect()"
+            />
+            <div
+              v-else
+              class="profile-placeholder-box editable"
+              @click="isEditing && triggerFileSelect()"
+            >
+              <span>사진 없음</span>
+            </div>
+
+            <!-- 수정 모드일 때만 보이는 업로드 아이콘 -->
+            <button
+              v-if="isEditing"
+              class="upload-btn-icon"
+              type="button"
+              @click="triggerFileSelect"
+            >
+              <img
+                src="@/assets/icons/img_btn.svg"
+                alt="Upload"
+                class="upload-icon"
+              />
+            </button>
+
+            <!-- 숨겨진 파일 입력창 -->
+            <input
+              ref="fileInput"
+              type="file"
+              accept="image/*"
+              style="display: none"
+              @change="onPhotoSelected"
+            />
           </div>
         </div>
         <!-- 폼 그리드 -->
         <div class="top-grid-info">
           <div class="info-item">
-            <label class="label-bold">사원명</label>
+            <label class="label-bold">사원명
+              <span class="required-star">*</span>
+            </label>  
             <input
               class="same-size-input"
               v-model="form.employeeName"
-              readonly
+              :readonly="!isEditing"
             />
           </div>
+                              <!-- 직무 선택 -->
+            <div class="info-item">
+              <label class="label-bold">직무</label>
+
+              <!-- 수정 중이면 드롭다운 -->
+              <select
+                v-if="isEditing"
+                v-model="form.jobId"
+                class="same-size-input"
+              >
+                <option value="">선택</option>
+                <option
+                  v-for="opt in jobOptions"
+                  :key="opt.id"
+                  :value="opt.id"
+                >
+                  {{ opt.name }}
+                </option>
+              </select>
+
+              <!-- 아니면 읽기 전용 텍스트 -->
+              <input
+                v-else
+                class="same-size-input"
+                :value="jobOptions.find(o => o.id === form.jobId)?.name || '-'"
+                readonly
+              />
+            </div>
+            <div class="info-item">
+              <label class="label-bold">근무형태
+                <span class="required-star">*</span>
+              </label>
+
+              <!-- 수정 모드일 때만 드롭다운 -->
+              <template v-if="isEditing">
+                <select v-model="form.workType" class="same-size-input">
+                  <option value="">선택</option>
+                  <option
+                    v-for="opt in workTypeOptions"
+                    :key="opt"
+                    :value="opt"
+                  >
+                    {{ opt }}
+                  </option>
+                </select>
+              </template>
+
+              <!-- 보기 모드일 때는 읽기 전용 텍스트 -->
+              <template v-else>
+                <input
+                  class="same-size-input"
+                  :value="form.workType || '-'"
+                  readonly
+                />
+              </template>
+            </div>
+            <div class="info-item">
+              <label class="label-bold">
+                본부
+                <span class="required-star">*</span>
+              </label>
+
+              <!-- 수정 모드일 때 드롭다운 -->
+              <template v-if="isEditing">
+                <select v-model="form.headId" class="same-size-input">
+                  <option value="">선택</option>
+                  <option
+                    v-for="opt in headOptions"
+                    :key="opt.id"
+                    :value="opt.id"
+                  >
+                    {{ opt.name }}
+                  </option>
+                </select>
+              </template>
+
+              <!-- 보기 모드일 때 읽기 전용 텍스트 -->
+              <template v-else>
+                <input
+                  class="same-size-input"
+                  :value="headOptions.find(o => o.id === form.headId)?.name || '-'"
+                  readonly
+                />
+              </template>
+            </div>
+
+            <div class="info-item">
+              <label class="label-bold">
+                직책
+                <span class="required-star">*</span>
+              </label>
+
+              <!-- 수정 모드일 때 드롭다운 -->
+              <template v-if="isEditing">
+                <select v-model="form.positionId" class="same-size-input">
+                  <option value="">선택</option>
+                  <option
+                    v-for="opt in positionOptions"
+                    :key="opt.id"
+                    :value="opt.id"
+                  >
+                    {{ opt.name }}
+                  </option>
+                </select>
+              </template>
+
+              <!-- 보기 모드일 때 읽기 전용 텍스트 -->
+              <template v-else>
+                <input
+                  class="same-size-input"
+                  :value="positionOptions.find(o => o.id === form.positionId)?.name || '-'"
+                  readonly
+                />
+              </template>
+            </div>
+
           <div class="info-item">
-            <label class="label-bold">직무</label>
-            <input class="same-size-input" v-model="form.jobName" readonly />
+            <label class="label-bold">입사일
+              <span class="required-star">*</span> 
+            </label>
+            <input type="date" class="same-size-input" v-model="form.employmentDate" :readonly="!isEditing" />
           </div>
           <div class="info-item">
-            <label class="label-bold">근무형태</label>
-            <input class="same-size-input" v-model="form.workType" readonly />
+            <label class="label-bold">
+              부서
+              <span class="required-star">*</span>
+            </label>
+
+            <!-- 수정 모드일 때 드롭다운 -->
+            <template v-if="isEditing">
+              <select v-model="form.departmentId" class="same-size-input">
+                <option value="">선택</option>
+                <option
+                  v-for="opt in departmentOptions"
+                  :key="opt.id"
+                  :value="opt.id"
+                >
+                  {{ opt.name }}
+                </option>
+              </select>
+            </template>
+
+            <!-- 보기 모드일 때 읽기 전용 텍스트 -->
+            <template v-else>
+              <input
+                class="same-size-input"
+                :value="departmentOptions.find(o => o.id === form.departmentId)?.name || '-'"
+                readonly
+              />
+            </template>
           </div>
+
           <div class="info-item">
-            <label class="label-bold">본부</label>
-            <input class="same-size-input" v-model="form.headName" readonly />
-          </div>
-          <div class="info-item">
-            <label class="label-bold">직책</label>
-            <input
-              class="same-size-input"
-              v-model="form.positionName"
-              readonly
-            />
-          </div>
-          <div class="info-item">
-            <label class="label-bold">입사일</label>
-            <input
-              class="same-size-input"
-              v-model="form.employmentDate"
-              readonly
-            />
-          </div>
-          <div class="info-item">
-            <label class="label-bold">부서</label>
-            <input
-              class="same-size-input"
-              v-model="form.departmentName"
-              readonly
-            />
-          </div>
-          <div class="info-item">
-            <label class="label-bold">직급</label>
-            <input class="same-size-input" v-model="form.rankName" readonly />
+            <label class="label-bold">
+              직급
+              <span class="required-star">*</span>
+            </label>
+
+            <!-- 수정 모드일 때 드롭다운 -->
+            <template v-if="isEditing">
+              <select v-model="form.rankId" class="same-size-input">
+                <option value="">선택</option>
+                <option
+                  v-for="opt in rankOptions"
+                  :key="opt.id"
+                  :value="opt.id"
+                >
+                  {{ opt.name }}
+                </option>
+              </select>
+            </template>
+
+            <!-- 보기 모드일 때 읽기 전용 텍스트 -->
+            <template v-else>
+              <input
+                class="same-size-input"
+                :value="rankOptions.find(o => o.id === form.rankId)?.name || '-'"
+                readonly
+              />
+            </template>
           </div>
           <div class="info-item">
             <label class="label-bold">퇴사일</label>
-            <input
-              class="same-size-input"
-              v-model="form.retirementDate"
-              readonly
-            />
+            <input type="date" class="same-size-input" v-model="form.retirementDate" :readonly="!isEditing" />
           </div>
           <div class="info-item">
-            <label class="label-bold">팀</label>
-            <input class="same-size-input" v-model="form.teamName" readonly />
+            <label class="label-bold">
+              팀
+              <span class="required-star">*</span>
+            </label>
+
+            <!-- 수정 모드일 때만 드롭다운 -->
+            <template v-if="isEditing">
+              <select v-model="form.teamId" class="same-size-input">
+                <option value="">선택</option>
+                <option
+                  v-for="opt in teamOptions"
+                  :key="opt.id"
+                  :value="opt.id"
+                >
+                  {{ opt.name }}
+                </option>
+              </select>
+            </template>
+
+            <!-- 보기 모드일 때는 읽기 전용 텍스트 -->
+            <template v-else>
+              <input
+                class="same-size-input"
+                :value="teamOptions.find(o => o.id === form.teamId)?.name || '-'"
+                readonly
+              />
+            </template>
           </div>
           <div class="info-item">
-            <label class="label-bold">연락처</label>
-            <input
-              class="same-size-input"
-              v-model="form.employeeContact"
-              readonly
-            />
+            <label class="label-bold">연락처
+              <span class="required-star">*</span> 
+            </label>
+            <input class="same-size-input" v-model="form.employeeContact" :readonly="!isEditing" />
           </div>
           <div class="info-item">
-            <label class="label-bold">사번</label>
-            <input class="same-size-input" v-model="form.employeeId" readonly />
+            <label class="label-bold">사번
+              <span class="required-star">*</span> 
+            </label>
+            <input class="same-size-input" v-model="form.employeeId" :readonly />
           </div>
           <div class="info-item">
-            <label class="label-bold">이메일</label>
-            <input
-              class="same-size-input"
-              v-model="form.employeeEmail"
-              readonly
-            />
+            <label class="label-bold">이메일
+              <span class="required-star">*</span> 
+            </label>
+            <input class="same-size-input" v-model="form.employeeEmail" :readonly="!isEditing"/>
           </div>
         </div>
       </div>
@@ -132,62 +326,90 @@
         <div v-if="currentTab === '인사정보'">
           <div class="grid-info scrollable-grid">
             <div class="info-column">
-              <div class="info-item">
-                <label class="label-bold">성별</label>
+            <div class="info-item">
+              <label class="label-bold">
+                성별
+                <span class="required-star">*</span>
+              </label>
+
+              <!-- 수정 모드일 때 드롭다운 -->
+              <template v-if="isEditing">
+                <select v-model="form.employeeGender" class="same-size-input">
+                  <option value="">선택</option>
+                  <option
+                    v-for="g in genderOptions"
+                    :key="g"
+                    :value="g"
+                  >
+                    {{ g }}
+                  </option>
+                </select>
+              </template>
+
+              <!-- 보기 모드일 때 읽기 전용 텍스트 -->
+              <template v-else>
                 <input
                   class="same-size-input"
-                  v-model="form.employeeGender"
+                  :value="form.employeeGender || '-'"
                   readonly
                 />
-              </div>
-              <div class="info-item">
-                <label class="label-bold">국적</label>
+              </template>
+            </div>
+            <div class="info-item">
+              <label class="label-bold">국적
+                <span class="required-star">*</span> 
+              </label>
+              <input class="same-size-input" v-model="form.employeeNation" :readonly="!isEditing" />
+            </div>
+            <div class="info-item">
+              <label class="label-bold">생년월일
+                <span class="required-star">*</span> 
+              </label>
+              <input type="date" class="same-size-input" v-model="form.employeeBirth" :readonly="!isEditing" />
+            </div>
+            <div class="info-item">
+              <label class="label-bold">
+                4대 보험
+                <span class="required-star">*</span>
+              </label>
+              <template v-if="isEditing">
+                <select v-model="form.isFourInsurances" class="same-size-input">
+                  <option value="">선택</option>
+                  <option
+                    v-for="opt in insuranceOptions"
+                    :key="opt"
+                    :value="opt"
+                  >
+                    {{ opt }}
+                  </option>
+                </select>
+              </template>
+              <template v-else>
                 <input
                   class="same-size-input"
-                  v-model="form.employeeNation"
+                  :value="form.isFourInsurances || '-'"
                   readonly
                 />
-              </div>
-              <div class="info-item">
-                <label class="label-bold">생년월일</label>
-                <input
-                  class="same-size-input"
-                  v-model="form.employeeBirth"
-                  readonly
-                />
-              </div>
-              <div class="info-item">
-                <label class="label-bold">4대 보험</label>
-                <input
-                  class="same-size-input"
-                  v-model="form.isFourInsurances"
-                  readonly
-                />
-              </div>
-              <div class="info-item">
-                <label class="label-bold">거래 은행</label>
-                <input
-                  class="same-size-input"
-                  v-model="form.bankName"
-                  readonly
-                />
-              </div>
-              <div class="info-item">
-                <label class="label-bold">예금주</label>
-                <input
-                  class="same-size-input"
-                  v-model="form.bankDepositor"
-                  readonly
-                />
-              </div>
-              <div class="info-item">
-                <label class="label-bold">계좌 번호</label>
-                <input
-                  class="same-size-input"
-                  v-model="form.bankAccount"
-                  readonly
-                />
-              </div>
+              </template>
+            </div>
+            <div class="info-item">
+              <label class="label-bold">거래 은행
+                <span class="required-star">*</span> 
+              </label>
+              <input class="same-size-input" v-model="form.bankName" :readonly="!isEditing" />
+            </div>
+            <div class="info-item">
+              <label class="label-bold">예금주
+                <span class="required-star">*</span> 
+              </label>
+              <input class="same-size-input" v-model="form.bankDepositor" :readonly="!isEditing" />
+            </div>
+            <div class="info-item">
+              <label class="label-bold">계좌 번호
+                <span class="required-star">*</span> 
+              </label>
+              <input class="same-size-input" v-model="form.bankAccount" :readonly="!isEditing" />
+            </div>
             </div>
           </div>
         </div>
@@ -196,110 +418,163 @@
         <div v-else-if="currentTab === '개인정보'">
           <div class="grid-info scrollable-grid">
             <div class="info-column">
-              <div class="info-item">
-                <label class="label-bold">주민등록번호</label>
+            <div class="info-item">
+              <label class="label-bold">주민등록번호
+                <span class="required-star">*</span> 
+              </label>
+              <input class="same-size-input" v-model="form.employeeResident" :readonly="!isEditing" />
+            </div>
+            <div class="info-item">
+              <label class="label-bold">주소
+                <span class="required-star">*</span> 
+              </label>
+              <input class="same-size-input" v-model="form.employeeAddress" :readonly="!isEditing"/>
+            </div>
+            <div class="info-item">
+              <label class="label-bold">출신학교
+                <span class="required-star">*</span> 
+              </label>
+              <input class="same-size-input" v-model="form.employeeSchool" :readonly="!isEditing" />
+            </div>
+            <div class="info-item">
+              <label class="label-bold">
+                장애 여부
+                <span class="required-star">*</span>
+              </label>
+
+              <template v-if="isEditing">
+                <select v-model="form.isDisorder" class="same-size-input">
+                  <option value="">선택</option>
+                  <option
+                    v-for="opt in disorderOptions"
+                    :key="opt"
+                    :value="opt"
+                  >
+                    {{ opt }}
+                  </option>
+                </select>
+              </template>
+              <template v-else>
                 <input
                   class="same-size-input"
-                  v-model="form.employeeResident"
+                  :value="form.isDisorder || '-'"
                   readonly
                 />
-              </div>
-              <div class="info-item">
-                <label class="label-bold">주소</label>
+              </template>
+            </div>
+            <div class="info-item">
+              <label class="label-bold">
+                병역 여부
+                <span class="required-star">*</span>
+              </label>
+
+              <!-- 수정 모드일 때 드롭다운 -->
+              <template v-if="isEditing">
+                <select v-model="form.militaryType" class="same-size-input">
+                  <option value="">선택</option>
+                  <option
+                    v-for="m in militaryOptions"
+                    :key="m"
+                    :value="m"
+                  >
+                    {{ m }}
+                  </option>
+                </select>
+              </template>
+
+              <!-- 보기 모드일 때 읽기 전용 텍스트 -->
+              <template v-else>
                 <input
                   class="same-size-input"
-                  v-model="form.employeeAddress"
+                  :value="form.militaryType || '-'"
                   readonly
                 />
-              </div>
-              <div class="info-item">
-                <label class="label-bold">출신학교</label>
+              </template>
+            </div>
+            <div class="info-item">
+              <label class="label-bold">부양 가족 수
+                <span class="required-star">*</span> 
+              </label>
+              <input type="number" class="same-size-input" v-model="form.familyCount" :readonly="!isEditing" />
+            </div>
+            <div class="info-item">
+              <label class="label-bold">
+                결혼 여부
+                <span class="required-star">*</span>
+              </label>
+
+              <!-- 수정 모드일 때 드롭다운 -->
+              <template v-if="isEditing">
+                <select v-model="form.isMarriage" class="same-size-input">
+                  <option value="">선택</option>
+                  <option
+                    v-for="opt in marriageOptions"
+                    :key="opt"
+                    :value="opt"
+                  >
+                    {{ opt }}
+                  </option>
+                </select>
+              </template>
+
+              <!-- 보기 모드일 때 읽기 전용 텍스트 -->
+              <template v-else>
                 <input
                   class="same-size-input"
-                  v-model="form.employeeSchool"
+                  :value="form.isMarriage || '-'"
                   readonly
                 />
-              </div>
-              <div class="info-item">
-                <label class="label-bold">장애여부</label>
+              </template>
+            </div>
+            <div class="info-item">
+              <label class="label-bold">결혼 일자</label>
+              <input type="date" class="same-size-input" v-model="form.marriageDate" :readonly="!isEditing" />
+            </div>
+            <div class="info-item">
+              <label class="label-bold">경력 년수</label>
+              <input type="number" class="same-size-input" v-model="form.careerYearCount" :readonly="!isEditing"/>
+            </div>
+            <div class="info-item">
+              <label class="label-bold">이전 근무 회사</label>
+              <input class="same-size-input" v-model="form.previousCompany" :readonly="!isEditing" />
+            </div>
+            <div class="info-item">
+              <label class="label-bold">최종 학력
+                <span class="required-star">*</span> 
+              </label>
+              <input class="same-size-input" v-model="form.finalAcademic" :readonly="!isEditing" />
+            </div>
+            <div class="info-item">
+              <label class="label-bold">전공</label>
+              <input class="same-size-input" v-model="form.employeeDept" :readonly="!isEditing" />
+            </div>
+            <div class="info-item">
+              <label class="label-bold">
+                졸업년도
+              </label>
+              <!-- 수정 모드일 때 드롭다운 -->
+              <template v-if="isEditing">
+                <select v-model="form.graduationYear" class="same-size-input">
+                  <option value="">선택</option>
+                  <option
+                    v-for="year in yearOptions"
+                    :key="year"
+                    :value="year"
+                  >
+                    {{ year }}
+                  </option>
+                </select>
+              </template>
+
+              <!-- 보기 모드일 때 읽기 전용 텍스트 -->
+              <template v-else>
                 <input
                   class="same-size-input"
-                  v-model="form.isDisorder"
+                  :value="form.graduationYear || '-'" 
                   readonly
                 />
-              </div>
-              <div class="info-item">
-                <label class="label-bold">병역여부</label>
-                <input
-                  class="same-size-input"
-                  v-model="form.militaryType"
-                  readonly
-                />
-              </div>
-              <div class="info-item">
-                <label class="label-bold">부양 가족 수</label>
-                <input
-                  class="same-size-input"
-                  v-model="form.familyCount"
-                  readonly
-                />
-              </div>
-              <div class="info-item">
-                <label class="label-bold">결혼 여부</label>
-                <input
-                  class="same-size-input"
-                  v-model="form.isMarriage"
-                  readonly
-                />
-              </div>
-              <div class="info-item">
-                <label class="label-bold">결혼 일자</label>
-                <input
-                  class="same-size-input"
-                  v-model="form.marriageDate"
-                  readonly
-                />
-              </div>
-              <div class="info-item">
-                <label class="label-bold">경력 년수</label>
-                <input
-                  class="same-size-input"
-                  v-model="form.careerYearCount"
-                  readonly
-                />
-              </div>
-              <div class="info-item">
-                <label class="label-bold">이전 근무 회사</label>
-                <input
-                  class="same-size-input"
-                  v-model="form.previousCompany"
-                  readonly
-                />
-              </div>
-              <div class="info-item">
-                <label class="label-bold">최종 학력</label>
-                <input
-                  class="same-size-input"
-                  v-model="form.finalAcademic"
-                  readonly
-                />
-              </div>
-              <div class="info-item">
-                <label class="label-bold">전공</label>
-                <input
-                  class="same-size-input"
-                  v-model="form.employeeDept"
-                  readonly
-                />
-              </div>
-              <div class="info-item">
-                <label class="label-bold">졸업년도</label>
-                <input
-                  class="same-size-input"
-                  v-model="form.graduationYear"
-                  readonly
-                />
-              </div>
+              </template>
+            </div>
             </div>
           </div>
         </div>
@@ -357,6 +632,27 @@
             />
           </div>
         </div>
+        <!-- ───────── 하단 고정 버튼 ───────── -->
+        <div class="action-buttons-bottom">
+          <!-- 보기 모드 → 수정 버튼 -->
+          <button
+            v-if="isHR && !isEditing"
+            class="btn-save"
+            @click="enterEditMode"
+          >
+            수정
+          </button>
+
+          <!-- 편집 모드 → 취소 / 저장 버튼 -->
+          <template v-else-if="isHR && isEditing">
+            <button class="btn-delete" @click="cancelEdit">
+              취소
+            </button>
+            <button class="btn-save" @click="saveChanges">
+              저장
+            </button>
+          </template>
+        </div>
       </div>
     </template>
   </div>
@@ -364,7 +660,7 @@
 
 
 <script setup>
-import { ref, reactive, onMounted, computed } from 'vue'
+import { ref, reactive, onMounted, computed, readonly } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import axios from 'axios'
 import { useUserStore } from '@/stores/user'
@@ -439,6 +735,109 @@ const defaultColDef = { sortable: true, filter: true, resizable: true }
 const pageSize      = ref(10)
 let gridApi         = null
 function onGridReady(params) { gridApi = params.api }
+
+// 드롭다운 옵션 리스트
+
+const workTypeOptions = ['정규직', '계약직']
+
+const militaryOptions = ['군필', '미필', '보충역', '면제']
+
+const genderOptions = ['남', '여']
+
+const insuranceOptions   = ['가입','미가입']
+
+const disorderOptions    = ['장애','비장애']
+
+const marriageOptions    = ['미혼','기혼']
+
+const headOptions = [
+  { id: 1, name: '개발본부' },
+  { id: 2, name: '경영지원본부' },
+  { id: 3, name: '사업본부' },
+  { id: 4, name: '소속없음' },
+]
+
+const departmentOptions = [
+  { id: 1, name: 'PC게임개발부서' },
+  { id: 2, name: '아트개발부서' },
+  { id: 3, name: '인사부서' },
+  { id: 4, name: '재무회계부서' },
+  { id: 5, name: '마케팅부서' },
+  { id: 6, name: '영업부서' },
+  { id: 7, name: '소속없음' },
+]
+
+const teamOptions = [
+  { id: 1, name: 'PC개발팀' },
+  { id: 2, name: 'PC게임기획팀' },
+  { id: 3, name: '아트기획팀' },
+  { id: 4, name: '아트팀' },
+  { id: 5, name: '채용팀' },
+  { id: 6, name: '인사평가팀' },
+  { id: 7, name: '급여정산팀' },
+  { id: 8, name: '세무관리팀' },
+  { id: 9, name: '콘텐츠마케팅팀' },
+  { id: 10, name: '퍼포먼스팀' },
+  { id: 11, name: 'B2B영업팀' },
+  { id: 12, name: 'B2C영업팀' },
+  { id: 13, name: '소속없음' },
+]
+
+const jobOptions = [
+  { id: 1, name: 'PC게임개발' },
+  { id: 2, name: 'PC 플랫폼 기반 개발' },
+  { id: 3, name: '게임 기능 구현 및 테스트' },
+  { id: 4, name: 'PC 게임 기획' },
+  { id: 5, name: 'PC 게임 컨셉 및 시나리오 설계' },
+  { id: 6, name: '콘텐츠 기획 및 문서화' },
+  { id: 7, name: '게임 아트 스타일 기획' },
+  { id: 8, name: '비주얼 방향성 설계' },
+  { id: 9, name: '아트 리소스 기획 및 관리' },
+  { id: 10, name: '3D 캐릭터 디자인' },
+  { id: 11, name: '배경, 이펙트 3D 제작' },
+  { id: 12, name: 'UI/UX 디자인 (사용자 인터페이스)' },
+  { id: 13, name: '채용 공고 작성 및 지원자 관리' },
+  { id: 14, name: '면접 일정 조율 및 평가 진행' },
+  { id: 15, name: '리크루팅 채널 관리 및 인재풀 운영' },
+  { id: 16, name: '성과평가 지표 설계 및 운영' },
+  { id: 17, name: '다면평가 및 피드백 관리' },
+  { id: 18, name: '평가 결과 분석 및 보상 연계' },
+  { id: 19, name: '급여 및 상여금 계산' },
+  { id: 20, name: '4대보험 신고 및 정산' },
+  { id: 21, name: '급여 관련 법적 이슈 대응' },
+  { id: 22, name: '부가세, 법인세 신고' },
+  { id: 23, name: '세무 감사 대응' },
+  { id: 24, name: '비용 절감 세무 전략 수립' },
+  { id: 25, name: '콘텐츠 기획 및 제작' },
+  { id: 26, name: '브랜드 캠페인 운영' },
+  { id: 27, name: '마케팅 전략 수립' },
+  { id: 28, name: '퍼포먼스 광고 집행 및 최적화' },
+  { id: 29, name: '매체 운영 및 효율 분석' },
+  { id: 30, name: '기업 대상 서비스 제안 및 계약' },
+  { id: 31, name: '파트너사 관리 및 협업 운영' },
+  { id: 32, name: '맞춤형 솔루션 영업 전략 수립' },
+  { id: 33, name: '개인 고객 대상 제품/서비스 영업' },
+  { id: 34, name: 'CRM 기반 리텐션 전략 수립' },
+  { id: 35, name: '온·오프라인 프로모션 운영' },
+  { id: 36, name: '없음' },
+]
+
+const rankOptions = [
+  { id: 1, name: '사원' },
+  { id: 2, name: '대리' },
+  { id: 3, name: '과장' },
+  { id: 4, name: '부장' },
+  { id: 5, name: '상무' },
+  { id: 6, name: '사장' },
+]
+
+const positionOptions = [
+  { id: 1, name: '팀원' },
+  { id: 2, name: '팀장' },
+  { id: 3, name: '부서장' },
+  { id: 4, name: '본부장' },
+  { id: 5, name: '대표이사' },
+]
 
 // — 인사발령 컬럼 정의
   const appointmentColumnDefs = ref([
@@ -558,6 +957,78 @@ function authHeaders() {
   return { Authorization: `Bearer ${userStore.accessToken}` }
 }
 
+// ───────── 편집 모드 상태 ─────────
+const isEditing = ref(false)
+// 변경 전 원본 보관용
+let original = {}
+
+// 편집 모드 진입
+function enterEditMode() {
+  original = JSON.parse(JSON.stringify(form))
+  isEditing.value = true
+}
+
+// 편집 취소
+function cancelEdit() {
+  Object.assign(form, original)
+  isEditing.value = false
+}
+
+async function saveChanges() {
+  // HR 전용 DTO
+  const hrDto = {
+    employeeName:      form.employeeName,
+    employeePhotoName: form.employeePhotoName,
+    employeePhotoUrl:  form.employeePhotoUrl,
+    employeeNation:    form.employeeNation,
+    employeeGender:    form.employeeGender,
+    employeeBirth:     form.employeeBirth,
+    employeeResident:  form.employeeResident,
+    employeeContact:   form.employeeContact,
+    employeeEmail:     form.employeeEmail,
+    employeeAddress:   form.employeeAddress,
+    employmentDate:    form.employmentDate,
+    retirementDate:    form.retirementDate,
+    workType:          form.workType,
+    bankName:          form.bankName,
+    bankDepositor:     form.bankDepositor,
+    bankAccount:       form.bankAccount,
+    isDisorder:        form.isDisorder,
+    militaryType:      form.militaryType,
+    isMarriage:        form.isMarriage,
+    marriageDate:      form.marriageDate,
+    familyCount:       form.familyCount,
+    careerYearCount:   form.careerYearCount,
+    previousCompany:   form.previousCompany,
+    finalAcademic:     form.finalAcademic,
+    employeeSchool:    form.employeeSchool,
+    employeeDept:      form.employeeDept,
+    graduationYear:    form.graduationYear,
+    isFourInsurances:  form.isFourInsurances,
+    positionId:        form.positionId,
+    rankId:            form.rankId,
+    jobId:             form.jobId,
+    headId:            form.headId,
+    departmentId:      form.departmentId,
+    teamId:            form.teamId,
+  };
+
+  try {
+    // 무조건 HR 전용 PUT 호출
+    await axios.put(
+      `/employees/${form.employeeId}`,
+      hrDto,
+      { headers: authHeaders() }
+    );
+    alert('수정이 완료되었습니다.');
+    isEditing.value = false;
+  } catch (err) {
+    console.error(err);
+    alert('저장에 실패했습니다.');
+  }
+}
+
+
 async function downloadFile(fileUrl, fileName) {
   try {
     const { data: presignedUrl } = await axios.get(
@@ -654,16 +1125,53 @@ function goBack() {
   router.back()
 }
 
-// — mounted 시점에 한 번에 데이터 모두 로드
+
+// 프로필 이미지 미리보기 URL
+const previewSrc = ref('')      
+// 숨겨진 file input 레퍼런스
+const fileInput  = ref(null)
+
+// 파일 선택창 열기
+function triggerFileSelect() {
+  fileInput.value.click()
+}
+
+// 파일이 선택됐을 때 실행
+async function onPhotoSelected(e) {
+  const file = e.target.files?.[0]
+  if (!file) return
+
+  // presigned 업로드 URL + key 얻기
+  const { data: { url, key } } = await axios.get('/s3/upload-url', {
+    params: { filename: file.name, contentType: file.type },
+    headers: authHeaders()
+  })
+  // 파일 PUT
+  await axios.put(url, file, { headers: { 'Content-Type': file.type } })
+
+  // form 에는 key만
+  form.employeePhotoUrl  = key
+  form.employeePhotoName = file.name
+
+  // 미리보기 URL은 별도 변수에
+  const { data: previewUrl } = await axios.get('/s3/download-url', {
+    params: { filename: key, contentType: file.type },
+    headers: authHeaders()
+  })
+  previewSrc.value = previewUrl
+}
+
 onMounted(async () => {
-  const { id } = route.params
+  const { id } = route.params;
 
   // 1) 사원 기본 정보 조회
   try {
     const { data: emp } = await axios.get(
       `/employees/${id}`,
       { headers: authHeaders() }
-    )
+    );
+
+    // ▼ 다른 필드들도 기존처럼 form에 할당
     Object.assign(form, {
       employeeId:       emp.employeeId,
       employeeName:     emp.employeeName,
@@ -704,9 +1212,12 @@ onMounted(async () => {
       headId:           emp.headId,
       departmentId:     emp.departmentId,
       teamId:           emp.teamId
-    })
+    });
 
-    // 사진이 S3 에 있을 경우 presigned URL로 교체
+    // ▼ form 에는 **key** 만 저장
+    form.employeePhotoUrl = emp.employeePhotoUrl;
+
+    // ▼ key 가 있으면 presigned URL 받아와서 previewSrc 에 세팅
     if (emp.employeePhotoUrl) {
       try {
         const { data: url } = await axios.get(
@@ -718,52 +1229,52 @@ onMounted(async () => {
             },
             headers: authHeaders()
           }
-        )
-        form.employeePhotoUrl = url
+        );
+        previewSrc.value = url;
       } catch {
-        form.employeePhotoUrl = ''
+        previewSrc.value = '';
       }
     }
   } catch (err) {
-    console.error(err)
-    alert('사원 정보를 불러오는 데 실패했습니다.')
-    router.back()
-    return
+    console.error(err);
+    alert('사원 정보를 불러오는 데 실패했습니다.');
+    router.back();
+    return;
   }
 
-  // 2) 인사발령 목록
+  // 2) 인사발령 목록 조회
   try {
     const { data: appts } = await axios.get(
       `/appointment-history/employee/${id}`,
       { headers: authHeaders() }
-    )
-    appointmentData.value = appts
+    );
+    appointmentData.value = appts;
   } catch (err) {
-    console.error('인사발령 조회 실패:', err)
+    console.error('인사발령 조회 실패:', err);
   }
 
-  // 3) 징계 목록
+  // 3) 징계 목록 조회
   try {
     const { data: discs } = await axios.get(
       `/disciplinary/employee/${id}`,
       { headers: authHeaders() }
-    )
-    disciplineData.value = discs
+    );
+    disciplineData.value = discs;
   } catch (err) {
-    console.error('징계 조회 실패:', err)
+    console.error('징계 조회 실패:', err);
   }
 
-  // 4) 계약 목록
+  // 4) 계약 목록 조회
   try {
     const { data: contracts } = await axios.get(
       `/contract/employee/${id}`,
       { headers: authHeaders() }
-    )
-    contractData.value = contracts
+    );
+    contractData.value = contracts;
   } catch (err) {
-    console.error('계약 조회 실패:', err)
+    console.error('계약 조회 실패:', err);
   }
-})
+});
 </script>
 
 
@@ -1068,5 +1579,12 @@ input[readonly] {
   white-space: nowrap;
   text-decoration: underline;
   cursor: pointer;
+}
+.action-buttons-bottom {
+  position: absolute;
+  bottom: 16px;
+  right: 16px;
+  display: flex;
+  gap: 8px;
 }
 </style>
