@@ -16,19 +16,18 @@
 
         <!-- ✅ items가 있을 때만 렌더링 -->
         <ul class="submenu-list" v-if="sectionData.items">
-            <li
-            v-for="(item, i) in sectionData.items"
-            :key="i"
-            >
-            <RouterLink
-                v-if="item.path"
-                :to="item.path"
-                class="submenu-link"
-            >
-                {{ item.name }}
-            </RouterLink>
-            <span v-else>{{ item.name }}</span> <!-- 경로 없으면 그냥 텍스트로 표시 -->
-            </li>
+            <template v-for="(item, i) in filteredItems(sectionData.items)" :key="i">
+                <li>
+                <RouterLink
+                    v-if="item.path"
+                    :to="item.path"
+                    class="submenu-link"
+                >
+                    {{ item.name }}
+                </RouterLink>
+                <span v-else>{{ item.name }}</span>
+                </li>
+            </template>
         </ul>
     </div>
    </aside>
@@ -38,6 +37,24 @@
 <script setup>
     import { computed } from 'vue'
     import { RouterLink, useRouter } from 'vue-router'
+    import { useUserStore } from '@/stores/user'
+
+    const userStore  = useUserStore()
+    const isHrTeam   = computed(() => {
+    // 액세스 토큰이 'deptName' 혹은 'roles'에 HR이 있으면 true
+    try {
+        const payload = JSON.parse(
+        atob(userStore.accessToken.split('.')[1].replace(/-/g,'+').replace(/_/g,'/'))
+        )
+        return (
+        payload.deptName === '인사부서' ||            // 부서명으로 체크
+        payload.auth?.includes('ROLE_HR')                // 롤로 체크
+        )
+    } catch { return false }
+    })
+    function filteredItems(items) {
+        return items.filter(it => !(it.hrOnly && !isHrTeam.value))
+    }
 
 
     const props = defineProps({
@@ -97,6 +114,7 @@
                     { 
                         name: '전체 출근 정정 관리',
                         path: '/attendance/allCorrection',
+                        hrOnly: true 
                     },
                 ]
             },
@@ -109,6 +127,7 @@
                     { 
                         name: '전체 출퇴근 관리',
                         path: '/attendance/allCommute',
+                        hrOnly: true 
                     },
                 ]
             },
@@ -121,6 +140,7 @@
                     { 
                         name: '전체 연차 관리',
                         path: '/attendance/allLeave',
+                        hrOnly: true
                     },
                 ]
             }
@@ -152,6 +172,7 @@
                     { 
                         name: '인사발령 등록',
                         path: '/org/appointment/register',
+                        hrOnly: true
                     },
                 ]
             },
@@ -201,7 +222,8 @@
                     },
                     { 
                         name: '급여명세서 발급', 
-                        path: '/salary/payroll/issue' 
+                        path: '/salary/payroll/issue',
+                        hrOnly: true 
                     },
                 ]
             },
@@ -213,7 +235,8 @@
                     },
                     { 
                         name: '퇴직금 지급 현황', 
-                        path: '/salary/retirement/status' 
+                        path: '/salary/retirement/status',
+                        hrOnly: true 
                     },
                 ]
             }
@@ -240,7 +263,8 @@
                     },
                     { 
                         name: '성과 이력',
-                        path: '/org/achievment'
+                        path: '/org/achievment',
+                        hrOnly: true
                     },
                 ]
             }

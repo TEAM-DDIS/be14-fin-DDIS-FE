@@ -1,7 +1,7 @@
 <!-- home > 팀 근태 현황 박스 -->
 <template>
   <div class="box attendance">
-    팀 근태 현황
+    팀 근무 현황
     <TeamStatusCard />
   </div>
 </template>

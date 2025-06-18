@@ -1,17 +1,17 @@
 <template>
-    <div class="leave-used-wrapper">
-        <div class="section">
-            <AgGrid
-                class="ag-theme-alpine custom-theme"
-                :gridOptions="{ theme: 'legacy' }"
-                :columnDefs="columnDefs"
-                :rowData="filteredCommuteList"
-                height="600px"
-                :pagination="true"
-                :paginationPageSize="10"
-            />
-        </div>
+  <div class="leave-used-wrapper">
+    <div class="section">
+      <AgGrid
+        class="ag-theme-alpine custom-theme"
+        :gridOptions="{ theme: 'legacy' }"
+        :columnDefs="columnDefs"
+        :rowData="filteredCommuteList"
+        height="600px"
+        :pagination="true"
+        :paginationPageSize="10"
+      />
     </div>
+  </div>
 </template>
 
 <script setup>

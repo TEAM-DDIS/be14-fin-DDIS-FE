@@ -13,6 +13,7 @@
         :name="user.employeeName"
         :role="user.positionName"
         :status="user.workStatusName"
+        :checkOutTime="user.checkOutTime"
       />
     </div>
   </div>
@@ -21,13 +22,16 @@
 <script setup>
   import { ref, onMounted } from 'vue'
   import TeamWorkStatus from './TeamWorkStatus.vue'
+  import { useUserStore } from '@/stores/user'
 
   const teamName = ref('')
   const statuses = ref([])
   const loading = ref(true)
 
   onMounted(async () => {
-    const token = localStorage.getItem('token')
+    const userStore = useUserStore()
+    const token = userStore.accessToken
+    
     if (!token) {
       console.error('토큰이 없습니다. 로그인 후 다시 시도하세요.')
       return

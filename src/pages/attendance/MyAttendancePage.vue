@@ -26,10 +26,10 @@
 
 <style scoped>
   .page-title {
-      margin-left: 20px;
-      margin-bottom: 30px;
-      color: #00a8e8;
-    }
+    margin-left: 20px;
+    margin-bottom: 30px;
+    color: #00a8e8;
+  }
 
   .desc {
     display: block;
@@ -58,6 +58,6 @@
   }
 
   .right-panel {
-      flex: 1;
+    flex: 1;
   }
 </style>

@@ -32,13 +32,13 @@
         @cell-clicked="onCellClick"
       />
     </div>
-  </div>
 
-  <!-- 3) 하단 버튼 -->
-  <div class="pagination-control">
-    <div class="button-group">
-      <button class="btn-delete" @click="onDeleteClick">삭제</button>
-      <button class="btn-save" @click="onRegister">등록</button>
+        <!-- 3) 하단 버튼 -->
+    <div class="pagination-control">
+      <div class="button-group">
+        <button class="btn-delete" @click="onDeleteClick">삭제</button>
+        <button class="btn-save" @click="onRegister">등록</button>
+      </div>
     </div>
   </div>
 
@@ -81,7 +81,10 @@ import {
   ValidationModule
 } from 'ag-grid-community'
 
-// AG Grid 모듈 등록 (한 번만)
+// — Axios 기본 URL 설정
+axios.defaults.baseURL = 'http://localhost:8000'
+
+// — AG Grid 필요한 모듈 등록 (한 번만)
 ModuleRegistry.registerModules([
   AllCommunityModule,
   ClientSideRowModelModule,
@@ -92,22 +95,22 @@ ModuleRegistry.registerModules([
   ValidationModule
 ])
 
-// 라우터, Pinia 스토어
+// — Pinia 스토어와 라우터
 const router    = useRouter()
 const userStore = useUserStore()
 
-// 그리드 API 참조
+// — 그리드 API 레퍼런스
 let gridApi = null
 function onGridReady(params) {
   gridApi = params.api
 }
 
-// JWT 토큰 헤더
+// — JWT 토큰 헤더 반환
 function authHeaders() {
   return { Authorization: `Bearer ${userStore.accessToken}` }
 }
 
-// 컬럼 정의
+// — 컬럼 정의
 const columnDefs = ref([
   {
     headerName: '',
@@ -117,26 +120,48 @@ const columnDefs = ref([
     width: 50,
     pinned: 'left'
   },
-  { headerName: '번호',          field: 'disciplinaryId',         width: 80,  cellClass: 'center-align' },
-  { headerName: '사원명',        field: 'employeeName',           flex: 1.5 },
-  { headerName: '징계 서류',     field: 'disciplinaryFileName',   flex: 2 },
-  { headerName: '징계 내용',     field: 'disciplinaryDescription',flex: 2 },
-  { headerName: '징계일자',      field: 'disciplinaryDate',       flex: 1,   cellClass: 'center-align' }
+  { headerName: '번호',            field: 'disciplinaryId',          width: 80, cellClass: 'center-align' },
+  { headerName: '사원명',          field: 'employeeName',            flex: 1.2 },
+  {
+    headerName: '징계 서류',
+    field: 'fileList',
+    flex: 2,
+    cellRenderer: params => {
+      const files = Array.isArray(params.value) 
+        ? params.value.filter(f => f && f.fileName) 
+        : []
+      if (!files.length) return '-'
+      return `<div class="file-list-cell">${
+        files.map((f,i) =>
+          `<a href="#" data-idx="${i}">${f.fileName}</a>`
+        ).join('')
+      }</div>`
+    }
+  },
+  { headerName: '징계 내용',      field: 'disciplinaryDescription', flex: 2 },
+  {
+    headerName: '징계일자',
+    field: 'disciplinaryDate',
+    flex: 1,
+    cellClass: 'center-align',
+    valueFormatter: ({ value }) => {
+      const d = new Date(value)
+      return d.toISOString().slice(0,10)
+    }
+  }
 ])
 
-// 데이터 저장소
-const fullData        = ref([])   // 전체 원본
-const rowData         = ref([])   // AG Grid 바인딩
-const searchText      = ref('')   // 검색어
-const pageSize        = ref(20)   // 페이지당 행 수
+// — 상태 변수
+const fullData        = ref([])
+const rowData         = ref([])
+const searchText      = ref('')
+const pageSize        = ref(20)
 const showDeleteModal = ref(false)
-const showImageModal  = ref(false)
-const selectedImageUrl= ref('')
 
-// 초기 목록 조회
+// — 데이터 로드 (인사팀 전용 API)
 onMounted(async () => {
   try {
-    const res = await axios.get('http://localhost:8000/disciplinary', {
+    const res = await axios.get('/disciplinary', {
       headers: authHeaders()
     })
     fullData.value = res.data
@@ -147,7 +172,7 @@ onMounted(async () => {
   }
 })
 
-// 검색 필터링
+// — 검색 필터링
 const filteredData = computed(() => {
   const kw = searchText.value.trim().toLowerCase()
   if (!kw) return rowData.value
@@ -156,60 +181,108 @@ const filteredData = computed(() => {
   )
 })
 
-// 삭제 모달 띄우기
+// — 삭제 버튼 클릭 → 모달 열기
 function onDeleteClick() {
   const sel = gridApi?.getSelectedRows() || []
-  if (!sel.length) return alert('삭제할 항목을 선택하세요.')
+  if (!sel.length) {
+    alert('삭제할 항목을 선택하세요.')
+    return
+  }
   showDeleteModal.value = true
 }
+
+// — 모달 닫기
 function cancelDelete() {
   showDeleteModal.value = false
 }
+
+// — 확인 클릭 → 실제 삭제
 async function confirmDelete() {
-  const sel = gridApi.getSelectedRows()
-  const ids = sel.map(r => r.disciplinaryId)
-  try {
-    await Promise.all(ids.map(id =>
-      axios.delete(`http://localhost:8000/disciplinary/${id}`, {
-        headers: authHeaders()
-      })
-    ))
-    fullData.value = fullData.value.filter(r => !ids.includes(r.disciplinaryId))
-    rowData.value  = rowData.value.filter(r => !ids.includes(r.disciplinaryId))
-    gridApi.deselectAll()
+  const selected = gridApi.getSelectedRows()
+  if (!selected.length) {
     showDeleteModal.value = false
+    return
+  }
+  try {
+    // 1) 백엔드 삭제 API 호출
+    await Promise.all(
+      selected.map(row =>
+        axios.delete(`/disciplinary/${row.disciplinaryId}`, {
+          headers: authHeaders()
+        })
+      )
+    )
+    // 2) 로컬 데이터 제거
+    const deleteIds = selected.map(r => r.disciplinaryId)
+    fullData.value = fullData.value.filter(r => !deleteIds.includes(r.disciplinaryId))
+    rowData.value  = rowData.value.filter(r => !deleteIds.includes(r.disciplinaryId))
+    gridApi.deselectAll()
     alert('선택 항목이 삭제되었습니다.')
   } catch (err) {
     console.error('삭제 실패:', err)
     alert('삭제 중 오류가 발생했습니다.')
+  } finally {
+    showDeleteModal.value = false
   }
 }
 
-// 등록 화면 이동
+// — 등록 화면 이동
 function onRegister() {
   router.push('/employeeInfo/disciplinary/disciplinaryEnroll')
 }
 
-// 셀 클릭 이벤트
-function onCellClick(e) {
-  // 사원명 클릭 → 상세 페이지 이동
-  if (e.colDef.field === 'employeeName') {
-    router.push(`/employeeInfo/disciplinary/${e.data.disciplinaryId}`)
+// — 셀 클릭: 파일 다운로드 / 사원명 클릭 이동
+async function onCellClick(e) {
+  // (1) 징계 서류 링크 클릭
+  if (
+    e.colDef.field === 'fileList' &&
+    e.event.target.matches('a') &&
+    e.event.target.dataset.idx != null
+  ) {
+    e.event.preventDefault()
+    const idx  = Number(e.event.target.dataset.idx)
+    const file = (e.data.fileList || [])[idx]
+    if (!file) return
+
+    try {
+      // presigned URL 요청
+      const { data: presignedUrl } = await axios.get(
+        '/s3/download-url',
+        {
+          params: { filename: file.fileUrl, contentType: '' },
+          headers: authHeaders()
+        }
+      )
+      // Blob으로 받아 강제 다운로드
+      const res  = await fetch(presignedUrl)
+      const blob = await res.blob()
+      const url  = URL.createObjectURL(blob)
+      const a    = document.createElement('a')
+      a.href     = url
+      a.download = file.fileName
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      URL.revokeObjectURL(url)
+    } catch (err) {
+      console.error('파일 다운로드 실패:', err)
+      alert('파일 다운로드에 실패했습니다.')
+    }
     return
   }
-  // 징계 서류 클릭 → 이미지 모달 오픈
-  if (e.colDef.field === 'disciplinaryFileName') {
-    selectedImageUrl.value = e.data.disciplinaryFilePath
-    showImageModal.value = true
+
+  // (2) 사원명 클릭 → 상세 페이지 이동
+  if (e.colDef.field === 'employeeName') {
+    const empId = e.data.employeeId
+    if (!empId) {
+      console.warn('employeeId가 없습니다:', e.data)
+      return
+    }
+    router.push(`/employeeInfo/${empId}`)
   }
 }
-
-// 이미지 모달 닫기
-function closeImageModal() {
-  showImageModal.value = false
-  selectedImageUrl.value = ''
-}
 </script>
+
 
 <style scoped>
 .page-title {
@@ -266,6 +339,7 @@ function closeImageModal() {
 .ag-grid-box {
   height: 500px;
   border: 1px solid #d9d9d9;
+  margin-bottom: 20px;
   border-radius: 8px;
   overflow: hidden;
 }
@@ -273,7 +347,6 @@ function closeImageModal() {
 .pagination-control {
   display: flex;
   justify-content: flex-end;
-  margin: 0 20px 20px;
 }
 .button-group {
   display: flex;
@@ -398,6 +471,21 @@ function closeImageModal() {
 }
 .custom-theme .ag-body-viewport::-webkit-scrollbar-track {
   background: transparent;
+}
+
+:deep(.file-list-cell) {
+  display: flex;
+  flex-wrap: nowrap;
+  /* 링크들 사이 간격을 8px로 설정 */
+  gap: 8px;
+  max-height: 36px;
+  padding-right: 8px;
+}
+/* a 태그는 줄바꿈 없이 */
+.file-list-cell a {
+  white-space: nowrap;
+  text-decoration: underline;
+  cursor: pointer;
 }
 
 /* ▼ 이미지 미리보기 모달 전용 스타일 추가 */

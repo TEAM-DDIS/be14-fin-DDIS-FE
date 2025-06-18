@@ -22,11 +22,11 @@
     <div class="notice-box">
       <div class="notice-item">
         <span class="label">1차촉진(사용계획작성)</span>
-        <span class="value blue">{{ leaveData.first_notice_date }}</span>
+        <span class="value blue">{{ leaveData.first_notice_date || '-' }}</span>
       </div>
       <div class="notice-item">
         <span class="label">2차촉진(사용시기통보)</span>
-        <span class="value">{{ leaveData.second_notice_date || '-' }}</span>
+        <span class="value blue">{{ leaveData.second_notice_date || '-' }}</span>
       </div>
     </div>
   </div>
@@ -34,6 +34,7 @@
 
 <script setup>
   import { ref, onMounted } from 'vue'
+  import { useUserStore } from '@/stores/user'
 
   const leaveData = ref({
     total_days: 0,
@@ -45,7 +46,8 @@
   })
 
   onMounted(async () => {
-    const token = localStorage.getItem('token')  // JWT 토큰
+    const userStore = useUserStore()
+    const token = userStore.accessToken
 
     if (!token) {
       console.error('로그인이 필요합니다.')
@@ -65,7 +67,6 @@
 
       const json = await res.json()
 
-      // camelCase → snake_case 매핑
       leaveData.value = {
         total_days: json.totalLeave,
         used_days: json.usedLeave,
@@ -131,7 +132,7 @@
   }
 
   .value {
-    font-size: 30px;
+    font-size: 25px;
     font-weight: bold;
     color: black;
   }

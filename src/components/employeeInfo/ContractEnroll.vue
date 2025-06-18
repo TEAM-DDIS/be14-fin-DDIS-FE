@@ -11,20 +11,26 @@
           type="file"
           ref="fileInput"
           accept="image/*"
+          multiple
           @change="onFileChange"
           style="display: none"
         />
-        <template v-if="!previewUrl">
+        <template v-if="!previewUrls.length">
           <span class="placeholder-text">
-            계약서/법정서류 이미지를 업로드 해주세요.
+            계약서/법정서류 이미지를 업로드 해주세요. (최대 5장)
           </span>
         </template>
         <template v-else>
-          <img :src="previewUrl" alt="계약서 미리보기" class="preview-img" />
+          <!-- 첫 번째 이미지만 크게 미리보기 -->
+          <img
+            :src="previewUrls[0]"
+            alt="계약서 미리보기"
+            class="preview-img"
+          />
         </template>
       </div>
 
-      <!-- 오른쪽: 정보 입력 테이블 (세로 중앙 정렬) -->
+      <!-- 오른쪽: 정보 입력 테이블 -->
       <div class="form-area">
         <table class="info-table">
           <colgroup>
@@ -32,58 +38,75 @@
             <col />
           </colgroup>
           <tbody>
-            <!-- 새로 추가: 사원명 -->
             <tr>
               <th>사원명</th>
               <td>
                 <input
                   type="text"
                   v-model="form.employeeName"
+                  list="employee-list"
                   placeholder="사원명 입력"
                 />
+                <datalist id="employee-list">
+                  <option
+                    v-for="emp in employeeOptions"
+                    :key="emp.employeeId"
+                    :value="emp.employeeName"
+                  />
+                </datalist>
               </td>
             </tr>
-            <!-- 새로 추가: 사원번호 -->
             <tr>
               <th>사원번호</th>
               <td>
                 <input
                   type="text"
-                  v-model="form.employeeNumber"
-                  placeholder="사원번호 입력"
+                  v-model="form.employeeId"
+                  placeholder="사원번호 자동 입력"
+                  readonly
                 />
               </td>
             </tr>
-            <!-- 기존 항목: 요청일자 -->
+            <tr>
+              <th>계약서/법정서류</th>
+              <td>
+                <input
+                  type="text"
+                  v-model="form.contractDescrip"
+                  placeholder="계약서/법정서류명 입력"
+                />
+              </td>
+            </tr>
             <tr>
               <th>요청일자</th>
               <td>
                 <input type="date" v-model="form.requestDate" />
               </td>
             </tr>
-            <!-- 기존 항목: 계약서명/법정서류 -->
-            <tr>
-              <th>계약서명/법정서류</th>
-              <td>
-                <input
-                  type="text"
-                  v-model="form.contractName"
-                  placeholder="계약서명 또는 법정서류 입력"
-                />
-              </td>
-            </tr>
-            <!-- 기존 항목: 계약일자 -->
             <tr>
               <th>계약일자</th>
               <td>
                 <input type="date" v-model="form.contractDate" />
               </td>
             </tr>
-            <!-- 기존 항목: 만료일자 -->
             <tr>
               <th>만료일자</th>
               <td>
                 <input type="date" v-model="form.endDate" />
+              </td>
+            </tr>
+            <tr v-if="files.length">
+              <th>첨부파일</th>
+              <td>
+                <ul class="attached-list-inline">
+                  <li
+                    v-for="(f, i) in files"
+                    :key="i"
+                    class="file-item-inline"
+                  >
+                    • {{ f.name }}
+                  </li>
+                </ul>
               </td>
             </tr>
           </tbody>
@@ -95,77 +118,138 @@
         </p>
       </div>
     </div>
+              <!-- 하단 버튼 -->
+        <div class="button-row">
+          <button class="btn btn-cancel" @click="onCancel">취소</button>
+          <button class="btn btn-save" @click="onSave">저장</button>
+        </div>
   </div>
 
-  <!-- 하단 버튼 -->
-  <div class="button-row">
-    <button class="btn btn-cancel" @click="onCancel">취소</button>
-    <button class="btn btn-save" @click="onSave">저장</button>
-  </div>
+
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue'
+import { ref, reactive, watch } from 'vue'
+import axios from 'axios'
 import { useRouter } from 'vue-router'
+
+axios.defaults.baseURL = 'http://localhost:8000'
 
 const router = useRouter()
 const fileInput = ref(null)
-const previewUrl = ref('')
 
-// 입력 폼 데이터에 사원명/사원번호 추가
+// 업로드된 File 객체 리스트
+const files = ref([])
+// 미리보기용 URL 리스트
+const previewUrls = ref([])
+
+// 사원 검색 옵션
+const employeeOptions = ref([])
+
+// 폼 데이터 (template에 맞춰 필드만 선언)
 const form = reactive({
-  employeeName: '',
-  employeeNumber: '',
-  requestDate: '',
-  contractName: '',
-  contractDate: '',
-  endDate: ''
+  employeeName:   '',
+  employeeId:     '',
+  contractDescrip:'',
+  requestDate:    '',
+  contractDate:   '',
+  endDate:        ''
 })
 
-// 파일 선택 창 열기
-function triggerFileSelect() {
-  fileInput.value && fileInput.value.click()
-}
-
-// 파일이 선택되면 미리보기 이미지 생성
-function onFileChange(e) {
-  const file = e.target.files[0]
-  if (!file) return
-  const reader = new FileReader()
-  reader.onload = () => {
-    previewUrl.value = reader.result
+// 사원명 입력 시 자동 검색 & 번호 매핑
+watch(() => form.employeeName, async name => {
+  if (!name.trim()) {
+    employeeOptions.value = []
+    form.employeeId = ''
+    return
   }
-  reader.readAsDataURL(file)
+  try {
+    const { data } = await axios.get('/employees/search', { params: { name } })
+    employeeOptions.value = data
+    const match = data.find(e => e.employeeName === name)
+    form.employeeId = match ? String(match.employeeId) : ''
+  } catch (e) {
+    console.error('사원 검색 오류', e)
+  }
+})
+
+function triggerFileSelect() {
+  fileInput.value?.click()
 }
 
-// 취소 버튼 클릭 시 뒤로 가기
+// 최대 5장 제한, previewUrls / files 업데이트
+function onFileChange(e) {
+  const selected = Array.from(e.target.files)
+  if (selected.length > 5) {
+    alert('최대 5장까지 업로드할 수 있습니다.')
+  }
+  const limited = selected.slice(0, 5)
+  files.value = limited
+
+  // 기존 URL 해제
+  previewUrls.value.forEach(URL.revokeObjectURL)
+  previewUrls.value = limited.map(f => URL.createObjectURL(f))
+}
+
 function onCancel() {
   router.back()
 }
 
-// 저장 버튼 클릭 시 처리 (필수 입력값 검사 추가)
-function onSave() {
-  // 필수 입력값이 모두 채워졌는지 확인
+async function onSave() {
+  // 필수 체크
   if (
     !form.employeeName.trim() ||
-    !form.employeeNumber.trim() ||
+    !form.employeeId.trim() ||
+    !form.contractDescrip.trim() ||
     !form.requestDate ||
-    !form.contractName.trim() ||
     !form.contractDate ||
     !form.endDate ||
-    !previewUrl.value
+    !files.value.length
   ) {
-    alert('모든 항목(사원명, 사원번호, 요청일자, 계약서명/법정서류, 계약일자, 만료일자)과 이미지를 입력해야 저장할 수 있습니다.')
+    alert('모든 항목을 입력하고 파일을 업로드해야 저장할 수 있습니다.')
     return
   }
 
-  // 실제 저장 로직 수행
-  console.log('저장할 데이터:', { ...form, image: previewUrl.value })
-  alert('저장되었습니다.')
-  // 저장 후 이동
-  router.push('/employeeInfo/Contract')
+  try {
+    // 1) 파일들 presigned URL 받아 업로드
+    const uploaded = []
+    for (const f of files.value) {
+      const { data: up } = await axios.get('/s3/upload-url', {
+        params: { filename: f.name, contentType: f.type }
+      })
+      await fetch(up.url, {
+        method: 'PUT',
+        headers: { 'Content-Type': f.type },
+        body: f
+      })
+      uploaded.push({
+        fileName: f.name,
+        fileUrl:  up.key,
+        fileSize: f.size
+      })
+    }
+
+    // 2) 계약 등록 API 호출
+    await axios.post('/contracts', {
+      employeeName:    form.employeeName,
+      employeeId:      Number(form.employeeId),
+      contractDescrip: form.contractDescrip,
+      requestDate:     form.requestDate,
+      contractDate:    form.contractDate,
+      endDate:         form.endDate,
+      files:           uploaded
+    })
+
+    alert('계약서가 정상 등록되었습니다.')
+    router.push('/employeeInfo/Contract')
+  } catch (err) {
+    console.error('등록 오류', err)
+    alert('등록 중 오류가 발생했습니다.')
+  }
 }
 </script>
+
+
 
 <style scoped>
 /* 상단 헤더 */
@@ -182,6 +266,7 @@ function onSave() {
 
 /* 카드 영역: 높이를 늘려서 min-height 적용 */
 .card {
+  position: relative; 
   background: #fff;
   border-radius: 12px;
   box-shadow: 1px 1px 20px 1px rgba(0, 0, 0, 0.05);
@@ -268,18 +353,21 @@ function onSave() {
 
 /* 경고문 */
 .warning-text {
+  display: flex;
   margin-top: 16px;
   font-size: 0.85rem;
   color: #6b7280;
   line-height: 1.4;
+  justify-content: flex-end;
 }
 
 /* 하단 버튼 행 */
 .button-row {
+  position: absolute;
+  bottom: 20px;            /* 카드 padding-bottom(32px)보다 살짝 위로 */
+  right: 40px;             /* 카드 padding-right 값과 동일 */
   display: flex;
-  justify-content: flex-end;
   gap: 12px;
-  margin-top: 30px;
 }
 .btn-cancel {
   background-color: #d3d3d3;

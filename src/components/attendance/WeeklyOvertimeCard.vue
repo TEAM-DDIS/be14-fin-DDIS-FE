@@ -50,6 +50,7 @@
   import { ref, onMounted, computed } from 'vue'
   import axios from 'axios'
   import OverTimeEventCard from './OverTimeEventCard.vue'
+  import { useUserStore } from '@/stores/user'
 
   const show = ref(false)
 
@@ -87,7 +88,9 @@
   }
 
   const handleSubmit = async (data) => {
-    const token = localStorage.getItem('token')
+    const userStore = useUserStore()
+    const token = userStore.accessToken
+    
     try {
       const res = await fetch('http://localhost:8000/attendance/overtime-request', {
         method: 'POST',
@@ -121,7 +124,6 @@
       alert('신청 실패: ' + err.message)
     }
   }
-
 
   onMounted(async () => {
     const token = localStorage.getItem('token')
@@ -230,9 +232,9 @@
   }
   .apply-btn:hover {
     background-color: white;
-      color: #00A8E8;
-      border: 1px solid #00A8E8;
-      box-shadow: inset 1px 1px 10px rgba(0, 0, 0, 0.25);
+    color: #00A8E8;
+    border: 1px solid #00A8E8;
+    box-shadow: inset 1px 1px 10px rgba(0, 0, 0, 0.25);
   }
 
     /* 모달 전체 배경 */

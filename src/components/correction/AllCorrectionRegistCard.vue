@@ -93,6 +93,9 @@
     import AgGrid from '@/components/grid/BaseGrid.vue'
     import CorrectionRejectEvent from './CorrectionRejectEvent.vue'
     import CorrectionApproveEvent from './CorrectionApproveEvent.vue'
+    import { useUserStore } from '@/stores/user'
+
+    const userStore = useUserStore()
 
     const showModal = ref(false)
     const modalType = ref('reject') // 'reject' or 'approve'
@@ -118,53 +121,64 @@
     }
 
     async function handleConfirm() {
-        if (!selectedRow.value?.attendanceId) {
-            alert('attendanceId가 없습니다.')
-            return
-        }
-
-        try {
-            const res = await fetch(`http://localhost:8000/attendance/correction/approve`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ attendanceId: selectedRow.value.attendanceId })
-            })
-            if (!res.ok) throw new Error('승인 실패')
-            alert('승인 완료!')
-            showModal.value = false
-            selectedRow.value = null
-            location.reload()
-        } catch (err) {
-            console.error('승인 에러:', err)
-            alert('승인 중 오류 발생')
-        }
+    if (!selectedRow.value?.attendanceId) {
+        alert('attendanceId가 없습니다.')
+        return
     }
 
+    try {
+        const token = userStore.accessToken
+
+        const res = await fetch(`http://localhost:8000/attendance/correction/approve`, {
+        method: 'POST',
+        headers: {
+            Authorization: `Bearer ${token}`,        
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ attendanceId: selectedRow.value.attendanceId })
+        })
+
+        if (!res.ok) throw new Error('승인 실패')
+        alert('승인 완료!')
+        showModal.value = false
+        selectedRow.value = null
+        location.reload()
+    } catch (err) {
+        console.error('승인 에러:', err)
+        alert('승인 중 오류 발생')
+    }
+    }
 
     async function handleSubmit(data) {
-        if (!selectedRow.value?.attendanceId) {
-            alert('attendanceId가 없습니다.')
-            return
-        }
+    if (!selectedRow.value?.attendanceId) {
+        alert('attendanceId가 없습니다.')
+        return
+    }
 
-        try {
-            const res = await fetch(`http://localhost:8000/attendance/correction/reject`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                attendanceId: selectedRow.value.attendanceId,
-                rejectReason: data.reason
-            })
-            })
-            if (!res.ok) throw new Error('반려 실패')
-            alert('반려 완료!')
-            showModal.value = false
-            selectedRow.value = null
-            location.reload()
-        } catch (err) {
-            console.error('반려 에러:', err)
-            alert('반려 중 오류 발생')
-        }
+    try {
+        const token = userStore.accessToken 
+
+        const res = await fetch(`http://localhost:8000/attendance/correction/reject`, {
+        method: 'POST',
+        headers: {
+            Authorization: `Bearer ${token}`,        
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            attendanceId: selectedRow.value.attendanceId,
+            rejectReason: data.reason
+        })
+        })
+
+        if (!res.ok) throw new Error('반려 실패')
+        alert('반려 완료!')
+        showModal.value = false
+        selectedRow.value = null
+        location.reload()
+    } catch (err) {
+        console.error('반려 에러:', err)
+        alert('반려 중 오류 발생')
+    }
     }
 
     const employees = ref([])
@@ -189,8 +203,9 @@
         { headerName: '성명', field: 'employeeName' },
         { headerName: '처리상태', field: 'approvalStatus' },
         { headerName: '신청일', field: 'requestTime' },
+        { headerName: '정정요청일', field: 'workDate'},
         { headerName: '출근시각', field: 'beforeCheckInTime', valueFormatter: ({ value }) => value ? value.split('.')[0] : '' },
-        { headerName: '변경요청시각', field: 'requestedTimeChange',
+        { headerName: '정정요청시각', field: 'requestedTimeChange',
             valueFormatter: ({ value }) => {
                 if (!value) return ''
                 const time = new Date(value).toTimeString().split(' ')[0]
@@ -204,7 +219,19 @@
 
     onMounted(async () => {
         try {
-            const res = await fetch('http://localhost:8000/attendance/correction/history/request/all')
+            const token = userStore.accessToken
+            const res = await fetch('http://localhost:8000/attendance/correction/history/request/all', {
+            method: 'GET',
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+            })
+
+            if (!res.ok) {
+            const errorText = await res.text()
+            throw new Error(errorText || '출근 정정 신청 내역 조회 실패')
+            }
+
             const json = await res.json()
             employees.value = json
         } catch (err) {
@@ -245,7 +272,7 @@
             (!props.dateRange.start || requestMonth >= props.dateRange.start) &&
             (!props.dateRange.end || requestMonth <= props.dateRange.end)
         return inKeyword && inOrgFilter && inDateRange
-    })
+        })
     })
 
     function downloadCSV() {
@@ -255,7 +282,7 @@
         }
 
         const headers = [
-            '사번', '성명', '처리상태', '신청일',
+            '사번', '성명', '처리상태', '신청일', '변경요청날짜',
             '출근시각', '변경요청시각', '처리시간',
             '사유', '반려사유'
         ]
@@ -264,6 +291,7 @@
             `\t${item.employeeId}`,
             item.employeeName,
             item.approvalStatus || '',
+            item.workDate || '',
             item.requestTime || '',
             item.beforeCheckInTime?.split('.')[0] || '',
             item.requestedTimeChange

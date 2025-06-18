@@ -6,7 +6,7 @@
         :gridOptions="{ theme: 'legacy' }"
         :columnDefs="columnDefs"
         :rowData="leaveUsedData"
-        height="400px"
+        height="340px"
         :pagination="true"
         :paginationPageSize="10"
       />
@@ -17,6 +17,7 @@
 <script setup>
   import { ref, onMounted } from 'vue'
   import AgGrid from '@/components/grid/BaseGrid.vue'
+  import { useUserStore } from '@/stores/user'
 
   const leaveUsedData = ref([])
 
@@ -33,7 +34,9 @@
   ]
 
   onMounted(async () => {
-    const token = localStorage.getItem('token')
+    const userStore = useUserStore()
+    const token = userStore.accessToken
+
     if (!token) {
       console.error('로그인이 필요합니다.')
       return
@@ -77,7 +80,7 @@
     justify-content: space-between;
     background: #fff;
     padding: 30px;
-    border-radius: 12px;
+    border-radius: 0px 12px 12px 12px;
     box-shadow: 1px 1px 20px 1px rgba(0, 0, 0, 0.05);
     flex-wrap: wrap;
   }

@@ -144,7 +144,7 @@
     expanded[key] = !expanded[key]
   }
   function onEmployeeClick(emp) {
-  emit('employees-selected', [emp.employeeId], emp) // 단일 선택 우선 처리
+  // emit('employees-selected', [emp.employeeId], emp) // 단일 선택 우선 처리 (이제 필요 없음, watch가 처리)
 }
   
 

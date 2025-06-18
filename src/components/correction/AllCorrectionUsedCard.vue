@@ -57,6 +57,9 @@
 <script setup>
     import { ref, reactive, computed, onMounted } from 'vue'
     import AgGrid from '@/components/grid/BaseGrid.vue'
+    import { useUserStore } from '@/stores/user'
+
+    const userStore = useUserStore()
 
     const employees = ref([])
     const searchKeyword = ref('')
@@ -80,8 +83,9 @@
         { headerName: '성명', field: 'employeeName' },
         { headerName: '처리상태', field: 'approvalStatus' },
         { headerName: '신청일', field: 'requestTime' },
+        { headerName: '정정요청일', field: 'workDate'},
         { headerName: '출근시각', field: 'beforeCheckInTime', valueFormatter: ({ value }) => value ? value.split('.')[0] : '' },
-        { headerName: '변경요청시각', field: 'requestedTimeChange',
+        { headerName: '정정요청시각', field: 'requestedTimeChange',
             valueFormatter: ({ value }) => {
             if (!value) return ''
             const time = new Date(value).toTimeString().split(' ')[0]
@@ -94,13 +98,26 @@
         ]
 
     onMounted(async () => {
-        try {
-            const res = await fetch('http://localhost:8000/attendance/correction/history/process/all')
-            const json = await res.json()
-            employees.value = json
-        } catch (err) {
-            console.error('출근 정정 내역 조회 실패:', err)
+    try {
+        const token = userStore.accessToken 
+
+        const res = await fetch('http://localhost:8000/attendance/correction/history/process/all', {
+            method: 'GET',
+            headers: {
+                Authorization: `Bearer ${token}`  
+            }
+        })
+
+        if (!res.ok) {
+        const text = await res.text()
+        throw new Error(text || '출근 정정 내역 조회 실패')
         }
+
+        const json = await res.json()
+        employees.value = json
+    } catch (err) {
+        console.error('출근 정정 내역 조회 실패:', err)
+    }
     })
 
     const uniqueHeads = computed(() =>
@@ -146,8 +163,8 @@
         }
 
         const headers = [
-            '사번', '성명', '처리상태', '신청일',
-            '출근시각', '변경요청시각', '처리시간',
+            '사번', '성명', '처리상태', '신청일', '정정요청일',
+            '출근시각', '정정요청시각', '처리시간',
             '사유', '반려사유'
         ]
 
@@ -155,6 +172,7 @@
             `\t${item.employeeId}`,
             item.employeeName,
             item.approvalStatus || '',
+            item.workDate || '',
             item.requestTime || '',
             item.beforeCheckInTime?.split('.')[0] || '',
             item.requestedTimeChange

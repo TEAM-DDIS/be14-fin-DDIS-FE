@@ -55,6 +55,7 @@
 
 <script setup>
   import { ref, computed, onMounted, onUnmounted } from 'vue'
+  import { useUserStore } from '@/stores/user'
 
   // 상태
   const name = ref('')
@@ -80,9 +81,24 @@
   // 현재 시각
   const now = () => new Date()
 
+  // 9시까지 대기 후 타이머 시작
+  const waitUntilNine = () => {
+    const nowTime = now()
+    const nineAM = now()
+    nineAM.setHours(9, 0, 0, 0)
+
+    const delay = nineAM - nowTime
+
+    setTimeout(() => {
+      startTimer()
+    }, delay)
+  }
+
   // 서버 시간 받아오기 (출근/퇴근 기록 기반)
   onMounted(async () => {
-    const token = localStorage.getItem('token')
+    const userStore = useUserStore()
+    const token = userStore.accessToken
+
     if (!token) {
       console.error('토큰이 없습니다. 로그인 후 다시 시도하세요.')
       return
@@ -155,8 +171,10 @@
 
         workSeconds.value = Math.max(elapsed, 0)
         isCheckedIn.value = true
-        if (!(nowTime >= noonStart && nowTime < noonEnd)) {
+        if (nowTime >= nineAM && !(nowTime >= noonStart && nowTime < noonEnd)) {
           startTimer()
+        } else {
+          waitUntilNine()
         }
       }
 
@@ -201,7 +219,9 @@
 
   // 출근 등록
   const postCheckIn = async () => {
-    const token = localStorage.getItem('token')
+    const userStore = useUserStore()
+    const token = userStore.accessToken
+
     try {
       const res = await fetch('http://localhost:8000/attendance/check-in', {
         method: 'POST',
@@ -220,7 +240,17 @@
       checkIn.value = formatTime(nowTime)
       isCheckedIn.value = true
       workSeconds.value = 0
-      startTimer()
+      
+      // 9시 기준으로 타이머 시작 여부 분기
+      const nineAM = now()
+      nineAM.setHours(9, 0, 0, 0)
+
+      if (nowTime >= nineAM) {
+        startTimer()
+      } else {
+        waitUntilNine()
+      }
+
     } catch (err) {
       console.error('출근 등록 실패:', err.message)
       alert('출근 등록 중 오류가 발생했습니다.\n' + err.message)
@@ -229,7 +259,9 @@
 
   // 퇴근 등록
   const postCheckOut = async () => {
-    const token = localStorage.getItem('token')
+    const userStore = useUserStore()
+    const token = userStore.accessToken
+    
     try {
       const res = await fetch('http://localhost:8000/attendance/check-out', {
         method: 'PUT',
