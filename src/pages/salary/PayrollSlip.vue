@@ -70,6 +70,7 @@
           :gridOptions="{ theme: 'legacy' }"
           :columnDefs="salaryColumnDefs"
           :rowData="salaryHistory"
+          :paginationPageSize="20"
           @row-click="e => selectSlip(e.data.yearMonth)"
           height="400px"
           :pagination="true"

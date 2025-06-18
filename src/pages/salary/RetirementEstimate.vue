@@ -135,7 +135,7 @@ import axios from 'axios'
 import BaseToast from '@/components/toast/BaseToast.vue'
 
 
-const userStore = useUserStore()
+const token = useUserStore().accessToken
 const resultSection = ref(null)
 const employee = ref(null)
 
@@ -190,7 +190,7 @@ function handleSalaryInput(e) {
 onMounted(async () => {
   try {
     const { data } = await axios.get(`http://localhost:8000/payroll/me`, {
-      headers: { Authorization: `Bearer ${userStore.accessToken}` }
+      headers: { Authorization: `Bearer ${token}` }
     })
     employee.value = data
     if (employee.value?.employmentDate) {

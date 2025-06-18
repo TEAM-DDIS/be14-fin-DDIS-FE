@@ -105,7 +105,7 @@ function showToast(msg) {
   toastRef.value?.show(msg)
 }
 
-const token = localStorage.getItem('token')
+const token = useUserStore().accessToken
 const props = defineProps({
   slip: Object,
   showMailButton: {
