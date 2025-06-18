@@ -52,12 +52,20 @@
             <button @click="downloadCSV" class="download-btn">CSV 다운로드</button>
         </div>
     </div>
+    <BaseToast ref="toastRef" />
 </template>
 
 <script setup>
     import { ref, reactive, computed, onMounted } from 'vue'
     import AgGrid from '@/components/grid/BaseGrid.vue'
     import { useUserStore } from '@/stores/user'
+    import BaseToast from '@/components/toast/BaseToast.vue'
+
+    const toastRef = ref(null)
+
+    function showToast(msg) {
+        toastRef.value?.show(msg)
+    }
 
     const userStore = useUserStore()
 
@@ -158,7 +166,7 @@
 
     function downloadCSV() {
         if (!filteredEmployees.value.length) {
-            alert('출근 정정 내역이 없습니다.')
+            showToast('출근 정정 내역이 없습니다.')
             return
         }
 

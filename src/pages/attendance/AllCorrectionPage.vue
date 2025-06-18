@@ -33,6 +33,7 @@
             </div>
         </div>
     </div>
+    <BaseToast ref="toastRef" />
 </template>
 
 <script setup>
@@ -42,6 +43,13 @@
     import AllCorrectionRegistCard from '@/components/correction/AllCorrectionRegistCard.vue'
     import { useRouter } from 'vue-router'
     import { useUserStore } from '@/stores/user'
+    import BaseToast from '@/components/toast/BaseToast.vue'
+
+    const toastRef = ref(null)
+
+    function showToast(msg) {
+        toastRef.value?.show(msg)
+    }
 
     const router = useRouter()
     const userStore = useUserStore()
@@ -70,7 +78,7 @@
     // 접근 권한 확인
     onMounted(() => {
         if (!decoded?.auth?.includes('ROLE_HR')) {
-            alert('접근 권한이 없습니다.')
+            showToast('접근 권한이 없습니다.')
             router.push('/error403')
         }
     })

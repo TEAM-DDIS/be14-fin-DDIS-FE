@@ -54,6 +54,7 @@
       </div>
     </Teleport>
   </div>
+  <BaseToast ref="toastRef" />
 </template>
 
 <script setup>
@@ -65,6 +66,13 @@
   import PersonalEventCard from '../attendance/PersonalEventCard.vue'
   import PersonalEventEditCard from '../attendance/PersonalEventEditCard.vue'
   import { useUserStore } from '@/stores/user'
+  import BaseToast from '@/components/toast/BaseToast.vue'
+
+  const toastRef = ref(null)
+
+  function showToast(msg) {
+    toastRef.value?.show(msg)
+  }
 
   const show = ref(false)
 
@@ -114,7 +122,7 @@
   show.value = false
   } catch (err) {
       console.error('개인 일정 등록 실패:', err.message)
-      alert('일정 등록 중 오류가 발생했습니다.\n' + err.message)
+      showToast('일정 등록 중 오류가 발생했습니다.')
   }
 }
 

@@ -36,6 +36,7 @@
       <ChatModal v-if="showChatbot" @close="showChatbot = false" />
     </transition>
   </div>
+  <BaseToast ref="toastRef" />
 </template>
 
 
@@ -47,6 +48,16 @@ import Sidebar from './components/sidebar/Sidebar.vue'
 import SubSidebar from './components/sidebar/SubSidebar.vue'
 import FloatingChat from './components/chatbot/FloatingChat.vue'
 import ChatModal from './components/chatbot/ChatModal.vue'
+import BaseToast from '@/components/toast/BaseToast.vue'
+import { useAttendanceStore } from '@/stores/attendance'
+
+const toastRef = ref(null)
+const attendanceStore = useAttendanceStore()
+let alertedAtSix = false
+
+function showToast(msg) {
+  toastRef.value?.show(msg)
+}
 
 const route = useRoute()
 const selectedMenu = ref(null)
@@ -57,6 +68,26 @@ const hideLayout = computed(() => route.meta.hideLayout)
 onMounted(() => {
   window.addEventListener('wheel', preventZoom, { passive: false })
   window.addEventListener('keydown', preventKeyZoom)
+
+  setInterval(() => {
+    const nowTime = new Date()
+
+    const checkIn = attendanceStore.checkIn
+    const checkOut = attendanceStore.checkOut
+    const isCheckedIn = attendanceStore.isCheckedIn
+
+    if (
+      nowTime.getHours() === 18 &&
+      nowTime.getMinutes() === 0 &&
+      !checkOut &&
+      checkIn &&
+      isCheckedIn &&
+      !alertedAtSix
+    ) {
+      alertedAtSix = true
+      showToast('18시가 되었습니다. 퇴근을 등록해주세요.')
+    }
+  }, 1000)
 })
 
 onBeforeUnmount(() => {
