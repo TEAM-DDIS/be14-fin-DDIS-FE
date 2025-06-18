@@ -1,7 +1,7 @@
 <template>
   <div class="team-work-status">
     <img
-      :src="employeePhotoUrl || '/images/erpizza_profile.svg'"
+      :src="getProfileUrl(profileImg)"
       alt="프로필"
       class="avatar"
       @error="onImageError"
@@ -20,12 +20,17 @@
   import { computed } from 'vue'
 
   const props = defineProps({
-    employeePhotoUrl: String,
+    profileImg: String,
     name: String,
     role: String,
     status: String,
     checkOutTime: String
   })
+
+  const S3_BASE_URL = 'https://ddisbucket-fin.s3.ap-northeast-2.amazonaws.com'
+
+  const getProfileUrl = path =>
+    path ? `${S3_BASE_URL}/${path}` : '/images/erpizza_profile.svg'
 
   const badgeClass = computed(() => {
     if (props.checkOutTime && (props.status === '지각' || props.status === '정상근무')) {
@@ -51,11 +56,6 @@
     if (props.status === '정상근무') return '근무 중'
     return props.status
   })
-
-
-  function onImageError(e) {
-    e.target.src = '/images/erpizza_profile.svg'
-  }
 </script>
 
 <style scoped>
