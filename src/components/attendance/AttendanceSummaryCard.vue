@@ -152,30 +152,30 @@
       if (data.checkOutTime) attendanceStore.setCheckOut(data.checkOutTime.split('.')[0])
 
       if (data.checkInTime && data.checkOutTime) {
-        const [h1, m1, s1] = data.checkInTime.split(':').map(Number)
-        const [h2, m2, s2] = data.checkOutTime.split(':').map(Number)
+      const [h1, m1, s1] = data.checkInTime.split(':').map(Number)
+      const [h2, m2, s2] = data.checkOutTime.split(':').map(Number)
 
-        const checkInDate = now(); checkInDate.setHours(h1, m1, s1, 0)
+      const checkInDate = now(); checkInDate.setHours(h1, m1, s1, 0)
 
-        // ✅ 기준 퇴근 시간은 18:00 고정
-        const baseCheckOut = new Date()
-        baseCheckOut.setHours(18, 0, 0, 0)
+      // ✅ 기준 퇴근 시간은 18:00 고정
+      const baseCheckOut = new Date()
+      baseCheckOut.setHours(18, 0, 0, 0)
 
-        // 실제 퇴근 시간이 더 빠르면 그 시간, 아니면 18:00까지만 인정
-        const actualCheckOut = now(); actualCheckOut.setHours(h2, m2, s2, 0)
-        const checkOutDate = actualCheckOut < baseCheckOut ? actualCheckOut : baseCheckOut
+      // 실제 퇴근 시간이 더 빠르면 그 시간, 아니면 18:00까지만 인정
+      const actualCheckOut = now(); actualCheckOut.setHours(h2, m2, s2, 0)
+      const checkOutDate = actualCheckOut < baseCheckOut ? actualCheckOut : baseCheckOut
 
-        let diff = Math.floor((checkOutDate - checkInDate) / 1000)
+      let diff = Math.floor((checkOutDate - checkInDate) / 1000)
 
-        const noonStart = now(); noonStart.setHours(12, 0, 0, 0)
-        const noonEnd = now(); noonEnd.setHours(13, 0, 0, 0)
+      const noonStart = now(); noonStart.setHours(12, 0, 0, 0)
+      const noonEnd = now(); noonEnd.setHours(13, 0, 0, 0)
 
-        if (checkInDate < noonStart && checkOutDate > noonEnd) {
-          diff -= 3600 // 점심시간 빼기
-        }
-
-        workSeconds.value = Math.max(0, Math.min(diff, 8 * 3600))
+      if (checkInDate < noonStart && checkOutDate > noonEnd) {
+        diff -= 3600 // 점심시간 빼기
       }
+
+      workSeconds.value = Math.max(0, Math.min(diff, 8 * 3600))
+    }
 
       if (data.checkInTime && !data.checkOutTime) {
         const [h, m, s] = data.checkInTime.split(':').map(Number)
