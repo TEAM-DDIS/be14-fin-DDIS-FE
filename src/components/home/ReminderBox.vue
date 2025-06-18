@@ -93,7 +93,7 @@ function formatTime(timeStr) {
 }
 
 onMounted(async () => {
-  const token = localStorage.getItem('token')
+  const token = useUserStore().accessToken
   if (!token) {
     console.error('토큰 없음')
     return
