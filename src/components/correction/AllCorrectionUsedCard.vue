@@ -46,7 +46,7 @@
                 :rowData="filteredEmployees"
                 height="600px"
                 :pagination="true"
-                :paginationPageSize="10"
+                :paginationPageSize="20"
                 :style="{ width: '100%' }"
             />
             <button @click="downloadCSV" class="download-btn">CSV 다운로드</button>
