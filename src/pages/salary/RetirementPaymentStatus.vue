@@ -48,7 +48,7 @@
         :rowData="filteredData"
         height="400px"
         :pagination="true"
-        :paginationPageSize="10"
+        :paginationPageSize="20"
         @row-click="onRowClicked"
         @grid-ready="onGridReady"
       />

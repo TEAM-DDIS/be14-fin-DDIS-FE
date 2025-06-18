@@ -52,7 +52,7 @@
         :rowData="filteredEmployees"
         height="400px"
         :pagination="true"
-        :paginationPageSize="10"
+        :paginationPageSize="20"
       />
     </div>
 
@@ -89,6 +89,7 @@
           :gridOptions="{ theme: 'legacy' }"
           :columnDefs="salaryColumnDefs"
           :rowData="salaryHistory"
+          :paginationPageSize="20"
           @row-click="selectSlip"
           height="400px"
           :pagination="true"
