@@ -51,12 +51,14 @@
       {{ buttonText }}
     </button>
   </div>
+  <BaseToast ref="toastRef" />
 </template>
 
 <script setup>
   import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
   import { useUserStore } from '@/stores/user'
   import { useAttendanceStore } from '@/stores/attendance'
+  import BaseToast from '@/components/toast/BaseToast.vue'
 
   const attendanceStore = useAttendanceStore()
 
@@ -113,6 +115,12 @@
       }
     }
   })
+
+  const toastRef = ref(null)
+
+  function showToast(msg) {
+    toastRef.value?.show(msg)
+  }
 
   onUnmounted(() => {
     if (timer) stopTimer()
@@ -191,7 +199,7 @@
           !alertedAtSix
         ) {
           alertedAtSix = true
-          alert('18시가 되었습니다. 퇴근을 등록해주세요.')
+          showToast('18시가 되었습니다. 퇴근을 등록해주세요.')
         }
       }, 1000)
 
@@ -219,7 +227,7 @@
       else waitUntilNine()
     } catch (err) {
       console.error('출근 등록 실패:', err.message)
-      alert('출근 등록 중 오류가 발생했습니다.\n' + err.message)
+      showToast('출근 등록 중 오류가 발생했습니다.')
     }
   }
 
@@ -238,7 +246,7 @@
       stopTimer()
     } catch (err) {
       console.error('퇴근 등록 실패:', err.message)
-      alert('퇴근 등록 중 오류가 발생했습니다.\n' + err.message)
+      showToast('퇴근 등록 중 오류가 발생했습니다.')
     }
   }
 
@@ -253,7 +261,7 @@
         (workStatusName.value === '오전반차' && isBefore12) ||
         (workStatusName.value !== '오전반차' && !isBefore12)
       ) {
-        alert('출근 가능 시간이 아닙니다.')
+        showToast('출근 가능 시간이 아닙니다.')
         return
       }
       attendanceStore.setCheckIn(formatTime(nowTime))
@@ -267,7 +275,7 @@
         (workStatusName.value === '오후반차' && isBefore12) ||
         (workStatusName.value !== '오후반차' && isBefore18)
       ) {
-        alert('퇴근 가능 시간이 아닙니다.')
+        showToast('퇴근 가능 시간이 아닙니다.')
         return
       }
       attendanceStore.setCheckOut(formatTime(nowTime))

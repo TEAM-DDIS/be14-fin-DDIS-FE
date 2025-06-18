@@ -22,6 +22,9 @@
     <div v-if="checkOutTime" class="checked-time">
       퇴근: {{ checkOutTime }}
     </div>
+    <Teleport to="body">
+      <BaseToast ref="toastRef" />
+    </Teleport>
   </div>
 </template>
 
@@ -29,6 +32,13 @@
   import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
   import { useUserStore } from '@/stores/user'
   import { useAttendanceStore } from '@/stores/attendance'
+  import BaseToast from '@/components/toast/BaseToast.vue'
+
+  const toastRef = ref(null)
+
+  function showToast(msg) {
+    toastRef.value?.show(msg)
+  }
 
   const userStore = useUserStore()
   const attendanceStore = useAttendanceStore()
@@ -72,7 +82,7 @@
 
   async function handleCheck() {
     const token = userStore.accessToken
-    if (!token) return alert('로그인 정보가 없습니다.')
+    if (!token) return showToast('로그인 정보가 없습니다.')
 
     const now = new Date()
     const hours = now.getHours()
@@ -85,7 +95,7 @@
           (workStatusName.value === '오전반차' && hours < 12) ||
           (workStatusName.value !== '오전반차' && (hours > 11 || (hours === 11 && minutes >= 59)))
         ) {
-          alert('출근 가능 시간이 아닙니다.')
+          showToast('출근 가능 시간이 아닙니다.')
           return
         }
 
@@ -108,7 +118,7 @@
           (workStatusName.value === '오후반차' && hours < 12) ||
           (workStatusName.value !== '오후반차' && hours < 18)
         ) {
-          alert('퇴근 가능 시간이 아닙니다.')
+          showToast('퇴근 가능 시간이 아닙니다.')
           return
         }
 
@@ -127,7 +137,7 @@
 
     } catch (err) {
       console.error('출퇴근 등록 실패:', err.message)
-      alert('출퇴근 등록 중 오류 발생\n' + err.message)
+      showToast('출퇴근 등록 중 오류가 발생했습니다.')
     }
   }
 
