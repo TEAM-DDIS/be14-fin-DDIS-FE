@@ -78,7 +78,6 @@
   let timer = null
   let checkInDate = null
   let isLunchBreak = false
-  let alertedAtSix = false
   const workStatusName = ref('')
   const buttonText = computed(() => {
     if (!checkIn.value) return '출근'
@@ -186,22 +185,6 @@
       if (data.checkInTime && !data.checkOutTime && nowTime >= eighteenPM) {
         workSeconds.value = 8 * 3600
       }
-
-      const interval = setInterval(() => {
-        const nowTime = now()
-        const eighteenPM = new Date(); eighteenPM.setHours(18, 0, 0, 0)
-        if (
-          nowTime.getHours() === 18 &&
-          nowTime.getMinutes() === 0 &&
-          !checkOut.value &&
-          checkIn.value &&
-          isCheckedIn.value &&
-          !alertedAtSix
-        ) {
-          alertedAtSix = true
-          showToast('18시가 되었습니다. 퇴근을 등록해주세요.')
-        }
-      }, 1000)
 
     } catch (err) {
       console.error('내 근무 현황 API 호출 실패:', err)
