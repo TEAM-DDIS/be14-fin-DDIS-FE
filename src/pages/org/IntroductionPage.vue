@@ -39,7 +39,7 @@
         </div>
       </div>
 
-      <button class="edit-button" @click="openEditModal()">
+      <button v-if="isHR" class="edit-button" @click="openEditModal()">
         부서 소개 편집
       </button>
     </div>
@@ -57,7 +57,31 @@
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { useUserStore } from '@/stores/user'
 import EditDeptModal from '@/components/org/introduction/EditDeptModal.vue'
+
+// 인사팀에서만 편집버튼 
+const userStore = useUserStore()
+const token = localStorage.getItem('token')
+const payload = parseJwtPayload(userStore.accessToken || token)
+const isHR = payload?.role?.includes('ROLE_HR') || payload?.auth?.includes('ROLE_HR')
+
+
+function parseJwtPayload(token) {
+  try {
+    const base64Url = token.split('.')[1]
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split('')
+        .map(c => `%${('00' + c.charCodeAt(0).toString(16)).slice(-2)}`)
+        .join('')
+    )
+    return JSON.parse(jsonPayload)
+  } catch (e) {
+    return null
+  }
+}
 
 // 1) orgData에 department 배열을 담습니다.
 const orgData = ref({

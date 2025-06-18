@@ -249,21 +249,19 @@
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
 import axios from 'axios'
-
+import { useRouter } from 'vue-router'
+import { useUserStore } from '@/stores/user'
 import OrgHierarchyAll from '@/components/org/structure/Hierarchy.vue'
 import EditHierarchy from '@/components/org/structure/EditHierarchy.vue'
 import AddModal from '@/components/org/structure/AddModal.vue'
 import DeleteModal from '@/components/org/structure/DeleteModal.vue'
 
-// --- 데이터 스토어 정의 ---
-// 백엔드 /structure/hierarchy 에서 받아온 본부→부서→팀 계층을 저장합니다.
-const dataStore = reactive({
-  headquarters: [],
-  departments: [],
-  teams: [],
-  position: [],
-  rank: []
-})
+const deleteType = ref('')
+
+const router = useRouter()
+const userStore = useUserStore()
+const token = localStorage.getItem('token')
+
 
 // 로딩 여부
 const dataLoaded = ref(false)
@@ -287,6 +285,42 @@ const showMovePanel = ref(false)
 const showAddModal    = ref(false)
 const showDeleteModal = ref(false)
 
+// --- 데이터 스토어 정의 ---
+// 백엔드 /structure/hierarchy 에서 받아온 본부→부서→팀 계층을 저장합니다.
+const dataStore = reactive({
+  headquarters: [],
+  departments: [],
+  teams: [],
+  position: [],
+  rank: []
+})
+
+function parseJwtPayload(token) {
+  try {
+    const base64Url = token.split('.')[1]
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split('')
+        .map(c => `%${('00' + c.charCodeAt(0).toString(16)).slice(-2)}`)
+        .join('')
+    )
+    return JSON.parse(jsonPayload)
+  } catch (e) {
+    return null
+  }
+}
+
+// 실제 권한 검사
+const payload = parseJwtPayload(userStore.accessToken || token)
+const isHR = payload?.role?.includes('ROLE_HR') || payload?.auth?.includes('ROLE_HR')
+
+// 접근 불가 시 리다이렉트
+if (!isHR) {
+  alert('접근 권한이 없습니다.')
+  router.push('/error403')
+}
+
 // 조직 종류 옵션 (“본부/부서/팀”)
 const orgOptions = [
   { id: 'head', name: '본부' },
@@ -295,7 +329,6 @@ const orgOptions = [
 ]
 
 // 삭제 모달 관련
-const deleteType = ref('')
 const deleteListAll = computed(() => {
   return {
     head: dataStore.headquarters.map(hq => ({
@@ -316,9 +349,6 @@ const deleteList = computed(() => {
   return deleteListAll.value[ deleteType.value ] || []
 })
 
-// Vue Router (필요 시 사용)
-import { useRouter } from 'vue-router'
-const router = useRouter()
 
 onMounted(async () => {
   try {

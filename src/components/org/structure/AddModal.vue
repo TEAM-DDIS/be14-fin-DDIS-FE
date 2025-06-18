@@ -73,6 +73,8 @@
 
 <script setup>
 import { ref, watch } from 'vue'
+import { useRouter } from 'vue-router'
+import { useUserStore } from '@/stores/user'
 
 const props = defineProps({
   show: Boolean,
@@ -85,6 +87,36 @@ const emit = defineEmits(['close','submit'])
 const localType = ref('')
 const parentId  = ref(null)
 const localName = ref('')
+
+const router = useRouter()
+const userStore = useUserStore()
+const token = localStorage.getItem('token')
+
+function parseJwtPayload(token) {
+  try {
+    const base64Url = token.split('.')[1]
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split('')
+        .map(c => `%${('00' + c.charCodeAt(0).toString(16)).slice(-2)}`)
+        .join('')
+    )
+    return JSON.parse(jsonPayload)
+  } catch (e) {
+    return null
+  }
+}
+
+// 실제 권한 검사
+const payload = parseJwtPayload(userStore.accessToken || token)
+const isHR = payload?.role?.includes('ROLE_HR') || payload?.auth?.includes('ROLE_HR')
+
+// 접근 불가 시 리다이렉트
+if (!isHR) {
+  alert('접근 권한이 없습니다.')
+  router.push('/error403')
+}
 
 // 모달이 열릴 때 초기화
 watch(() => props.show, val => {

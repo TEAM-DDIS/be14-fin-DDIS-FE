@@ -84,6 +84,7 @@
       </div>
 
       <button
+        v-if="isHR"
         class="edit-button"
         @click="openEditModal"
         :disabled="selectedJobs.length === 0"
@@ -108,12 +109,35 @@
 <script setup>
 import { ref, computed, onMounted, reactive } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useUserStore } from '@/stores/user'
 import EditJobModal from '@/components/org/introduction/EditJobModal.vue'
 
 const route = useRoute()
 const router = useRouter()
 
-// URL 파라미터에서 teamId 가져오기
+// 인사팀에서만 편집버튼 
+const userStore = useUserStore()
+const token = localStorage.getItem('token')
+const payload = parseJwtPayload(userStore.accessToken || token)
+const isHR = payload?.role?.includes('ROLE_HR') || payload?.auth?.includes('ROLE_HR')
+
+function parseJwtPayload(token) {
+  try {
+    const base64Url = token.split('.')[1]
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split('')
+        .map(c => `%${('00' + c.charCodeAt(0).toString(16)).slice(-2)}`)
+        .join('')
+    )
+    return JSON.parse(jsonPayload)
+  } catch (e) {
+    return null
+  }
+}
+
+// 선택한 팀의 teamId 가져오기
 const teamId = Number(route.params.teamId)
 
 function goBack() {
