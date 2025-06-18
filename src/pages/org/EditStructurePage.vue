@@ -9,10 +9,10 @@
         <h2 class="toolbar-label">조직도 편집</h2>
 
         <!-- ＋ 버튼: AddModal 열기 -->
-        <p @click="openAddModal" class="toolbar-btn-register">등록</p>
+        <button @click="openAddModal" class="toolbar-btn-register">등록</button>
 
         <!-- － 버튼: DeleteModal 열기 -->
-       <p @click="openDeleteModal" class="toolbar-btn-delete">삭제</p>
+       <button @click="openDeleteModal" class="toolbar-btn-delete">삭제</button>
 
 
         <!-- 검색 입력란: 엔터 키 누르면 searchOrg 호출 -->
