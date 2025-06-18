@@ -173,7 +173,7 @@ import BaseToast from '@/components/toast/BaseToast.vue'
 // ---------------------------------------------------------
 const router = useRouter()
 const userStore = useUserStore()
-const token = localStorage.getItem('token')
+// const token = localStorage.getItem('token')
 const toastRef = ref(null)
 
 function showToast(msg) {
@@ -196,7 +196,9 @@ function parseJwtPayload(token) {
 }
 
 // const token = localStorage.getItem('token')
-const payload = parseJwtPayload(userStore.accessToken)
+const token = userStore.accessToken
+
+const payload = parseJwtPayload(token)
 const isHR = payload?.role?.includes('ROLE_HR') || payload?.auth?.includes('ROLE_HR')
 
 if (!isHR) {
@@ -271,7 +273,10 @@ const filteredDepartments = computed(() => {
 const filteredTeams = computed(() => {
   return [...new Set(
     employees.value
-      .filter(e => !filters.departmentName || e.departmentName === filters.departmentName)
+      .filter(e =>
+        (!filters.headName || e.headName === filters.headName) &&
+        (!filters.departmentName || e.departmentName === filters.departmentName)
+      )
       .map(e => e.teamName).filter(Boolean)
   )]
 })
@@ -417,7 +422,7 @@ input[type="month"] {
   border: 1px solid #ccc;
 }
 
-ag-grid 헤더 색상 커스터마이징
+/* ag-grid 헤더 색상 커스터마이징 */
 .custom-grid :deep(.ag-header) {
   background-color: #f8f9fa !important;
 }
