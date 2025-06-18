@@ -100,6 +100,8 @@ onMounted(async () => {
   }
 
   try {
+      await userStore.fetchAllEmployees()
+
     // 개인 일정
     const scheduleRes = await fetch('http://localhost:8000/attendance/schedule/today', {
       headers: { Authorization: `Bearer ${token}` }
