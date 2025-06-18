@@ -22,16 +22,6 @@
           v-model="filterEmployee"
         />
       </div>
-      <div class="actions">
-        <!-- selectedCount가 0이면 등록, 아니면 삭제 -->
-        <button
-          :class="['action-btn', selectedCount > 0 ? 'delete' : 'register']"
-          @click="selectedCount > 0 ? onDelete() : goToRegister()"
-        >
-          <i :class="selectedCount > 0 ? 'fa fa-trash' : 'fa fa-plus'"></i>
-          {{ selectedCount > 0 ? '삭제' : '등록' }}
-        </button>
-      </div>
     </div>
 
     <div class="grid-wrapper">
@@ -48,6 +38,16 @@
         @cell-click="onCellClick"
       />
     </div>
+    <div v-if="isHR" class="actions">
+      <!-- selectedCount가 0이면 등록, 아니면 삭제 -->
+      <button
+        :class="['action-btn', selectedCount > 0 ? 'delete' : 'register']"
+        @click="selectedCount > 0 ? onDelete() : goToRegister()"
+      >
+        <i :class="selectedCount > 0 ? 'fa fa-trash' : 'fa fa-plus'"></i>
+        {{ selectedCount > 0 ? '삭제' : '등록' }}
+      </button>
+    </div>
   </div>
 </template>
 
@@ -55,6 +55,7 @@
 import { ModuleRegistry, AllCommunityModule } from 'ag-grid-community'
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { useUserStore } from '@/stores/user'
 import BaseGrid from '@/components/grid/BaseGrid.vue'
 import detailIconUrl from '@/assets/icons/detail_appointment.svg'
 
@@ -67,6 +68,28 @@ const rowData         = ref([])
 const selectedCount   = ref(0)
 let gridApi           = null
 const router          = useRouter()
+
+// 인사팀에서만 등록, 삭제버튼 
+const userStore = useUserStore()
+const token = localStorage.getItem('token')
+const payload = parseJwtPayload(userStore.accessToken || token)
+const isHR = payload?.role?.includes('ROLE_HR') || payload?.auth?.includes('ROLE_HR')
+
+function parseJwtPayload(token) {
+  try {
+    const base64Url = token.split('.')[1]
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split('')
+        .map(c => `%${('00' + c.charCodeAt(0).toString(16)).slice(-2)}`)
+        .join('')
+    )
+    return JSON.parse(jsonPayload)
+  } catch (e) {
+    return null
+  }
+}
 
 // 그리드 옵션 (checkbox 포함)
 const gridOptions = {
@@ -87,7 +110,7 @@ const columnDefs = [
   {
     headerName: '상세',
     field: 'detail',
-    width: 80,
+    width: 100,
     cellRenderer: () => `<img src="${detailIconUrl}" class="detail-btn"/>`
   }
 ]
@@ -157,6 +180,8 @@ function onCellClick(e) {
     padding: 20px 32px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.05);
     margin: 24px;
+    position: relative;
+    padding-bottom: 100px;
   }
   .filter-box {
     display: flex;
@@ -172,13 +197,13 @@ function onCellClick(e) {
     align-items: center;
     gap: 20px;
   }
-  .actions {
-    display: flex;
-    gap: 8px;
-    align-self: flex-end;
-    margin-left: auto;
-    margin-top: 8px;
-  }
+.actions {
+  position: absolute;
+  bottom: 30px;
+  right: 32px;
+  display: flex;
+  gap: 8px;
+}
   .filters label {
     font-weight: 500;
     color: #513737;
@@ -203,12 +228,6 @@ function onCellClick(e) {
     outline: none;
     border: 1px solid black;
   }
-
-  .action-btn {
-    display: inline-flex;
-    align-items: center;
-  }
-
 
   .action-btn.register {
   font-size: 14px;

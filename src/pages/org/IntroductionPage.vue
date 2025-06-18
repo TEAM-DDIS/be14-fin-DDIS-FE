@@ -34,23 +34,15 @@
                   # {{ team.teamName }}
                 </span>
               </div>
-
-              <!-- 각 부서마다 편집 버튼을 개별로 두고 싶다면 여기에 배치 가능 -->
-              <!--
-              <button class="mini-edit-button" @click="openEditModal(dept)">
-                ✏️
-              </button>
-              -->
             </div>
           </div>
         </div>
       </div>
-    </div>
 
-    <!-- 최상단 편집 버튼: 첫 번째 본부의 첫 번째 부서를 초기값으로 열어 줌 -->
-    <button class="edit-button" @click="openEditModal()">
-      편집
-    </button>
+      <button v-if="isHR" class="edit-button" @click="openEditModal()">
+        부서 소개 편집
+      </button>
+    </div>
 
     <!-- EditDeptModal: showEditModal이 true일 때만 렌더링 -->
     <EditDeptModal
@@ -65,7 +57,31 @@
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { useUserStore } from '@/stores/user'
 import EditDeptModal from '@/components/org/introduction/EditDeptModal.vue'
+
+// 인사팀에서만 편집버튼 
+const userStore = useUserStore()
+const token = localStorage.getItem('token')
+const payload = parseJwtPayload(userStore.accessToken || token)
+const isHR = payload?.role?.includes('ROLE_HR') || payload?.auth?.includes('ROLE_HR')
+
+
+function parseJwtPayload(token) {
+  try {
+    const base64Url = token.split('.')[1]
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split('')
+        .map(c => `%${('00' + c.charCodeAt(0).toString(16)).slice(-2)}`)
+        .join('')
+    )
+    return JSON.parse(jsonPayload)
+  } catch (e) {
+    return null
+  }
+}
 
 // 1) orgData에 department 배열을 담습니다.
 const orgData = ref({
@@ -293,7 +309,7 @@ onMounted(async () => {
 }
 
 .edit-button {
-  position: absolute;
+  align-self: flex-end;
   top: 24px;
   right: 24px;
   font-size: 14px;
@@ -304,10 +320,16 @@ onMounted(async () => {
   color: white;
   border: 1px solid transparent;
   border-radius: 10px;
-  padding: 10px 30px;
+  padding: 12px 30px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   transition: background-color 0.2s, box-shadow 0.2s;
   box-sizing: border-box;
+
+  display: block;
+  margin-left: auto;
+  margin-right: 40px;
+  margin-top: 30px;
+  margin-bottom: 20px;
 }
 
 .edit-button:hover {

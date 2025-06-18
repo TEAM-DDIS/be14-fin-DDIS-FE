@@ -82,16 +82,19 @@
           </section>
         </div>
       </div>
+
+      <button
+        v-if="isHR"
+        class="edit-button"
+        @click="openEditModal"
+        :disabled="selectedJobs.length === 0"
+      >
+        직무 소개 편집
+      </button>
     </div>
 
     <!-- 편집 버튼 -->
-    <button
-      class="edit-button"
-      @click="openEditModal"
-      :disabled="selectedJobs.length === 0"
-    >
-      편집
-    </button>
+
 
     <!-- EditJobModal -->
     <EditJobModal
@@ -106,12 +109,35 @@
 <script setup>
 import { ref, computed, onMounted, reactive } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useUserStore } from '@/stores/user'
 import EditJobModal from '@/components/org/introduction/EditJobModal.vue'
 
 const route = useRoute()
 const router = useRouter()
 
-// URL 파라미터에서 teamId 가져오기
+// 인사팀에서만 편집버튼 
+const userStore = useUserStore()
+const token = localStorage.getItem('token')
+const payload = parseJwtPayload(userStore.accessToken || token)
+const isHR = payload?.role?.includes('ROLE_HR') || payload?.auth?.includes('ROLE_HR')
+
+function parseJwtPayload(token) {
+  try {
+    const base64Url = token.split('.')[1]
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split('')
+        .map(c => `%${('00' + c.charCodeAt(0).toString(16)).slice(-2)}`)
+        .join('')
+    )
+    return JSON.parse(jsonPayload)
+  } catch (e) {
+    return null
+  }
+}
+
+// 선택한 팀의 teamId 가져오기
 const teamId = Number(route.params.teamId)
 
 function goBack() {
@@ -353,7 +379,7 @@ function saveEdit(updated) {
 }
 
 .edit-button {
-  position: absolute;
+  align-self: flex-end;
   top: 24px;
   right: 24px;
   font-size: 14px;
@@ -368,6 +394,11 @@ function saveEdit(updated) {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   transition: background-color 0.2s, box-shadow 0.2s;
   box-sizing: border-box;
+
+  display: block;
+  margin-left: auto;
+  margin-right: 20px;
+  margin-bottom: 20px;
 }
 .edit-button:disabled {
   background-color: #aaa;
