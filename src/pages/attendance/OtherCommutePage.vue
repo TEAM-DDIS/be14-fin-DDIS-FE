@@ -63,7 +63,6 @@
   }
 
   const decoded = parseJwt(userStore.accessToken)
-  console.log('디코딩된 JWT:', decoded)
 
   // 접근 권한 확인
   onMounted(() => {

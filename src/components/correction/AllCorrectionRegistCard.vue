@@ -47,7 +47,7 @@
                     :rowData="filteredEmployees"
                     height="600px"
                     :pagination="true"
-                    :paginationPageSize="10"
+                    :paginationPageSize="20"
                     :style="{ width: '100%' }"
                     @row-click="onRowClick"
                 />
