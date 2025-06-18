@@ -75,7 +75,7 @@
       <!-- 3. 버튼 그룹 -->
       <div class="button-group">
         <button class="btn-cancel" @click="cancel">취소</button>
-        <button type="button" class="btn-save" @click="submit">저장</button>
+        <button class="btn-save" @click="submit">저장</button>
       </div>
     </div>
   </div>
@@ -419,24 +419,25 @@ const columnDefs = [
       template: `
         <div style="display:flex; justify-content:space-between; align-items:center; width:100%;">
           <span>발령 조직</span>
-        <button id="openOrgModal" style="margin-left:auto;" class="btn-plus">✚</button>
+        <button id="openOrgModal" style="margin-left:auto;" class="btn-plus">조직 선택</button>
         <style>
           .btn-plus {
-            font-size: 12px;
-            background-color: #00a8e8;
-            color: white;
+            background-color: #3f3f3f;
+            border-radius: 8px;
             border: 1px solid transparent;
-            border-radius: 10px;
-            padding: 6px 12px;
+            padding: 6px 10px;
+            font-size: 12px;
+            font-weight: bold;
+            color: #ffffff;
             cursor: pointer;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-            transition: background-color 0.2s, color 0.2s, border-color 0.2s, box-shadow 0.2s;
+            transition: background-color 0.2s, box-shadow 0.2s;
+            box-sizing: border-box;
           }
-
           .btn-plus:hover {
             background-color: white;
-            color: #00a8e8;
-            border-color: #00a8e8;
+            color: #3f3f3f;
+            border-color: #3f3f3f;
             box-shadow: inset 1px 1px 10px rgba(0, 0, 0, 0.25);
           }
         </style>
@@ -760,9 +761,10 @@ function cancel() {
 .content-box {
   background: #fff;
   border-radius: 12px;
-  padding: 20px 32px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
   margin: 24px;
+  position: relative;
+  padding: 20px 32px 80px; 
 }
 .register-container {
   /* width: 60%; */
@@ -841,11 +843,11 @@ function cancel() {
 
 /* 버튼 그룹 */
 .button-group {
+   position: absolute;
+  bottom: 30px;
+  right: 50px;
   display: flex;
-  gap: 100px;
-  justify-content: center;
-  margin-top: 60px;
-  margin-bottom: 40px;
+  gap: 15px;
 }
 .btn-save {
   font-size: 14px;
@@ -880,9 +882,6 @@ function cancel() {
   transition: background-color 0.2s, box-shadow 0.2s;
   box-sizing: border-box;
 
-  display: flex;
-  justify-content: flex-end;
-  float: right;
 }
 .btn-cancel:hover {
   background-color: #000;

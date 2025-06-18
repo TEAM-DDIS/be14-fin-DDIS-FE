@@ -85,9 +85,9 @@
         </template>
       </div>
     </div>
-  </div>
 
-  <button class="edit-button" @click="onEdit">편집</button>
+    <button class="edit-button" @click="onEdit">조직 구성 편집</button>
+  </div>
 </template>
 
 <script setup>
@@ -339,9 +339,7 @@ function findDeptName(deptId) {
 
 /* Edit 버튼 */
 .edit-button {
-  position: absolute;
-  top: 40px;
-  right: 40px;
+  align-self: flex-end;
   font-size: 14px;
   font-weight: bold;
   cursor: pointer;
@@ -350,10 +348,15 @@ function findDeptName(deptId) {
   color: white;
   border: 1px solid transparent;
   border-radius: 10px;
-  padding: 10px 30px;
+  padding: 12px 30px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   transition: background-color 0.2s, box-shadow 0.2s;
   box-sizing: border-box;
+
+  display: block;
+  margin-left: auto;
+  margin-right: 20px;
+  margin-bottom: 20px;
 }
 .edit-button:hover {
   background-color: white;

@@ -9,14 +9,11 @@
         <h2 class="toolbar-label">조직도 편집</h2>
 
         <!-- ＋ 버튼: AddModal 열기 -->
-        <button class="toolbar-btn" @click="openAddModal">
-          <p class="toolbar-btn-detail">＋</p>
-        </button>
+        <p @click="openAddModal" class="toolbar-btn-register">등록</p>
 
         <!-- － 버튼: DeleteModal 열기 -->
-        <button class="toolbar-btn" @click="openDeleteModal">
-          <p class="toolbar-btn-detail">－</p>
-        </button>
+       <p @click="openDeleteModal" class="toolbar-btn-delete">삭제</p>
+
 
         <!-- 검색 입력란: 엔터 키 누르면 searchOrg 호출 -->
         <div class="search">
@@ -64,13 +61,6 @@
           <div class="info-body">
             <!-- 1) 부서가 선택된 경우 -->
             <div v-if="selectedDept" class="info-content">
-              <!-- ★ 부서 이동 / 부서원 이동 버튼 추가 ★ -->
-              <div class="button-group">
-                <button class="btn-dept" @click="showMovePanel = true">
-                  부서 이동
-                </button>
-              </div>
-
               <ul class="info-list">
                 <h3 class="section-title">부서 정보</h3>
                 <li>
@@ -137,13 +127,6 @@
 
             <!-- 2) 팀이 선택된 경우 -->
             <div v-else-if="selectedTeam" class="info-content">
-              <!-- ★ 팀 이동 / 팀원 이동 버튼 추가 ★ -->
-              <div class="button-group">
-                <button class="btn-dept" @click="showMovePanel = true">
-                  팀 이동
-                </button>
-              </div>
-
               <ul class="info-list">
                 <h3 class="section-title">팀 정보</h3>
                 <li>
@@ -216,8 +199,7 @@
       
       </div>
 
-      <!-- ④ 부서 이동 (showMovePanel이 true일 때만 보여준다) -->
-      <div class="section" v-if="showMovePanel">
+      <div class="section" v-if="selectedDept || selectedTeam">
         <p class="desc2">조직 구조 이동</p>
         <div class="card move-panel scrollbar">
           <h2 class="card-title">조직 이동</h2>
@@ -675,31 +657,52 @@ function onTeamSelectedForMove(team) {
   margin-right: 12px;
   /* margin-bottom: 12px; */
 }
-.toolbar-btn {
+.toolbar-btn-register {
   display: flex;
   align-items: center;
   justify-content: center; 
-  width: 40px;
-  height: 40px;
-  font-size: 24px;
+  padding: 10px 24px;
+  font-size: 14px;
   font-weight: bold;
   cursor: pointer;
   font-family: inherit;
   background-color: #00a8e8;
   color: white;
   border: 1px solid transparent;
-  border-radius: 5px;
+  border-radius: 10px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   transition: background-color 0.2s, box-shadow 0.2s;
 }
-.toolbar-btn:hover {
+.toolbar-btn-register:hover {
   background-color: #fff;
   color: #00a8e8;
   border: 1px solid #00a8e8;
 }
-.toolbar-btn-detail {
-  margin: 0;
+
+.toolbar-btn-delete {
+  font-size: 14px;
+  font-weight: bold;
+  background-color: #D3D3D3;
+  color: #000;
+  border: none;
+  border-radius: 10px;
+  padding: 10px 24px;
+  font-weight: bold;
+  cursor: pointer;
+  border: transparent;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: background-color 0.2s, box-shadow 0.2s;
+  box-sizing: border-box;
+
+  display: flex;
+  justify-content: flex-end;
+  float: right;
 }
+.toolbar-btn-delete:hover {
+  background-color: #000;
+  color: #fff;
+}
+
 .search {
   display: flex;
   align-items: center;
@@ -848,35 +851,6 @@ function onTeamSelectedForMove(team) {
   font-size: 15px;
   text-align: center;
   margin-top: 40px;
-}
-
-/* 버튼 그룹 */
-.button-group {
-  display: flex;
-  gap: 12px;
-  margin-right: 20px;
-  margin-bottom: 20px;
-  justify-content: flex-end;
-}
-.btn-dept,
-.btn-employee {
-  font-size: 14px;
-  font-weight: bold;
-  cursor: pointer;
-  font-family: inherit;
-  background-color: #00a8e8;
-  color: white;
-  border: 1px solid transparent;
-  border-radius: 10px;
-  padding: 10px 30px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  transition: background-color 0.2s, box-shadow 0.2s;
-}
-.btn-dept:hover,
-.btn-employee:hover {
-  background-color: #fff;
-  color: #00a8e8;
-  border: 1px solid #00a8e8;
 }
 
 /* ④ 부서 이동 카드 */

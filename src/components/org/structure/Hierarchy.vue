@@ -41,13 +41,13 @@
                       {{ team.teamName }}
                     </div>
 
-                    <ul v-show="expanded['t' + team.teamId]" class="member-list">
+                    <!-- <ul v-show="expanded['t' + team.teamId]" class="member-list">
                       <li v-for="emp in filteredTeamMembers(team)" :key="emp.employeeId">
                         <div class="node emp">
                           {{ emp.rankName }} {{ emp.positionName }}: {{ emp.employeeName }}
                         </div>
                       </li>
-                    </ul>
+                    </ul> -->
                   </li>
                 </ul>
               </div>

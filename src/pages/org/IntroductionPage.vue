@@ -34,23 +34,15 @@
                   # {{ team.teamName }}
                 </span>
               </div>
-
-              <!-- 각 부서마다 편집 버튼을 개별로 두고 싶다면 여기에 배치 가능 -->
-              <!--
-              <button class="mini-edit-button" @click="openEditModal(dept)">
-                ✏️
-              </button>
-              -->
             </div>
           </div>
         </div>
       </div>
-    </div>
 
-    <!-- 최상단 편집 버튼: 첫 번째 본부의 첫 번째 부서를 초기값으로 열어 줌 -->
-    <button class="edit-button" @click="openEditModal()">
-      편집
-    </button>
+      <button class="edit-button" @click="openEditModal()">
+        부서 소개 편집
+      </button>
+    </div>
 
     <!-- EditDeptModal: showEditModal이 true일 때만 렌더링 -->
     <EditDeptModal
@@ -293,7 +285,7 @@ onMounted(async () => {
 }
 
 .edit-button {
-  position: absolute;
+  align-self: flex-end;
   top: 24px;
   right: 24px;
   font-size: 14px;
@@ -304,10 +296,16 @@ onMounted(async () => {
   color: white;
   border: 1px solid transparent;
   border-radius: 10px;
-  padding: 10px 30px;
+  padding: 12px 30px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   transition: background-color 0.2s, box-shadow 0.2s;
   box-sizing: border-box;
+
+  display: block;
+  margin-left: auto;
+  margin-right: 40px;
+  margin-top: 30px;
+  margin-bottom: 20px;
 }
 
 .edit-button:hover {

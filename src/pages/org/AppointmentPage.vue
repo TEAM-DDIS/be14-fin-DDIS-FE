@@ -22,16 +22,6 @@
           v-model="filterEmployee"
         />
       </div>
-      <div class="actions">
-        <!-- selectedCount가 0이면 등록, 아니면 삭제 -->
-        <button
-          :class="['action-btn', selectedCount > 0 ? 'delete' : 'register']"
-          @click="selectedCount > 0 ? onDelete() : goToRegister()"
-        >
-          <i :class="selectedCount > 0 ? 'fa fa-trash' : 'fa fa-plus'"></i>
-          {{ selectedCount > 0 ? '삭제' : '등록' }}
-        </button>
-      </div>
     </div>
 
     <div class="grid-wrapper">
@@ -47,6 +37,16 @@
         @ready="onGridReady"
         @cell-click="onCellClick"
       />
+    </div>
+    <div class="actions">
+      <!-- selectedCount가 0이면 등록, 아니면 삭제 -->
+      <button
+        :class="['action-btn', selectedCount > 0 ? 'delete' : 'register']"
+        @click="selectedCount > 0 ? onDelete() : goToRegister()"
+      >
+        <i :class="selectedCount > 0 ? 'fa fa-trash' : 'fa fa-plus'"></i>
+        {{ selectedCount > 0 ? '삭제' : '등록' }}
+      </button>
     </div>
   </div>
 </template>
@@ -87,7 +87,7 @@ const columnDefs = [
   {
     headerName: '상세',
     field: 'detail',
-    width: 80,
+    width: 100,
     cellRenderer: () => `<img src="${detailIconUrl}" class="detail-btn"/>`
   }
 ]
@@ -157,6 +157,8 @@ function onCellClick(e) {
     padding: 20px 32px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.05);
     margin: 24px;
+    position: relative;
+    padding-bottom: 100px;
   }
   .filter-box {
     display: flex;
@@ -172,13 +174,13 @@ function onCellClick(e) {
     align-items: center;
     gap: 20px;
   }
-  .actions {
-    display: flex;
-    gap: 8px;
-    align-self: flex-end;
-    margin-left: auto;
-    margin-top: 8px;
-  }
+.actions {
+  position: absolute;
+  bottom: 30px;
+  right: 32px;
+  display: flex;
+  gap: 8px;
+}
   .filters label {
     font-weight: 500;
     color: #513737;
@@ -203,12 +205,6 @@ function onCellClick(e) {
     outline: none;
     border: 1px solid black;
   }
-
-  .action-btn {
-    display: inline-flex;
-    align-items: center;
-  }
-
 
   .action-btn.register {
   font-size: 14px;

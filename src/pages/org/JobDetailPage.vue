@@ -82,16 +82,18 @@
           </section>
         </div>
       </div>
+
+      <button
+        class="edit-button"
+        @click="openEditModal"
+        :disabled="selectedJobs.length === 0"
+      >
+        직무 소개 편집
+      </button>
     </div>
 
     <!-- 편집 버튼 -->
-    <button
-      class="edit-button"
-      @click="openEditModal"
-      :disabled="selectedJobs.length === 0"
-    >
-      편집
-    </button>
+
 
     <!-- EditJobModal -->
     <EditJobModal
@@ -353,7 +355,7 @@ function saveEdit(updated) {
 }
 
 .edit-button {
-  position: absolute;
+  align-self: flex-end;
   top: 24px;
   right: 24px;
   font-size: 14px;
@@ -368,6 +370,11 @@ function saveEdit(updated) {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   transition: background-color 0.2s, box-shadow 0.2s;
   box-sizing: border-box;
+
+  display: block;
+  margin-left: auto;
+  margin-right: 20px;
+  margin-bottom: 20px;
 }
 .edit-button:disabled {
   background-color: #aaa;
