@@ -119,6 +119,8 @@
     </div>
         <Modal v-if="showModal" :slip="selectedSlip":showMailButton="false" @close="showModal = false" />
   </div>
+  <BaseToast ref="toastRef" />
+
 </template>
 
 
@@ -128,6 +130,7 @@ import axios from 'axios'
 import { useUserStore } from '@/stores/user'
 import AgGrid from '@/components/grid/BaseGrid.vue'
 import Modal from '@/components/salary/PayrollModal.vue'
+import BaseToast from '@/components/toast/BaseToast.vue' 
 
 const salarySection = ref(null)
 const userStore = useUserStore()
@@ -138,7 +141,11 @@ const dateRange = reactive({ start: '', end: '' })
 const salaryHistory = ref([])
 const selectedSlip = ref(null)
 const showModal = ref(false)
+const toastRef = ref(null)
 
+function showToast(msg) {
+  toastRef.value?.show(msg)
+}
 const salaryColumnDefs = [
   { headerName: '지급일자', field: 'salaryDate' },
   { headerName: '총지급', field: 'totalIncome' },
@@ -177,7 +184,7 @@ async function fetchEmployeeInfo() {
 
 async function fetchSalaryHistory() {
   if (!dateRange.start || !dateRange.end) {
-    alert('조회 기간을 선택해주세요.')
+    showToast('조회 기간을 선택해주세요.')
     return
   }
 
