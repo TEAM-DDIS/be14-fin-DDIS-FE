@@ -1,57 +1,57 @@
 <template>
-    <div class="all-leave-regist-card">
-        <div class="section">
-        <!-- 검색 + 필터 -->
-        <div class="filters-row">
-            <div class="search-bar">
-                <img src="@/assets/icons/search.svg" class="search" />
-                <input v-model="searchKeyword" placeholder="사번 또는 성명 검색" />
-            </div>
-            <div class="filters">
-                <div>
-                    <label>본부 </label>
-                    <select v-model="filters.headName" class="fixed-select">
-                        <option value="">전체 본부</option>
-                        <option v-for="h in uniqueHeads" :key="h">{{ h }}</option>
-                    </select>
-                </div>
-                <div>
-                    <label>부서 </label>
-                    <select v-model="filters.departmentName" class="fixed-select">
-                        <option value="">전체 부서</option>
-                        <option v-for="d in filteredDepartments" :key="d">{{ d }}</option>
-                    </select>
-                </div>
-                <div>
-                    <label>팀 </label>
-                    <select v-model="filters.teamName" class="fixed-select">
-                        <option value="">전체 팀</option>
-                        <option v-for="t in filteredTeams" :key="t">{{ t }}</option>
-                    </select>
-                </div>
-                <div>
-                    <label>직급 </label>
-                    <select v-model="filters.rankName" class="fixed-select">
-                        <option value="">전체 직급</option>
-                        <option v-for="r in uniqueRanks" :key="r">{{ r }}</option>
-                    </select>
-                </div>
-            </div>
+  <div class="all-leave-regist-card">
+    <div class="section">
+      <!-- 검색 + 필터 -->
+      <div class="filters-row">
+        <div class="search-bar">
+          <img src="@/assets/icons/search.svg" class="search" />
+          <input v-model="searchKeyword" placeholder="사번 또는 성명 검색" />
         </div>
-        <!-- 표 -->
-        <AgGrid
-            class="ag-theme-alpine custom-theme"
-            :gridOptions="{ theme: 'legacy' }"
-            :columnDefs="columnDefs"
-            :rowData="filteredEmployees"
-            height="600px"
-            :pagination="true"
-            :paginationPageSize="10"
-            :style="{ width: '100%' }"
-        />
-        <button @click="downloadCSV" class="download-btn">CSV 다운로드</button>
+        <div class="filters">
+          <div>
+            <label>본부 </label>
+            <select v-model="filters.headName" class="fixed-select">
+              <option value="">전체 본부</option>
+              <option v-for="h in uniqueHeads" :key="h">{{ h }}</option>
+            </select>
+          </div>
+          <div>
+            <label>부서 </label>
+            <select v-model="filters.departmentName" class="fixed-select">
+              <option value="">전체 부서</option>
+              <option v-for="d in filteredDepartments" :key="d">{{ d }}</option>
+            </select>
+          </div>
+          <div>
+            <label>팀 </label>
+            <select v-model="filters.teamName" class="fixed-select">
+              <option value="">전체 팀</option>
+              <option v-for="t in filteredTeams" :key="t">{{ t }}</option>
+            </select>
+          </div>
+          <div>
+            <label>직급 </label>
+            <select v-model="filters.rankName" class="fixed-select">
+              <option value="">전체 직급</option>
+              <option v-for="r in uniqueRanks" :key="r">{{ r }}</option>
+            </select>
+          </div>
         </div>
+      </div>
+      <!-- 표 -->
+      <AgGrid
+        class="ag-theme-alpine custom-theme"
+        :gridOptions="{ theme: 'legacy' }"
+        :columnDefs="columnDefs"
+        :rowData="filteredEmployees"
+        height="600px"
+        :pagination="true"
+        :paginationPageSize="20"
+        :style="{ width: '100%' }"
+      />
+      <button @click="downloadCSV" class="download-btn">CSV 다운로드</button>
     </div>
+  </div>
 </template>
 
 <script setup>
@@ -93,12 +93,12 @@
 
   onMounted(async () => {
     try {
-      const token = userStore.accessToken // ✅ Pinia/Vuex 등에서 accessToken 가져오기
+      const token = userStore.accessToken 
 
       const res = await fetch('http://localhost:8000/attendance/leave/history/request/all', {
         method: 'GET',
         headers: {
-          Authorization: `Bearer ${token}`  // ✅ 토큰 필수
+          Authorization: `Bearer ${token}`  
         }
       })
 

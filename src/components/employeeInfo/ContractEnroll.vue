@@ -118,13 +118,14 @@
         </p>
       </div>
     </div>
+              <!-- 하단 버튼 -->
+        <div class="button-row">
+          <button class="btn btn-cancel" @click="onCancel">취소</button>
+          <button class="btn btn-save" @click="onSave">저장</button>
+        </div>
   </div>
 
-  <!-- 하단 버튼 -->
-  <div class="button-row">
-    <button class="btn btn-cancel" @click="onCancel">취소</button>
-    <button class="btn btn-save" @click="onSave">저장</button>
-  </div>
+
 </template>
 
 <script setup>
@@ -265,6 +266,7 @@ async function onSave() {
 
 /* 카드 영역: 높이를 늘려서 min-height 적용 */
 .card {
+  position: relative; 
   background: #fff;
   border-radius: 12px;
   box-shadow: 1px 1px 20px 1px rgba(0, 0, 0, 0.05);
@@ -351,18 +353,21 @@ async function onSave() {
 
 /* 경고문 */
 .warning-text {
+  display: flex;
   margin-top: 16px;
   font-size: 0.85rem;
   color: #6b7280;
   line-height: 1.4;
+  justify-content: flex-end;
 }
 
 /* 하단 버튼 행 */
 .button-row {
+  position: absolute;
+  bottom: 20px;            /* 카드 padding-bottom(32px)보다 살짝 위로 */
+  right: 40px;             /* 카드 padding-right 값과 동일 */
   display: flex;
-  justify-content: flex-end;
   gap: 12px;
-  margin-top: 30px;
 }
 .btn-cancel {
   background-color: #d3d3d3;

@@ -36,7 +36,7 @@
 
       <div class="forgot">
         비밀번호를 잊으셨나요?
-        <RouterLink to="/find-password">비밀번호 찾기</RouterLink>
+        <RouterLink to="/org/findpassword">비밀번호 찾기</RouterLink>
       </div>
     </div>
 

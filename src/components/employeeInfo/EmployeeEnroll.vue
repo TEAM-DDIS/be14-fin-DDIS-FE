@@ -3,10 +3,6 @@
   <h1 class="page-title">사원 목록 조회</h1>
   <div class="desc-row">
     <p class="desc">사원 등록 </p>
-    <div class="button-group-inline top-buttons">
-      <button type="button" class="btn-back" @click="onBackClick">취소</button>
-      <button class="btn-save" @click="onSave">저장</button>
-    </div>
   </div>
 
   <div class="employee-detail">
@@ -403,6 +399,10 @@
           </div>
         </div>
       </div>
+    <div class="button-group-inline top-buttons">
+      <button type="button" class="btn-back" @click="onBackClick">취소</button>
+      <button class="btn-save" @click="onSave">저장</button>
+    </div>
     </div>
   </div>
 
@@ -747,7 +747,7 @@ function onBackClick() {
   justify-content: flex-end;
   gap: 10px;
   margin-left: auto;   /* “사원 상세 조회”와 버튼 사이 빈 공간 채우기 */
-  margin-right: 20px;  /* 전체 오른쪽 여백 맞추기 */
+  margin-right: 0px;  /* 전체 오른쪽 여백 맞추기 */
 }
 
 .btn-save {

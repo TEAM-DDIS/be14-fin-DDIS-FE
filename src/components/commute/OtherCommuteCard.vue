@@ -1,18 +1,18 @@
 <template>
-    <div class="leave-used-wrapper">
-        <div class="section">
-            <AgGrid
-                class="ag-theme-alpine custom-theme"
-                :gridOptions="{ theme: 'legacy' }"
-                :columnDefs="columnDefs"
-                :rowData="filteredCommuteList"
-                height="600px"
-                :pagination="true"
-                :paginationPageSize="10"
-            />
-            <button @click="downloadCSV" class="download-btn">CSV 다운로드</button>
-        </div>
+  <div class="leave-used-wrapper">
+    <div class="section">
+      <AgGrid
+        class="ag-theme-alpine custom-theme"
+        :gridOptions="{ theme: 'legacy' }"
+        :columnDefs="columnDefs"
+        :rowData="filteredCommuteList"
+        height="600px"
+        :pagination="true"
+        :paginationPageSize="20"
+      />
+      <button @click="downloadCSV" class="download-btn">CSV 다운로드</button>
     </div>
+  </div>
 </template>
 
 <script setup>

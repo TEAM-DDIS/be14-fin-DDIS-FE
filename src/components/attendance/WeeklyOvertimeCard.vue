@@ -125,7 +125,6 @@
     }
   }
 
-
   onMounted(async () => {
     const token = localStorage.getItem('token')
     if (!token) {
@@ -233,9 +232,9 @@
   }
   .apply-btn:hover {
     background-color: white;
-      color: #00A8E8;
-      border: 1px solid #00A8E8;
-      box-shadow: inset 1px 1px 10px rgba(0, 0, 0, 0.25);
+    color: #00A8E8;
+    border: 1px solid #00A8E8;
+    box-shadow: inset 1px 1px 10px rgba(0, 0, 0, 0.25);
   }
 
     /* 모달 전체 배경 */

@@ -1,244 +1,375 @@
 <template>
-    <h1 class="page-title">
-        <img
-        src="@/assets/icons/back_btn.svg"
-        alt="back"
-        class="back-btn"
-        @click="goBack"
-       />사원 목록 조회
-    </h1>
-    <div class="desc-row">
-        <p class="desc">사원 상세 조회 </p>
-    </div>
+  <h1 class="page-title">
+    <img
+      src="@/assets/icons/back_btn.svg"
+      alt="back"
+      class="back-btn"
+      @click="goBack"
+    />
+    사원 목록 조회
+  </h1>
+  <div class="desc-row">
+    <p class="desc">사원 상세 조회 </p>
+  </div>
 
-<div class="employee-detail">
+  <div class="employee-detail">
     <div class="card compact-card adjusted-card short-height-card overflow-scroll-wrapper top-card">
       <div class="top-card-layout">
-
         <!-- 프로필 -->
         <div class="profile-area">
-          <img v-if="form.employeePhotoUrl" :src="form.employeePhotoUrl" class="profile-img"/>
-          <div v-else class="profile-placeholder-box"><span>사진 없음</span></div>
+          <img
+            v-if="form.employeePhotoUrl"
+            :src="form.employeePhotoUrl"
+            class="profile-img"
+          />
+          <div v-else class="profile-placeholder-box">
+            <span>사진 없음</span>
+          </div>
         </div>
         <!-- 폼 그리드 -->
         <div class="top-grid-info">
           <div class="info-item">
-            <label class ="label-bold">사원명</label>
-            <input class="same-size-input" v-model="form.employeeName" readonly />
+            <label class="label-bold">사원명</label>
+            <input
+              class="same-size-input"
+              v-model="form.employeeName"
+              readonly
+            />
           </div>
           <div class="info-item">
-            <label class ="label-bold">직무</label>
+            <label class="label-bold">직무</label>
             <input class="same-size-input" v-model="form.jobName" readonly />
           </div>
           <div class="info-item">
-            <label class ="label-bold">근무형태</label>
+            <label class="label-bold">근무형태</label>
             <input class="same-size-input" v-model="form.workType" readonly />
           </div>
           <div class="info-item">
-            <label class ="label-bold">본부</label>
+            <label class="label-bold">본부</label>
             <input class="same-size-input" v-model="form.headName" readonly />
           </div>
           <div class="info-item">
-            <label class ="label-bold">직책</label>
-            <input class="same-size-input" v-model="form.positionName" readonly />
+            <label class="label-bold">직책</label>
+            <input
+              class="same-size-input"
+              v-model="form.positionName"
+              readonly
+            />
           </div>
           <div class="info-item">
-            <label class ="label-bold">입사일</label>
-            <input class="same-size-input" v-model="form.employmentDate" readonly />
+            <label class="label-bold">입사일</label>
+            <input
+              class="same-size-input"
+              v-model="form.employmentDate"
+              readonly
+            />
           </div>
           <div class="info-item">
-            <label class ="label-bold">부서</label>
-            <input class="same-size-input" v-model="form.departmentName" readonly />
+            <label class="label-bold">부서</label>
+            <input
+              class="same-size-input"
+              v-model="form.departmentName"
+              readonly
+            />
           </div>
           <div class="info-item">
-            <label class ="label-bold">직급</label>
+            <label class="label-bold">직급</label>
             <input class="same-size-input" v-model="form.rankName" readonly />
           </div>
           <div class="info-item">
-            <label class ="label-bold">퇴사일</label>
-            <input class="same-size-input" v-model="form.retirementDate" readonly />
+            <label class="label-bold">퇴사일</label>
+            <input
+              class="same-size-input"
+              v-model="form.retirementDate"
+              readonly
+            />
           </div>
           <div class="info-item">
-            <label class ="label-bold">팀</label>
+            <label class="label-bold">팀</label>
             <input class="same-size-input" v-model="form.teamName" readonly />
           </div>
           <div class="info-item">
-            <label class ="label-bold">연락처</label>
-            <input class="same-size-input" v-model="form.employeeContact" readonly />
+            <label class="label-bold">연락처</label>
+            <input
+              class="same-size-input"
+              v-model="form.employeeContact"
+              readonly
+            />
           </div>
           <div class="info-item">
-            <label class ="label-bold">사번</label>
+            <label class="label-bold">사번</label>
             <input class="same-size-input" v-model="form.employeeId" readonly />
           </div>
           <div class="info-item">
-            <label class ="label-bold">이메일</label>
-            <input class="same-size-input" v-model="form.employeeEmail" readonly />
+            <label class="label-bold">이메일</label>
+            <input
+              class="same-size-input"
+              v-model="form.employeeEmail"
+              readonly
+            />
           </div>
-         </div>
         </div>
+      </div>
     </div>
+
+    <!-- HR 권한이 있을 때만 탭 및 하단 컨텐츠 보여주기 -->
+    <template v-if="isHR">
+      <!-- 탭 영역 -->
+      <div class="tabs">
+        <button
+          v-for="tab in tabs"
+          :key="tab"
+          :class="['tab', { active: currentTab === tab }]"
+          @click="currentTab = tab"
+        >
+          {{ tab }}
+        </button>
+      </div>
 
-    <!-- 탭 영역 -->
-    <div class="tabs">
-      <button v-for="tab in tabs" :key="tab" :class="['tab',{ active: currentTab===tab }]" @click="currentTab=tab">
-        {{ tab }}
-      </button>
-    </div>
+      <!-- 하단 카드: 탭별 읽기 전용 필드 -->
+      <div class="card tab-content overflow-scroll-wrapper bottom-card">
+        <!-- 인사정보 -->
+        <div v-if="currentTab === '인사정보'">
+          <div class="grid-info scrollable-grid">
+            <div class="info-column">
+              <div class="info-item">
+                <label class="label-bold">성별</label>
+                <input
+                  class="same-size-input"
+                  v-model="form.employeeGender"
+                  readonly
+                />
+              </div>
+              <div class="info-item">
+                <label class="label-bold">국적</label>
+                <input
+                  class="same-size-input"
+                  v-model="form.employeeNation"
+                  readonly
+                />
+              </div>
+              <div class="info-item">
+                <label class="label-bold">생년월일</label>
+                <input
+                  class="same-size-input"
+                  v-model="form.employeeBirth"
+                  readonly
+                />
+              </div>
+              <div class="info-item">
+                <label class="label-bold">4대 보험</label>
+                <input
+                  class="same-size-input"
+                  v-model="form.isFourInsurances"
+                  readonly
+                />
+              </div>
+              <div class="info-item">
+                <label class="label-bold">거래 은행</label>
+                <input
+                  class="same-size-input"
+                  v-model="form.bankName"
+                  readonly
+                />
+              </div>
+              <div class="info-item">
+                <label class="label-bold">예금주</label>
+                <input
+                  class="same-size-input"
+                  v-model="form.bankDepositor"
+                  readonly
+                />
+              </div>
+              <div class="info-item">
+                <label class="label-bold">계좌 번호</label>
+                <input
+                  class="same-size-input"
+                  v-model="form.bankAccount"
+                  readonly
+                />
+              </div>
+            </div>
+          </div>
+        </div>
 
-    <!-- 하단 카드: 탭별 읽기 전용 필드 -->
-    <div class="card tab-content overflow-scroll-wrapper bottom-card">
-      <div v-if="currentTab==='인사정보'">
-        <div class="grid-info scrollable-grid">
-          <div class="info-column">
-            <div class="info-item">
-              <label class ="label-bold">성별</label>
-              <input class="same-size-input" v-model="form.employeeGender" readonly />
-            </div>
-            <div class="info-item">
-              <label class ="label-bold">국적</label>
-              <input class="same-size-input" v-model="form.employeeNation" readonly />
-            </div>
-            <div class="info-item">
-              <label class ="label-bold">생년월일</label>
-              <input class="same-size-input" v-model="form.employeeBirth" readonly />
-            </div>
-            <div class="info-item">
-              <label class ="label-bold">4대 보험</label>
-              <input class="same-size-input" v-model="form.isFourInsurances" readonly />
-            </div>
-            <div class="info-item">
-              <label class ="label-bold">거래 은행</label>
-              <input class="same-size-input" v-model="form.bankName" readonly />
-            </div>
-            <div class="info-item">
-              <label class ="label-bold">예금주</label>
-              <input class="same-size-input" v-model="form.bankDepositor" readonly />
-            </div>
-            <div class="info-item">
-              <label class ="label-bold">계좌 번호</label>
-              <input class="same-size-input" v-model="form.bankAccount" readonly />
+        <!-- 개인정보 -->
+        <div v-else-if="currentTab === '개인정보'">
+          <div class="grid-info scrollable-grid">
+            <div class="info-column">
+              <div class="info-item">
+                <label class="label-bold">주민등록번호</label>
+                <input
+                  class="same-size-input"
+                  v-model="form.employeeResident"
+                  readonly
+                />
+              </div>
+              <div class="info-item">
+                <label class="label-bold">주소</label>
+                <input
+                  class="same-size-input"
+                  v-model="form.employeeAddress"
+                  readonly
+                />
+              </div>
+              <div class="info-item">
+                <label class="label-bold">출신학교</label>
+                <input
+                  class="same-size-input"
+                  v-model="form.employeeSchool"
+                  readonly
+                />
+              </div>
+              <div class="info-item">
+                <label class="label-bold">장애여부</label>
+                <input
+                  class="same-size-input"
+                  v-model="form.isDisorder"
+                  readonly
+                />
+              </div>
+              <div class="info-item">
+                <label class="label-bold">병역여부</label>
+                <input
+                  class="same-size-input"
+                  v-model="form.militaryType"
+                  readonly
+                />
+              </div>
+              <div class="info-item">
+                <label class="label-bold">부양 가족 수</label>
+                <input
+                  class="same-size-input"
+                  v-model="form.familyCount"
+                  readonly
+                />
+              </div>
+              <div class="info-item">
+                <label class="label-bold">결혼 여부</label>
+                <input
+                  class="same-size-input"
+                  v-model="form.isMarriage"
+                  readonly
+                />
+              </div>
+              <div class="info-item">
+                <label class="label-bold">결혼 일자</label>
+                <input
+                  class="same-size-input"
+                  v-model="form.marriageDate"
+                  readonly
+                />
+              </div>
+              <div class="info-item">
+                <label class="label-bold">경력 년수</label>
+                <input
+                  class="same-size-input"
+                  v-model="form.careerYearCount"
+                  readonly
+                />
+              </div>
+              <div class="info-item">
+                <label class="label-bold">이전 근무 회사</label>
+                <input
+                  class="same-size-input"
+                  v-model="form.previousCompany"
+                  readonly
+                />
+              </div>
+              <div class="info-item">
+                <label class="label-bold">최종 학력</label>
+                <input
+                  class="same-size-input"
+                  v-model="form.finalAcademic"
+                  readonly
+                />
+              </div>
+              <div class="info-item">
+                <label class="label-bold">전공</label>
+                <input
+                  class="same-size-input"
+                  v-model="form.employeeDept"
+                  readonly
+                />
+              </div>
+              <div class="info-item">
+                <label class="label-bold">졸업년도</label>
+                <input
+                  class="same-size-input"
+                  v-model="form.graduationYear"
+                  readonly
+                />
+              </div>
             </div>
           </div>
         </div>
-      </div>
-      <div v-else-if="currentTab==='개인정보'">
-        <div class="grid-info scrollable-grid">
-          <div class="info-column">
-            <div class="info-item">
-              <label class ="label-bold">주민등록번호</label>
-              <input class="same-size-input" v-model="form.employeeResident" readonly />
-            </div>
-            <div class="info-item">
-              <label class ="label-bold">주소</label>
-              <input class="same-size-input" v-model="form.employeeAddress" readonly />
-            </div>
-            <div class="info-item">
-              <label class ="label-bold">출신학교</label>
-              <input class="same-size-input" v-model="form.employeeSchool" readonly />
-            </div>
-            <div class="info-item">
-              <label class ="label-bold">장애여부</label>
-              <input class="same-size-input" v-model="form.isDisorder" readonly />
-            </div>
-            <div class="info-item">
-              <label class ="label-bold">병역여부</label>
-              <input class="same-size-input" v-model="form.militaryType" readonly />
-            </div>
-            <div class="info-item">
-              <label class ="label-bold">부양 가족 수</label>
-              <input class="same-size-input" v-model="form.familyCount" readonly />
-            </div>
-            <div class="info-item">
-              <label class ="label-bold">결혼 여부</label>
-              <input class="same-size-input" v-model="form.isMarriage" readonly />
-            </div>
-            <div class="info-item">
-              <label class ="label-bold">결혼 일자</label>
-              <input class="same-size-input" v-model="form.marriageDate" readonly />
-            </div>
-            <div class="info-item">
-              <label class ="label-bold">경력 년수</label>
-              <input class="same-size-input" v-model="form.careerYearCount" readonly />
-            </div>
-            <div class="info-item">
-              <label class ="label-bold">이전 근무 회사</label>
-              <input class="same-size-input" v-model="form.previousCompany" readonly />
-            </div>
-            <div class="info-item">
-              <label class ="label-bold">최종 학력</label>
-              <input class="same-size-input" v-model="form.finalAcademic" readonly />
-            </div>
-            <div class="info-item">
-              <label class ="label-bold">전공</label>
-              <input class="same-size-input" v-model="form.employeeDept" readonly />
-            </div>
-            <div class="info-item">
-              <label class ="label-bold">졸업년도</label>
-              <input class="same-size-input" v-model="form.graduationYear" readonly />
-            </div>
+
+        <!-- 인사발령 탭: AG Grid -->
+        <div v-else-if="currentTab === '인사발령'">
+          <div class="ag-theme-alpine ag-grid-box">
+            <AgGridVue
+              :columnDefs="appointmentColumnDefs"
+              :gridOptions="{ theme: 'legacy' }"
+              :rowData="appointmentData"
+              :defaultColDef="defaultColDef"
+              :pagination="true"
+              :paginationPageSize="pageSize"
+              rowSelection="multiple"
+              @grid-ready="onGridReady"
+              @cell-clicked="onCellClick"
+              style="width:100%; height:100%"
+            />
           </div>
-         </div>
-      </div>
-      <!-- 인사발령 탭: AG Grid -->
-      <div v-else-if="currentTab === '인사발령'">
-        <div class="ag-theme-alpine ag-grid-box">  
-          <AgGridVue
-            :columnDefs="appointmentColumnDefs"
-            :gridOptions="{ theme: 'legacy' }"
-            :rowData="appointmentData"
-            :defaultColDef="defaultColDef"
-            :pagination="true"
-            :paginationPageSize="pageSize"
-            rowSelection="multiple"
-            @grid-ready="onGridReady"
-            style="width:100%; height:100%"
-          />
+        </div>
+
+        <!-- 징계 탭: AG Grid -->
+        <div v-else-if="currentTab === '징계'">
+          <div class="ag-theme-alpine ag-grid-box">
+            <AgGridVue
+              :columnDefs="disciplineColumnDefs"
+              :gridOptions="{ theme: 'legacy' }"
+              :rowData="disciplineData"
+              :defaultColDef="defaultColDef"
+              :pagination="true"
+              :paginationPageSize="pageSize"
+              rowSelection="multiple"
+              @grid-ready="onGridReady"
+              @cell-clicked="onCellClick"
+              style="width:100%; height:100%"
+            />
+          </div>
+        </div>
+
+        <!-- 계약 탭: AG Grid -->
+        <div v-else-if="currentTab === '계약'">
+          <div class="ag-theme-alpine ag-grid-box">
+            <AgGridVue
+              :columnDefs="contractColumnDefs"
+              :gridOptions="{ theme: 'legacy' }"
+              :rowData="contractData"
+              :defaultColDef="defaultColDef"
+              :pagination="true"
+              :paginationPageSize="pageSize"
+              rowSelection="multiple"
+              @grid-ready="onGridReady"
+              @cell-clicked="onCellClick"
+              style="width:100%; height:100%"
+            />
+          </div>
         </div>
       </div>
-      <!-- 징계 탭: AG Grid -->
-      <div v-else-if="currentTab === '징계'">
-        <div class="ag-theme-alpine ag-grid-box">
-          <AgGridVue
-            :columnDefs="disciplineColumnDefs"
-            :gridOptions="{ theme: 'legacy' }"
-            :rowData="disciplineData"
-            :defaultColDef="defaultColDef"
-            :pagination="true"
-            :paginationPageSize="pageSize"
-            rowSelection="multiple"
-            @grid-ready="onGridReady"
-            @cell-clicked="onCellClick"
-            style="width:100%; height:100%"
-          />
-        </div>
-      </div>
-      <!-- 계약 탭: AG Grid -->
-      <div v-else-if="currentTab === '계약'">
-        <div class="ag-theme-alpine ag-grid-box">
-          <AgGridVue
-            :columnDefs="contractColumnDefs"
-            :gridOptions="{ theme: 'legacy' }"
-            :rowData="contractData"
-            :defaultColDef="defaultColDef"
-            :pagination="true"
-            :paginationPageSize="pageSize"
-            rowSelection="multiple"
-            @grid-ready="onGridReady"
-            @cell-clicked="onCellClick"
-            style="width:100%; height:100%"
-          />
-        </div>
-      </div>
-    </div>
+    </template>
   </div>
 </template>
 
+
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import axios from 'axios'
 import { useUserStore } from '@/stores/user'
 import { AgGridVue } from 'ag-grid-vue3'
+import detailIconUrl from '@/assets/icons/detail_appointment.svg'
 import {
   ModuleRegistry,
   AllCommunityModule,
@@ -269,6 +400,36 @@ const route     = useRoute()
 const router    = useRouter()
 const userStore = useUserStore()
 
+// JWT 토큰 디코딩 유틸
+function parseJwtPayload(token) {
+  try {
+    const base64Url = token.split('.')[1]
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split('')
+        .map(c => `%${('00' + c.charCodeAt(0).toString(16)).slice(-2)}`)
+        .join('')
+    )
+    return JSON.parse(jsonPayload)
+  } catch {
+    return {}
+  }
+}
+
+// HR 권한 여부 계산 (role 클레임명은 실제 JWT 에 맞춰 조정)
+const isHR = computed(() => {
+  const raw = userStore.accessToken?.startsWith('Bearer ')
+    ? userStore.accessToken.slice(7)
+    : userStore.accessToken
+  if (!raw) return false
+
+  const { auth } = parseJwtPayload(raw)
+  if (Array.isArray(auth))    return auth.includes('ROLE_HR')
+  if (typeof auth === 'string') return auth.includes('ROLE_HR')
+  return false
+})
+
 // — 탭 정의
 const tabs       = ['인사정보','개인정보','인사발령','징계','계약']
 const currentTab = ref(tabs[0])
@@ -280,14 +441,30 @@ let gridApi         = null
 function onGridReady(params) { gridApi = params.api }
 
 // — 인사발령 컬럼 정의
-const appointmentColumnDefs = ref([
-  { headerName: '번호',                field: 'id',                         width: 90 },
-  { headerName: '사원번호',            field: 'employeeNo', flex: 1,         cellClass: 'center-align' },
-  { headerName: '발령유형',            field: 'appointment_type', flex: 1,  cellClass: 'center-align' },
-  { headerName: '발령일자',            field: 'appointment_effective_date', flex: 1, cellClass: 'center-align' },
-  { headerName: '상태',                field: 'appointment_status',         width: 200 },
-  { headerName: '상세',                field: 'detail',                     width: 100 }
-])
+  const appointmentColumnDefs = ref([
+    // 순번
+    {
+      headerName: '번호',
+      width: 90,
+      valueGetter: params => params.node.rowIndex + 1,
+      sortable: false,
+      suppressMenu: true
+    },
+    // 사원번호
+    { headerName: '사원번호', field: 'employeeId',             flex: 1 },
+    // 발령사유
+    { headerName: '발령사유', field: 'appointmentReason',      flex: 1 },
+    // 발령유형
+    { headerName: '발령유형', field: 'appointmentType',        flex: 1 },
+    // 발령일자
+    { headerName: '발령일자', field: 'appointmentEffectiveDate', flex: 1 },
+    {
+    headerName: '상세',
+    field: 'detail',
+    width: 80,
+    cellRenderer: () => `<img src="${detailIconUrl}" class="detail-btn"/>`
+    }
+  ])
 
 // — 징계 컬럼 정의
 const disciplineColumnDefs = ref([
@@ -407,25 +584,24 @@ async function downloadFile(fileUrl, fileName) {
 }
 
 async function onCellClick(e) {
-  // — “파일” 컬럼 클릭 시 다운로드
-  if (
-    e.colDef.field === 'fileList' &&
-    e.event.target.matches('a') &&
-    e.event.target.dataset.idx != null
-  ) {
-    e.event.preventDefault()
-    const idx  = Number(e.event.target.dataset.idx)
-    const file = (e.data.fileList || [])[idx]
-    if (!file) return
-    // 다운로드 헬퍼 호출
-    await downloadFile(file.fileUrl, file.fileName)
-    return
-  }
+    // 1) 상세 버튼 클릭
+    if (e.colDef.field === 'detail') {
+      router.push(`/org/appointment/${e.data.appointmentHistoryId}`)
+      return
+    }
 
-  // — 사원명 클릭 시: 상세 페이지 이동
-  if (e.colDef.field === 'employeeName') {
-    router.push(`/employeeInfo/${route.params.id}`)
-  }
+    // 2) 파일 목록 클릭 시 다운로드
+    if (
+      e.colDef.field === 'fileList' &&
+      e.event.target.matches('a') &&
+      e.event.target.dataset.idx != null
+    ) {
+      e.event.preventDefault()
+      const idx  = Number(e.event.target.dataset.idx)
+      const file = (e.data.fileList || [])[idx]
+      if (!file) return
+      await downloadFile(file.fileUrl, file.fileName)
+    }
 }
 
 // — 사원 기본 정보 폼
@@ -558,8 +734,8 @@ onMounted(async () => {
   // 2) 인사발령 목록
   try {
     const { data: appts } = await axios.get(
-      '/appointments',
-      { params: { employeeId: id }, headers: authHeaders() }
+      `/appointment-history/employee/${id}`,
+      { headers: authHeaders() }
     )
     appointmentData.value = appts
   } catch (err) {
@@ -877,5 +1053,20 @@ onMounted(async () => {
 input[readonly] {
   background-color: #f9f9f9;
   border: none;
+}
+
+:deep(.file-list-cell) {
+  display: flex;
+  flex-wrap: nowrap;
+  /* 링크들 사이 간격을 8px로 설정 */
+  gap: 8px;
+  max-height: 36px;
+  padding-right: 8px;
+}
+/* a 태그는 줄바꿈 없이 */
+.file-list-cell a {
+  white-space: nowrap;
+  text-decoration: underline;
+  cursor: pointer;
 }
 </style>

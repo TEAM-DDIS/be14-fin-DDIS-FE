@@ -85,26 +85,47 @@
         </template>
       </div>
     </div>
-  </div>
 
-  <button class="edit-button" @click="onEdit">편집</button>
+    <button v-if="isHR" class="edit-button" @click="onEdit">조직 구성 편집</button>
+  </div>
 </template>
 
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
+import { useUserStore } from '@/stores/user'
 import Hierarchy from '@/components/org/structure/Hierarchy.vue'
 
-// --- 상태 정의 ---
-const hierarchy = ref([])          // HeadQueryDTO[] 전체 조직 계층
-const selectedTeam = ref(null)      // { teamId, teamName, members: [...] }
-const teamMembers = ref([])         // 팀원 리스트: { employeeId, employeeName, positionName, rankName }
-const selectedEmployee = ref(null)  // 사원 상세: { employeeId, employeeName, positionName, rankName, headId, departmentId, teamId, birthdate, email }
+const hierarchy = ref([])
+const selectedTeam = ref(null)
+const teamMembers = ref([])
+const selectedEmployee = ref(null)
 
-// Vue 라우터
 const router = useRouter()
 
-// 1) 초기 로딩: 조직 계층 가져오기 (한 번만 호출)
+// 인사팀에서만 등록, 삭제버튼 
+const userStore = useUserStore()
+const token = localStorage.getItem('token')
+const payload = parseJwtPayload(userStore.accessToken || token)
+const isHR = payload?.role?.includes('ROLE_HR') || payload?.auth?.includes('ROLE_HR')
+
+function parseJwtPayload(token) {
+  try {
+    const base64Url = token.split('.')[1]
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split('')
+        .map(c => `%${('00' + c.charCodeAt(0).toString(16)).slice(-2)}`)
+        .join('')
+    )
+    return JSON.parse(jsonPayload)
+  } catch (e) {
+    return null
+  }
+}
+
+// 1) 초기 로딩: 조직 계층 가져오기 
 onMounted(async () => {
   try {
     const url = 'http://localhost:8000/structure/hierarchy'
@@ -339,9 +360,7 @@ function findDeptName(deptId) {
 
 /* Edit 버튼 */
 .edit-button {
-  position: absolute;
-  top: 40px;
-  right: 40px;
+  align-self: flex-end;
   font-size: 14px;
   font-weight: bold;
   cursor: pointer;
@@ -350,10 +369,15 @@ function findDeptName(deptId) {
   color: white;
   border: 1px solid transparent;
   border-radius: 10px;
-  padding: 10px 30px;
+  padding: 12px 30px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   transition: background-color 0.2s, box-shadow 0.2s;
   box-sizing: border-box;
+
+  display: block;
+  margin-left: auto;
+  margin-right: 20px;
+  margin-bottom: 20px;
 }
 .edit-button:hover {
   background-color: white;

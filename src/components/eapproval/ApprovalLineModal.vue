@@ -40,13 +40,13 @@
           />
         </div>
 
-        <!-- ④-2) 중앙: 선택된 직원에 대한 ‘결재’ / ‘협조’ 버튼 -->
+        <!-- ④-2) 중앙: 선택된 직원에 대한 '결재' / '협조' 버튼 -->
         <div class="action-btns">
           <template v-if="mode ==='결재선'">
-            <button class="action-btn btn-save" @click="addApprover('결재')" :disabled="!selectedNode?.employeeId">
+            <button class="action-btn btn-save" @click="addApprover('결재')" :disabled="!selectedHierarchyEmployees.length">
               결재
             </button>
-            <button class="action-btn btn-save" @click="addApprover('협조')" :disabled="!selectedNode?.employeeId">
+            <button class="action-btn btn-save" @click="addApprover('협조')" :disabled="!selectedHierarchyEmployees.length">
               협조
             </button>
           </template>
@@ -54,13 +54,13 @@
             <button
               class="action-btn btn-save"
               @click="addApprover('수신자')"
-              :disabled="!selectedNode?.employeeId"
+              :disabled="!selectedHierarchyEmployees.length"
             >수신</button>
           </template>
           <template v-else-if="mode === '참조자'">
             <button class="action-btn btn-save"
             @click="addApprover('참조자')"
-            :disabled="!selectedNode?.employeeId"
+            :disabled="!selectedHierarchyEmployees.length"
             >참조
             </button>
 
@@ -144,9 +144,8 @@ const selectedApprovers = ref([])
 const selectedReceivers = ref([])
 const selectedReferences = ref([])
 
-// — 조직도에서 선택된 사원
-const selectedNodes = ref([])
-const selectedNode  = ref(null)
+// — 조직도에서 선택된 사원 (다중 선택을 위해 배열로 변경)
+const selectedHierarchyEmployees = ref([]) // 여러 직원을 담을 배열
 
 // 초기 데이터 세팅
 onMounted(() => {
@@ -174,6 +173,7 @@ onMounted(() => {
       status:        a.status,
       type:          a.type,
       rank:          a.rank,
+      rankName:      a.rankName || a.rank,
       lineTypeLabel: a.lineTypeLabel,
       viewedAt:      a.viewedAt,
       approvedAt:    a.approvedAt,
@@ -182,25 +182,22 @@ onMounted(() => {
   }
 
   // 조직도 초기화
-  selectedNodes.value = flattenAllEmployees(props.hierarchy)
+  // selectedNodes.value = flattenAllEmployees(props.hierarchy) // 이제 필요 없음
 })
 
-// 조직도 helper
+// 조직도 helper (selectedEmployees를 기반으로 실제 객체 매핑)
 function flattenAllEmployees(tree) {
   const list = [];
   tree.forEach(head => {
     head.departments?.forEach(dept => {
       dept.teams?.forEach(team => {
         team.members?.forEach(emp => {
-          rank.rank?.forEach(rank =>{
-          })
-          // emp 자체에 teamName, departmentName, headName 을 붙여서
           list.push({
             ...emp,
             teamName:       team.teamName,
             departmentName: dept.departmentName,
             headName:       head.headName,
-            rank:           rank.rank
+            rankName:       emp.rankName || emp.rank // rankName 추가
           });
         });
       });
@@ -209,36 +206,39 @@ function flattenAllEmployees(tree) {
   return list;
 }
 
-
 // 조직도 이벤트 핸들러
 function onHierarchyLoaded(loaded) {
   hierarchyData.value = loaded
-  selectedNodes.value  = flattenAllEmployees(loaded)
+  // selectedNodes.value = flattenAllEmployees(loaded) // 이제 필요 없음
 }
-function onEmployeesSelected(ids, emp) {
-  console.log('선택된 ID:', ids)
-  console.log('선택된 객체:', emp)
 
-  selectedNodes.value = flattenAllEmployees(hierarchyData.value)
-    .filter(e => ids.includes(Number(e.employeeId)))
-  selectedNode.value = emp || (selectedNodes.value.length > 0 ? selectedNodes.value[0] : null)
-  console.log('선택된 사원 객체:', selectedNode.value)
-
+// EHierarchy에서 선택된 직원 ID 배열과 객체 배열을 받아옴
+function onEmployeesSelected(ids) {
+  // ids는 선택된 employeeId 배열
+  // hierarchyData에서 해당 employeeId를 가진 직원 객체를 찾아 selectedHierarchyEmployees에 저장
+  selectedHierarchyEmployees.value = flattenAllEmployees(hierarchyData.value).filter(emp =>
+    ids.includes(Number(emp.employeeId))
+  );
+  console.log('선택된 사원들 (selectedHierarchyEmployees):', selectedHierarchyEmployees.value);
 }
+
 function selectEmployee(emp) {
-  selectedNode.value = emp
+  // 단일 선택 로직은 이제 사용하지 않음 (체크박스 v-model로 대체)
 }
 
-// 좌측 필터·정렬
+// 좌측 필터·정렬 (selectedNodes -> selectedHierarchyEmployees 로 변경)
 const filteredNodes = computed(() => {
   const q = search.value.trim().toLowerCase()
   return q
-    ? selectedNodes.value.filter(e =>
+    ? flattenAllEmployees(hierarchyData.value).filter(e => // 전체 계층에서 필터링
         e.employeeName.toLowerCase().includes(q) ||
-        e.positionName.toLowerCase().includes(q)
+        e.positionName.toLowerCase().includes(q) ||
+        e.teamName.toLowerCase().includes(q) ||
+        e.departmentName.toLowerCase().includes(q)
       )
-    : selectedNodes.value
+    : flattenAllEmployees(hierarchyData.value)
 })
+
 const filteredAndSortedNodes = computed(() => {
   const arr = [...filteredNodes.value]
   return sortKey.value === 'name'
@@ -316,44 +316,26 @@ function deleteSelected() {
   selectedList.value = []
 }
 
-// — 결재/수신/참조 추가
+// Function to add selected employee as approver or cooperator
 function addApprover(type) {
-  if (!selectedNode.value) return
+  if (selectedHierarchyEmployees.value.length > 0) {
+    selectedHierarchyEmployees.value.forEach(selectedEmp => {
+      const newApprover = {
+        employeeId: selectedEmp.employeeId,
+        name: selectedEmp.employeeName,
+        team: selectedEmp.teamName, 
+        position: selectedEmp.positionName, 
+        rankName: selectedEmp.rankName || selectedEmp.rank, 
+        status: '대기중', 
+        type: type,
+      };
 
-  if (props.mode === '수신자') {
-    if (!receiverList.value.some(u => u.employeeId === selectedNode.value.employeeId)) {
-      receiverList.value.push({
-        employeeId: selectedNode.value.employeeId,
-        name:       selectedNode.value.employeeName,
-        position:   selectedNode.value.positionName
-      })
-    }
-  }
-  else if (props.mode === '참조자') {
-    if (!referenceList.value.some(u => u.employeeId === selectedNode.value.employeeId)) {
-      referenceList.value.push({
-        employeeId: selectedNode.value.employeeId,
-        name:       selectedNode.value.employeeName,
-        position:   selectedNode.value.positionName
-      })
-    }
-  }
-  else {
-    if (!approverList.value.some(a => a.employeeId === selectedNode.value.employeeId)) {
-      approverList.value.push({
-        step:          approverList.value.length + 1,
-        employeeId:    selectedNode.value.employeeId,
-        name:          selectedNode.value.employeeName,
-        position:      selectedNode.value.positionName,
-        team:          selectedNode.value.teamName || '',
-        status:        '대기중',
-        type,
-        lineTypeLabel: '양식 결재선',
-        viewedAt:      null,
-        approvedAt:    null,
-        comment:       ''
-      })
-    }
+      // Prevent duplicates based on employeeId
+      if (!approverList.value.some(a => a.employeeId === newApprover.employeeId)) {
+        approverList.value.push(newApprover);
+      }
+    });
+    console.log('결재자 추가 후 approverList:', approverList.value);
   }
 }
 
@@ -416,7 +398,16 @@ function submitSelection() {
       text-align: center;
     }
     
-    /* 좌측 팀원 스타일 */
+    /* ... 나머지 기존 스타일 유지 ... */
+    
+    
+    
+    
+    /* 좌측 팀원 리스트 스타일 */
+    
+    /* =========================
+       모달 전체 오버레이/컨테이너
+    ========================= */
     .modal-overlay {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;

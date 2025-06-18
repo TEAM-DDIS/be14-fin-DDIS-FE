@@ -1,14 +1,14 @@
 <template>
-    <div class="summary-wrapper">
-        <div
-            v-for="item in summaryList"
-            :key="item.label"
-            class="summary-badge"
-            :style="{ backgroundColor: item.color }"
-            >
-            {{ item.label }} {{ item.count }}
-        </div>
+  <div class="summary-wrapper">
+    <div
+      v-for="item in summaryList"
+      :key="item.label"
+      class="summary-badge"
+      :style="{ backgroundColor: item.color }"
+      >
+      {{ item.label }} {{ item.count }}
     </div>
+  </div>
 </template>
 
 <script setup>

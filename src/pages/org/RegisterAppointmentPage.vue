@@ -75,7 +75,7 @@
       <!-- 3. 버튼 그룹 -->
       <div class="button-group">
         <button class="btn-cancel" @click="cancel">취소</button>
-        <button type="button" class="btn-save" @click="submit">저장</button>
+        <button class="btn-save" @click="submit">저장</button>
       </div>
     </div>
   </div>
@@ -110,6 +110,7 @@ import { reactive, ref, watch, onMounted, computed, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
 import 'core-js/features/array/flat-map'
+import { useUserStore } from '@/stores/user'
 import { AgGridVue } from 'ag-grid-vue3'
 import { ModuleRegistry, AllCommunityModule } from 'ag-grid-community'
 ModuleRegistry.registerModules([AllCommunityModule])
@@ -123,6 +124,36 @@ const fullHierarchy = ref([])
 
 const router = useRouter()
 const gridApi = ref(null)
+
+const userStore = useUserStore()
+const token = localStorage.getItem('token')
+
+// JWT payload 파싱 함수
+function parseJwtPayload(token) {
+  try {
+    const base64Url = token.split('.')[1]
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split('')
+        .map(c => `%${('00' + c.charCodeAt(0).toString(16)).slice(-2)}`)
+        .join('')
+    )
+    return JSON.parse(jsonPayload)
+  } catch (e) {
+    return null
+  }
+}
+
+// 실제 권한 검사
+const payload = parseJwtPayload(userStore.accessToken || token)
+const isHR = payload?.role?.includes('ROLE_HR') || payload?.auth?.includes('ROLE_HR')
+
+// 접근 불가 시 리다이렉트
+if (!isHR) {
+  alert('접근 권한이 없습니다.')
+  router.push('/error403')
+}
 
 // 폼 상태
 const form = reactive({
@@ -419,24 +450,25 @@ const columnDefs = [
       template: `
         <div style="display:flex; justify-content:space-between; align-items:center; width:100%;">
           <span>발령 조직</span>
-        <button id="openOrgModal" style="margin-left:auto;" class="btn-plus">✚</button>
+        <button id="openOrgModal" style="margin-left:auto;" class="btn-plus">조직 선택</button>
         <style>
           .btn-plus {
-            font-size: 12px;
-            background-color: #00a8e8;
-            color: white;
+            background-color: #3f3f3f;
+            border-radius: 8px;
             border: 1px solid transparent;
-            border-radius: 10px;
-            padding: 6px 12px;
+            padding: 6px 10px;
+            font-size: 12px;
+            font-weight: bold;
+            color: #ffffff;
             cursor: pointer;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-            transition: background-color 0.2s, color 0.2s, border-color 0.2s, box-shadow 0.2s;
+            transition: background-color 0.2s, box-shadow 0.2s;
+            box-sizing: border-box;
           }
-
           .btn-plus:hover {
             background-color: white;
-            color: #00a8e8;
-            border-color: #00a8e8;
+            color: #3f3f3f;
+            border-color: #3f3f3f;
             box-shadow: inset 1px 1px 10px rgba(0, 0, 0, 0.25);
           }
         </style>
@@ -517,41 +549,9 @@ function syncOrgToGrid() {
 
 
 
-
+// 발령 조직 컬럼에 데이터 불러오기 위한 변수 설정
 function handleOrgSelected(selected) {
-  // form.org.headId = selected.headId || null
-  // form.org.departmentId = selected.departmentId || null
-  // form.org.teamId = selected.teamId || null
-  // form.org.jobId = selected.jobId || null
-  // form.org.jobCode = selected.jobCode || null
-  // form.org.positionCode = selected.positionCode || null
-  // form.org.rankCode = selected.rankCode || null
-  // form.org.rankName = selected.rankName || null
-
-  // // ✅ 추가: 직무 목록 갱신
-  // // jobsNew.value = [{
-  // //   jobId: selected.jobId,
-  // //   jobName: selected.jobName,
-  // //   jobCode: selected.jobCode
-  // // }]
-
-  // // ranksNew.value = [{
-  // //   rankCode: selected.rankCode,
-  // //   rankName: selected.rankName
-  // // }]
-
-  //   jobsNew.value = selected.jobId ? [{
-  //   jobId: selected.jobId,
-  //   jobName: selected.jobName,
-  //   jobCode: selected.jobCode
-  // }] : []
-
-  // ranksNew.value = selected.rankCode ? [{
-  //   rankCode: selected.rankCode,
-  //   rankName: selected.rankName
-  // }] : []
-
-    pureOrg.headId        = selected.headId || null
+  pureOrg.headId        = selected.headId || null
   pureOrg.departmentId  = selected.departmentId || null
   pureOrg.teamId        = selected.teamId || null
   pureOrg.jobId         = selected.jobId || null
@@ -559,10 +559,6 @@ function handleOrgSelected(selected) {
   pureOrg.positionCode  = selected.positionCode || null
   pureOrg.rankCode      = selected.rankCode || null
 
-  // 기존 form.org 갱신은 제거 가능
-  // form.org = { ...pureOrg } 등으로 연결할 수도 있음
-
-  // 선택된 job, rank 이름 저장용
   jobsNew.value = selected.jobId ? [{
     jobId: selected.jobId,
     jobName: selected.jobName,
@@ -580,7 +576,7 @@ function handleOrgSelected(selected) {
   }] : []
 
 
-  // 🔥 선택한 조직명 grid 반영
+  // 선택한 조직명 grid 반영
   syncOrgToGrid()
 
   console.log('[form.org 저장된 값]', JSON.stringify(form.org, null, 2))
@@ -670,7 +666,7 @@ function onGridReady(params) {
   })
 }
 
-
+// 인사발령 등록
 async function submit() {
 
     await nextTick()
@@ -760,9 +756,10 @@ function cancel() {
 .content-box {
   background: #fff;
   border-radius: 12px;
-  padding: 20px 32px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
   margin: 24px;
+  position: relative;
+  padding: 20px 32px 80px; 
 }
 .register-container {
   /* width: 60%; */
@@ -841,11 +838,11 @@ function cancel() {
 
 /* 버튼 그룹 */
 .button-group {
+   position: absolute;
+  bottom: 30px;
+  right: 50px;
   display: flex;
-  gap: 100px;
-  justify-content: center;
-  margin-top: 60px;
-  margin-bottom: 40px;
+  gap: 15px;
 }
 .btn-save {
   font-size: 14px;
@@ -880,9 +877,6 @@ function cancel() {
   transition: background-color 0.2s, box-shadow 0.2s;
   box-sizing: border-box;
 
-  display: flex;
-  justify-content: flex-end;
-  float: right;
 }
 .btn-cancel:hover {
   background-color: #000;
