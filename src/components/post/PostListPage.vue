@@ -118,7 +118,15 @@ const columnDefs = ref([
   { headerName: '번호',     field: 'boardId',      width:100, cellClass:'center-align' },
   { headerName: '제목',     field: 'boardTitle',   flex:2 },
   { headerName: '작성자',   field: 'employeeName', flex:1, cellClass:'center-align' },
-  { headerName: '작성일자', field: 'boardCreateAt',flex:1, cellClass:'center-align' }
+  { headerName: '작성일자',
+    field: 'boardCreateAt',
+    flex:1, 
+    cellClass:'center-align',
+      valueFormatter: params => {
+      const v = params.value
+      return v ? v.substring(0, 10) : '' 
+    }
+  }  
 ])
 
 // — 상태
