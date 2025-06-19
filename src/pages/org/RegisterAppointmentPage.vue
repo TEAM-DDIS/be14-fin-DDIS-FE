@@ -102,7 +102,7 @@
   @job-selected="handleOrgSelected"
 />
 
-
+<BaseToast ref="toastRef" />
 </template>
 
 <script setup>
@@ -117,6 +117,8 @@ ModuleRegistry.registerModules([AllCommunityModule])
 
 import GetEmployeeModal from '@/components/org/appointment/GetEmployeeModal.vue'
 import OrgSelectorModal from '@/components/org/appointment/OrgSelectorModal.vue'
+import BaseToast from '@/components/toast/BaseToast.vue'
+
 const showApprovalModal = ref(false)
 const employeeList = ref([])
 
@@ -127,6 +129,12 @@ const gridApi = ref(null)
 
 const userStore = useUserStore()
 const token = localStorage.getItem('token')
+
+const toastRef = ref(null)
+
+  function showToast(msg) {
+    toastRef.value?.show(msg)
+  }
 
 // JWT payload 파싱 함수
 function parseJwtPayload(token) {
@@ -151,7 +159,7 @@ const isHR = payload?.role?.includes('ROLE_HR') || payload?.auth?.includes('ROLE
 
 // 접근 불가 시 리다이렉트
 if (!isHR) {
-  alert('접근 권한이 없습니다.')
+  showToast('접근 권한이 없습니다.')
   router.push('/error403')
 }
 
@@ -284,7 +292,7 @@ async function loadEmployeeInfo() {
       emp = res.data
       employeeCache.set(id, emp)     // 캐시에 저장
     } catch {
-      alert('사원정보를 불러오는 중 오류가 발생했습니다.')
+      showToast('사원정보를 불러오는 중 오류가 발생했습니다.')
       return
     }
   }
@@ -720,11 +728,11 @@ async function submit() {
       payload,
       { headers: { 'Content-Type': 'application/json' } }
     );
-    alert('등록 성공!');
+    showToast('등록 성공!');
     router.push('/org/appointment');
   } catch (err) {
     console.error('▶ AxiosError:', err);
-    alert(
+    showToast(
       `등록 중 오류가 발생했습니다.\n` +
       `${err.response?.data?.message || err.message}`
     );

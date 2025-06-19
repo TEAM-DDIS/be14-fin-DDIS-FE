@@ -41,12 +41,20 @@
       </div>
     </div>
   </div>
+  <BaseToast ref="toastRef" />
 </template>
 
 <script setup>
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
+import BaseToast from '@/components/toast/BaseToast.vue'
+
+const toastRef = ref(null)
+
+  function showToast(msg) {
+    toastRef.value?.show(msg)
+  }
 
 const props = defineProps({
   orgOptions:    Array,
@@ -83,7 +91,7 @@ const isHR = payload?.role?.includes('ROLE_HR') || payload?.auth?.includes('ROLE
 
 // 접근 불가 시 리다이렉트
 if (!isHR) {
-  alert('접근 권한이 없습니다.')
+  showToast('접근 권한이 없습니다.')
   router.push('/error403')
 }
 
@@ -93,11 +101,11 @@ const filteredDeleteList = computed(() => {
 
 function onConfirm() {
   if (!localType.value) {
-    alert('조직 종류를 선택해 주세요.')
+    showToast('조직 종류를 선택해 주세요.')
     return
   }
   if (!localSelectedIds.value.length) {
-    alert('삭제할 조직을 하나 이상 선택해 주세요.')
+    showToast('삭제할 조직을 하나 이상 선택해 주세요.')
     return
   }
   emit('confirm', { type: localType.value, ids: localSelectedIds.value })

@@ -69,12 +69,14 @@
       </div>
     </div>
   </div>
+  <BaseToast ref="toastRef" />
 </template>
 
 <script setup>
 import { ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
+import BaseToast from '@/components/toast/BaseToast.vue'
 
 const props = defineProps({
   show: Boolean,
@@ -83,6 +85,12 @@ const props = defineProps({
   deptOptions: { type: Array, default: () => [] }   // DepartmentQueryDTO[]
 })
 const emit = defineEmits(['close','submit'])
+
+const toastRef = ref(null)
+
+  function showToast(msg) {
+    toastRef.value?.show(msg)
+  }
 
 const localType = ref('')
 const parentId  = ref(null)
@@ -114,7 +122,7 @@ const isHR = payload?.role?.includes('ROLE_HR') || payload?.auth?.includes('ROLE
 
 // 접근 불가 시 리다이렉트
 if (!isHR) {
-  alert('접근 권한이 없습니다.')
+  showToast('접근 권한이 없습니다.')
   router.push('/error403')
 }
 
@@ -129,17 +137,17 @@ watch(() => props.show, val => {
 
 function onSubmit() {
   if (!localType.value) {
-    return alert('조직 종류를 선택해 주세요.')
+    return showToast('조직 종류를 선택해 주세요.')
   }
   // head일 땐 parentId 필요 없음
   if (localType.value==='department' && !parentId.value) {
-    return alert('상위 본부를 선택해 주세요.')
+    return showToast('상위 본부를 선택해 주세요.')
   }
   if (localType.value==='team' && !parentId.value) {
-    return alert('상위 부서를 선택해 주세요.')
+    return showToast('상위 부서를 선택해 주세요.')
   }
   if (!localName.value.trim()) {
-    return alert('조직 이름을 입력해 주세요.')
+    return showToast('조직 이름을 입력해 주세요.')
   }
 
   emit('submit', {
