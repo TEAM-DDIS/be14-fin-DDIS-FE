@@ -12,7 +12,7 @@
     <p class="desc">사원 상세 조회 </p>
   </div>
 
-  <div class="employee-detail">
+  <div class="employee-detail" :class="{ 'editing-mode': isEditing }">
     <div class="card compact-card adjusted-card short-height-card overflow-scroll-wrapper top-card">
       <div class="top-card-layout">
                 <!-- 프로필 -->
@@ -73,6 +73,7 @@
                               <!-- 직무 선택 -->
             <div class="info-item">
               <label class="label-bold">직무</label>
+              
 
               <!-- 수정 중이면 드롭다운 -->
               <select
@@ -554,16 +555,16 @@
               </label>
               <!-- 수정 모드일 때 드롭다운 -->
               <template v-if="isEditing">
-                <select v-model="form.graduationYear" class="same-size-input">
-                  <option value="">선택</option>
-                  <option
-                    v-for="year in yearOptions"
-                    :key="year"
-                    :value="year"
-                  >
-                    {{ year }}
-                  </option>
-                </select>
+              <select class="same-size-input" v-model="form.graduationYear">
+                <option value="">선택</option>
+                <option
+                  v-for="year in yearOptions"
+                  :key="year"
+                  :value="year"
+                >
+                  {{ year }}
+                </option>
+              </select>
               </template>
 
               <!-- 보기 모드일 때 읽기 전용 텍스트 -->
@@ -737,6 +738,13 @@ let gridApi         = null
 function onGridReady(params) { gridApi = params.api }
 
 // 드롭다운 옵션 리스트
+
+const currentYear = new Date().getFullYear()
+
+const yearOptions = Array.from(
+  { length: currentYear - 1950 + 1 },
+  (_, i) => currentYear - i
+)
 
 const workTypeOptions = ['정규직', '계약직']
 
@@ -975,6 +983,36 @@ function cancelEdit() {
 }
 
 async function saveChanges() {
+    const requiredChecks = [
+    { key: 'employeePhotoUrl',   msg: '사진을 업로드해주세요.' },
+    { key: 'employeeName',       msg: '사원명을 입력해주세요.' },
+    { key: 'employmentDate',     msg: '입사일을 선택해주세요.' },
+    { key: 'employeeNation',     msg: '국적을 입력해주세요.' },
+    { key: 'employeeGender',     msg: '성별을 선택해주세요.' },
+    { key: 'employeeBirth',      msg: '생년월일을 입력해주세요.' },
+    { key: 'employeeResident',   msg: '주민등록번호를 입력해주세요.' },
+    { key: 'employeeContact',    msg: '연락처를 입력해주세요.' },
+    { key: 'employeeEmail',      msg: '이메일을 입력해주세요.' },
+    { key: 'employeeAddress',    msg: '주소를 입력해주세요.' },
+    { key: 'workType',           msg: '근무형태를 선택해주세요.' },
+    { key: 'bankName',           msg: '은행명을 입력해주세요.' },
+    { key: 'bankDepositor',      msg: '예금주를 입력해주세요.' },
+    { key: 'bankAccount',        msg: '계좌번호를 입력해주세요.' },
+    { key: 'isDisorder',         msg: '장애여부를 선택해주세요.' },
+    { key: 'militaryType',       msg: '병역여부를 선택해주세요.' },
+    { key: 'isMarriage',         msg: '결혼여부를 선택해주세요.' },
+    { key: 'familyCount',        msg: '가족 수를 입력해주세요.' },
+    { key: 'finalAcademic',      msg: '최종 학력을 입력해주세요.' },
+    { key: 'employeeSchool',     msg: '최종 학교를 입력해주세요.' },
+    { key: 'isFourInsurances',   msg: '4대 보험 여부를 선택해주세요.' },
+  ];
+
+    for (const { key, msg } of requiredChecks) {
+      const val = form[key];
+      if (val === '' || val === null || val === undefined) {
+        return alert(msg);
+      }
+    }
   // HR 전용 DTO
   const hrDto = {
     employeeName:      form.employeeName,
@@ -1294,6 +1332,16 @@ onMounted(async () => {
 }
 .desc {
   margin: 0; /* 텍스트 자체의 여백 제거 */
+}
+
+/* 기본엔 숨김 */
+.required-star {
+  display: none;
+  color: red;
+}
+/* 수정 모드일 때만 표시 */
+.editing-mode .required-star {
+  display: inline;
 }
 
 .back-btn {

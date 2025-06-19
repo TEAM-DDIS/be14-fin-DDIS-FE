@@ -405,7 +405,7 @@
     </div>
     </div>
   </div>
-
+  <BaseToast ref="toastRef" />
 </template>
 
 
@@ -426,6 +426,11 @@ const userStore = useUserStore()
 
 const tabs = ['인사정보','개인정보']
 const currentTab = ref('인사정보')
+const toastRef = ref(null)
+
+  function showToast(msg) {
+    toastRef.value?.show(msg)
+  }
 
 const router = useRouter()
 
@@ -679,11 +684,10 @@ async function onSave() {
     { key: 'isFourInsurances',   msg: '4대 보험 여부를 선택해주세요.' },
   ];
 
-    // 2) 하나라도 누락되었으면 해당 메시지 alert 후 리턴
     for (const { key, msg } of requiredChecks) {
       const val = form[key];
       if (val === '' || val === null || val === undefined) {
-        return alert(msg);
+        return showToast(msg);
       }
     }
 
@@ -699,16 +703,16 @@ async function onSave() {
         { headers: authHeaders() }
       );
       console.log('등록 응답:', res.data)
-      alert(`등록되었습니다 (ID: ${res.data})`);
+      showToast(`등록되었습니다 (ID: ${res.data})`);
       router.push('/employeeInfo/employeeList');
     } catch (err) {
       if (err.response) {
         console.error('HTTP', err.response.status)
         console.error('Response data:', err.response.data)
-        alert(err.response.data.message || JSON.stringify(err.response.data))
+        showToast(err.response.data.message || JSON.stringify(err.response.data))
       } else {
         console.error(err)
-        alert('알 수 없는 오류가 발생했습니다.')
+        showToast('알 수 없는 오류가 발생했습니다.')
     }
   }
 }
