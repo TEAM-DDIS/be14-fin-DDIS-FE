@@ -116,34 +116,63 @@
 
 <script setup>
 import { ref, reactive, watch } from 'vue'
-import { useRouter } from 'vue-router'
 import axios from 'axios'
-import { useUserStore } from '@/stores/user'
+import { useRouter } from 'vue-router'
 
-// ————————————————————————————————————————————————————————————————
-// 1) Axios 기본 URL 설정
-// ————————————————————————————————————————————————————————————————
 axios.defaults.baseURL = 'http://localhost:8000'
 
-// ————————————————————————————————————————————————————————————————
-// 2) 라우터 & 스토어
-// ————————————————————————————————————————————————————————————————
 const router = useRouter()
-const userStore = useUserStore()
-
-// ————————————————————————————————————————————————————————————————
-// 3) 파일 업로드 관련
-// ————————————————————————————————————————————————————————————————
 const fileInput = ref(null)
-const files = ref([])            // 실제 File 객체 목록
-const previewUrls = ref([])      // 미리보기용 URL 목록
+
+// 미리보기 URL, 실제 File 객체
+const previewUrls = ref([])
+const files = ref([])
+
+// 사원 검색 옵션
+const employeeOptions = ref([])
+
+// 폼 데이터
+const form = reactive({
+  employeeName: '',
+  employeeNumber: '',
+  disciplinaryDescription: '',
+  disciplinaryDate: ''
+})
+
+// 사원명 입력 시 자동 검색 & 번호 매핑
+watch(() => form.employeeName, async name => {
+  if (!name.trim()) {
+    employeeOptions.value = []
+    form.employeeNumber = ''
+    return
+  }
+  try {
+    const { data } = await axios.get('/employees/search', { params: { name } })
+    employeeOptions.value = data
+    const match = data.find(e => e.employeeName === name)
+    form.employeeNumber = match ? String(match.employeeId) : ''
+  } catch (e) {
+    console.error(e)
+  }
+})
+
+// 뒤로가기
+function goBack() {
+  router.back()
+}
+
+function onEmployeeNameChange() {
+  const match = employeeOptions.value.find(e => e.employeeName === form.employeeName)
+  form.employeeNumber = match ? String(match.employeeId) : ''
+}
 
 function triggerFileSelect() {
   fileInput.value?.click()
 }
 
+// 최대 5장으로 제한하고 previewUrls, files 동기화
 function onFileChange(e) {
-  const selected = Array.from(e.target.files || [])
+  const selected = Array.from(e.target.files)
   if (selected.length > 5) {
     alert('최대 5장까지 업로드할 수 있습니다.')
   }
@@ -156,81 +185,29 @@ function onFileChange(e) {
   previewUrls.value = limited.map(f => URL.createObjectURL(f))
 }
 
-// ————————————————————————————————————————————————————————————————
-// 4) 사원 자동 완성 & 번호 매핑
-// ————————————————————————————————————————————————————————————————
-const employeeOptions = ref([])
-
-const form = reactive({
-  employeeName: '',
-  employeeNumber: '',
-  disciplinaryDescription: '',
-  disciplinaryDate: ''
-})
-
-watch(() => form.employeeName, async name => {
-  if (!name.trim()) {
-    employeeOptions.value = []
-    form.employeeNumber = ''
-    return
-  }
-  try {
-    const { data } = await axios.get(
-      '/employees/search',
-      { params: { name } }
-    )
-    employeeOptions.value = data
-    const match = data.find(e => e.employeeName === name)
-    form.employeeNumber = match ? String(match.employeeId) : ''
-  } catch (err) {
-    console.error('사원 검색 오류:', err)
-  }
-})
-
-function onEmployeeNameChange() {
-  const match = employeeOptions.value.find(
-    e => e.employeeName === form.employeeName
-  )
-  form.employeeNumber = match ? String(match.employeeId) : ''
+function onCancel() {
+  router.back()
 }
 
-// ————————————————————————————————————————————————————————————————
-// 5) 인증 헤더 헬퍼
-// ————————————————————————————————————————————————————————————————
-function authHeaders() {
-  return { Authorization: `Bearer ${userStore.accessToken}` }
-}
-
-// ————————————————————————————————————————————————————————————————
-// 6) 저장 (계약 등록) 로직
-// ————————————————————————————————————————————————————————————————
 async function onSave() {
-  // 1) 토큰 로그 (디버깅용)
-  console.log('▶ accessToken =', userStore.accessToken)
-  console.log('▶ auth header =', `Bearer ${userStore.accessToken}`)
-
-  // 2) 필수 입력 체크
   if (
     !form.employeeName.trim() ||
     !form.employeeNumber.trim() ||
     !form.disciplinaryDescription.trim() ||
     !form.disciplinaryDate ||
-    files.value.length === 0
+    !files.value.length
   ) {
-    return alert('모든 항목을 입력하고, 파일을 업로드해야 저장할 수 있습니다.')
+    alert('모든 항목을 채우고 이미지를 업로드해야 저장할 수 있습니다.')
+    return
   }
 
   try {
-    // 3) S3 업로드 (동일)
+    // 1) 파일 업로드
     const uploaded = []
     for (const f of files.value) {
-      const { data: up } = await axios.get(
-        '/s3/upload-url',
-        {
-          params: { filename: f.name, contentType: f.type },
-          headers: authHeaders()
-        }
-      )
+      const { data: up } = await axios.get('/s3/upload-url', {
+        params: { filename: f.name, contentType: f.type }
+      })
       await fetch(up.url, {
         method: 'PUT',
         headers: { 'Content-Type': f.type },
@@ -239,34 +216,26 @@ async function onSave() {
       uploaded.push({ fileName: f.name, fileUrl: up.key, fileSize: f.size })
     }
 
-    // 4) 징계 등록 API 호출
-    const payload = {
+    // 2) 징계 등록
+    await axios.post('/disciplinary', {
       employeeId: Number(form.employeeNumber),
       disciplinaryDescription: form.disciplinaryDescription,
       disciplinaryDate: form.disciplinaryDate,
       files: uploaded
-    }
-    await axios.post(
-      '/disciplinary',      
-      payload,
-      { headers: authHeaders() }
-    )
+    })
 
     alert('징계가 정상 등록되었습니다.')
     router.push('/employeeInfo/disciplinary')
   } catch (err) {
-    console.error('등록 중 오류:', err.response?.status, err.response?.data)
-    alert(err.response?.data?.message || `등록에 실패했습니다 (HTTP ${err.response?.status}).`)
+    console.error(err)
+    alert('등록 중 오류가 발생했습니다.')
   }
 }
-
-// ————————————————————————————————————————————————————————————————
-// 7) 취소 버튼
-// ————————————————————————————————————————————————————————————————
-function onCancel() {
-  router.back()
-}
 </script>
+
+
+
+
 
 <style scoped>
 /* 상단 헤더 */
