@@ -9,7 +9,7 @@
         해당 페이지에 대한 접근 권한이 없습니다.<br />
         필요한 경우 관리자에게 권한 요청을 해주세요.
       </p>
-      <button class="btn-save" @click="goBack">ERPIZZA</button>
+      <button class="btn-save" @click="goLogin">ERPIZZA</button>
     </div>
   </div>
 </template>
@@ -18,8 +18,8 @@
 export default {
   name: "Error403Page",
   methods: {
-    goBack() {
-      this.$router.go(-2)
+    goLogin() {
+      this.$router.push('/org/login');
     },
   },
 };
