@@ -92,7 +92,7 @@ async function sendMessage() {
   scrollToBottom()
 
   try {
-    const res = await axios.post('http://localhost:8888/query', payload)
+    const res = await axios.post('http://localhost:8888/query-stream', payload)
     const answer = res.data.answer || '죄송합니다, 답변을 생성하지 못했습니다.'
     messages.value.push({
       from: 'bot',
