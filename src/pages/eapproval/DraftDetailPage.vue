@@ -374,8 +374,12 @@ async function fetchDetail() {
       rankName: data.rankName, // 기안자 직급 추가
       date: data.date?.replace('T', ' ').slice(0, 16) || '',
       keepYear: data.keepYear,
-      receiver: data.receiver,
-      referer: Array.isArray(parsed.reference) ? parsed.reference : [],
+      receiver: Array.isArray(data.receiver)
+        ? data.receiver
+        : (typeof data.receiver === 'string' && data.receiver ? data.receiver.split(',') : []),
+      referer: Array.isArray(data.referer)
+        ? data.referer
+        : (typeof data.referer === 'string' && data.referer ? data.referer.split(',') : []),
 
       approvalLine: data.approvalLine.map(line => ({
         ...line,
@@ -422,6 +426,7 @@ function openApprovalModal() {
   // 아무것도 선택되지 않았으면 모달 안 열림
   if (!selectedLine.value) {
     console.warn('❌ selectedLine 없음')
+    alert('결재할 행을 선택해주세요.')
     return
   }
 
@@ -652,8 +657,8 @@ table {
 .button-group {
   display: flex;
   justify-content: flex-end; /* 🔧 오른쪽 정렬 */
-  gap: 12px;
   margin-top: 24px;
+  margin-bottom: 70px;
 }
 
 /* 버튼 기본 */

@@ -193,17 +193,17 @@
 
     <!-- 🔷 하단 버튼 (임시저장/상신하기) -->
     <div class="button-group">
-      <button class="button gray" @click="showDraftSaveModal = true">취소</button>
+      <button class="button gray" @click="handleCancel">취소</button>
       <button class="button" @click="showSubmitModal = true">상신</button>
     </div>
   </div>
 
   <!-- 🔷 모달 컴포넌트 영역 -->
-  <DraftSaveModal
+  <!-- <DraftSaveModal
     v-if="showDraftSaveModal"
     @close="showDraftSaveModal = false"
     @submit="confirmDraftSave"
-  />
+  /> -->
   <SubmitModal
     v-if="showSubmitModal"
     @close="showSubmitModal = false"
@@ -491,6 +491,21 @@ async confirmDraftSave() {
     //   2. 서버에 POST 요청으로 상신 처리
     //   3. 성공 시 사용자 안내 및 페이지 이동
     async confirmSubmit() {
+      // 보존연한 미입력 시 경고
+      if (!this.form.retentionPeriod) {
+        alert('보존연한을 선택해주세요.');
+        return;
+      }
+      // 제목 미입력 시 경고
+      if (!this.form.title || this.form.title.trim() === '') {
+        alert('제목을 입력해주세요.');
+        return;
+      }
+      // 본문 미입력 시 경고
+      if (!this.form.body || this.form.body.trim() === '' || this.form.body === '<p><br></p>') {
+        alert('본문 내용을 입력해주세요.');
+        return;
+      }
       const now = new Date();
       const attachmentKeys = this.uploadedFiles.map(f => f.key);
       const originalFileNames = this.uploadedFiles.map(f => f.name);
@@ -542,6 +557,11 @@ async confirmDraftSave() {
         console.error("상신 실패", error);
         alert("상신 실패: " + (error.response?.data?.message || error.message));
       }
+    },
+
+    // 취소 버튼 동작: 모달 대신 DraftTempListPage로 이동
+    handleCancel() {
+      this.$router.push({ name: 'DraftTempList' });
     },
 
     // ⑦ 파일 업로드 처리
