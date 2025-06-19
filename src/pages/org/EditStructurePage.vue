@@ -9,10 +9,10 @@
         <h2 class="toolbar-label">조직도 편집</h2>
 
         <!-- ＋ 버튼: AddModal 열기 -->
-        <p @click="openAddModal" class="toolbar-btn-register">등록</p>
+        <button @click="openAddModal" class="toolbar-btn-register">등록</button>
 
         <!-- － 버튼: DeleteModal 열기 -->
-       <p @click="openDeleteModal" class="toolbar-btn-delete">삭제</p>
+       <button @click="openDeleteModal" class="toolbar-btn-delete">삭제</button>
 
 
         <!-- 검색 입력란: 엔터 키 누르면 searchOrg 호출 -->
@@ -244,6 +244,7 @@
       @confirm="handleDeleteOrg"
     />
   </div>
+  <BaseToast ref="toastRef" />
 </template>
 
 <script setup>
@@ -255,6 +256,7 @@ import OrgHierarchyAll from '@/components/org/structure/Hierarchy.vue'
 import EditHierarchy from '@/components/org/structure/EditHierarchy.vue'
 import AddModal from '@/components/org/structure/AddModal.vue'
 import DeleteModal from '@/components/org/structure/DeleteModal.vue'
+import BaseToast from '@/components/toast/BaseToast.vue'
 
 const deleteType = ref('')
 
@@ -317,9 +319,15 @@ const isHR = payload?.role?.includes('ROLE_HR') || payload?.auth?.includes('ROLE
 
 // 접근 불가 시 리다이렉트
 if (!isHR) {
-  alert('접근 권한이 없습니다.')
+  showToast('접근 권한이 없습니다.')
   router.push('/error403')
 }
+
+  const toastRef = ref(null)
+
+  function showToast(msg) {
+    toastRef.value?.show(msg)
+  }
 
 // 조직 종류 옵션 (“본부/부서/팀”)
 const orgOptions = [
@@ -478,7 +486,7 @@ const teamNamesOfDept = computed(() => {
 function searchOrg() {
   const key = searchKeyword.value.trim().toLowerCase()
   if (!key) {
-    alert('검색어를 입력해 주세요.')
+    showToast('검색어를 입력해 주세요.')
     return
   }
 
@@ -517,7 +525,7 @@ function searchOrg() {
     }
   }
 
-  alert('검색 결과가 없습니다.')
+  showToast('검색 결과가 없습니다.')
 }
 
 // --- AddModal / DeleteModal 제어 로직 ---
@@ -562,7 +570,7 @@ async function handleAddOrg({ type, name, parentId }) {
     showAddModal.value = false
   } catch (e) {
     console.error('추가 실패', e)
-    alert('조직 추가 중 오류가 발생했습니다.')
+    showToast('조직 추가 중 오류가 발생했습니다.')
   }
 }
 
@@ -587,12 +595,12 @@ async function handleDeleteOrg({ type, ids }) {
         axios.delete(`http://localhost:8000/org/delete/${endpoint}/${id}`)
       )
     )
-    alert('삭제 성공!')
+    showToast('삭제 성공!')
     showDeleteModal.value = false
     await loadHierarchy()   // 삭제 후 트리 다시 로드
   } catch (err) {
     console.error('삭제 실패', err)
-    alert('삭제 중 오류가 발생했습니다.')
+    showToast('삭제 중 오류가 발생했습니다.')
   }
 }
 

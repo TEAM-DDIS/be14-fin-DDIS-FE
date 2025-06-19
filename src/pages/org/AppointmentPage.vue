@@ -49,6 +49,13 @@
       </button>
     </div>
   </div>
+  <ConfirmModal
+    v-if="showConfirm"
+    :message="confirmMessage"
+    @confirm="handleConfirm"
+    @cancel="handleCancel"
+  />
+  <BaseToast ref="toastRef" />
 </template>
 
 <script setup>
@@ -58,6 +65,8 @@ import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import BaseGrid from '@/components/grid/BaseGrid.vue'
 import detailIconUrl from '@/assets/icons/detail_appointment.svg'
+import BaseToast from '@/components/toast/BaseToast.vue'
+import ConfirmModal from '@/components/org/appointment/ConfirmModal.vue'
 
 ModuleRegistry.registerModules([AllCommunityModule])
 
@@ -68,6 +77,9 @@ const rowData         = ref([])
 const selectedCount   = ref(0)
 let gridApi           = null
 const router          = useRouter()
+const showConfirm = ref(false)
+const confirmMessage = ref('')
+let confirmCallback = null
 
 // 인사팀에서만 등록, 삭제버튼 
 const userStore = useUserStore()
@@ -89,6 +101,27 @@ function parseJwtPayload(token) {
   } catch (e) {
     return null
   }
+}
+
+
+  const toastRef = ref(null)
+
+  function showToast(msg) {
+    toastRef.value?.show(msg)
+  }
+
+  function openConfirmModal(message, onConfirm) {
+  confirmMessage.value = message
+  confirmCallback = onConfirm
+  showConfirm.value = true
+}
+
+function handleConfirm() {
+  showConfirm.value = false
+  confirmCallback?.()
+}
+function handleCancel() {
+  showConfirm.value = false
 }
 
 // 그리드 옵션 (checkbox 포함)
@@ -144,9 +177,35 @@ function onGridReady(params) {
 }
 
 // 삭제
-function onDelete() {
-  const count = gridApi.getSelectedRows().length
-  alert(`${count}건 삭제 예정`)
+async function onDelete() {
+  const selectedRows = gridApi.getSelectedRows()
+  const idsToDelete = selectedRows.map(row => row.appointmentHistoryId)
+
+  if (idsToDelete.length === 0) {
+    showToast('삭제할 항목이 없습니다.')
+    return
+  }
+
+  // 삭제 확인
+  openConfirmModal(`${idsToDelete.length}건을 삭제하시겠습니까?`, async () => {
+  try {
+    for (const id of idsToDelete) {
+      const res = await fetch(`http://localhost:8000/appointment/delete/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+      if (!res.ok) throw new Error(`ID ${id} 삭제 실패`)
+    }
+
+    showToast(`${idsToDelete.length}건 삭제 완료`)
+    await loadData()  // 삭제 후 목록 갱신
+  } catch (err) {
+    console.error('삭제 오류:', err)
+    showToast('삭제 중 오류가 발생했습니다.')
+  }
+  })
 }
 
 // 등록 페이지로 이동
