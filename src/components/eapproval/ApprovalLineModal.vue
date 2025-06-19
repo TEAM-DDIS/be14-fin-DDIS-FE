@@ -318,26 +318,53 @@ function deleteSelected() {
 
 // Function to add selected employee as approver or cooperator
 function addApprover(type) {
-  if (selectedHierarchyEmployees.value.length > 0) {
-    selectedHierarchyEmployees.value.forEach(selectedEmp => {
-      const newApprover = {
-        employeeId: selectedEmp.employeeId,
-        name: selectedEmp.employeeName,
-        team: selectedEmp.teamName, 
-        position: selectedEmp.positionName, 
-        rankName: selectedEmp.rankName || selectedEmp.rank, 
-        status: '대기중', 
-        type: type,
-      };
+  // 1) 선택된 사원이 없으면 아무 것도 안 함
+  if (selectedHierarchyEmployees.value.length === 0) return;
 
-      // Prevent duplicates based on employeeId
-      if (!approverList.value.some(a => a.employeeId === newApprover.employeeId)) {
-        approverList.value.push(newApprover);
+  // 2) 다중 선택된 사원 각각 처리
+  selectedHierarchyEmployees.value.forEach(emp => {
+    if (props.mode === '수신자') {
+      // 중복 체크 후 receiverList에 추가
+      if (!receiverList.value.some(u => u.employeeId === emp.employeeId)) {
+        receiverList.value.push({
+          employeeId: emp.employeeId,
+          name:       emp.employeeName,
+          position:   emp.positionName
+        });
       }
-    });
+    }
+    else if (props.mode === '참조자') {
+      // 중복 체크 후 referenceList에 추가
+      if (!referenceList.value.some(u => u.employeeId === emp.employeeId)) {
+        referenceList.value.push({
+          employeeId: emp.employeeId,
+          name:       emp.employeeName,
+          position:   emp.positionName
+        });
+      }
+    }
+    else {
+      // 결재선 모드: 중복 체크 후 approverList에 추가
+      if (!approverList.value.some(a => a.employeeId === emp.employeeId)) {
+        approverList.value.push({
+          step:          approverList.value.length + 1,
+          employeeId:    emp.employeeId,
+          name:          emp.employeeName,
+          position:      emp.positionName,
+          team:          emp.teamName || '',
+          status:        '대기중',
+          type,
+          lineTypeLabel: '양식 결재선',
+          viewedAt:      null,
+          approvedAt:    null,
+          comment:       ''
+        });
+      }
+    }
+  });
     console.log('결재자 추가 후 approverList:', approverList.value);
   }
-}
+
 
 // — 최종 등록
 function submitSelection() {

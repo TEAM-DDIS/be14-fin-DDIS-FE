@@ -267,9 +267,9 @@ export default {
       showDraftSaveModal: false
     };
   },
-  created() {
-    this.autoSave = debounce(this.saveDraftAuto, 5000)
-  },
+  // created() {
+  //   // this.autoSave = debounce(this.saveDraftAuto, 5000)
+  // },
   mounted() {
     this.loadDrafterInfo();
     const now = new Date();
@@ -280,38 +280,40 @@ export default {
     const min = String(now.getMinutes()).padStart(2, '0');
     this.form.draftDate = `${yyyy}-${mm}-${dd}`; // datetime-local 초기값
        /* ③ 로컬 캐시가 있으면 복원 ─────────────── */
-    const cached = localStorage.getItem('draft-auto-cache')  // ★ NEW
-    if (cached) {
-      try {
-        const {
-          form, approvalLines,
-          receiverList, referenceList, uploadedFiles
-        } = JSON.parse(cached)
-        Object.assign(this.form, form)
-        this.approvalLines = approvalLines
-        this.receiverList  = receiverList
-        this.referenceList = referenceList
-        this.uploadedFiles = uploadedFiles
-        console.log('🟢 임시저장본 복원 완료')              // ★ NEW
-      } catch { console.warn('⚠️ 캐시 파싱 실패') }        // ★ NEW
-    }
+    // const cached = localStorage.getItem('draft-auto-cache')  // ★ NEW
+    // if (cached) {
+    //   try {
+    //     const {
+    //       form, approvalLines,
+    //       receiverList, referenceList, uploadedFiles
+    //     } = JSON.parse(cached)
+    //     Object.assign(this.form, form)
+    //     this.approvalLines = approvalLines
+    //     this.receiverList  = receiverList
+    //     this.referenceList = referenceList
+    //     this.uploadedFiles = uploadedFiles
+    //     console.log('🟢 임시저장본 복원 완료')              // ★ NEW
+    //   } catch { console.warn('⚠️ 캐시 파싱 실패') }        // ★ NEW
+    // }
     },
     formattedDraftDate() {
     return this.form.draftDate?.slice(0, 10) || '';
   },
-    beforeUnmount() {                                           // ★ NEW
-    /* 페이지/탭을 떠날 때 마지막 한 번 더 자동 저장 */
-    this.saveDraftAuto()
-  },
-    watch: {                                                    // ★ NEW
-    form:          { deep:true, handler() { this.autoSave() } },
-    approvalLines: { deep:true, handler() { this.autoSave() } },
-    receiverList:  { deep:true, handler() { this.autoSave() } },
-    referenceList: { deep:true, handler() { this.autoSave() } },
-    uploadedFiles: { deep:true, handler() { this.autoSave() } }
-  },
+  //   beforeUnmount() {                                           // ★ NEW
+  //   /* 페이지/탭을 떠날 때 마지막 한 번 더 자동 저장 */
+  //   this.saveDraftAuto()
+  // },
+  //   watch: {                                                    // ★ NEW
+  //   form:          { deep:true, handler() { this.autoSave() } },
+  //   approvalLines: { deep:true, handler() { this.autoSave() } },
+  //   receiverList:  { deep:true, handler() { this.autoSave() } },
+  //   referenceList: { deep:true, handler() { this.autoSave() } },
+  //   uploadedFiles: { deep:true, handler() { this.autoSave() } }
+  // },
   methods: {
-    async saveDraftAuto() {                                   // ★ NEW
+    async saveDraftAuto() {    
+       const empId = userStore.user.employeeId
+       if (!empId) return                               // ★ NEW
       const payload = {
         employeeId:   userStore.user.employeeId,
         form:         { ...this.form },
@@ -333,7 +335,7 @@ export default {
       }
 
       /* 2) 로컬 캐시 */
-      localStorage.setItem('draft-auto-cache', JSON.stringify(payload))
+      // localStorage.setItem('draft-auto-cache', JSON.stringify(payload))
     },
     // ① 기안자 정보 불러오기
     async loadDrafterInfo() {

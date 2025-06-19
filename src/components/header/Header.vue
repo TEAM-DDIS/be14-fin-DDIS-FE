@@ -76,6 +76,7 @@ const user = computed(() => userStore.user)
 function logout() {
   userStore.logout()
   router.push({ name: 'Login' })
+  localStorage.clear()
 }
 
 // 모달 토글: 열릴 때마다 최신 알림 조회, 오류 있어도 열기 유지

@@ -13,6 +13,7 @@ const router = createRouter({
 
         // =============== 로그인 ===============
         {
+            name :'Login',
             path: '/org/login',
             component: () => import('@/components/login/LoginPage.vue'),
             meta: { hideLayout : true}
