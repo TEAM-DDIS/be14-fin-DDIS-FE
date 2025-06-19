@@ -52,7 +52,7 @@
         :rowData="filteredEmployees"
         height="400px"
         :pagination="true"
-        :paginationPageSize="10"
+        :paginationPageSize="20"
       />
     </div>
 
@@ -89,6 +89,7 @@
           :gridOptions="{ theme: 'legacy' }"
           :columnDefs="salaryColumnDefs"
           :rowData="salaryHistory"
+          :paginationPageSize="20"
           @row-click="selectSlip"
           height="400px"
           :pagination="true"
@@ -154,6 +155,8 @@
     <!-- 급여명세서 모달 컴포넌트 -->
     <Modal v-if="showModal" :slip="selectedSlip" @close="showModal = false" />
   </div>
+  <BaseToast ref="toastRef" />
+
 </template>
 
 
@@ -164,14 +167,19 @@ import { useRouter } from 'vue-router'
 import AgGrid from '@/components/grid/BaseGrid.vue'
 import Modal from '@/components/salary/PayrollModal.vue'
 import { useUserStore } from '@/stores/user'
+import BaseToast from '@/components/toast/BaseToast.vue' 
 
 // ---------------------------------------------------------
 // HR 권한 체크 로직
 // ---------------------------------------------------------
 const router = useRouter()
 const userStore = useUserStore()
-const token = localStorage.getItem('token')
+// const token = localStorage.getItem('token')
+const toastRef = ref(null)
 
+function showToast(msg) {
+  toastRef.value?.show(msg)
+}
 function parseJwtPayload(token) {
   try {
     const base64Url = token.split('.')[1]
@@ -189,11 +197,13 @@ function parseJwtPayload(token) {
 }
 
 // const token = localStorage.getItem('token')
-const payload = parseJwtPayload(userStore.accessToken)
+const token = userStore.accessToken
+
+const payload = parseJwtPayload(token)
 const isHR = payload?.role?.includes('ROLE_HR') || payload?.auth?.includes('ROLE_HR')
 
 if (!isHR) {
-  alert('접근 권한이 없습니다.')
+  showToast('접근 권한이 없습니다.')
   router.push('/error403')
 }
 // ---------------------------------------------------------
@@ -264,7 +274,10 @@ const filteredDepartments = computed(() => {
 const filteredTeams = computed(() => {
   return [...new Set(
     employees.value
-      .filter(e => !filters.departmentName || e.departmentName === filters.departmentName)
+      .filter(e =>
+        (!filters.headName || e.headName === filters.headName) &&
+        (!filters.departmentName || e.departmentName === filters.departmentName)
+      )
       .map(e => e.teamName).filter(Boolean)
   )]
 })
@@ -288,7 +301,7 @@ function scrollToSalarySection() {
 async function fetchSalaryHistory() {
   try {
     if (!dateRange.start || !dateRange.end) {
-      alert('조회기간을 설정해주세요.')
+      showToast('조회기간을 설정해주세요.')
       return
     }
 
@@ -410,7 +423,7 @@ input[type="month"] {
   border: 1px solid #ccc;
 }
 
-ag-grid 헤더 색상 커스터마이징
+/* ag-grid 헤더 색상 커스터마이징 */
 .custom-grid :deep(.ag-header) {
   background-color: #f8f9fa !important;
 }

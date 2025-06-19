@@ -47,7 +47,7 @@
                     :rowData="filteredEmployees"
                     height="600px"
                     :pagination="true"
-                    :paginationPageSize="10"
+                    :paginationPageSize="20"
                     :style="{ width: '100%' }"
                     @row-click="onRowClick"
                 />
@@ -86,6 +86,7 @@
             </div>
         </Teleport>
     </div>
+    <BaseToast ref="toastRef" />
 </template>
 
 <script setup>
@@ -94,6 +95,13 @@
     import CorrectionRejectEvent from './CorrectionRejectEvent.vue'
     import CorrectionApproveEvent from './CorrectionApproveEvent.vue'
     import { useUserStore } from '@/stores/user'
+    import BaseToast from '@/components/toast/BaseToast.vue'
+
+    const toastRef = ref(null)
+
+    function showToast(msg) {
+        toastRef.value?.show(msg)
+    }
 
     const userStore = useUserStore()
 
@@ -113,7 +121,7 @@
 
     function openModal(type) {
         if (!selectedRow.value) {
-            alert('항목을 선택해주세요.')
+            showToast('항목을 선택해주세요.')
             return
         }
         modalType.value = type
@@ -122,7 +130,7 @@
 
     async function handleConfirm() {
     if (!selectedRow.value?.attendanceId) {
-        alert('attendanceId가 없습니다.')
+        showToast('근무 기록이 없습니다.')
         return
     }
 
@@ -139,19 +147,19 @@
         })
 
         if (!res.ok) throw new Error('승인 실패')
-        alert('승인 완료!')
+        showToast('승인 완료!')
         showModal.value = false
         selectedRow.value = null
         location.reload()
     } catch (err) {
         console.error('승인 에러:', err)
-        alert('승인 중 오류 발생')
+        showToast('승인 중 오류 발생')
     }
     }
 
     async function handleSubmit(data) {
     if (!selectedRow.value?.attendanceId) {
-        alert('attendanceId가 없습니다.')
+        showToast('귿무 기록이 없습니다.')
         return
     }
 
@@ -171,13 +179,13 @@
         })
 
         if (!res.ok) throw new Error('반려 실패')
-        alert('반려 완료!')
+        showToast('반려 완료!')
         showModal.value = false
         selectedRow.value = null
         location.reload()
     } catch (err) {
         console.error('반려 에러:', err)
-        alert('반려 중 오류 발생')
+        showToast('반려 중 오류 발생')
     }
     }
 
@@ -277,7 +285,7 @@
 
     function downloadCSV() {
         if (!filteredEmployees.value.length) {
-            alert('출근 정정 신청 내역이 없습니다.')
+            showToast('출근 정정 신청 내역이 없습니다.')
             return
         }
 

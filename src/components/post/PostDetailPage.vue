@@ -60,8 +60,8 @@
     </div>
 
     <div class="button-group">
-      <button class="btn-save" @click="onEdit">수정</button>
-      <button class="btn-delete" @click="onDelete">삭제</button>
+      <button v-if="isHR" class="btn-save" @click="onEdit">수정</button>
+      <button v-if="isHR" class="btn-delete" @click="onDelete">삭제</button>
     </div>
   </div>
 
@@ -158,6 +158,36 @@ axios.defaults.baseURL = 'http://localhost:8000'
 const route     = useRoute()
 const router    = useRouter()
 const userStore = useUserStore()
+
+// JWT 토큰 디코딩 유틸
+function parseJwtPayload(token) {
+  try {
+    const base64Url = token.split('.')[1]
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split('')
+        .map(c => `%${('00' + c.charCodeAt(0).toString(16)).slice(-2)}`)
+        .join('')
+    )
+    return JSON.parse(jsonPayload)
+  } catch {
+    return {}
+  }
+}
+
+// HR 권한 여부 계산 (role 클레임명은 실제 JWT 에 맞춰 조정)
+const isHR = computed(() => {
+  const raw = userStore.accessToken?.startsWith('Bearer ')
+    ? userStore.accessToken.slice(7)
+    : userStore.accessToken
+  if (!raw) return false
+
+  const { auth } = parseJwtPayload(raw)
+  if (Array.isArray(auth))    return auth.includes('ROLE_HR')
+  if (typeof auth === 'string') return auth.includes('ROLE_HR')
+  return false
+})
 
 const loading      = ref(true)
 const error        = ref('')

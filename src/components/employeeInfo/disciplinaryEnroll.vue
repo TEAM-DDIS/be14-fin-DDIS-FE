@@ -106,74 +106,44 @@
         </table>
       </div>
     </div>
-  </div>
-
-  <!-- 하단 버튼 -->
-  <div class="button-row">
-    <button class="btn btn-cancel" @click="onCancel">취소</button>
-    <button class="btn btn-save" @click="onSave">저장</button>
+        <!-- 하단 버튼 -->
+    <div class="button-row">
+      <button class="btn btn-cancel" @click="onCancel">취소</button>
+      <button class="btn btn-save" @click="onSave">저장</button>
+    </div>
   </div>
 </template>
 
 <script setup>
 import { ref, reactive, watch } from 'vue'
-import axios from 'axios'
 import { useRouter } from 'vue-router'
+import axios from 'axios'
+import { useUserStore } from '@/stores/user'
 
+// ————————————————————————————————————————————————————————————————
+// 1) Axios 기본 URL 설정
+// ————————————————————————————————————————————————————————————————
 axios.defaults.baseURL = 'http://localhost:8000'
 
+// ————————————————————————————————————————————————————————————————
+// 2) 라우터 & 스토어
+// ————————————————————————————————————————————————————————————————
 const router = useRouter()
+const userStore = useUserStore()
+
+// ————————————————————————————————————————————————————————————————
+// 3) 파일 업로드 관련
+// ————————————————————————————————————————————————————————————————
 const fileInput = ref(null)
-
-// 미리보기 URL, 실제 File 객체
-const previewUrls = ref([])
-const files = ref([])
-
-// 사원 검색 옵션
-const employeeOptions = ref([])
-
-// 폼 데이터
-const form = reactive({
-  employeeName: '',
-  employeeNumber: '',
-  disciplinaryDescription: '',
-  disciplinaryDate: ''
-})
-
-// 사원명 입력 시 자동 검색 & 번호 매핑
-watch(() => form.employeeName, async name => {
-  if (!name.trim()) {
-    employeeOptions.value = []
-    form.employeeNumber = ''
-    return
-  }
-  try {
-    const { data } = await axios.get('/employees/search', { params: { name } })
-    employeeOptions.value = data
-    const match = data.find(e => e.employeeName === name)
-    form.employeeNumber = match ? String(match.employeeId) : ''
-  } catch (e) {
-    console.error(e)
-  }
-})
-
-// 뒤로가기
-function goBack() {
-  router.back()
-}
-
-function onEmployeeNameChange() {
-  const match = employeeOptions.value.find(e => e.employeeName === form.employeeName)
-  form.employeeNumber = match ? String(match.employeeId) : ''
-}
+const files = ref([])            // 실제 File 객체 목록
+const previewUrls = ref([])      // 미리보기용 URL 목록
 
 function triggerFileSelect() {
   fileInput.value?.click()
 }
 
-// 최대 5장으로 제한하고 previewUrls, files 동기화
 function onFileChange(e) {
-  const selected = Array.from(e.target.files)
+  const selected = Array.from(e.target.files || [])
   if (selected.length > 5) {
     alert('최대 5장까지 업로드할 수 있습니다.')
   }
@@ -186,29 +156,81 @@ function onFileChange(e) {
   previewUrls.value = limited.map(f => URL.createObjectURL(f))
 }
 
-function onCancel() {
-  router.back()
+// ————————————————————————————————————————————————————————————————
+// 4) 사원 자동 완성 & 번호 매핑
+// ————————————————————————————————————————————————————————————————
+const employeeOptions = ref([])
+
+const form = reactive({
+  employeeName: '',
+  employeeNumber: '',
+  disciplinaryDescription: '',
+  disciplinaryDate: ''
+})
+
+watch(() => form.employeeName, async name => {
+  if (!name.trim()) {
+    employeeOptions.value = []
+    form.employeeNumber = ''
+    return
+  }
+  try {
+    const { data } = await axios.get(
+      '/employees/search',
+      { params: { name } }
+    )
+    employeeOptions.value = data
+    const match = data.find(e => e.employeeName === name)
+    form.employeeNumber = match ? String(match.employeeId) : ''
+  } catch (err) {
+    console.error('사원 검색 오류:', err)
+  }
+})
+
+function onEmployeeNameChange() {
+  const match = employeeOptions.value.find(
+    e => e.employeeName === form.employeeName
+  )
+  form.employeeNumber = match ? String(match.employeeId) : ''
 }
 
+// ————————————————————————————————————————————————————————————————
+// 5) 인증 헤더 헬퍼
+// ————————————————————————————————————————————————————————————————
+function authHeaders() {
+  return { Authorization: `Bearer ${userStore.accessToken}` }
+}
+
+// ————————————————————————————————————————————————————————————————
+// 6) 저장 (계약 등록) 로직
+// ————————————————————————————————————————————————————————————————
 async function onSave() {
+  // 1) 토큰 로그 (디버깅용)
+  console.log('▶ accessToken =', userStore.accessToken)
+  console.log('▶ auth header =', `Bearer ${userStore.accessToken}`)
+
+  // 2) 필수 입력 체크
   if (
     !form.employeeName.trim() ||
     !form.employeeNumber.trim() ||
     !form.disciplinaryDescription.trim() ||
     !form.disciplinaryDate ||
-    !files.value.length
+    files.value.length === 0
   ) {
-    alert('모든 항목을 채우고 이미지를 업로드해야 저장할 수 있습니다.')
-    return
+    return alert('모든 항목을 입력하고, 파일을 업로드해야 저장할 수 있습니다.')
   }
 
   try {
-    // 1) 파일 업로드
+    // 3) S3 업로드 (동일)
     const uploaded = []
     for (const f of files.value) {
-      const { data: up } = await axios.get('/s3/upload-url', {
-        params: { filename: f.name, contentType: f.type }
-      })
+      const { data: up } = await axios.get(
+        '/s3/upload-url',
+        {
+          params: { filename: f.name, contentType: f.type },
+          headers: authHeaders()
+        }
+      )
       await fetch(up.url, {
         method: 'PUT',
         headers: { 'Content-Type': f.type },
@@ -217,26 +239,34 @@ async function onSave() {
       uploaded.push({ fileName: f.name, fileUrl: up.key, fileSize: f.size })
     }
 
-    // 2) 징계 등록
-    await axios.post('/disciplinary', {
+    // 4) 징계 등록 API 호출
+    const payload = {
       employeeId: Number(form.employeeNumber),
       disciplinaryDescription: form.disciplinaryDescription,
       disciplinaryDate: form.disciplinaryDate,
       files: uploaded
-    })
+    }
+    await axios.post(
+      '/disciplinary',      
+      payload,
+      { headers: authHeaders() }
+    )
 
     alert('징계가 정상 등록되었습니다.')
     router.push('/employeeInfo/disciplinary')
   } catch (err) {
-    console.error(err)
-    alert('등록 중 오류가 발생했습니다.')
+    console.error('등록 중 오류:', err.response?.status, err.response?.data)
+    alert(err.response?.data?.message || `등록에 실패했습니다 (HTTP ${err.response?.status}).`)
   }
 }
+
+// ————————————————————————————————————————————————————————————————
+// 7) 취소 버튼
+// ————————————————————————————————————————————————————————————————
+function onCancel() {
+  router.back()
+}
 </script>
-
-
-
-
 
 <style scoped>
 /* 상단 헤더 */
@@ -345,20 +375,18 @@ async function onSave() {
   gap: 12px;
   margin-top: 30px;
 }
-.btn {
-  min-width: 100px;
-  padding: 10px 20px;
-  border: none;
-  border-radius: 20px;
-  font-size: 0.95rem;
-  font-weight: 500;
-  cursor: pointer;
-}
+
 .btn-cancel {
   background-color: #d3d3d3;
   color: #000;
+  border: none;
+  border-radius: 10px;
+  padding: 10px 30px;
+  font-weight: bold;
+  cursor: pointer;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   transition: background-color 0.2s, box-shadow 0.2s;
+  box-sizing: border-box;
 }
 .btn-cancel:hover {
   background-color: #000;
@@ -366,14 +394,20 @@ async function onSave() {
 }
 .btn-save {
   background-color: #00a8e8;
-  color: #fff;
+  color: white;
+  font-weight: bold;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  padding: 10px 30px;
+  cursor: pointer;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   transition: background-color 0.2s, box-shadow 0.2s;
+  box-sizing: border-box;
 }
 .btn-save:hover {
-  background-color: #fff;
+  background-color: white;
   color: #00a8e8;
-  border: 1px solid #00a8e8;
+  border-color: #00a8e8;
   box-shadow: inset 1px 1px 10px rgba(0, 0, 0, 0.25);
 }
 

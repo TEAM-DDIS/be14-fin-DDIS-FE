@@ -9,14 +9,11 @@
         <h2 class="toolbar-label">조직도 편집</h2>
 
         <!-- ＋ 버튼: AddModal 열기 -->
-        <button class="toolbar-btn" @click="openAddModal">
-          <p class="toolbar-btn-detail">＋</p>
-        </button>
+        <button @click="openAddModal" class="toolbar-btn-register">등록</button>
 
         <!-- － 버튼: DeleteModal 열기 -->
-        <button class="toolbar-btn" @click="openDeleteModal">
-          <p class="toolbar-btn-detail">－</p>
-        </button>
+       <button @click="openDeleteModal" class="toolbar-btn-delete">삭제</button>
+
 
         <!-- 검색 입력란: 엔터 키 누르면 searchOrg 호출 -->
         <div class="search">
@@ -64,13 +61,6 @@
           <div class="info-body">
             <!-- 1) 부서가 선택된 경우 -->
             <div v-if="selectedDept" class="info-content">
-              <!-- ★ 부서 이동 / 부서원 이동 버튼 추가 ★ -->
-              <div class="button-group">
-                <button class="btn-dept" @click="showMovePanel = true">
-                  부서 이동
-                </button>
-              </div>
-
               <ul class="info-list">
                 <h3 class="section-title">부서 정보</h3>
                 <li>
@@ -137,13 +127,6 @@
 
             <!-- 2) 팀이 선택된 경우 -->
             <div v-else-if="selectedTeam" class="info-content">
-              <!-- ★ 팀 이동 / 팀원 이동 버튼 추가 ★ -->
-              <div class="button-group">
-                <button class="btn-dept" @click="showMovePanel = true">
-                  팀 이동
-                </button>
-              </div>
-
               <ul class="info-list">
                 <h3 class="section-title">팀 정보</h3>
                 <li>
@@ -216,8 +199,7 @@
       
       </div>
 
-      <!-- ④ 부서 이동 (showMovePanel이 true일 때만 보여준다) -->
-      <div class="section" v-if="showMovePanel">
+      <div class="section" v-if="selectedDept || selectedTeam">
         <p class="desc2">조직 구조 이동</p>
         <div class="card move-panel scrollbar">
           <h2 class="card-title">조직 이동</h2>
@@ -262,26 +244,26 @@
       @confirm="handleDeleteOrg"
     />
   </div>
+  <BaseToast ref="toastRef" />
 </template>
 
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
 import axios from 'axios'
-
+import { useRouter } from 'vue-router'
+import { useUserStore } from '@/stores/user'
 import OrgHierarchyAll from '@/components/org/structure/Hierarchy.vue'
 import EditHierarchy from '@/components/org/structure/EditHierarchy.vue'
 import AddModal from '@/components/org/structure/AddModal.vue'
 import DeleteModal from '@/components/org/structure/DeleteModal.vue'
+import BaseToast from '@/components/toast/BaseToast.vue'
 
-// --- 데이터 스토어 정의 ---
-// 백엔드 /structure/hierarchy 에서 받아온 본부→부서→팀 계층을 저장합니다.
-const dataStore = reactive({
-  headquarters: [],
-  departments: [],
-  teams: [],
-  position: [],
-  rank: []
-})
+const deleteType = ref('')
+
+const router = useRouter()
+const userStore = useUserStore()
+const token = localStorage.getItem('token')
+
 
 // 로딩 여부
 const dataLoaded = ref(false)
@@ -305,6 +287,48 @@ const showMovePanel = ref(false)
 const showAddModal    = ref(false)
 const showDeleteModal = ref(false)
 
+// --- 데이터 스토어 정의 ---
+// 백엔드 /structure/hierarchy 에서 받아온 본부→부서→팀 계층을 저장합니다.
+const dataStore = reactive({
+  headquarters: [],
+  departments: [],
+  teams: [],
+  position: [],
+  rank: []
+})
+
+function parseJwtPayload(token) {
+  try {
+    const base64Url = token.split('.')[1]
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split('')
+        .map(c => `%${('00' + c.charCodeAt(0).toString(16)).slice(-2)}`)
+        .join('')
+    )
+    return JSON.parse(jsonPayload)
+  } catch (e) {
+    return null
+  }
+}
+
+// 실제 권한 검사
+const payload = parseJwtPayload(userStore.accessToken || token)
+const isHR = payload?.role?.includes('ROLE_HR') || payload?.auth?.includes('ROLE_HR')
+
+// 접근 불가 시 리다이렉트
+if (!isHR) {
+  showToast('접근 권한이 없습니다.')
+  router.push('/error403')
+}
+
+  const toastRef = ref(null)
+
+  function showToast(msg) {
+    toastRef.value?.show(msg)
+  }
+
 // 조직 종류 옵션 (“본부/부서/팀”)
 const orgOptions = [
   { id: 'head', name: '본부' },
@@ -313,7 +337,6 @@ const orgOptions = [
 ]
 
 // 삭제 모달 관련
-const deleteType = ref('')
 const deleteListAll = computed(() => {
   return {
     head: dataStore.headquarters.map(hq => ({
@@ -334,9 +357,6 @@ const deleteList = computed(() => {
   return deleteListAll.value[ deleteType.value ] || []
 })
 
-// Vue Router (필요 시 사용)
-import { useRouter } from 'vue-router'
-const router = useRouter()
 
 onMounted(async () => {
   try {
@@ -466,7 +486,7 @@ const teamNamesOfDept = computed(() => {
 function searchOrg() {
   const key = searchKeyword.value.trim().toLowerCase()
   if (!key) {
-    alert('검색어를 입력해 주세요.')
+    showToast('검색어를 입력해 주세요.')
     return
   }
 
@@ -505,7 +525,7 @@ function searchOrg() {
     }
   }
 
-  alert('검색 결과가 없습니다.')
+  showToast('검색 결과가 없습니다.')
 }
 
 // --- AddModal / DeleteModal 제어 로직 ---
@@ -550,7 +570,7 @@ async function handleAddOrg({ type, name, parentId }) {
     showAddModal.value = false
   } catch (e) {
     console.error('추가 실패', e)
-    alert('조직 추가 중 오류가 발생했습니다.')
+    showToast('조직 추가 중 오류가 발생했습니다.')
   }
 }
 
@@ -575,12 +595,12 @@ async function handleDeleteOrg({ type, ids }) {
         axios.delete(`http://localhost:8000/org/delete/${endpoint}/${id}`)
       )
     )
-    alert('삭제 성공!')
+    showToast('삭제 성공!')
     showDeleteModal.value = false
     await loadHierarchy()   // 삭제 후 트리 다시 로드
   } catch (err) {
     console.error('삭제 실패', err)
-    alert('삭제 중 오류가 발생했습니다.')
+    showToast('삭제 중 오류가 발생했습니다.')
   }
 }
 
@@ -675,31 +695,52 @@ function onTeamSelectedForMove(team) {
   margin-right: 12px;
   /* margin-bottom: 12px; */
 }
-.toolbar-btn {
+.toolbar-btn-register {
   display: flex;
   align-items: center;
   justify-content: center; 
-  width: 40px;
-  height: 40px;
-  font-size: 24px;
+  padding: 10px 24px;
+  font-size: 14px;
   font-weight: bold;
   cursor: pointer;
   font-family: inherit;
   background-color: #00a8e8;
   color: white;
   border: 1px solid transparent;
-  border-radius: 5px;
+  border-radius: 10px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   transition: background-color 0.2s, box-shadow 0.2s;
 }
-.toolbar-btn:hover {
+.toolbar-btn-register:hover {
   background-color: #fff;
   color: #00a8e8;
   border: 1px solid #00a8e8;
 }
-.toolbar-btn-detail {
-  margin: 0;
+
+.toolbar-btn-delete {
+  font-size: 14px;
+  font-weight: bold;
+  background-color: #D3D3D3;
+  color: #000;
+  border: none;
+  border-radius: 10px;
+  padding: 10px 24px;
+  font-weight: bold;
+  cursor: pointer;
+  border: transparent;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: background-color 0.2s, box-shadow 0.2s;
+  box-sizing: border-box;
+
+  display: flex;
+  justify-content: flex-end;
+  float: right;
 }
+.toolbar-btn-delete:hover {
+  background-color: #000;
+  color: #fff;
+}
+
 .search {
   display: flex;
   align-items: center;
@@ -848,35 +889,6 @@ function onTeamSelectedForMove(team) {
   font-size: 15px;
   text-align: center;
   margin-top: 40px;
-}
-
-/* 버튼 그룹 */
-.button-group {
-  display: flex;
-  gap: 12px;
-  margin-right: 20px;
-  margin-bottom: 20px;
-  justify-content: flex-end;
-}
-.btn-dept,
-.btn-employee {
-  font-size: 14px;
-  font-weight: bold;
-  cursor: pointer;
-  font-family: inherit;
-  background-color: #00a8e8;
-  color: white;
-  border: 1px solid transparent;
-  border-radius: 10px;
-  padding: 10px 30px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  transition: background-color 0.2s, box-shadow 0.2s;
-}
-.btn-dept:hover,
-.btn-employee:hover {
-  background-color: #fff;
-  color: #00a8e8;
-  border: 1px solid #00a8e8;
 }
 
 /* ④ 부서 이동 카드 */

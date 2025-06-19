@@ -20,55 +20,78 @@
     </div>
 
   </div>
+    <BaseToast ref="toastRef" />
+
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue'
+import { onMounted, ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
 import { useUserStore } from '@/stores/user'
+import { HR_ONLY_PATHS } from '@/constants/hronlypaths.js'
+import BaseToast from '@/components/toast/BaseToast.vue'
+// 사용자 인증 정보
+const userStore = useUserStore()
+const token = useUserStore().accessToken
+const toastRef = ref(null)
 
-// 부모로부터 편집 이벤트 전달
-const emit = defineEmits(['edit'])
+function showToast(msg) {
+  toastRef.value?.show(msg)
+}
+// HR 권한 여부 계산
+const isHrTeam = computed(() => {
+  try {
+    const payload = JSON.parse(
+      atob(userStore.accessToken.split('.')[1].replace(/-/g, '+').replace(/_/g, '/'))
+    )
+    return payload.deptName === '인사부서' || payload.auth?.includes('ROLE_HR')
+  } catch {
+    return false
+  }
+})
 
 // 라우터 인스턴스
 const router = useRouter()
 
-// 사용자 인증 정보
-const userStore = useUserStore()
-
-// 즐겨찾기 메뉴 리스트
+// 자주 쓰는 메뉴 리스트
 const favorites = ref([])
 
-// API 호출로 즐겨찾기 메뉴 가져오기
+// 자주 쓰는 메뉴 API 불러오기
 const fetchFavorites = async () => {
   try {
     const { data } = await axios.get(
-      `http://localhost:8000/menus/favorites/${userStore.user.employeeId}`,
+      'http://localhost:8000/menus/favorites/me',
       {
         headers: {
-          Authorization: `Bearer ${userStore.token}`
+          Authorization: `Bearer ${token}`
         }
       }
     )
-    // 표시 순서대로 정렬
-    favorites.value = data.sort((a, b) => a.displayOrder - b.displayOrder)
+
+    // HR 권한에 따라 필터링 및 정렬
+    favorites.value = data
+      .sort((a, b) => a.displayOrder - b.displayOrder)
+      .filter(m => !(HR_ONLY_PATHS.includes(m.menuPath) && !isHrTeam.value))
+
   } catch (err) {
     console.error('자주 쓰는 메뉴 불러오기 실패:', err)
+    showToast('자주 쓰는 메뉴 데이터를 불러올 수 없습니다.')
   }
 }
 
-// 메뉴 클릭 시 해당 경로로 이동
+// 메뉴 클릭 시 이동
 function goTo(menuPath) {
   router.push(menuPath)
 }
 
-// 컴포넌트 마운트 시 메뉴 불러오기
-onMounted(fetchFavorites)
-
-// 외부에서 fetchFavorites()를 호출할 수 있도록 노출
+// 외부에서 fetchFavorites 접근 가능하게
 defineExpose({ fetchFavorites })
+
+// 마운트 시 자동 호출
+onMounted(fetchFavorites)
 </script>
+
 
 <style scoped>
 /* 전체 박스 */

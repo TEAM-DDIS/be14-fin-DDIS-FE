@@ -8,16 +8,24 @@
         :rowData="filteredCommuteList"
         height="600px"
         :pagination="true"
-        :paginationPageSize="10"
+        :paginationPageSize="20"
       />
       <button @click="downloadCSV" class="download-btn">CSV 다운로드</button>
     </div>
   </div>
+  <BaseToast ref="toastRef" />
 </template>
 
 <script setup>
-  import { computed } from 'vue'
+  import { ref, computed } from 'vue'
   import AgGrid from '@/components/grid/BaseGrid.vue'
+  import BaseToast from '@/components/toast/BaseToast.vue'
+
+  const toastRef = ref(null)
+
+  function showToast(msg) {
+    toastRef.value?.show(msg)
+  }
 
   const props = defineProps({
     commuteList: {
@@ -57,7 +65,7 @@
 
   function downloadCSV() {
     if (!filteredCommuteList.value.length) {
-      alert('출퇴근 내역이 없습니다.')
+      showToast('출퇴근 내역이 없습니다.')
       return
     }
 

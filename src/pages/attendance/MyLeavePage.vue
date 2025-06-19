@@ -24,10 +24,8 @@
     </div>
     <!-- 탭 내용 -->
     <div class="tab-content">
-      <MyLeaveUsedCard v-if="activeTab === 'used'"
-      :dateRange="dateRange" />
-      <MyLeaveRegistCard v-if="activeTab === 'regist'"
-      :dateRange="dateRange" />
+      <MyLeaveUsedCard v-if="activeTab === 'used'"/>
+      <MyLeaveRegistCard v-if="activeTab === 'regist'"/>
     </div>
   </div>
 </template>

@@ -29,14 +29,15 @@
         @cell-clicked="onCellClick"
       />
     </div>
-  </div>
 
-  <div class="pagination-control">
-    <div class="button-group">
-      <button class="btn-delete" @click="onDeleteClick">삭제</button>
-      <button class="btn-save" @click="onRegister">등록</button>
+    <div class="pagination-control">
+      <div class="button-group">
+      <button v-if="isHR" class="btn-delete" @click="onDeleteClick">삭제</button>
+      <button v-if="isHR" class="btn-save"   @click="onRegister">등록</button>
+      </div>
     </div>
   </div>
+
 
   <div v-if="showDeleteModal" class="modal-overlay">
     <div class="modal-content">
@@ -50,7 +51,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import axios from 'axios'
 import { AgGridVue } from 'ag-grid-vue3'
 import { useRouter } from 'vue-router'
@@ -81,13 +82,51 @@ ModuleRegistry.registerModules([
 const router    = useRouter()
 const userStore = useUserStore()
 
+// JWT 토큰 디코딩 유틸
+function parseJwtPayload(token) {
+  try {
+    const base64Url = token.split('.')[1]
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split('')
+        .map(c => `%${('00' + c.charCodeAt(0).toString(16)).slice(-2)}`)
+        .join('')
+    )
+    return JSON.parse(jsonPayload)
+  } catch {
+    return {}
+  }
+}
+
+// HR 권한 여부 계산 (role 클레임명은 실제 JWT 에 맞춰 조정)
+const isHR = computed(() => {
+  const raw = userStore.accessToken?.startsWith('Bearer ')
+    ? userStore.accessToken.slice(7)
+    : userStore.accessToken
+  if (!raw) return false
+
+  const { auth } = parseJwtPayload(raw)
+  if (Array.isArray(auth))    return auth.includes('ROLE_HR')
+  if (typeof auth === 'string') return auth.includes('ROLE_HR')
+  return false
+})
+
 // — grid column 정의
 const columnDefs = ref([
   { headerName: '',       field: 'checkbox', checkboxSelection: true, headerCheckboxSelection: true, width:50, pinned:'left' },
   { headerName: '번호',     field: 'boardId',      width:100, cellClass:'center-align' },
   { headerName: '제목',     field: 'boardTitle',   flex:2 },
   { headerName: '작성자',   field: 'employeeName', flex:1, cellClass:'center-align' },
-  { headerName: '작성일자', field: 'boardCreateAt',flex:1, cellClass:'center-align' }
+  { headerName: '작성일자',
+    field: 'boardCreateAt',
+    flex:1, 
+    cellClass:'center-align',
+      valueFormatter: params => {
+      const v = params.value
+      return v ? v.substring(0, 10) : '' 
+    }
+  }  
 ])
 
 // — 상태
@@ -247,9 +286,9 @@ function onCellClick(e) {
 .pagination-control {
   display: flex;
   justify-content: flex-end;
-  margin: 0 20px 20px;
 }
 .button-group {
+  margin-top: 20px;
   display: flex;
   gap: 10px;
 }

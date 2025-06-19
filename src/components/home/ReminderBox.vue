@@ -93,13 +93,15 @@ function formatTime(timeStr) {
 }
 
 onMounted(async () => {
-  const token = localStorage.getItem('token')
+  const token = useUserStore().accessToken
   if (!token) {
     console.error('토큰 없음')
     return
   }
 
   try {
+      await userStore.fetchAllEmployees()
+
     // 개인 일정
     const scheduleRes = await fetch('http://localhost:8000/attendance/schedule/today', {
       headers: { Authorization: `Bearer ${token}` }

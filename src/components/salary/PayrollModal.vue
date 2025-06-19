@@ -1,6 +1,6 @@
 <!-- 급여명세서 상세 모달 -->
 <template>
-  <div class="modal-wrapper" @click.self="emit('close')">
+  <div class="modal-wrapper">
     <div class="modal" ref="pdfContent">
       <button class="close-btn no-print" @click="emit('close')">×</button>
       <h2 class="modal-title">
@@ -87,6 +87,8 @@
         <button class="btn right no-print" @click="downloadPDF">PDF 다운로드</button>
       </div>
     </div>
+
+    <BaseToast ref="toastRef" />
   </div>
 </template>
 
@@ -96,7 +98,14 @@ import { useDateFormat } from '@vueuse/core'
 import html2pdf from 'html2pdf.js'
 import axios from 'axios'
 import { useUserStore } from '@/stores/user'
-const token = localStorage.getItem('token')
+import BaseToast from '@/components/toast/BaseToast.vue' 
+
+const toastRef = ref(null)
+function showToast(msg) {
+  toastRef.value?.show(msg)
+}
+
+const token = useUserStore().accessToken
 const props = defineProps({
   slip: Object,
   showMailButton: {
@@ -132,7 +141,7 @@ function parseJwtPayload() {
     const jsonPayload = decodeURIComponent(
       atob(base64)
         .split('')
-        .map(c => `%${('00' + c.charCodeAt(0).toString(16)).slice(-2)}`)
+        .map(c => `%${('00' + c.charCodeAt(0).toString(16)).slice(-2)}` )
         .join('')
     )
     return JSON.parse(jsonPayload)
@@ -146,12 +155,13 @@ const decoded = parseJwtPayload()
 const isHR = computed(() => decoded?.auth?.includes('ROLE_HR'))
 const isMySlip = computed(() => decoded?.sub == props.slip.employeeId?.toString() || isHR.value)
 
-
 function formatCurrency(val) {
   return val?.toLocaleString() || ''
 }
 
+
 async function sendMail() {
+  showToast('메일 전송 중...')
   try {
     const payload = {
       employeeEmail: props.slip.employeeEmail,
@@ -172,10 +182,10 @@ async function sendMail() {
         Authorization: `Bearer ${token}`
       }
     })
-    alert('메일 전송이 완료되었습니다.')
+    showToast('메일 전송이 완료되었습니다.')
   } catch (error) {
     console.error('메일 전송 실패', error)
-    alert('메일 전송에 실패했습니다.')
+    showToast('메일 전송에 실패했습니다.')
   }
 }
 
@@ -193,7 +203,6 @@ function downloadPDF() {
   }).save()
 }
 </script>
-
 
 
 <style scoped>

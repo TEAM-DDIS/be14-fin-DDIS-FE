@@ -150,6 +150,7 @@ async function fetchApprovals() {
     console.error('❗ 결재함 조회 실패', e)
   }
 }
+
 onMounted(fetchApprovals)
 
 watch(tab, fetchApprovals)
@@ -202,7 +203,6 @@ function handleFormRowClick(params) {
     query: { box: 'ApprovalBox' }
   })
 }
-
 </script>
 
 <style>

@@ -46,18 +46,26 @@
                 :rowData="filteredEmployees"
                 height="600px"
                 :pagination="true"
-                :paginationPageSize="10"
+                :paginationPageSize="20"
                 :style="{ width: '100%' }"
                 @row-click="e => emit('row-click', e.data)"
             />
             <button @click="downloadCSV" class="download-btn">CSV 다운로드</button>
         </div>
     </div>
+    <BaseToast ref="toastRef" />
 </template>
 
 <script setup>
     import { ref, reactive, computed, onMounted } from 'vue'
     import AgGrid from '@/components/grid/BaseGrid.vue'
+    import BaseToast from '@/components/toast/BaseToast.vue'
+
+    const toastRef = ref(null)
+
+    function showToast(msg) {
+        toastRef.value?.show(msg)
+    }
 
     const emit = defineEmits(['row-click'])
 
@@ -141,7 +149,7 @@
 
     function downloadCSV() {
         if (!filteredEmployees.value.length) {
-            alert('출퇴근 내역이 없습니다.')
+            showToast('출퇴근 내역이 없습니다.')
             return
         }
 

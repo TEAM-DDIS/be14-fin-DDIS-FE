@@ -48,7 +48,7 @@
         :rowData="filteredData"
         height="400px"
         :pagination="true"
-        :paginationPageSize="10"
+        :paginationPageSize="20"
         @row-click="onRowClicked"
         @grid-ready="onGridReady"
       />
@@ -61,6 +61,8 @@
     <!-- 상세 모달 -->
     <RetirementModal v-if="showModal && selectedSlip" :slip="selectedSlip" @close="showModal = false" />
   </div>
+    <BaseToast ref="toastRef" />
+
 </template>
 
 <script setup>
@@ -70,6 +72,13 @@ import AgGrid from '@/components/grid/BaseGrid.vue'
 import RetirementModal from '@/components/salary/RetirementModal.vue'
 import { useUserStore } from '@/stores/user'
 import { useRouter } from 'vue-router'
+import BaseToast from '@/components/toast/BaseToast.vue' 
+
+const toastRef = ref(null)
+
+function showToast(msg) {
+  toastRef.value?.show(msg)
+}
 
 // 토큰 디코딩 함수
 function parseJwtPayload(token) {
@@ -90,6 +99,7 @@ function parseJwtPayload(token) {
 
 // 유저 스토어 및 라우터
 const userStore = useUserStore()
+const token = userStore.accessToken
 const router = useRouter()
 
 // HR 권한 체크
@@ -97,7 +107,7 @@ const payload = parseJwtPayload(userStore.accessToken)
 const isHR = payload?.role?.includes('ROLE_HR') || payload?.auth?.includes('ROLE_HR')
 
 if (!isHR) {
-  alert('접근 권한이 없습니다.')
+  showToast('접근 권한이 없습니다.')
   router.push('/error403')
 }
 
@@ -139,7 +149,7 @@ const filteredData = computed(() => {
 
 async function fetchRetirements() {
   if (!dateRange.value.start || !dateRange.value.end) {
-    alert('기간을 입력해주세요.')
+    showToast('기간을 입력해주세요.')
     return
   }
 
@@ -154,7 +164,7 @@ async function fetchRetirements() {
         provisionSituation: provisionSituation.value || '',
         keyword: searchKeyword.value || ''
       },
-      headers: { Authorization: `Bearer ${userStore.accessToken}` }
+      headers: { Authorization: `Bearer ${token}` }
     })
     retirements.value = Array.isArray(data) ? data : []
     selectedSlip.value = null
@@ -182,19 +192,19 @@ function onRowClicked(event) {
 
 async function openModal() {
   if (!selectedSlip.value?.employeeId) {
-    alert('먼저 행을 선택해주세요.')
+    showToast('먼저 행을 선택해주세요.')
     return
   }
 
   try {
     const { data } = await axios.get(`http://localhost:8000/payroll/retirements/${selectedSlip.value.employeeId}`, {
-      headers: { Authorization: `Bearer ${userStore.accessToken}` }
+      headers: { Authorization: `Bearer ${token}` }
     })
     selectedSlip.value = data
     showModal.value = true
   } catch (e) {
     console.error('상세정보 불러오기 실패:', e)
-    alert('상세 정보를 불러올 수 없습니다.')
+    showToast('상세 정보를 불러올 수 없습니다.')
   }
 }
 

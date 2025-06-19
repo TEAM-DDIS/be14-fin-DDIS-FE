@@ -32,13 +32,13 @@
         @cell-clicked="onCellClick"
       />
     </div>
-  </div>
 
-  <!-- 3) 하단 버튼 -->
-  <div class="pagination-control">
-    <div class="button-group">
-      <button class="btn-delete" @click="onDeleteClick">삭제</button>
-      <button class="btn-save" @click="onRegister">등록</button>
+        <!-- 3) 하단 버튼 -->
+    <div class="pagination-control">
+      <div class="button-group">
+        <button class="btn-delete" @click="onDeleteClick">삭제</button>
+        <button class="btn-save" @click="onRegister">등록</button>
+      </div>
     </div>
   </div>
 
@@ -98,6 +98,36 @@ ModuleRegistry.registerModules([
 // — Pinia 스토어와 라우터
 const router    = useRouter()
 const userStore = useUserStore()
+
+// JWT 토큰 디코딩 유틸
+function parseJwtPayload(token) {
+  try {
+    const base64Url = token.split('.')[1]
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split('')
+        .map(c => `%${('00' + c.charCodeAt(0).toString(16)).slice(-2)}`)
+        .join('')
+    )
+    return JSON.parse(jsonPayload)
+  } catch {
+    return {}
+  }
+}
+
+// HR 권한 여부 계산 (role 클레임명은 실제 JWT 에 맞춰 조정)
+const isHR = computed(() => {
+  const raw = userStore.accessToken?.startsWith('Bearer ')
+    ? userStore.accessToken.slice(7)
+    : userStore.accessToken
+  if (!raw) return false
+
+  const { auth } = parseJwtPayload(raw)
+  if (Array.isArray(auth))    return auth.includes('ROLE_HR')
+  if (typeof auth === 'string') return auth.includes('ROLE_HR')
+  return false
+})
 
 // — 그리드 API 레퍼런스
 let gridApi = null
@@ -160,6 +190,9 @@ const showDeleteModal = ref(false)
 
 // — 데이터 로드 (인사팀 전용 API)
 onMounted(async () => {
+    if (!isHR.value) {
+    return router.push('/error403')
+  }
   try {
     const res = await axios.get('/disciplinary', {
       headers: authHeaders()
@@ -339,6 +372,7 @@ async function onCellClick(e) {
 .ag-grid-box {
   height: 500px;
   border: 1px solid #d9d9d9;
+  margin-bottom: 20px;
   border-radius: 8px;
   overflow: hidden;
 }
@@ -346,7 +380,6 @@ async function onCellClick(e) {
 .pagination-control {
   display: flex;
   justify-content: flex-end;
-  margin: 0 20px 20px;
 }
 .button-group {
   display: flex;

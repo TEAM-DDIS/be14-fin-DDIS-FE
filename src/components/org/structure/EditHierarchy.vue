@@ -107,11 +107,13 @@
       <span v-if="pendingMoves.length">(총 {{ pendingMoves.length }}건 대기 중)</span>
     </div>
   </div>
+  <BaseToast ref="toastRef" />
 </template>
 
 <script setup>
 import { reactive, ref, onMounted } from 'vue'
 import axios from 'axios'
+import BaseToast from '@/components/toast/BaseToast.vue'
 
 const dragData = ref({ type: null, item: null }) 
 const pendingMoves = ref([])  
@@ -132,6 +134,12 @@ const expanded = reactive({})
 
 // 부모 컴포넌트로 이벤트 전달
 const emit = defineEmits(['dept-selected', 'team-selected'])
+
+const toastRef = ref(null)
+
+  function showToast(msg) {
+    toastRef.value?.show(msg)
+  }
 
 
 // --- 3) Mounted 시점에 백엔드에서 조직 계층과 사원 정보 가져오기 ---
@@ -329,11 +337,11 @@ async function saveChanges() {
       const url = `http://localhost:8000/org/update/${mv.type}/${mv.itemId}`
       await axios.put(url, mv.payload)
     }
-    alert('변경 사항이 저장되었습니다.')
+    showToast('변경 사항이 저장되었습니다.')
     pendingMoves.value = []
   } catch (err) {
     console.error(err)
-    alert('저장 중 오류가 발생했습니다.')
+    showToast('저장 중 오류가 발생했습니다.')
   }
 }
 async function cancelChanges() {

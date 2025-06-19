@@ -8,7 +8,7 @@
         :rowData="leaveRegistData"
         height="500px"
         :pagination="true"
-        :paginationPageSize="10"
+        :paginationPageSize="20"
         :style="{ width: '100%' }"
       />
       <div class="btn-area">
@@ -24,6 +24,7 @@
       </div>
     </Teleport>
   </div>
+  <BaseToast ref="toastRef" />
 </template>
 
 <script setup>
@@ -31,6 +32,14 @@
   import AgGrid from '@/components/grid/BaseGrid.vue'
   import CorrectionRegistEvent from './CorrectionRegistEvent.vue'
   import { useUserStore } from '@/stores/user'
+  import BaseToast from '@/components/toast/BaseToast.vue'
+
+  const toastRef = ref(null)
+
+  function showToast(msg) {
+    toastRef.value?.show(msg)
+  }
+
 
   const leaveRegistData = ref([])
   const showModal = ref(false)
@@ -42,7 +51,7 @@
     const token = userStore.accessToken
 
     if (!token) {
-      alert('로그인이 필요합니다.')
+      showToast('로그인 정보가 없습니다.')
       return
     }
 
@@ -62,7 +71,7 @@
 
       if (!res.ok) throw new Error('출근 정정 신청 실패')
 
-      alert('출근 정정 신청이 완료되었습니다.')
+      showToast('출근 정정 신청이 완료되었습니다.')
 
       // 신청 성공 후 리스트 다시 불러오기
       const reload = await fetch('http://localhost:8000/attendance/correction/history/request/me', {
@@ -72,7 +81,7 @@
 
       showModal.value = false
     } catch (err) {
-      alert('출근 등록을 먼저 진행해주세요!')
+      showToast('출근 등록을 먼저 진행해주세요.')
     }
   }
 

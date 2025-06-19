@@ -17,6 +17,7 @@
       </div>
     </div>
   </div>
+  <BaseToast ref="toastRef" />
 </template>
 
 <script setup>
@@ -25,6 +26,13 @@
   import DateFilter from '@/components/leave/DateFilter.vue'
   import AllCommuteCard from '@/components/commute/AllCommuteCard.vue'
   import { useUserStore } from '@/stores/user'
+  import BaseToast from '@/components/toast/BaseToast.vue'
+
+  const toastRef = ref(null)
+
+  function showToast(msg) {
+    toastRef.value?.show(msg)
+  }
 
   const userStore = useUserStore()
 
@@ -49,12 +57,11 @@
   }
 
   const decoded = parseJwt(userStore.accessToken)
-  console.log('디코딩된 JWT:', decoded)
 
   // 접근 권한 확인
   onMounted(() => {
     if (!decoded?.auth?.includes('ROLE_HR')) {
-      alert('접근 권한이 없습니다.')
+      showToast('접근 권한이 없습니다.')
       router.push('/error403')
     }
   })
@@ -89,7 +96,7 @@
       commuteList.value = json
     } catch (err) {
       console.error('출퇴근 내역 조회 실패:', err)
-      alert('조회 중 오류가 발생했습니다.')
+      showToast('조회 중 오류가 발생했습니다.')
     }
   }
 

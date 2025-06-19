@@ -3,16 +3,28 @@
   <p class="desc">사원 목록 조회</p>
 
   <div class="card">
-    <!-- 검색창 -->
-    <div class="search-bar-in-card">
-      <img src="@/assets/icons/search.svg" alt="검색" class="search-icon" />
-      <input
-        type="text"
-        v-model="searchText"
-        placeholder="사원명을 입력하세요."
-        class="search-input"
-      />
-    </div>
+      <div class="controls">
+      <!-- 검색창 -->
+        <div class="search-bar-in-card">
+          <img src="@/assets/icons/search.svg" alt="검색" class="search-icon" />
+          <input
+            type="text"
+            v-model="searchText"
+            placeholder="사원명을 입력하세요."
+            class="search-input"
+          />
+        </div>
+        <!-- 재직중만 보기 체크박스 -->
+          <label class="active-filter">
+            <input
+              type="checkbox"
+              v-model="showActiveOnly"
+            />
+            재직중만 보기
+        </label>
+      </div>
+
+    
 
     <!-- AG Grid -->
     <div class="ag-theme-alpine ag-grid-box">
@@ -20,7 +32,7 @@
         class="ag-theme-alpine custom-theme"
         :style="{ width: '100%', height: '500px' }"
         :columnDefs="columnDefs"
-        :rowData="rowData"
+        :rowData="filteredData"
         :defaultColDef="defaultColDef"
         rowSelection="multiple"               
         :gridOptions="gridOptions"
@@ -28,17 +40,16 @@
         @cellClicked="onCellClick"
       />
     </div>
+      <!-- 하단 버튼 -->
+      <div class="pagination-control">
+        <div class="button-group">
+          <!-- <button class="btn-delete" @click="onDeleteClick">삭제</button> -->
+          <button v-if="isHR" class="btn-save"   @click="onRegister">등록</button>
+        </div>
+      </div>
   </div>
 
-  <!-- 하단 버튼 -->
-  <div class="pagination-control">
-    <div class="button-group">
-      <button class="btn-delete" @click="onDeleteClick">삭제</button>
-      <button class="btn-save"   @click="onRegister"  >등록</button>
-    </div>
-  </div>
-
-  <!-- 삭제 모달 -->
+  <!-- 삭제 모달
   <div v-if="showDeleteModal" class="modal-overlay">
     <div class="modal-content">
       <p>정말로 선택된 사원을 삭제하시겠습니까?</p>
@@ -47,7 +58,7 @@
         <button class="btn-save confirm" @click="confirmDelete">확인</button>
       </div>
     </div>
-  </div>
+  </div> -->
 </template>
 
 <script setup>
@@ -82,6 +93,36 @@ ModuleRegistry.registerModules([
 const userStore       = useUserStore()
 const router          = useRouter()
 
+// JWT 토큰 디코딩 유틸
+function parseJwtPayload(token) {
+  try {
+    const base64Url = token.split('.')[1]
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split('')
+        .map(c => `%${('00' + c.charCodeAt(0).toString(16)).slice(-2)}`)
+        .join('')
+    )
+    return JSON.parse(jsonPayload)
+  } catch {
+    return {}
+  }
+}
+
+// HR 권한 여부 계산 (role 클레임명은 실제 JWT 에 맞춰 조정)
+const isHR = computed(() => {
+  const raw = userStore.accessToken?.startsWith('Bearer ')
+    ? userStore.accessToken.slice(7)
+    : userStore.accessToken
+  if (!raw) return false
+
+  const { auth } = parseJwtPayload(raw)
+  if (Array.isArray(auth))    return auth.includes('ROLE_HR')
+  if (typeof auth === 'string') return auth.includes('ROLE_HR')
+  return false
+})
+
 
 // 4) 그리드 기본 설정
 const defaultColDef   = { sortable: true, filter: true, resizable: true }
@@ -95,7 +136,7 @@ const columnDefs = [
     checkboxSelection: true,        // 행 체크박스
     headerCheckboxSelection: true   // 헤더 체크박스
   },
-  { headerName: '사원번호', field: 'employeeId',     flex: 1.2, cellClass: 'center-align' },
+  { headerName: '사원번호', field: 'employeeId',     flex: 1, cellClass: 'center-align' },
   {
     headerName: '사원명',
     field: 'employeeName',
@@ -106,8 +147,18 @@ const columnDefs = [
   { headerName: '부서',        field: 'departmentName', flex: 1, cellClass: 'center-align' },
   { headerName: '팀',          field: 'teamName',       flex: 1, cellClass: 'center-align' },
   { headerName: '직무',        field: 'jobName',        flex: 1.7, cellClass: 'center-align' },
-  { headerName: '직책',        field: 'positionName',   flex: 1, cellClass: 'center-align' },
-  { headerName: '직급',        field: 'rankName',       flex: 1, cellClass: 'center-align' }
+  { headerName: '직책',        field: 'positionName',   flex: 0.7, cellClass: 'center-align' },
+  { headerName: '직급',        field: 'rankName',       flex: 0.7, cellClass: 'center-align' },
+  {
+    headerName: '재직 여부',
+    // retirementDate 가 null 이면 재직, 아니면 퇴직
+    valueGetter: params =>
+      params.data.retirementDate == null ? '재직' : '퇴직',
+    sortable: true,
+    filter: true,
+    flex: 0.7,
+    cellClass: 'center-align'
+  }
 ]
 
 // 6) gridOptions: 페이징+테마만
@@ -121,17 +172,25 @@ const gridOptions = {
 // 7) 상태 변수들
 const rowData         = ref([])
 const searchText      = ref('')
+const showActiveOnly = ref(false)
 const showDeleteModal = ref(false)
 let gridApi           = null
 
-// 8) 필터링 계산
-const filteredData = computed(() =>
-  !searchText.value
-    ? rowData.value
-    : rowData.value.filter(r =>
-        r.employeeName.toLowerCase().includes(searchText.value.toLowerCase())
-      )
-)
+// 필터링된 데이터 계산
+const filteredData = computed(() => {
+  return rowData.value.filter(r => {
+    // 1) 검색어 필터
+    const matchesName = !searchText.value
+      ? true
+      : r.employeeName.toLowerCase().includes(searchText.value.toLowerCase())
+    // 2) 재직중만 보기
+    const isActive = showActiveOnly.value
+      ? r.retirementDate == null
+      : true
+
+    return matchesName && isActive
+  })
+})
 
 // 9) API 호출
 onMounted(async () => {
@@ -196,6 +255,21 @@ function onRegister() {
 </script>
 
 <style scoped>
+.controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+.active-filter {
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+  color: #374151;
+}
+.active-filter input {
+  margin-right: 6px;
+}
 .page-title {
   margin-left: 20px;
   margin-bottom: 30px;
@@ -241,11 +315,13 @@ function onRegister() {
 }
 /* 버튼 그룹 */
 .pagination-control {
-  display:flex;
-  justify-content:flex-end;
-  margin:0 20px 20px;
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 20px;  /* 그리드와의 세로 간격 */
 }
-.button-group { display:flex; gap:10px; }
+.button-group { 
+  display:flex-end;  
+ }
 .btn-save, .btn-delete {
   padding:10px 30px;
   border-radius:10px;

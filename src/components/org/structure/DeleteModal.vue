@@ -41,10 +41,20 @@
       </div>
     </div>
   </div>
+  <BaseToast ref="toastRef" />
 </template>
 
 <script setup>
 import { ref, computed } from 'vue'
+import { useRouter } from 'vue-router'
+import { useUserStore } from '@/stores/user'
+import BaseToast from '@/components/toast/BaseToast.vue'
+
+const toastRef = ref(null)
+
+  function showToast(msg) {
+    toastRef.value?.show(msg)
+  }
 
 const props = defineProps({
   orgOptions:    Array,
@@ -55,17 +65,47 @@ const emit = defineEmits(['close', 'confirm'])
 const localType        = ref('')
 const localSelectedIds = ref([])
 
+const router = useRouter()
+const userStore = useUserStore()
+const token = localStorage.getItem('token')
+
+function parseJwtPayload(token) {
+  try {
+    const base64Url = token.split('.')[1]
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split('')
+        .map(c => `%${('00' + c.charCodeAt(0).toString(16)).slice(-2)}`)
+        .join('')
+    )
+    return JSON.parse(jsonPayload)
+  } catch (e) {
+    return null
+  }
+}
+
+// 실제 권한 검사
+const payload = parseJwtPayload(userStore.accessToken || token)
+const isHR = payload?.role?.includes('ROLE_HR') || payload?.auth?.includes('ROLE_HR')
+
+// 접근 불가 시 리다이렉트
+if (!isHR) {
+  showToast('접근 권한이 없습니다.')
+  router.push('/error403')
+}
+
 const filteredDeleteList = computed(() => {
   return props.deleteListAll[localType.value] || []
 })
 
 function onConfirm() {
   if (!localType.value) {
-    alert('조직 종류를 선택해 주세요.')
+    showToast('조직 종류를 선택해 주세요.')
     return
   }
   if (!localSelectedIds.value.length) {
-    alert('삭제할 조직을 하나 이상 선택해 주세요.')
+    showToast('삭제할 조직을 하나 이상 선택해 주세요.')
     return
   }
   emit('confirm', { type: localType.value, ids: localSelectedIds.value })

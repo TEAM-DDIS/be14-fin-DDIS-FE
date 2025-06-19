@@ -31,15 +31,16 @@
         @cell-clicked="onCellClick"
       />
     </div>
-  </div>
-
-  <!-- 하단 버튼 -->
-  <div class="pagination-control">
-    <div class="button-group">
-      <button class="btn-delete" @click="onDeleteClick">삭제</button>
-      <button class="btn-save" @click="onRegister">등록</button>
+        <!-- 하단 버튼 -->
+    <div class="pagination-control">
+      <div class="button-group">
+        <button class="btn-delete" @click="onDeleteClick">삭제</button>
+        <button class="btn-save" @click="onRegister">등록</button>
+      </div>
     </div>
   </div>
+
+
 
   <!-- 삭제 확인 모달 -->
   <div v-if="showDeleteModal" class="modal-overlay">
@@ -94,6 +95,36 @@ ModuleRegistry.registerModules([
 
 const router    = useRouter()
 const userStore = useUserStore()
+
+// JWT 토큰 디코딩 유틸
+function parseJwtPayload(token) {
+  try {
+    const base64Url = token.split('.')[1]
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split('')
+        .map(c => `%${('00' + c.charCodeAt(0).toString(16)).slice(-2)}`)
+        .join('')
+    )
+    return JSON.parse(jsonPayload)
+  } catch {
+    return {}
+  }
+}
+
+// HR 권한 여부 계산 (role 클레임명은 실제 JWT 에 맞춰 조정)
+const isHR = computed(() => {
+  const raw = userStore.accessToken?.startsWith('Bearer ')
+    ? userStore.accessToken.slice(7)
+    : userStore.accessToken
+  if (!raw) return false
+
+  const { auth } = parseJwtPayload(raw)
+  if (Array.isArray(auth))    return auth.includes('ROLE_HR')
+  if (typeof auth === 'string') return auth.includes('ROLE_HR')
+  return false
+})
 
 // 그리드 API
 let gridApi = null
@@ -178,6 +209,9 @@ const selectedImageUrl = ref('')
 
 // 목록 조회 (HR 전용)
 onMounted(async () => {
+  if (!isHR.value) {
+    return router.push('/error403')
+  }
   try {
     const res = await axios.get('/contract', {
       headers: authHeaders()
@@ -282,7 +316,11 @@ async function onCellClick(e) {
     router.push(`/employeeInfo/${empId}`)
   }
 }
+
+
 </script>
+
+
 
 <style scoped>
 .page-title {
@@ -346,10 +384,10 @@ async function onCellClick(e) {
 .pagination-control {
   display: flex;
   justify-content: flex-end;
-  margin: 0 20px 20px;
 }
 .button-group {
   display: flex;
+  margin-top: 20px;
   gap: 10px;
 }
 .btn-save {

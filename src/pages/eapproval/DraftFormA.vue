@@ -3,20 +3,19 @@
   <!-- ◆ 페이지 제목 -->
   <h1 class="page-title">기안작성</h1>
   <p class="desc">업무 기안 작성</p>
-  <!-- ◆ 전체 레이아웃 박스: 페이지 중앙의 메인 컨테이너 -->
+
+  <!-- ◆ 전체 레이아웃 박스 -->
   <div class="main-box">
-    <!-- ◆ 내부 컨텐츠 박스: 실제 폼이 들어갈 영역 -->
+    <!-- ◆ 폼 컨테이너 -->
     <div class="container">
-      <!-- 업무 기안 섹션 제목 -->
+      <!-- 🔷 기본 정보 입력 영역 -->
       <h2>업무 기안</h2>
-      <!-- 굵은 구분선 -->
       <hr class="bold-divider" />
-      <!-- ◆ 기본 정보 입력 테이블 (부서, 직책, 기안자 등) -->
       <table>
         <tbody>
           <tr>
             <td>기안부서</td>
-            <td><input v-model="form.departmentName" type="text"  readonly /></td>
+            <td><input v-model="form.departmentName" type="text" readonly /></td>
             <td>직급</td>
             <td><input v-model="form.rankName" type="text" readonly /></td>
           </tr>
@@ -24,7 +23,7 @@
             <td>기안자</td>
             <td><input v-model="form.drafter" type="text" readonly /></td>
             <td>기안일자</td>
-            <!-- 화면에는 날짜만 보여주기 -->
+            <!-- 화면에는 날짜만 표시 -->
             <td>
               <input
                 type="text"
@@ -33,7 +32,7 @@
                 placeholder="YYYY-MM-DD"
                 readonly
               />
-              <!-- 실제 저장용 (숨김 또는 v-if) -->
+              <!-- 실제 저장용 (숨김 필드) -->
               <input
                 type="datetime-local"
                 v-model="form.draftDate"
@@ -53,6 +52,7 @@
               </select>
             </td>
           </tr>
+          <!-- 🔷 수신자 및 참조자 설정 -->
           <tr>
             <td>수신자</td>
             <td class="flex-row">
@@ -60,6 +60,7 @@
               <button class="button icon-button" @click="openReceiverModal">
                 <img src="@/assets/icons/person-add.svg" alt="수신자 추가" class="icon-img" />
               </button>
+              <!-- 수신자 모달 -->
               <SelectionModal
                 v-if="showReceiverModal"
                 mode="수신자"
@@ -74,6 +75,7 @@
               <button class="button icon-button" @click="openReferenceModal">
                 <img src="@/assets/icons/person-add.svg" alt="참조자 추가" class="icon-img" />
               </button>
+              <!-- 참조자 모달 -->
               <SelectionModal
                 v-if="showReferenceModal"
                 mode="참조자"
@@ -85,13 +87,15 @@
           </tr>
         </tbody>
       </table>
-      <!-- ◆ 결재선 설정 영역: 설정 버튼 -->
+
+      <!-- 🔷 결재선 설정 버튼 -->
       <div class="approval-header">
         <span class="section-title">결재선</span>
         <button class="approval-button" @click="openApprovalModal">결재선 설정</button>
       </div>
       <hr class="section-divider" />
-      <!-- 결재선 설정 모달 -->
+
+      <!-- 🔷 결재선 설정 모달 -->
       <SelectionModal
         v-if="showApprovalModal"
         :hierarchy="hierarchy || []"
@@ -99,7 +103,8 @@
         @submit="onApprovalLineSubmit"
         @close="showApprovalModal = false"
       />
-      <!-- ◆ 결재자 목록 테이블 -->
+
+      <!-- 🔷 결재자 테이블 출력 -->
       <table>
         <thead>
           <tr>
@@ -126,10 +131,11 @@
           </tr>
         </tbody>
       </table>
-      <!-- ◆ 기안 내용 작성 영역 -->
+
+      <!-- 🔷 제목 및 첨부파일 -->
+    <div class="section-header">
       <div class="section-title">기안내용</div>
       <hr class="section-divider" />
-      <!-- 제목, 첨부파일 테이블 -->
       <table class="file-table">
         <tbody>
           <tr>
@@ -141,11 +147,13 @@
           <tr>
             <td class="label-cell"><strong>첨부파일</strong></td>
             <td colspan="2">
+              <!-- 🔷 첨부파일 등록 영역 -->
               <div class="file-input-row">
                 <input type="file" @change="handleFileUpload" />
                 <button class="button gray" @click="removeSelectedFiles">삭제</button>
                 <button class="button" @click="addFile">추가</button>
               </div>
+              <!-- 🔷 첨부파일 목록 -->
               <div class="file-list">
                 <div v-for="(file, idx) in uploadedFiles" :key="idx" class="file-item">
                   <input type="checkbox" v-model="file.selected" />
@@ -156,18 +164,21 @@
           </tr>
         </tbody>
       </table>
+      <!-- 🔷 첨부파일 유의사항 -->
       <ul class="file-info-text">
         <li>20MB 미만의 이미지 또는 문서 파일만 첨부 가능합니다. (최대 5개)</li>
         <li>개인정보가 포함된 문서는 주의해주세요 (주민번호 뒷자리 마스킹 필수)</li>
         <li>특수기호 또는 이모지 포함 시 문자가 깨질 수 있습니다.</li>
       </ul>
-      <!-- ◆ 본문 에디터 (Quill 사용) 영역 -->
+
+      <!-- 🔷 본문 작성 에디터 -->
       <div class="content-editor-section">
         <div class="editor-wrapper">
           <div class="editor-toolbar-row">
             <label class="editor-label">본문</label>
             <div id="custom-toolbar" />
           </div>
+          <!-- 🔷 Quill 에디터 사용 -->
           <QuillEditor
             v-model:content="form.body"
             contentType="html"
@@ -178,23 +189,28 @@
         </div>
       </div>
     </div>
-      <div class="button-group">
-      <button class="button gray" @click="showDraftSaveModal = true">임시저장</button>
-      <button class="button" @click="showSubmitModal = true">상신하기</button>
-      </div>
   </div>
-  
-  <DraftSaveModal
+
+    <!-- 🔷 하단 버튼 (임시저장/상신하기) -->
+    <div class="button-group">
+      <button class="button gray" @click="handleCancel">취소</button>
+      <button class="button" @click="showSubmitModal = true">상신</button>
+    </div>
+  </div>
+
+  <!-- 🔷 모달 컴포넌트 영역 -->
+  <!-- <DraftSaveModal
     v-if="showDraftSaveModal"
     @close="showDraftSaveModal = false"
     @submit="confirmDraftSave"
-  />
+  /> -->
   <SubmitModal
     v-if="showSubmitModal"
     @close="showSubmitModal = false"
     @submit="confirmSubmit"
   />
 </template>
+
 
 <script>
 import { QuillEditor } from '@vueup/vue-quill';
@@ -216,7 +232,6 @@ async function getUploadInfo(file) {
   if (!res.ok) throw new Error('Presign URL 요청 실패')
   return res.json()
 }
-
 async function uploadToS3(uploadUrl, file) {
   const res = await fetch(uploadUrl, {
     method: 'PUT', headers: { 'Content-Type': file.type }, body: file
@@ -268,9 +283,12 @@ export default {
     };
   },
   // created() {
-  //   // this.autoSave = debounce(this.saveDraftAuto, 5000)
+  //   //  🔷 컴포넌트 생성 시, 자동 저장 메서드를 디바운싱하여 설정 (5초 간격)
+  //   this.autoSave = debounce(this.saveDraftAuto, 5000)
   // },
   mounted() {
+    //  🔷  컴포넌트 마운트 시 기안자 정보 불러오고, 날짜 초기화 및 임시저장 데이터 복원
+
     this.loadDrafterInfo();
     const now = new Date();
     const yyyy = now.getFullYear();
@@ -300,7 +318,7 @@ export default {
     return this.form.draftDate?.slice(0, 10) || '';
   },
   //   beforeUnmount() {                                           // ★ NEW
-  //   /* 페이지/탭을 떠날 때 마지막 한 번 더 자동 저장 */
+  // // 🔷 임시 저장 로직: 서버 저장 + 로컬 캐시
   //   this.saveDraftAuto()
   // },
   //   watch: {                                                    // ★ NEW
@@ -311,9 +329,7 @@ export default {
   //   uploadedFiles: { deep:true, handler() { this.autoSave() } }
   // },
   methods: {
-    async saveDraftAuto() {    
-       const empId = userStore.user.employeeId
-       if (!empId) return                               // ★ NEW
+    async saveDraftAuto() {                                   // ★ NEW
       const payload = {
         employeeId:   userStore.user.employeeId,
         form:         { ...this.form },
@@ -324,20 +340,20 @@ export default {
         savedAt:      new Date().toISOString()
       }
 
-      /* 1) 서버에 temp 저장 */
-      try {
-        await axios.post('http://localhost:8000/drafts/temp', payload, {
-          headers:{ Authorization:`Bearer ${localStorage.getItem('token')}` }
-        })
-        console.log('💾 [auto] 서버 임시저장 성공')
-      } catch(e){
-        console.warn('⚠️ [auto] 서버 임시저장 실패:', e.message)
-      }
+    //   /* /1) 서버에 temp 저장 */
+    //   try {
+    //     await axios.post('http://localhost:8000/drafts/temp', payload, {
+    //       headers:{ Authorization:`Bearer ${userStore.getItem('token')}` }
+    //     })
+    //     console.log('💾 [auto] 서버 임시저장 성공')
+    //   } catch(e){
+    //     console.warn('⚠️ [auto] 서버 임시저장 실패:', e.message)
+    //   }
 
-      /* 2) 로컬 캐시 */
-      // localStorage.setItem('draft-auto-cache', JSON.stringify(payload))
+    //   /* 2) 로컬 캐시 */
+    //   localStorage.setItem('draft-auto-cache', JSON.stringify(payload))
     },
-    // ① 기안자 정보 불러오기
+    // ① 기안자 정보 불러오기 -  서버에서 현재 로그인한 기안자 정보 조회 후 기본 폼 채움
     async loadDrafterInfo() {
       try {
         const res = await fetch("http://localhost:8000/drafter/me", {
@@ -363,8 +379,9 @@ export default {
     updateDraftDate(val) {
       this.form.draftDate = val;
     },
-     // ② 자동 결재선 조회
+     // ② 자동 결재선 조회 - 기안자의 사번(empId)로 자동 결재라인 조회하여 approvalLines에 세팅
      async fetchAutoApprovalLine(empId) {
+
   console.log("▶ fetchAutoApprovalLine 호출, empId =", empId);
   try {
     // response 객체에서 바로 data만 꺼내오기
@@ -411,15 +428,15 @@ export default {
     },
     onReceiverSubmit(list) {
       this.receiverList = list;
+      this.form.receiver = list.map(u => u.name || u.employeeName).join(', ');
       this.showReceiverModal = false;
-      this.form.receiver = list.map(u => u.name).join(', ');
     },
     onReferenceSubmit(list) {
       this.referenceList = list;
       this.showReferenceModal = false;
-      this.form.reference = list.map(u => u.name).join(', ');
+      this.form.reference = list.map(u => u.name || u.employeeName).join(', ');
     },
-     handleFileUpload(e) {
+          handleFileUpload(e) {
       this.fileError = ''
       const file = e.target.files[0]
       if (!file) return
@@ -428,21 +445,32 @@ export default {
       this.fileInput = file
     },
     async addFile() {
-      if (!this.fileInput) return
-      const file = this.fileInput
-      if (this.uploadedFiles.some(f=>f.name===file.name&&f.size===file.size)) { this.fileError='이미 추가됨'; return }
+      if (!this.fileInput) return;
+      const file = this.fileInput;
+      if (this.uploadedFiles.some(f => f.name === file.name && f.size === file.size)) {
+        this.fileError = '이미 추가됨';
+        return;
+      }
       try {
-        const { key, url } = await getUploadInfo(file)
-        await uploadToS3(url, file)
-        this.uploadedFiles.push({ name:file.name, size:file.size, type:file.type, key, selected:false })
-        this.fileInput = null
-      } catch(e){ console.error(e); this.fileError='업로드 실패' }
+        const { key, url } = await getUploadInfo(file);
+        await uploadToS3(url, file);
+        this.uploadedFiles.push({
+          name: file.name,
+          size: file.size,
+          type: file.type,
+          key,
+          selected: false
+        });
+        console.log('업로드 후 uploadedFiles:', this.uploadedFiles);
+        this.fileInput = null;
+      } catch(e) {
+        console.error(e);
+        this.fileError = '업로드 실패';
+      }
     },
     removeSelectedFiles(){ 
       this.uploadedFiles=this.uploadedFiles.filter(f=>!f.selected) 
     },
-   
-
 
 async confirmDraftSave() {
   try {
@@ -450,60 +478,65 @@ async confirmDraftSave() {
     await this.saveDraftAuto()                       // ← 자동저장 메서드 재사용
 
     // 2) 사용자 안내
-    alert('임시저장 완료! ‟임시저장함”에서 확인하세요.')
+    // alert('임시저장 완료! ‟임시저장함"에서 확인하세요.')
+        alert('기안 양식 화면으로 이동합니다.')
     this.showDraftSaveModal = false
   } catch (err) {
     alert('임시저장 실패: ' + (err.response?.data?.message || err.message))
   }
 },
 
-    // ⑥ 최종 상신하기: rankName·role 포함
+    // ⑥ 최종 상신하기: rankName·role 포함  -  상신 버튼 클릭 시 실행되는 최종 제출 로직
+    //   1. 입력 데이터 정리
+    //   2. 서버에 POST 요청으로 상신 처리
+    //   3. 성공 시 사용자 안내 및 페이지 이동
     async confirmSubmit() {
+      // 보존연한 미입력 시 경고
+      if (!this.form.retentionPeriod) {
+        alert('보존연한을 선택해주세요.');
+        return;
+      }
+      // 제목 미입력 시 경고
+      if (!this.form.title || this.form.title.trim() === '') {
+        alert('제목을 입력해주세요.');
+        return;
+      }
+      // 본문 미입력 시 경고
+      if (!this.form.body || this.form.body.trim() === '' || this.form.body === '<p><br></p>') {
+        alert('본문 내용을 입력해주세요.');
+        return;
+      }
       const now = new Date();
       const attachmentKeys = this.uploadedFiles.map(f => f.key);
       const originalFileNames = this.uploadedFiles.map(f => f.name);
-      const fileTypes         = this.uploadedFiles.map(f => f.type);
-      const fileSizes         = this.uploadedFiles.map(f => f.size);
+      const fileTypes = this.uploadedFiles.map(f => f.type);
+      const fileSizes = this.uploadedFiles.map(f => f.size);
 
       const submitData = {
         title: this.form.title,
         docContent: this.form.body,
         retentionPeriod: this.form.retentionPeriod,
         receivers: this.receiverList.map(u => u.employeeId),
-        ccs: this.referenceList.map(u => u.employeeId),
+        reference: this.referenceList.map(u => u.employeeId),
         formId: 1,
         approvalLines: this.approvalLines.map((line, index) => ({
           step: index + 1,
           employeeId: line.employeeId,
           position: line.position,
-          rankName:   line.rankName,
+          rankName: line.rankName,
           type: line.type,
         })),
         attachmentKeys,
         originalFileNames,
         fileTypes,
         fileSizes,
-// =======
-//       // (a) 전송할 데이터 형식 정의
-//       const submitData = {
-//         title:            this.form.title,          // ⑥-1) 문서 제목
-//         docContent:       this.form.body,           // ⑥-2) 본문 HTML
-//         retentionPeriod:  this.form.retentionPeriod,// ⑥-3) 보존연한
-//         receiver:         this.receiverList.map(u => u.id), // ⑥-4) 수신자 ID 리스트
-//         reference:        this.referenceList.map(u => u.id),// ⑥-5) 참조자 ID 리스트
-//         formId:           1,                        // ⑥-6) 양식 ID (고정)
-//         approvalLines:    this.approvalLines.map((line, idx) => ({
-//           step:       idx + 1,             // ⑥-7) 순번(step)
-//           employeeId: line.employeeId,     // ⑥-8) 사원번호
-//           position:   line.position,       // ⑥-9) 직책명
-//           rankName:   line.rankName,       // ⑥-10) 직급명 추가
-//           type:       line.type,           // ⑥-11) 결재 유형 코드
-//           role:       line.role            // ⑥-12) document_box.role 추가
-//         }))
-// >>>>>>> 270966fb0d9667431b5ede318d54b9208e75a7c5
+        contentDto: {
+          receiver: this.receiverList.map(u => u.name),
+          reference: this.referenceList.map(u => u.name),
+        }
       };
 
-       console.log("상신 데이터", JSON.stringify(submitData, null, 2));
+      console.log("상신 데이터", JSON.stringify(submitData, null, 2));
       
       // (b) 서버에 POST 요청
        try {
@@ -516,13 +549,19 @@ async confirmDraftSave() {
         const { docId } = res.data;
 
         // (c) 성공 시 알림 및 이동
-        alert(`상신 완료! 문서번호: ${docId}`);
+        // alert(`상신 완료! 문서번호: ${docId}`);
+        alert(`기안문이 상신되었습니다.`);
         this.showSubmitModal = false;
         this.$router.push({name: 'MyDraftBox'});
       } catch (error) {
         console.error("상신 실패", error);
         alert("상신 실패: " + (error.response?.data?.message || error.message));
       }
+    },
+
+    // 취소 버튼 동작: 모달 대신 DraftTempListPage로 이동
+    handleCancel() {
+      this.$router.push({ name: 'DraftTempList' });
     },
 
     // ⑦ 파일 업로드 처리
@@ -565,9 +604,7 @@ async confirmDraftSave() {
         console.error(e);
         this.fileError = '업로드 실패';
       }
-    }
-      
-      
+    } 
       },
     removeSelectedFiles() {
       this.uploadedFiles = this.uploadedFiles.filter(file => !file.selected);
@@ -591,6 +628,10 @@ async confirmDraftSave() {
     margin-bottom: 10px;
     font-size: 18px;
   }
+
+.section-header{
+  margin-top: 50px;
+}
 
 /* ✅ 전체 페이지 초기화 및 높이 설정 */
 body, html {
@@ -743,6 +784,7 @@ body, html {
 }
 
 .file-button-group {
+  justify-content: flex-end; /* 🔧 오른쪽 정렬 */
   display: flex;
   gap: 8px;
 }
@@ -768,7 +810,7 @@ body, html {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   transition: background-color 0.2s, box-shadow 0.2s;
   box-sizing: border-box;
-  margin-top: 80px;
+  margin-top: 0px;
   margin-bottom: 5px;
 }
 
@@ -831,7 +873,7 @@ table td:nth-child(even) {
 
 .section-title {
   font-weight: bold;
-  margin-top: 60px;
+  margin-top: 0px;
   margin-bottom: 0px;
 }
 
@@ -960,16 +1002,17 @@ textarea {
 
 .button-group {
   display: flex;
-  justify-content: center;
+  justify-content: flex-end; /* 🔧 오른쪽 정렬 */
   gap: 12px;
   margin-top: 24px;
+  margin-bottom: 70px;
 }
 
 .approval-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-top: 10px;
+  margin-top: 50px;
   margin-bottom: 10px;
 }
 

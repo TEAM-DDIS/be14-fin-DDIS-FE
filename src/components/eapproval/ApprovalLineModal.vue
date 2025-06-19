@@ -1,5 +1,4 @@
 <template>
-
   <!-- ① 모달 외곽: 배경 클릭하면 모달 닫기 -->
   <div class="modal-overlay" @click.self="$emit('close')">
     <div class="modal-content">
@@ -93,14 +92,18 @@
               </tr>
               <tr v-else-if="mode==='수신자'"
                   v-for="(item, idx) in receiverList" :key="`수신자-${item.employeeId}`">
-                <td><!-- 체크박스 필요 없으면 빈칸 --></td>
+                <td>    
+                    <input type="checkbox" :value="item.employeeId" v-model="selectedReceivers" />
+                </td>
                 <td>{{ idx + 1 }}</td>
                 <td>수신</td>
                 <td>{{ item.name }}</td>
               </tr>
               <tr v-else
                   v-for="(item, idx) in referenceList" :key="`참조자-${item.employeeId}`">
-                <td></td>
+                <td>
+                  <input type="checkbox" :value="item.employeeId" v-model="selectedReferences" />
+                </td>
                 <td>{{ idx + 1 }}</td>
                 <td>참조</td>
                 <td>{{ item.name }}</td>
@@ -152,14 +155,14 @@ onMounted(() => {
   if (props.mode === '수신자') {
     receiverList.value = props.initialApprovers.map(a => ({
       employeeId: a.employeeId,
-      name:       a.name,
+      name:       a.name || a.employeeName,  // ✅ name이 빠져 있으면 화면에 안 뜸
       position:   a.position
     }))
   }
   else if (props.mode === '참조자') {
     referenceList.value = props.initialApprovers.map(a => ({
       employeeId: a.employeeId,
-      name:       a.name,
+      name:       a.name || a.employeeName,
       position:   a.position
     }))
   }
@@ -317,6 +320,41 @@ function deleteSelected() {
 }
 
 // Function to add selected employee as approver or cooperator
+// function addApprover(type) {
+//   if (selectedHierarchyEmployees.value.length > 0) {
+//     selectedHierarchyEmployees.value.forEach(selectedEmp => {
+//       const newMember = {
+//         employeeId: selectedEmp.employeeId,
+//         name: selectedEmp.employeeName,
+//         team: selectedEmp.teamName, 
+//         position: selectedEmp.positionName, 
+//         rankName: selectedEmp.rankName || selectedEmp.rank, 
+//         status: '대기중', // 결재선에만 해당될 수 있음
+//         type: type,
+//       };
+
+//       let targetList;
+//       let logMessage;
+//       if (props.mode === '수신자') {
+//         targetList = receiverList.value;
+//         logMessage = '수신자 추가 후 receiverList:';
+//       } else if (props.mode === '참조자') {
+//         targetList = referenceList.value;
+//         logMessage = '참조자 추가 후 referenceList:';
+//       } else {
+//         targetList = approverList.value;
+//         logMessage = '결재자 추가 후 approverList:';
+//       }
+
+//       // Prevent duplicates based on employeeId for the target list
+//       if (!targetList.some(a => a.employeeId === newMember.employeeId)) {
+//         targetList.push(newMember);
+//       }
+//     });
+//     console.log(logMessage, approverList.value, receiverList.value, referenceList.value);
+//   }
+// }
+
 function addApprover(type) {
   // 1) 선택된 사원이 없으면 아무 것도 안 함
   if (selectedHierarchyEmployees.value.length === 0) return;
@@ -351,6 +389,7 @@ function addApprover(type) {
           employeeId:    emp.employeeId,
           name:          emp.employeeName,
           position:      emp.positionName,
+          rankName:      emp.rankName,
           team:          emp.teamName || '',
           status:        '대기중',
           type,
@@ -364,7 +403,6 @@ function addApprover(type) {
   });
     console.log('결재자 추가 후 approverList:', approverList.value);
   }
-
 
 // — 최종 등록
 function submitSelection() {
