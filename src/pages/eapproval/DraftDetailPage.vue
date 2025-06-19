@@ -426,6 +426,7 @@ function openApprovalModal() {
   // 아무것도 선택되지 않았으면 모달 안 열림
   if (!selectedLine.value) {
     console.warn('❌ selectedLine 없음')
+    alert('결재할 행을 선택해주세요.')
     return
   }
 

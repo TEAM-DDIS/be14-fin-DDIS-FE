@@ -74,6 +74,7 @@ const fetchDocs = async () => {
     if (!res.ok) throw new Error('문서 목록 조회 실패')
 
     const data = await res.json()
+    console.log('[수신함] 서버에서 받은 데이터:', data)
     docs.value = data
   } catch (err) {
     console.error(err)
@@ -96,7 +97,11 @@ onMounted(() => {
         { headerName: '제목', field: 'title', flex: 1 },
         { headerName: '상신일시', field: 'createdAt',valueFormatter: params => formatDateTime(params.value), width: 230 },
         { headerName: '열람일시', field: 'readAt',valueFormatter: params => formatDateTime(params.value), width: 230 },
-        { headerName: '기안자', field: 'writerName', width: 150 }
+        { headerName: '기안자', valueGetter: params => {
+          const name = params.data.writerName || '';
+          const rank = params.data.rankName || '';
+          return rank ? `${name} / ${rank}` : name;
+        }, width: 150 }
     ],
     '읽지않음': [
         { headerName: '번호', field: 'no', flex: 1 },
@@ -104,7 +109,11 @@ onMounted(() => {
         { headerName: '제목', field: 'title', flex: 3 },
         { headerName: '상신일시', field: 'createdAt',valueFormatter: params => formatDateTime(params.value), flex: 1 },
         { headerName: '열람일시', field: 'readAt',valueFormatter: params => formatDateTime(params.value), flex: 1 },
-        { headerName: '기안자', field: 'writerName', flex: 1 }
+        { headerName: '기안자', valueGetter: params => {
+          const name = params.data.writerName || '';
+          const rank = params.data.rankName || '';
+          return rank ? `${name} / ${rank}` : name;
+        }, flex: 1 }
     ]}
 
 const currentColumnDefs = computed(() => columnDefsByTab[tab.value])
@@ -112,7 +121,9 @@ const currentColumnDefs = computed(() => columnDefsByTab[tab.value])
 const filteredForms = computed(() => {
   const enriched = docs.value.map(doc => ({
     ...doc,
-    status: doc.readAt ? '읽음' : '읽지않음'
+    status: doc.readAt ? '읽음' : '읽지않음',
+    writerName: doc.drafterName,
+    rankName: doc.drafterRank
   }))
 
   const filtered = enriched.filter(doc => {
