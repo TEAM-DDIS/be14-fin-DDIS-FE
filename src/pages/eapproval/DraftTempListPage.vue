@@ -44,7 +44,7 @@ const formsExpanded = ref(true)
 const registeredForms = ref([
   { id: 1, name: '업무기안서', retention: '5년' , path: '/eapproval/formA' },
   { id: 2, name: '외근신청서', retention: '5년', manager: '인사팀 이쁜펭', path: '/eapproval/formB' },
-  { id: 3, name: '인사발령 결재요청서', retention: '5년', manager: '인사팀 이쁜펭', path: '/eapproval/formC' }
+  // { id: 3, name: '인사발령 결재요청서', retention: '5년', manager: '인사팀 이쁜펭', path: '/eapproval/formC' }
 ])
 
 const formColumnDefs = [

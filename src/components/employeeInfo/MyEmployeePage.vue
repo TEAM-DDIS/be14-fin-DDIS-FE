@@ -304,6 +304,7 @@
       </div>
     </div>
   </div>
+  <BaseToast ref="toastRef" />
 </template>
 
 <script setup>
@@ -312,6 +313,7 @@ import { useRouter } from 'vue-router'
 import axios from 'axios'
 import { useUserStore } from '@/stores/user'
 import { AgGridVue } from 'ag-grid-vue3'
+import BaseToast from '@/components/toast/BaseToast.vue'
 import detailIconUrl from '@/assets/icons/detail_appointment.svg'
 import {
   ModuleRegistry,
@@ -349,6 +351,11 @@ const previewSrc = ref('')
 // 편집 모드
 const isEditing = ref(false)
 let original = {}
+
+const toastRef = ref(null)
+  function showToast(msg) {
+    toastRef.value?.show(msg)
+  }
 
 
 // 탭 정의
@@ -541,7 +548,7 @@ async function downloadFile(fileUrl, fileName) {
     URL.revokeObjectURL(url)
   } catch (err) {
     console.error('파일 다운로드 실패:', err)
-    alert('파일 다운로드에 실패했습니다.')
+    showToast('파일 다운로드에 실패했습니다.')
   }
 }
 
@@ -606,7 +613,7 @@ onMounted(async () => {
 
   } catch (err) {
     console.error(err)
-    alert('데이터를 불러오는 데 실패했습니다.')
+    showToast('데이터를 불러오는 데 실패했습니다.')
     router.back()
   }
 })
@@ -643,7 +650,7 @@ async function saveChanges() {
 
   for (const field of requiredFields) {
     if (!field.value) {
-      alert(`${field.label}을(를) 입력해주세요.`);
+      showToast(`${field.label}을(를) 입력해주세요.`);
       return;  // 하나라도 비어 있으면 저장 중단
     }
   }
@@ -665,11 +672,11 @@ async function saveChanges() {
       dto,
       { headers: { Authorization: `Bearer ${userStore.accessToken}` } }
     )
-    alert('정보가 성공적으로 저장되었습니다.')
+    showToast('정보가 성공적으로 저장되었습니다.')
     isEditing.value = false
   } catch (err) {
     console.error(err)
-    alert('저장에 실패했습니다.')
+    showToast('저장에 실패했습니다.')
   }
 }
 
@@ -696,7 +703,7 @@ async function onPhotoSelected(e) {
     previewSrc.value = previewUrl
   } catch (err) {
     console.error(err)
-    alert('사진 업로드에 실패했습니다.')
+    showToast('사진 업로드에 실패했습니다.')
   }
 }
 </script>
