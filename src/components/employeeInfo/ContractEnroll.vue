@@ -124,29 +124,46 @@
           <button class="btn btn-save" @click="onSave">저장</button>
         </div>
   </div>
-
-
 </template>
 
 <script setup>
 import { ref, reactive, watch } from 'vue'
 import axios from 'axios'
 import { useRouter } from 'vue-router'
+import { useUserStore } from '@/stores/user'
 
+// Axios 기본 URL 설정
 axios.defaults.baseURL = 'http://localhost:8000'
 
+// 라우터 & 스토어
 const router = useRouter()
+const userStore = useUserStore()
+
+// 파일 업로드 관련
 const fileInput = ref(null)
+const files = ref([])            // 업로드할 File 객체 목록
+const previewUrls = ref([])      // 미리보기용 URL 목록
 
-// 업로드된 File 객체 리스트
-const files = ref([])
-// 미리보기용 URL 리스트
-const previewUrls = ref([])
+function triggerFileSelect() {
+  fileInput.value?.click()
+}
 
-// 사원 검색 옵션
+function onFileChange(e) {
+  const selected = Array.from(e.target.files || [])
+  if (selected.length > 5) {
+    alert('최대 5장까지 업로드할 수 있습니다.')
+  }
+  const limited = selected.slice(0, 5)
+  files.value = limited
+
+  // 기존 URL 해제
+  previewUrls.value.forEach(URL.revokeObjectURL)
+  // 새로 생성
+  previewUrls.value = limited.map(f => URL.createObjectURL(f))
+}
+
+// 사원 자동완성 & 번호 매핑
 const employeeOptions = ref([])
-
-// 폼 데이터 (template에 맞춰 필드만 선언)
 const form = reactive({
   employeeName:   '',
   employeeId:     '',
@@ -156,7 +173,6 @@ const form = reactive({
   endDate:        ''
 })
 
-// 사원명 입력 시 자동 검색 & 번호 매핑
 watch(() => form.employeeName, async name => {
   if (!name.trim()) {
     employeeOptions.value = []
@@ -164,92 +180,86 @@ watch(() => form.employeeName, async name => {
     return
   }
   try {
-    const { data } = await axios.get('/employees/search', { params: { name } })
+    const { data } = await axios.get(
+      '/employees/search',
+      { params: { name }, headers: authHeaders() }
+    )
     employeeOptions.value = data
     const match = data.find(e => e.employeeName === name)
     form.employeeId = match ? String(match.employeeId) : ''
-  } catch (e) {
-    console.error('사원 검색 오류', e)
+  } catch (err) {
+    console.error('사원 검색 오류:', err)
   }
 })
 
-function triggerFileSelect() {
-  fileInput.value?.click()
+// 인증 헤더 헬퍼
+function authHeaders() {
+  // userStore.accessToken에는 순수 JWT 문자열만 저장되어 있어야 합니다
+  return { Authorization: `Bearer ${userStore.accessToken}` }
 }
 
-// 최대 5장 제한, previewUrls / files 업데이트
-function onFileChange(e) {
-  const selected = Array.from(e.target.files)
-  if (selected.length > 5) {
-    alert('최대 5장까지 업로드할 수 있습니다.')
-  }
-  const limited = selected.slice(0, 5)
-  files.value = limited
-
-  // 기존 URL 해제
-  previewUrls.value.forEach(URL.revokeObjectURL)
-  previewUrls.value = limited.map(f => URL.createObjectURL(f))
-}
-
-function onCancel() {
-  router.back()
-}
-
+// 저장(계약 등록) 로직
 async function onSave() {
-  // 필수 체크
+  // 필수 입력 체크
   if (
     !form.employeeName.trim() ||
-    !form.employeeId.trim() ||
-    !form.contractDescrip.trim() ||
-    !form.requestDate ||
-    !form.contractDate ||
-    !form.endDate ||
-    !files.value.length
+    !form.employeeId.trim()     ||
+    !form.contractDescrip.trim()||
+    !form.requestDate          ||
+    !form.contractDate         ||
+    !form.endDate              ||
+    files.value.length === 0
   ) {
     alert('모든 항목을 입력하고 파일을 업로드해야 저장할 수 있습니다.')
     return
   }
 
   try {
-    // 1) 파일들 presigned URL 받아 업로드
+    // 1) S3 파일 업로드
     const uploaded = []
     for (const f of files.value) {
-      const { data: up } = await axios.get('/s3/upload-url', {
-        params: { filename: f.name, contentType: f.type }
-      })
+      const { data: up } = await axios.get(
+        '/s3/upload-url',
+        {
+          params: { filename: f.name, contentType: f.type },
+          headers: authHeaders()
+        }
+      )
       await fetch(up.url, {
         method: 'PUT',
         headers: { 'Content-Type': f.type },
         body: f
       })
-      uploaded.push({
-        fileName: f.name,
-        fileUrl:  up.key,
-        fileSize: f.size
-      })
+      uploaded.push({ fileName: f.name, fileUrl: up.key, fileSize: f.size })
     }
 
     // 2) 계약 등록 API 호출
-    await axios.post('/contracts', {
-      employeeName:    form.employeeName,
-      employeeId:      Number(form.employeeId),
-      contractDescrip: form.contractDescrip,
-      requestDate:     form.requestDate,
-      contractDate:    form.contractDate,
-      endDate:         form.endDate,
-      files:           uploaded
-    })
+    await axios.post(
+      '/contracts',
+      {
+        employeeId:      Number(form.employeeId),
+        contractDescrip: form.contractDescrip,
+        requestDate:     form.requestDate,
+        contractDate:    form.contractDate,
+        endDate:         form.endDate,
+        files:           uploaded
+      },
+      { headers: authHeaders() }
+    )
 
     alert('계약서가 정상 등록되었습니다.')
     router.push('/employeeInfo/Contract')
   } catch (err) {
-    console.error('등록 오류', err)
-    alert('등록 중 오류가 발생했습니다.')
+    console.error('등록 오류:', err.response?.status, err.response?.data)
+    alert(err.response?.data?.message || `등록에 실패했습니다 (HTTP ${err.response?.status}).`)
   }
 }
+
+// 취소
+function onCancel() {
+  router.back()
+}
 </script>
-
-
 
 <style scoped>
 /* 상단 헤더 */
