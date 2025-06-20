@@ -158,7 +158,7 @@ async function fetchRetirements() {
     : { provisionMonthFrom: dateRange.value.start, provisionMonthTo: dateRange.value.end }
 
   try {
-    const { data } = await axios.get('http://localhost:8000/payroll/retirements', {
+    const { data } = await axios.get('http://localhost:5000/payroll/retirements', {
       params: {
         ...params,
         provisionSituation: provisionSituation.value || '',
@@ -197,7 +197,7 @@ async function openModal() {
   }
 
   try {
-    const { data } = await axios.get(`http://localhost:8000/payroll/retirements/${selectedSlip.value.employeeId}`, {
+    const { data } = await axios.get(`http://localhost:5000/payroll/retirements/${selectedSlip.value.employeeId}`, {
       headers: { Authorization: `Bearer ${token}` }
     })
     selectedSlip.value = data

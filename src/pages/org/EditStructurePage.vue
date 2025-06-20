@@ -340,10 +340,11 @@ const deleteList = computed(() => {
 
 onMounted(async () => {
   try {
-    const res = await axios.get('http://localhost:8000/structure/hierarchy', {
+    const res = await axios.get('http://localhost:5000/structure/hierarchy', {
       params,
       headers: { Authorization: `Bearer ${token}` }
     })
+
     dataStore.headquarters = res.data
 
     const deptList = []
@@ -384,7 +385,7 @@ async function onDeptSelected(dept) {
 
   try {
     const res = await axios.get(
-      `http://localhost:8000/structure/departments/${dept.departmentId}/members`
+      `http://localhost:5000/structure/departments/${dept.departmentId}/members`
     )
     deptMembers.value = res.data
   } catch (e) {
@@ -402,7 +403,7 @@ async function onTeamSelected(team) {
 
   try {
     const res = await axios.get(
-      `http://localhost:8000/structure/teams/${team.teamId}/members`
+      `http://localhost:5000/structure/teams/${team.teamId}/members`
     )
     teamMembers.value = res.data
   } catch (e) {
@@ -501,14 +502,11 @@ async function handleAddOrg({ type, name, parentId }) {
       Authorization: `Bearer ${localStorage.getItem('token')}` 
     }
     if (type === 'head') {
-      res = await axios.post('http://localhost:8000/org/create/head', 
-      { headName: name },
-      { headers}
-    )
+      res = await axios.post('http://localhost:5000/org/create/head', { headName: name },  { headers})
       dataStore.headquarters.push(res.data)
     }
     else if (type === 'department') {
-      res = await axios.post('http://localhost:8000/org/create/department', {
+      res = await axios.post('http://localhost:5000/org/create/department', {
         departmentName: name,
         headId: parentId},
         { headers }
@@ -518,7 +516,7 @@ async function handleAddOrg({ type, name, parentId }) {
       head && head.departments.push({ ...res.data, teams: [] })
     }
     else if (type === 'team') {
-      res = await axios.post('http://localhost:8000/org/create/team', {
+      res = await axios.post('http://localhost:5000/org/create/team', {
         teamName: name,
         departmentId: parentId
       },
@@ -556,7 +554,7 @@ async function handleDeleteOrg({ type, ids }) {
     const endpoint = endpointMap[type]
     await Promise.all(
       ids.map(id =>
-        axios.delete(`http://localhost:8000/org/delete/${endpoint}/${id}`)
+        axios.delete(`http://localhost:5000/org/delete/${endpoint}/${id}`)
       )
     )
     showToast('삭제 성공!')
@@ -569,7 +567,7 @@ async function handleDeleteOrg({ type, ids }) {
 }
 
 async function loadHierarchy() {
-  const res = await fetch('http://localhost:8000/structure/hierarchy')
+  const res = await fetch('http://localhost:5000/structure/hierarchy')
   const hierarchyData = await res.json()
   dataStore.headquarters = hierarchyData
 

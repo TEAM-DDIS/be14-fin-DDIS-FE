@@ -85,7 +85,7 @@ const expanded = reactive({})
 
 onMounted(async () => {
   try {
-    const res = await fetch('http://localhost:8000/structure/hierarchy')
+    const res = await fetch('http://localhost:5000/structure/hierarchy')
     if (!res.ok) throw new Error(`HTTP ${res.status}`)
     hierarchy.value = await res.json()
   } catch (err) {

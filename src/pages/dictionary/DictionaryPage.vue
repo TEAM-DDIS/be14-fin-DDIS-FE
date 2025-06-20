@@ -176,7 +176,7 @@ const columnDefs = ref([
 const rowData = ref([])
 
 // 백엔드 API 기본 URL (필요에 따라 수정)
-const API_BASE = 'http://localhost:8000/dictionary'
+const API_BASE = 'http://localhost:5000/dictionary'
 
 // 컴포넌트 마운트 시 데이터 로드
 onMounted(fetchDictionary)

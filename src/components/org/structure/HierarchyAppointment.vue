@@ -87,7 +87,7 @@ const props = defineProps({
 
 onMounted(async () => {
   try {
-    const res = await fetch('http://localhost:8000/structure/hierarchy')
+    const res = await fetch('http://localhost:5000/structure/hierarchy')
     if (!res.ok) throw new Error(`HTTP ${res.status}`)
     hierarchy.value = await res.json()
   } catch (err) {
@@ -147,7 +147,7 @@ async function fetchTeamJobs(team) {
 
   if (!teamJobs[team.teamId]) {
     try {
-      const res = await axios.get(`http://localhost:8000/introduction/team/${team.teamId}/job`)
+      const res = await axios.get(`http://localhost:5000/introduction/team/${team.teamId}/job`)
       teamJobs[team.teamId] = res.data
     } catch (e) {
       console.error('Job fetch error ▶', e)
@@ -165,15 +165,15 @@ async function fetchTeamRanks(team) {
     try {
       // 1) 이 팀의 job 목록 조회
       const jobs = (await axios.get(
-        `http://localhost:8000/introduction/team/${team.teamId}/job`
+        `http://localhost:5000/introduction/team/${team.teamId}/job`
       )).data
 
       // 2) 각 jobId로 rank, position 동시 조회
       const ranksList = await Promise.all(
         jobs.map(async (j) => {
           const [ranks, positions] = await Promise.all([
-            axios.get(`http://localhost:8000/introduction/job/${j.jobId}/ranks`).then(r => r.data),
-            axios.get(`http://localhost:8000/introduction/job/${j.jobId}/positions`).then(r => r.data)
+            axios.get(`http://localhost:5000/introduction/job/${j.jobId}/ranks`).then(r => r.data),
+            axios.get(`http://localhost:5000/introduction/job/${j.jobId}/positions`).then(r => r.data)
           ])
 
          const rankToPosition = {
