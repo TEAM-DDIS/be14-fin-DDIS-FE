@@ -124,12 +124,14 @@
           <button class="btn btn-save" @click="onSave">저장</button>
         </div>
   </div>
+  <BaseToast ref="toastRef" />
 </template>
 
 <script setup>
 import { ref, reactive, watch } from 'vue'
 import axios from 'axios'
 import { useRouter } from 'vue-router'
+import BaseToast from '@/components/toast/BaseToast.vue'
 import { useUserStore } from '@/stores/user'
 
 // Axios 기본 URL 설정
@@ -143,6 +145,11 @@ const userStore = useUserStore()
 const fileInput = ref(null)
 const files = ref([])            // 업로드할 File 객체 목록
 const previewUrls = ref([])      // 미리보기용 URL 목록
+const toastRef = ref(null)
+
+  function showToast(msg) {
+    toastRef.value?.show(msg)
+  }
 
 function triggerFileSelect() {
   fileInput.value?.click()
@@ -151,7 +158,7 @@ function triggerFileSelect() {
 function onFileChange(e) {
   const selected = Array.from(e.target.files || [])
   if (selected.length > 5) {
-    alert('최대 5장까지 업로드할 수 있습니다.')
+    showToast('최대 5장까지 업로드할 수 있습니다.')
   }
   const limited = selected.slice(0, 5)
   files.value = limited
@@ -210,7 +217,7 @@ async function onSave() {
     !form.endDate              ||
     files.value.length === 0
   ) {
-    alert('모든 항목을 입력하고 파일을 업로드해야 저장할 수 있습니다.')
+    showToast('모든 항목을 입력하고 파일을 업로드해야 저장할 수 있습니다.')
     return
   }
 
@@ -247,11 +254,11 @@ async function onSave() {
       { headers: authHeaders() }
     )
 
-    alert('계약서가 정상 등록되었습니다.')
+    showToast('계약서가 정상 등록되었습니다.')
     router.push('/employeeInfo/Contract')
   } catch (err) {
     console.error('등록 오류:', err.response?.status, err.response?.data)
-    alert(err.response?.data?.message || `등록에 실패했습니다 (HTTP ${err.response?.status}).`)
+    showToast(err.response?.data?.message || `등록에 실패했습니다 (HTTP ${err.response?.status}).`)
   }
 }
 

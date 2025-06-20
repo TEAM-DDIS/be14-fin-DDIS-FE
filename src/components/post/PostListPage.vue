@@ -115,7 +115,7 @@ const isHR = computed(() => {
 // — grid column 정의
 const columnDefs = ref([
   { headerName: '',       field: 'checkbox', checkboxSelection: true, headerCheckboxSelection: true, width:50, pinned:'left' },
-  { headerName: '번호',     field: 'boardId',      width:100, cellClass:'center-align' },
+  { headerName: '번호', valueGetter: params => params.api.getDisplayedRowCount() - params.node.rowIndex, sortable: false, flex: 0.3, cellClass:'center-align' },
   { headerName: '제목',     field: 'boardTitle',   flex:2 },
   { headerName: '작성자',   field: 'employeeName', flex:1, cellClass:'center-align' },
   { headerName: '작성일자',
