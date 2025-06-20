@@ -327,7 +327,7 @@ import {
 } from 'ag-grid-community'
 
 // Axios 기본 URL 설정
-axios.defaults.baseURL = 'http://localhost:8000'
+axios.defaults.baseURL = 'http://localhost:5000'
 
 // AG Grid 모듈 등록
 ModuleRegistry.registerModules([

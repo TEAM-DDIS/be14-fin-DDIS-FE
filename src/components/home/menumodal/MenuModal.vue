@@ -83,7 +83,7 @@ const isHrTeam = computed(() => {
 
 onMounted(async () => {
   try {
-    const { data } = await axios.get('http://localhost:8000/menus', {
+    const { data } = await axios.get('http://localhost:5000/menus', {
       headers: {
         'Authorization': `Bearer ${token}`
       }
@@ -149,7 +149,7 @@ async function addFavorite(menuItem) {
   }
 
   try {
-    await axios.post('http://localhost:8000/menus/favorites', {
+    await axios.post('http://localhost:5000/menus/favorites', {
       menuId: menuItem.menuId,
       displayOrder: currentList.length + 1
     }, {

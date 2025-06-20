@@ -48,7 +48,7 @@ function goToDetail(id) {
 onMounted(async () => {
   const token = useUserStore().accessToken
   try {
-    const res = await axios.get('http://localhost:8000/boards/lists', {
+    const res = await axios.get('http://localhost:5000/boards/lists', {
       headers: {
         Authorization: `Bearer ${token}`
       }

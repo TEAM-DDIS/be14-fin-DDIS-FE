@@ -137,7 +137,7 @@
     try {
         const token = userStore.accessToken
 
-        const res = await fetch(`http://localhost:8000/attendance/correction/approve`, {
+        const res = await fetch(`http://localhost:5000/attendance/correction/approve`, {
         method: 'POST',
         headers: {
             Authorization: `Bearer ${token}`,        
@@ -166,7 +166,7 @@
     try {
         const token = userStore.accessToken 
 
-        const res = await fetch(`http://localhost:8000/attendance/correction/reject`, {
+        const res = await fetch(`http://localhost:5000/attendance/correction/reject`, {
         method: 'POST',
         headers: {
             Authorization: `Bearer ${token}`,        
@@ -228,7 +228,7 @@
     onMounted(async () => {
         try {
             const token = userStore.accessToken
-            const res = await fetch('http://localhost:8000/attendance/correction/history/request/all', {
+            const res = await fetch('http://localhost:5000/attendance/correction/history/request/all', {
             method: 'GET',
             headers: {
                 Authorization: `Bearer ${token}`

@@ -75,7 +75,7 @@ const rowData = ref([])
 
 // 전체 성과 이력 조회
 async function loadData() {
-  const url = 'http://localhost:8000/review/history/all'
+  const url = 'http://localhost:5000/review/history/all'
   try {
     const res = await fetch(url, {
       headers: {

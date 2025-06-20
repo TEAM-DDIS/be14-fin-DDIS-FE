@@ -144,7 +144,7 @@ function authHeaders() {
 // — 1) 초기 데이터 로드
 onMounted(async () => {
   try {
-    const res = await axios.get('http://localhost:8000/boards/lists', {
+    const res = await axios.get('http://localhost:5000/boards/lists', {
       headers: authHeaders()
     })
     fullData.value = res.data
@@ -187,7 +187,7 @@ async function confirmDelete() {
   const ids = sel.map(r => r.boardId)
   try {
     await Promise.all(ids.map(id =>
-      axios.delete(`http://localhost:8000/boards/${id}`, {
+      axios.delete(`http://localhost:5000/boards/${id}`, {
         headers: authHeaders()
       })
     ))

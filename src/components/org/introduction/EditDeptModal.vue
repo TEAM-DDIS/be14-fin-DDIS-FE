@@ -81,7 +81,7 @@ watch(
 // 컴포넌트 마운트 시 전체 부서 목록 호출
 onMounted(async () => {
   try {
-    const res = await fetch('http://localhost:8000/introduction/department')
+    const res = await fetch('http://localhost:5000/introduction/department')
     if (!res.ok) throw new Error(res.statusText)
     const data = await res.json()
     departments.value = data

@@ -57,7 +57,7 @@
         endDate: props.dateRange.end
       })
 
-      const res = await fetch(`http://localhost:8000/attendance/commute/${props.employeeId}?${query}`, {
+      const res = await fetch(`http://localhost:5000/attendance/commute/${props.employeeId}?${query}`, {
         headers: {
           Authorization: `Bearer ${token}`
         }

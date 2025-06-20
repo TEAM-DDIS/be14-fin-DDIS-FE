@@ -53,7 +53,7 @@ const endpoint = computed(() =>
 const rowData = ref([]);
 const loadData = async () => {
   try {
-    const res = await fetch(`http://localhost:8000${endpoint.value}`, {
+    const res = await fetch(`http://localhost:5000${endpoint.value}`, {
       headers: {
         Authorization: `Bearer ${localStorage.getItem('token')}`,
         'Content-Type': 'application/json'

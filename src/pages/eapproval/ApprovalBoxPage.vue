@@ -123,7 +123,7 @@ function formatDateTime(dateString) {
 async function fetchApprovals() {
   console.log('✅ fetchApprovals 호출됨. 현재 탭:', tab.value)  // 👈 무조건 찍혀야 함
   try {
-    const res = await axios.get(`http://localhost:8000/approvals/ApprovalBox?tab=${tab.value}`, {
+    const res = await axios.get(`http://localhost:5000/approvals/ApprovalBox?tab=${tab.value}`, {
       headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
     })
     console.log('📦 응답 데이터:', res.data)

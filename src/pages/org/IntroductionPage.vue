@@ -172,7 +172,7 @@ function saveEdit(updated) {
       updated.introductionContext
     // (선택) 실제 서버에 PUT 요청을 보내 저장하고 싶다면 여기서 fetch 호출
     // 예:
-    // await fetch(`http://localhost:8000/org/update/department/${updated.departmentId}`, {
+    // await fetch(`http://localhost:5000/org/update/department/${updated.departmentId}`, {
     //   method: 'PUT',
     //   headers: { 'Content-Type': 'application/json' },
     //   body: JSON.stringify({ introductionContext: updated.introductionContext })
@@ -186,8 +186,8 @@ function saveEdit(updated) {
 // 부트스트랩: 컴포넌트 마운트 시 백엔드에서 부서 목록을 가져옵니다.
 onMounted(async () => {
   try {
-    // 실제 백엔드 주소에 맞춰 수정하세요 (예: http://localhost:8000)
-    const BASE = 'http://localhost:8000/introduction'
+    // 실제 백엔드 주소에 맞춰 수정하세요 (예: http://localhost:5000)
+    const BASE = 'http://localhost:5000/introduction'
     const res = await fetch(`${BASE}/department`)
     if (!res.ok) throw new Error(`HTTP ${res.status}`)
     const data = await res.json()

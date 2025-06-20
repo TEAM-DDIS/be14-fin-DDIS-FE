@@ -295,7 +295,7 @@ async function fetchPresignedUrls() {
       contentType: file.type       // MIME 타입
     }).toString()
     const res = await fetch(
-      `http://localhost:8000/s3/download-url?${qs}`,
+      `http://localhost:5000/s3/download-url?${qs}`,
       { headers: { Authorization: `Bearer ${token}` } }
     )
     if (!res.ok) {
@@ -325,7 +325,7 @@ async function fetchDetail() {
           // return; // 토큰이 없으면 함수 종료
         }
 
-        const userRes = await axios.get("http://localhost:8000/drafter/me", {
+        const userRes = await axios.get("http://localhost:5000/drafter/me", {
           headers: {
             Authorization: `Bearer ${token}`
           }
@@ -346,7 +346,7 @@ async function fetchDetail() {
     }
     // --- END: Ensure employeeId is in localStorage and myId ref is set --- END
 
-    const res = await axios.get(`http://localhost:8000/drafts/query/${docId}`, {
+    const res = await axios.get(`http://localhost:5000/drafts/query/${docId}`, {
       headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
     })
     console.log('✅ 상세 데이터:', res.data)
@@ -481,7 +481,7 @@ async function handleApprove({ lineId, status, opinion }) {
 
     // 서버에 결재 요청 전송
     await axios.post(
-      `http://localhost:8000/approvals/${lineId}/${path}`,
+      `http://localhost:5000/approvals/${lineId}/${path}`,
       { opinion },
       { headers }
     )
@@ -503,7 +503,7 @@ async function handleWithdraw() {
     const headers = token ? { Authorization: `Bearer ${token}` } : {}
 
     await axios.post(
-      `http://localhost:8000/drafts/query/${draftDetail.value.docId}/recall`,
+      `http://localhost:5000/drafts/query/${draftDetail.value.docId}/recall`,
       {},
       { headers }
     )
