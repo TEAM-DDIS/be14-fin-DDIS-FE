@@ -44,7 +44,7 @@
       </div>
     </Teleport>
   </div>
-  <BaseToast ref="toastRef"/>
+  <BaseToast ref="toastRef" />
 </template>
 
 <script setup lang="ts">
