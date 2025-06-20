@@ -136,6 +136,17 @@ onMounted(fetchDetail)
 </script>
 
 <style scoped>
+ .page-title {
+    margin-left: 20px;
+    margin-bottom: 30px;
+    color: #00a8e8;
+  }
+  .desc {
+    display: block;
+    margin-left: 20px;
+    margin-bottom: 10px;
+    font-size: 18px;
+  }
 .container {
   padding: 24px;
   background: #f0f8ff;

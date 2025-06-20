@@ -22,29 +22,44 @@
     <div v-if="checkOutTime" class="checked-time">
       퇴근: {{ checkOutTime }}
     </div>
+    <Teleport to="body">
+      <BaseToast ref="toastRef" />
+    </Teleport>
   </div>
 </template>
 
 <script setup>
-    import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
+  import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
+  import { useUserStore } from '@/stores/user'
+  import { useAttendanceStore } from '@/stores/attendance'
+  import BaseToast from '@/components/toast/BaseToast.vue'
 
-    const formattedDate = ref('')
-    const formattedTime = ref('')
+  const toastRef = ref(null)
 
-    const checkInTime = ref(null)
-    const checkOutTime = ref(null)
-    const isCheckedIn = ref(false)
-    const isDone = computed(() => !!checkInTime.value && !!checkOutTime.value)
+  function showToast(msg) {
+    toastRef.value?.show(msg)
+  }
 
-    const buttonText = computed(() => {
+  const userStore = useUserStore()
+  const attendanceStore = useAttendanceStore()
+
+  const formattedDate = ref('')
+  const formattedTime = ref('')
+  const workStatusName = ref('')
+
+  const checkInTime = computed(() => attendanceStore.checkIn)
+  const checkOutTime = computed(() => attendanceStore.checkOut)
+  const isDone = computed(() => !!checkInTime.value && !!checkOutTime.value)
+  const isCheckedIn = computed(() => attendanceStore.isCheckedIn)
+
+  const buttonText = computed(() => {
     if (!checkInTime.value) return '출근'
     if (!checkOutTime.value) return '퇴근'
     return '완료됨'
-    })
+  })
 
-    const weekNames = ['SUN', 'MON', 'TUE', 'WED', 'THR', 'FRI', 'SAT']
-
-    function updateTime() {
+  const weekNames = ['SUN', 'MON', 'TUE', 'WED', 'THR', 'FRI', 'SAT']
+  function updateTime() {
     const now = new Date()
     const year = now.getFullYear()
     const month = String(now.getMonth() + 1).padStart(2, '0')
@@ -56,27 +71,97 @@
     const minutes = String(now.getMinutes()).padStart(2, '0')
     const seconds = String(now.getSeconds()).padStart(2, '0')
     formattedTime.value = `${hours} : ${minutes} : ${seconds}`
-    }
+  }
 
-    function handleCheck() {
-    if (!checkInTime.value) {
-        checkInTime.value = formattedTime.value
-        isCheckedIn.value = true
-    } else if (!checkOutTime.value) {
-        checkOutTime.value = formattedTime.value
-    }
-    }
+  const formatTime = (date) => {
+    const h = String(date.getHours()).padStart(2, '0')
+    const m = String(date.getMinutes()).padStart(2, '0')
+    const s = String(date.getSeconds()).padStart(2, '0')
+    return `${h}:${m}:${s}`
+  }
 
-    let intervalId
-    onMounted(() => {
+  async function handleCheck() {
+    const token = userStore.accessToken
+    if (!token) return showToast('로그인 정보가 없습니다.')
+
+    const now = new Date()
+    const hours = now.getHours()
+    const minutes = now.getMinutes()
+
+    try {
+      // 출근
+      if (!checkInTime.value) {
+        if (
+          (workStatusName.value === '오전반차' && hours < 12) ||
+          (workStatusName.value !== '오전반차' && (hours > 11 || (hours === 11 && minutes >= 59)))
+        ) {
+          showToast('출근 가능 시간이 아닙니다.')
+          return
+        }
+
+        const res = await fetch('http://localhost:5000/attendance/check-in', {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        })
+
+        if (!res.ok) throw new Error(await res.text())
+
+        attendanceStore.setCheckIn(formatTime(now))
+      }
+
+      // 퇴근
+      else if (!checkOutTime.value) {
+        if (
+          (workStatusName.value === '오후반차' && hours < 12) ||
+          (workStatusName.value !== '오후반차' && hours < 18)
+        ) {
+          showToast('퇴근 가능 시간이 아닙니다.')
+          return
+        }
+
+        const res = await fetch('http://localhost:5000/attendance/check-out', {
+          method: 'PUT',
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        })
+
+        if (!res.ok) throw new Error(await res.text())
+
+        attendanceStore.setCheckOut(formatTime(now))
+      }
+
+    } catch (err) {
+      console.error('출퇴근 등록 실패:', err.message)
+      showToast('출퇴근 등록 중 오류가 발생했습니다.')
+    }
+  }
+
+  let intervalId
+  onMounted(async () => {
     updateTime()
     intervalId = setInterval(updateTime, 1000)
+
+    const token = userStore.accessToken
+    if (!token) return
+
+    const res = await fetch('http://localhost:5000/attendance/status/me', {
+      headers: { Authorization: `Bearer ${token}` }
     })
 
-    onBeforeUnmount(() => {
-    clearInterval(intervalId)
-    })
+    const data = await res.json()
+    workStatusName.value = data.workStatusName
+
+    if (data.checkInTime) attendanceStore.setCheckIn(data.checkInTime.split('.')[0])
+    if (data.checkOutTime) attendanceStore.setCheckOut(data.checkOutTime.split('.')[0])
+  })
+  onBeforeUnmount(() => clearInterval(intervalId))
 </script>
+
 
 <style scoped>
     .attendance-card {

@@ -36,7 +36,7 @@
 
       <div class="forgot">
         비밀번호를 잊으셨나요?
-        <RouterLink to="/find-password">비밀번호 찾기</RouterLink>
+        <RouterLink to="/org/findpassword">비밀번호 찾기</RouterLink>
       </div>
     </div>
 
@@ -44,7 +44,7 @@
     <div class="login-right">
       <div class="branding">
         <img src="@/assets/icons/pizza-icon2.svg" alt="DDIS Logo" />
-        <h2>DDIS</h2>
+        <h2>ERPIZZA</h2>
       </div>
     </div>
   </div>
@@ -66,7 +66,7 @@ async function onLogin() {
   errorMessage.value = ''
   try {
     // 1) 로그인 요청
-    const res = await fetch('http://localhost:8000/login', {
+    const res = await fetch('http://localhost:5000/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ employeeId: userId.value, employeePwd: password.value })
@@ -82,12 +82,13 @@ async function onLogin() {
       throw new Error('아이디 또는 비밀번호를 확인하세요.')
     }
 
+
     // 3) 토큰 저장
     userStore.setAccessToken(token)
     localStorage.setItem('token', token)
 
     // 4) 내 정보 요청
-    const userRes = await fetch('http://localhost:8000/users/me', {
+    const userRes = await fetch('http://localhost:5000/users/me', {
       headers: { Authorization: `Bearer ${token}` }
     })
     if (!userRes.ok) {
@@ -96,7 +97,10 @@ async function onLogin() {
     const userData = await userRes.json()
     userStore.setUser(userData)
 
-    // 5) 성공 시 대시보드로 이동
+    // 5) 전 사원 목록 요청
+    await userStore.fetchAllEmployees() 
+
+    // 6) 성공 시 대시보드로 이동
     router.push('/')
   } catch (err) {
     console.error(err)

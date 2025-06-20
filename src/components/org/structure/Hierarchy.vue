@@ -3,152 +3,254 @@
     <h3 class="company-title">
       DDIS <span class="rep">{{ getCompanyRep() }}</span>
     </h3>
-    <ul class="org-list">
-      <li v-for="hq in headquarters" :key="hq.head_code">
-        <div class="node head" @click="toggle(hq.head_code)">
-          <i :class="expanded[hq.head_code] ? 'fa fa-chevron-down' : 'fa fa-chevron-right'" />
-          {{ hq.head_name }} <small>(본부장: {{ getHeadRep(hq.head_code) }})</small>
-        </div>
-        <ul v-show="expanded[hq.head_code]">
-          <li v-for="dept in getDepartments(hq.head_code)" :key="dept.department_code">
-            <div class="node dept" @click="toggle(dept.department_code)">
-              <i :class="expanded[dept.department_code] ? 'fa fa-chevron-down' : 'fa fa-chevron-right'" />
-              {{ dept.department_name }} <small>(부서장: {{ getDeptRep(dept.department_code) }})</small>
-            </div>
-            <ul v-show="expanded[dept.department_code]">
-              <li v-for="team in getTeams(dept.department_code)" :key="team.team_code">
-                <div class="node team" @click.stop="selectTeam(team)">
-                  <i :class="expanded[team.team_code] ? 'fa fa-chevron-down' : 'fa fa-chevron-right'" />
-                  {{ team.team_name }} <small>(팀장: {{ getTeamRep(team.team_code) }})</small>
+    <div class="control-buttons">
+      <button @click="expandAll" class="control-btn">전체 보기</button>
+      <button @click="collapseAll" class="control-btn">전체 닫기</button>
+    </div>
+
+    <div class="org-box">
+      <ul class="org-list">
+        <li v-for="head in hierarchy" :key="head.headId">
+          <div class="node head" @click="toggle('h' + head.headId)">
+            <i
+              :class="expanded['h' + head.headId] ? 'fa fa-chevron-down' : 'fa fa-chevron-right'"
+            />
+            {{ head.headName }}
+          </div>
+
+          <ul v-show="expanded['h' + head.headId]" class="org-list">
+            <li v-for="dept in head.departments" :key="dept.departmentId">
+              <div class="node dept" @click.stop="onDepartmentClick(dept)">
+                <i
+                  :class="expanded['d' + dept.departmentId] ? 'fa fa-chevron-down' : 'fa fa-chevron-right'"
+                />
+                {{ dept.departmentName }}
+              </div>
+
+              <div v-show="expanded['d' + dept.departmentId]" class="dept-children">
+                <div v-if="dept.deptManager" class="node emp emp-manager">
+                  부장: {{ dept.deptManager.employeeName }}
                 </div>
-                <ul v-show="expanded[team.team_code]">
-                  <li v-for="emp in getEmployees(team.team_code)" :key="emp.employee_id">
-                    <div class="node emp">
-                      {{ emp.rank_name }} {{ emp.position_name }}: {{ emp.employee_name }}
+
+                <ul class="team-list">
+                  <li v-for="team in dept.teams" :key="team.teamId">
+                    <div class="node team" @click.stop="onTeamClick(team)">
+                      <i
+                        :class="expanded['t' + team.teamId] ? 'fa fa-chevron-down' : 'fa fa-chevron-right'"
+                      />
+                      {{ team.teamName }}
                     </div>
+
+                    <!-- <ul v-show="expanded['t' + team.teamId]" class="member-list">
+                      <li v-for="emp in filteredTeamMembers(team)" :key="emp.employeeId">
+                        <div class="node emp">
+                          {{ emp.rankName }} {{ emp.positionName }}: {{ emp.employeeName }}
+                        </div>
+                      </li>
+                    </ul> -->
                   </li>
                 </ul>
-              </li>
-            </ul>
-          </li>
-        </ul>
-      </li>
-    </ul>
+              </div>
+            </li>
+          </ul>
+        </li>
+      </ul>
+    </div>
   </div>
 </template>
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 
-// 팀 선택 이벤트 emit 정의
-const emit = defineEmits(['team-selected'])
+// 상위로 이벤트 발송
+const emit = defineEmits(['dept-selected', 'team-selected'])
 
-const headquarters = ref([])
-const departments  = ref([])
-const teams        = ref([])
-const employees    = ref([])
-const positions    = ref([])
-const ranks        = ref([])
-const expanded     = reactive({})
+// 전체 계층 데이터
+const hierarchy = ref([])
+
+// 펼침/접힘 상태
+const expanded = reactive({})
+
+onMounted(async () => {
+  try {
+    const res = await fetch('http://localhost:5000/structure/hierarchy')
+    if (!res.ok) throw new Error(`HTTP ${res.status}`)
+    hierarchy.value = await res.json()
+  } catch (err) {
+    console.error('❌ 조직 계층 로드 실패:', err)
+    hierarchy.value = []
+  }
+})
 
 function toggle(key) {
   expanded[key] = !expanded[key]
 }
 
-function selectTeam(team) {
-  toggle(team.team_code)
+function onDepartmentClick(dept) {
+  toggle('d' + dept.departmentId)
+  emit('dept-selected', dept)
+}
+
+function onTeamClick(team) {
+  toggle('t' + team.teamId)
   emit('team-selected', team)
 }
 
-onMounted(async () => {
-  try {
-    const res = await fetch('/org.json')
-    const oData = await res.json()
-    headquarters.value = oData.headquarters
-    departments.value  = oData.department
-    teams.value        = oData.team
-    positions.value    = oData.position
-    ranks.value        = oData.rank
-    employees.value    = oData.employees.map(e => ({
-      ...e,
-      position_name: oData.position.find(p => p.position_code === e.position_code)?.position_name || '',
-      rank_name:     oData.rank.find(r => r.rank_code     === e.rank_code    )?.rank_name     || ''
-    }))
-  } catch (err) {
-    console.error('org.json 로드 실패:', err)
-  }
-})
-
-function getDepartments(headCode) {
-  const headId = Number(headCode.slice(1))
-  return departments.value.filter(d => d.head_id === headId)
-}
-
-function getTeams(deptCode) {
-  const deptId = Number(deptCode.slice(1))
-  return teams.value.filter(t => t.department_id === deptId)
-}
-
-function getEmployees(teamCode) {
-  return employees.value.filter(e => e.team_code === teamCode)
-}
-
+// 회사 대표 찾기 (positionCode === 'P005')
 function getCompanyRep() {
-  const ceo = employees.value.find(e => e.position_code === 'P005')
-  return ceo ? ceo.employee_name : ''
+  for (const head of hierarchy.value) {
+    if (head.headManager?.positionCode === 'P005') {
+      return head.headManager.employeeName
+    }
+  }
+  return ''
 }
 
-function getHeadRep(headCode) {
-  const h = employees.value.find(
-    e => e.head_code === headCode && e.position_code === 'P004'
-  )
-  return h ? h.employee_name : ''
+// 부서장 필터링 헬퍼
+function isDeptManager(emp) {
+  return emp.rankName === '부장' && emp.positionName === '부서장'
 }
 
-function getDeptRep(deptCode) {
-  const d = employees.value.find(
-    e => e.department_code === deptCode && e.position_code === 'P003'
-  )
-  return d ? d.employee_name : ''
+// 팀원 리스트에서 부서장만 제외
+function filteredTeamMembers(team) {
+  return team.members.filter(emp => !isDeptManager(emp))
 }
 
-function getTeamRep(teamCode) {
-  const t = employees.value.find(
-    e => e.team_code === teamCode && e.position_code === 'P002'
-  )
-  return t ? t.employee_name : ''
+// 전체 열기
+function expandAll() {
+  hierarchy.value.forEach(head => {
+    expanded['h' + head.headId] = true
+    head.departments.forEach(dept => {
+      expanded['d' + dept.departmentId] = true
+      dept.teams.forEach(team => {
+        expanded['t' + team.teamId] = true
+      })
+    })
+  })
+}
+
+// 전체 닫기
+function collapseAll() {
+  hierarchy.value.forEach(head => {
+    expanded['h' + head.headId] = false
+    head.departments.forEach(dept => {
+      expanded['d' + dept.departmentId] = false
+      dept.teams.forEach(team => {
+        expanded['t' + team.teamId] = false
+      })
+    })
+  })
 }
 </script>
 
 <style scoped>
 .org-container {
-  padding: 20px;
-  background: #fff;
+  font-size: 14px;
+  color: #333;
+  padding: 0 12px;
+  margin-bottom: 20px;
 }
 .company-title {
-  font-size: 20px;
-  margin-bottom: 16px;
+  font-size: 18px;
+  margin-bottom: 8px;
 }
 .company-title .rep {
   font-size: 14px;
   color: #666;
 }
+
+.control-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 4px;
+  justify-content: flex-end;
+}
+
+.control-btn {
+  background-color: #3f3f3f;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  padding: 6px 10px;
+  font-size: 12px;
+  font-weight: bold;
+  color: #ffffff;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: background-color 0.2s, box-shadow 0.2s;
+  box-sizing: border-box;
+}
+.control-btn:hover {
+  background-color: white;
+  color: #3f3f3f;
+  border-color: #3f3f3f;
+  box-shadow: inset 1px 1px 10px rgba(0, 0, 0, 0.25);
+}
+
 .org-list,
 .org-list ul {
   list-style: none;
-  padding: 0;
   margin: 0;
+  padding: 0;
 }
-.org-list li {
-  position: relative;
-  padding-left: 30px;
+.org-box {
+  height: 400px;
+  overflow-y: auto;
+
+  /* Firefox */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0,0,0,0.2) rgba(0,0,0,0.05);
 }
 
+/* WebKit 기반 스크롤바 전체 너비/트랙/슬라이더 */
+.org-box::-webkit-scrollbar {
+  width: 6px;
+}
+.org-box::-webkit-scrollbar-track {
+  background: rgba(0,0,0,0.05);
+  border-radius: 3px;
+}
+.org-box::-webkit-scrollbar-thumb {
+  background-color: rgba(0,0,0,0.2);
+  border-radius: 3px;
+  margin: 4px 0;
+}
+.org-box::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(0,0,0,0.3);
+}
+
+/* 모든 화살표 버튼(위/아래, 좌/우) 완전 제거 */
+/* .org-box::-webkit-scrollbar-button,
+.org-box::-webkit-scrollbar-button:start,
+.org-box::-webkit-scrollbar-button:end,
+.org-box::-webkit-scrollbar-button:vertical:decrement,
+.org-box::-webkit-scrollbar-button:vertical:increment,
+.org-box::-webkit-scrollbar-button:horizontal:decrement,
+.org-box::-webkit-scrollbar-button:horizontal:increment {
+  display: none;
+  width: 0;
+  height: 0;
+} */
+
+/* (선택) 모서리 코너 부분도 투명 처리 */
+.org-box::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* 
+.org-box.scrollbar {
+ scrollbar-width: none;
+} */
+
+.org-list li {
+  position: relative;
+  padding-left: 24px;
+}
 .org-list li::before {
   content: '';
   position: absolute;
   top: 0;
-  left: 10px;
+  left: 8px;
   width: 2px;
   height: 100%;
   background: #ccc;
@@ -157,7 +259,7 @@ function getTeamRep(teamCode) {
   content: '';
   position: absolute;
   top: 12px;
-  left: 10px;
+  left: 8px;
   width: 15px;
   height: 2px;
   background: #ccc;
@@ -170,39 +272,69 @@ function getTeamRep(teamCode) {
 }
 .node i {
   margin-right: 6px;
+  font-size: 12px;
+  color: #00a8e8;
+}
+.node.head,
+.node.dept,
+.node.team {
+  font-weight: bold;
 }
 .node.head {
-  font-weight: bold;
   font-size: 20px;
   margin-bottom: 12px;
 }
 .node.dept {
-  font-size: 18px;
-  font-weight:bold;
-  margin-bottom: 12px;
+  font-size: 19px;
+  margin-bottom: 8px;
 }
 .node.team {
-  font-size: 17px;
-  font-weight:bold;
-  margin-bottom: 10px;
+  font-size: 18px;
+  margin-bottom: 6px;
 }
 .node.emp {
-  font-size: 14px;
-  margin-bottom: 8px;
+  font-size: 16px;
+  margin-bottom: 5px;
   color: #555;
   cursor: default;
 }
-
-.node.head,
-.node.dept,
-.node.team {
-  transition: background-color 0.2s;
+.node.emp-manager {
+  font-size: 16px;
+  margin-bottom: 8px;
+  color: #000;
+  font-weight: bold;
+  padding-left: 16px;
 }
 
 .node.head:hover,
 .node.dept:hover,
 .node.team:hover {
-  background-color: #eee;
+  background-color: #f0f0f0;
   border-radius: 4px;
 }
+
+.dept-children {
+  margin-left: 8px;
+}
+
+.team-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.team-list > li {
+  position: relative;
+  padding-left: 24px;
+}
+
+.member-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.member-list > li {
+  position: relative;
+  padding-left: 24px;
+}
+
 </style>

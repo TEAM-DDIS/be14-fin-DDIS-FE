@@ -37,7 +37,38 @@
   outline: none;
   font-family: 'inter';
 }
-.ag-theme-alpine .ag-cell select:focus,
-.custom-theme select:focus {
+.ag-theme-alpine.custom-theme .ag-cell select:focus,
+.ag-theme-alpine.custom-theme select:focus {
   border: 1px solid black;
 }
+
+.ag-theme-alpine.custom-theme .ag-body-viewport::-webkit-scrollbar {
+  height: 6px;
+}
+.ag-theme-alpine.custom-theme .ag-body-viewport::-webkit-scrollbar-thumb {
+  background-color: #c8c8c8;
+  border-radius: 3px;
+}
+
+.ag-theme-alpine.custom-theme .ag-body-viewport::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+
+/* 3) 헤더 로우(한 줄 전체) 높이도 컨텐츠에 맞게 auto */
+.ag-theme-alpine.custom-theme .ag-header-row {
+  height: auto !important;
+}
+
+
+
+/* 5) 가로로 너무 긴 텍스트가 잘려 보이지 않게 최소 너비를 보장 */
+.ag-theme-alpine.custom-theme .ag-header-cell-text {
+  min-width: 80px; /* 상황에 맞춰 조절 */
+}
+
+.ag-theme-alpine.custom-theme .ag-cell {
+  /* 말줄임 없애기 */
+  text-overflow: clip !important;
+}
+

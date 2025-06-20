@@ -1,7 +1,7 @@
 <!-- src/components/EditJobModal.vue -->
 <template>
   <div class="modal-overlay" @click.self="$emit('close')">
-    <div class="modal">
+    <div class="modal scrollbar">
       <h3>직무 정보 편집</h3>
       <div class="modal-content">
         <label>팀명</label>
@@ -31,7 +31,7 @@
 </template>
 
 <script setup>
-import { reactive, watch, toRefs } from 'vue'
+import { reactive, watch } from 'vue'
 
 const props = defineProps({
   initial: {
@@ -39,38 +39,53 @@ const props = defineProps({
     required: true
   }
 })
-const emit = defineEmits(['close','save'])
+const emit = defineEmits(['close', 'save'])
 
 // 로컬 복사 + textarea 편집용 문자열으로 변환
 const local = reactive({
-  job_id:               props.initial.job_id,
-  team_name:            props.initial.team_name || '',
-  job_name:             props.initial.job_name || '',
-  job_role_text:        (props.initial.job_role || []).join('\n'),
-  job_need_text:        (props.initial.job_need || []).join('\n'),
-  job_necessary_text:   (props.initial.job_necessary || []).join('\n'),
-  job_preference_text:  (props.initial.job_preference || []).join('\n'),
+  job_id: props.initial.jobId,
+  team_name: props.initial.teamName || '',
+  job_name: props.initial.jobName || '',
+  job_role_text: (props.initial.jobRole || []).join('\n'),
+  job_need_text: (props.initial.jobNeed || []).join('\n'),
+  job_necessary_text: (props.initial.jobNecessary || []).join('\n'),
+  job_preference_text: (props.initial.jobPreference || []).join('\n'),
 })
 
 // 부모 prop 바뀌면 동기화
-watch(() => props.initial, val => {
-  local.job_id              = val.job_id
-  local.team_name           = val.team_name || ''
-  local.job_name            = val.job_name || ''
-  local.job_role_text       = (val.job_role || []).join('\n')
-  local.job_need_text       = (val.job_need || []).join('\n')
-  local.job_necessary_text  = (val.job_necessary || []).join('\n')
-  local.job_preference_text = (val.job_preference || []).join('\n')
-})
+watch(
+  () => props.initial,
+  val => {
+    local.job_id = val.jobId
+    local.team_name = val.teamName || ''
+    local.job_name = val.jobName || ''
+    local.job_role_text = (val.jobRole || []).join('\n')
+    local.job_need_text = (val.jobNeed || []).join('\n')
+    local.job_necessary_text = (val.jobNecessary || []).join('\n')
+    local.job_preference_text = (val.jobPreference || []).join('\n')
+  }
+)
 
 function onSave() {
-  emit('save',{
-    job_id:               local.job_id,
-    job_name:             local.job_name,
-    job_role:             local.job_role_text.split('\n').map(l=>l.trim()).filter(l=>l),
-    job_need:             local.job_need_text.split('\n').map(l=>l.trim()).filter(l=>l),
-    job_necessary:        local.job_necessary_text.split('\n').map(l=>l.trim()).filter(l=>l),
-    job_preference:       local.job_preference_text.split('\n').map(l=>l.trim()).filter(l=>l),
+  emit('save', {
+    jobId: local.job_id,
+    jobName: local.job_name,
+    jobRole: local.job_role_text
+      .split('\n')
+      .map(l => l.trim())
+      .filter(l => l),
+    jobNeed: local.job_need_text
+      .split('\n')
+      .map(l => l.trim())
+      .filter(l => l),
+    jobNecessary: local.job_necessary_text
+      .split('\n')
+      .map(l => l.trim())
+      .filter(l => l),
+    jobPreference: local.job_preference_text
+      .split('\n')
+      .map(l => l.trim())
+      .filter(l => l),
   })
 }
 </script>
@@ -78,12 +93,15 @@ function onSave() {
 <style scoped>
 .modal-overlay {
   position: fixed;
-  top:0; left:0; right:0; bottom:0;
-  background: rgba(0,0,0,0.6);
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index:1000;
+  z-index: 1000;
 }
 .modal {
   background: #fff;
@@ -91,13 +109,20 @@ function onSave() {
   border-radius: 8px;
   width: 480px;
   max-width: 90%;
-  box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+  height: 80%;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+  overflow-y: auto;
+}
+h3 {
+  text-align: center;
+}
+.scrollbar {
+  scrollbar-width: none;
 }
 .modal-content {
   display: flex;
   flex-direction: column;
-  align-items: center;            /* 가로 중앙 정렬 */
-  border-radius: 20px;
+  align-items: center;
   gap: 12px;
   margin: 16px 0;
 }
@@ -118,8 +143,8 @@ function onSave() {
 }
 .modal-content input:focus,
 .modal-content textarea:focus {
-    outline: none;
-    border: 1px solid black;
+  outline: none;
+  border: 1px solid black;
 }
 .modal-actions {
   display: flex;
@@ -127,7 +152,6 @@ function onSave() {
   gap: 8px;
 }
 
-.btn-cancel,
 .btn-save {
   font-size: 14px;
   font-weight: bold;
@@ -138,19 +162,33 @@ function onSave() {
   border: 1px solid transparent;
   border-radius: 10px;
   padding: 10px 30px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: background-color 0.2s, box-shadow 0.2s;
+  box-sizing: border-box;
+}
+.btn-save:hover {
+  background-color: white;
+  color: #00a8e8;
+  border-color: #00a8e8;
+  box-shadow: inset 1px 1px 10px rgba(0, 0, 0, 0.25);
+}
+
+.btn-cancel {
+  font-size: 14px;
+  font-weight: bold;
+  background-color: #D3D3D3;
+  color: #000;
+  border: none;
+  border-radius: 10px;
+  padding: 10px 30px;
   cursor: pointer;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   transition: background-color 0.2s, box-shadow 0.2s;
   box-sizing: border-box;
 }
-
-.btn-save:hover,
 .btn-cancel:hover {
-  background-color: white;
-  color: #00a8e8;
-  border-color: #00a8e8;
-  box-shadow:
-  inset 1px 1px 10px rgba(0, 0, 0, 0.25);
+  background-color: #000;
+  color: #fff;
 }
 
 .modal h3 {

@@ -1,70 +1,61 @@
 <template>
-    <h1 class="page-title">공지사항</h1>
-    <p class="desc">공지사항 목록</p>
+  <h1 class="page-title">공지사항</h1>
+  <p class="desc">공지사항 목록</p>
 
-    <!-- 2) AG Grid 영역 -->
-    <div class="card">
-      <div class="search-bar-in-card">
-        <img src="@/assets/icons/search.svg" alt="검색" class="search-icon" />
-        <input
-          type="text"
-          v-model="searchText"
-          placeholder="제목을 입력하세요."
-          @input="onSearch"
-          class="search-input"
-        />
-      </div>
-
-      <div class="ag-theme-alpine ag-grid-box">
-        <AgGridVue
-          class="ag-theme-alpine custom-theme"
-          :gridOptions="{ theme: 'legacy' }"
-          style="width: 100%; height: 500px;"
-          :columnDefs="columnDefs"
-          :rowData="filteredData"
-          rowSelection="multiple"
-          :pagination="true"
-          :paginationPageSize="pageSize"
-          :paginationPageSizeSelector="[5,10,20,50]"
-          :rowHeight="defaultRowHeight"
-          :getRowHeight="getRowHeight"
-          @grid-ready="onGridReady"
-          @cell-clicked="onCellClick"
-        />
-      </div>
+  <div class="card">
+    <div class="search-bar-in-card">
+      <img src="@/assets/icons/search.svg" alt="검색" class="search-icon" />
+      <input
+        type="text"
+        v-model="searchText"
+        placeholder="제목을 입력하세요."
+        @input="onSearch"
+        class="search-input"
+      />
     </div>
 
-    <!-- 3) 페이징 + 버튼 -->
+    <div class="ag-theme-alpine ag-grid-box">
+      <AgGridVue
+        class="ag-theme-alpine custom-theme"
+        :gridOptions="{ theme: 'legacy' }"
+        style="width: 100%; height: 500px;"
+        :columnDefs="columnDefs"
+        :rowData="rowData"
+        rowSelection="multiple"
+        :pagination="true"
+        :paginationPageSize="pageSize"
+        :paginationPageSizeSelector="[5,10,20,50]"
+        @grid-ready="onGridReady"
+        @cell-clicked="onCellClick"
+      />
+    </div>
+
     <div class="pagination-control">
       <div class="button-group">
-        <!-- 삭제 버튼 -->
-        <button class="btn-delete" @click="onDeleteClick">삭제</button>
-        <!-- 등록 버튼: 클릭 시 onRegister 호출 -->
-        <button class="btn-save" @click="onRegister">등록</button>
+      <button v-if="isHR" class="btn-delete" @click="onDeleteClick">삭제</button>
+      <button v-if="isHR" class="btn-save"   @click="onRegister">등록</button>
       </div>
     </div>
+  </div>
 
-    <!-- 4) 삭제 확인 모달 -->
-    <div v-if="showDeleteModal" class="modal-overlay">
-      <div class="modal-content">
-        <p>정말로 선택된 항목을 삭제하시겠습니까?</p>
-        <div class="modal-buttons">
-          <button class="btn-delete cancel" @click="cancelDelete">
-            취소
-          </button>
-          <button class="btn-save confirm" @click="confirmDelete">
-            확인
-          </button>
-        </div>
+
+  <div v-if="showDeleteModal" class="modal-overlay">
+    <div class="modal-content">
+      <p>정말로 선택된 항목을 삭제하시겠습니까?</p>
+      <div class="modal-buttons">
+        <button class="btn-delete cancel" @click="cancelDelete">취소</button>
+        <button class="btn-save confirm" @click="confirmDelete">확인</button>
       </div>
     </div>
-
+  </div>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
-import { useRouter } from 'vue-router'             // ← import useRouter
+import { ref, onMounted, computed } from 'vue'
+import axios from 'axios'
 import { AgGridVue } from 'ag-grid-vue3'
+import { useRouter } from 'vue-router'
+import { useUserStore } from '@/stores/user'
 import {
   ModuleRegistry,
   AllCommunityModule,
@@ -76,7 +67,7 @@ import {
   ValidationModule
 } from 'ag-grid-community'
 
-// AG Grid 모듈 등록
+// — register modules once
 ModuleRegistry.registerModules([
   AllCommunityModule,
   ClientSideRowModelModule,
@@ -87,138 +78,148 @@ ModuleRegistry.registerModules([
   ValidationModule
 ])
 
-const router = useRouter()  // ← 라우터 인스턴스 가져오기
+// — vue-router / pinia
+const router    = useRouter()
+const userStore = useUserStore()
 
-let gridApi = null
-const defaultRowHeight = 60
-
-// 컬럼 정의
-const columnDefs = ref([
-  {
-    headerName: '',
-    field: 'checkbox',
-    checkboxSelection: true,
-    headerCheckboxSelection: true,
-    width: 50,
-    pinned: 'left',
-    cellClass: 'checkbox-cell',
-    headerClass: 'checkbox-header-cell'
-  },
-  {
-    headerName: '번호',
-    field: 'id',
-    width: 100,
-    cellClass: 'center-align',
-    headerClass: 'header-number'
-  },
-  {
-    headerName: '제목',
-    field: 'title',
-    flex: 2,
-    autoHeight: true,
-    cellStyle: { whiteSpace: 'normal' },
-    headerClass: 'header-title'
-  },
-  {
-    headerName: '작성자',
-    field: 'writer',
-    flex: 1,
-    cellClass: 'center-align',
-    headerClass: 'header-writer'
-  },
-  {
-    headerName: '작성일자',
-    field: 'date',
-    flex: 1,
-    cellClass: 'center-align',
-    headerClass: 'header-date'
+// JWT 토큰 디코딩 유틸
+function parseJwtPayload(token) {
+  try {
+    const base64Url = token.split('.')[1]
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split('')
+        .map(c => `%${('00' + c.charCodeAt(0).toString(16)).slice(-2)}`)
+        .join('')
+    )
+    return JSON.parse(jsonPayload)
+  } catch {
+    return {}
   }
-])
+}
 
-// 더미 데이터
-const rowData = ref(
-  Array.from({ length: 28 }, (_, i) => ({
-    id: 28 - i,
-    title:
-      i % 2 === 0
-        ? '[안내] 샘플 인사 기반 시스템 안내'
-        : '[안내] 긴 제목 예시: 화면에 맞게 줄바꿈 및 autoHeight 적용 테스트',
-    writer: '김기종',
-    date: '2025-05-25'
-  }))
-)
+// HR 권한 여부 계산 (role 클레임명은 실제 JWT 에 맞춰 조정)
+const isHR = computed(() => {
+  const raw = userStore.accessToken?.startsWith('Bearer ')
+    ? userStore.accessToken.slice(7)
+    : userStore.accessToken
+  if (!raw) return false
 
-const searchText = ref('')
-const pageSize = ref(10)
-const showDeleteModal = ref(false)
-
-// 필터링된 데이터
-const filteredData = computed(() => {
-  if (!searchText.value) return rowData.value
-  return rowData.value.filter((r) =>
-    r.title.toLowerCase().includes(searchText.value.toLowerCase())
-  )
+  const { auth } = parseJwtPayload(raw)
+  if (Array.isArray(auth))    return auth.includes('ROLE_HR')
+  if (typeof auth === 'string') return auth.includes('ROLE_HR')
+  return false
 })
 
-// 그리드 준비 시
+// — grid column 정의
+const columnDefs = ref([
+  { headerName: '',       field: 'checkbox', checkboxSelection: true, headerCheckboxSelection: true, width:50, pinned:'left' },
+  { headerName: '번호', valueGetter: params => params.api.getDisplayedRowCount() - params.node.rowIndex, sortable: false, flex: 0.3, cellClass:'center-align' },
+  { headerName: '제목',     field: 'boardTitle',   flex:2 },
+  { headerName: '작성자',   field: 'employeeName', flex:1, cellClass:'center-align' },
+  { headerName: '작성일자',
+    field: 'boardCreateAt',
+    flex:1, 
+    cellClass:'center-align',
+      valueFormatter: params => {
+      const v = params.value
+      return v ? v.substring(0, 10) : '' 
+    }
+  }  
+])
+
+// — 상태
+const fullData        = ref([])   // 원본 전체 목록
+const rowData         = ref([])   // 그리드에 바인딩될 데이터
+const searchText      = ref('')
+const pageSize        = ref(10)
+const showDeleteModal = ref(false)
+
+// — JWT 토큰 헤더
+function authHeaders() {
+  return { Authorization: `Bearer ${userStore.accessToken}` }
+}
+
+// — 1) 초기 데이터 로드
+onMounted(async () => {
+  try {
+    const res = await axios.get('http://localhost:5000/boards/lists', {
+      headers: authHeaders()
+    })
+    fullData.value = res.data
+    rowData.value  = res.data
+  } catch (e) {
+    console.error('공지사항 목록 조회 실패:', e)
+    alert('공지사항을 불러오는 중 오류가 발생했습니다.')
+  }
+})
+
+// — 2) 검색어 변경 시 자체 필터링
+function onSearch() {
+  const kw = searchText.value.trim().toLowerCase()
+  if (!kw) {
+    rowData.value = fullData.value
+  } else {
+    rowData.value = fullData.value.filter(item =>
+      item.boardTitle.toLowerCase().includes(kw)
+    )
+  }
+}
+
+// — 3) AG Grid 준비 (gridApi 불필요하면 주석 처리 가능)
+let gridApi = null
 function onGridReady(params) {
   gridApi = params.api
 }
 
+// — 4) 삭제 모달 & 삭제 처리
 function onDeleteClick() {
-  const selectedRows = gridApi.getSelectedRows()
-  if (selectedRows.length === 0) {
-    alert('삭제할 항목을 선택하세요.')
-    return
-  }
+  const sel = gridApi?.getSelectedRows() || []
+  if (!sel.length) return alert('삭제할 항목을 선택하세요.')
   showDeleteModal.value = true
 }
-
 function cancelDelete() {
   showDeleteModal.value = false
 }
-
-function confirmDelete() {
-  const selectedRows = gridApi.getSelectedRows()
-  if (selectedRows.length > 0) {
-    const remaining = rowData.value.filter(
-      (row) => !selectedRows.includes(row)
-    )
-    rowData.value = remaining
+async function confirmDelete() {
+  const sel = gridApi.getSelectedRows()
+  const ids = sel.map(r => r.boardId)
+  try {
+    await Promise.all(ids.map(id =>
+      axios.delete(`http://localhost:5000/boards/${id}`, {
+        headers: authHeaders()
+      })
+    ))
+    // 로컬에서도 제거
+    fullData.value = fullData.value.filter(r => !ids.includes(r.boardId))
+    rowData.value  = rowData.value.filter(r => !ids.includes(r.boardId))
     gridApi.deselectAll()
+    showDeleteModal.value = false
+    alert('선택 항목이 삭제되었습니다.')
+  } catch (err) {
+    console.error('삭제 실패:', err)
+    alert('삭제 중 오류가 발생했습니다.')
   }
-  showDeleteModal.value = false
 }
 
-// rowHeight 동적 결정
-function getRowHeight(params) {
-  return params.data && params.data.title.length > 20
-    ? 80
-    : defaultRowHeight
-}
-
-
-// “등록” 버튼 클릭 시 호출되는 함수
+// — 5) 등록 / 상세 이동
 function onRegister() {
   router.push('/post/postEnroll')
 }
-
-// AG Grid 셀 클릭 시 상세 페이지로 이동
 function onCellClick(e) {
-  // ‘title’ 컬럼을 클릭했을 때만 상세 페이지로 이동
-  if (e.colDef.field === 'title') {
-    const id = e.data.id
-    router.push(`/post/postDetail/${id}`)
+  if (e.colDef.field === 'boardTitle') {
+    router.push(`/post/postDetail/${e.data.boardId}`)
   }
 }
-
-
 </script>
+
+
 
 <style scoped>
 .page-title {
   margin-left: 20px;
-  margin-bottom: 50px;
+  margin-bottom: 30px;
   color: #00a8e8;
 }
 
@@ -285,9 +286,9 @@ function onCellClick(e) {
 .pagination-control {
   display: flex;
   justify-content: flex-end;
-  margin: 0 20px 20px;
 }
 .button-group {
+  margin-top: 20px;
   display: flex;
   gap: 10px;
 }

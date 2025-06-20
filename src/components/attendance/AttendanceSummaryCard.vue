@@ -9,19 +9,16 @@
         님 안녕하세요.
       </span>
       <br />
-
       <!-- status -->
       <span class="status-wrapper">
         <span class="status-main">{{ status }}</span>
         <span class="status-sub">입니다.</span>
       </span>
     </p>
-
     <div class="time-info">
-      <p>출근 : {{ checkIn || '-' }}</p>
-      <p>퇴근 : {{ checkOut || '-' }}</p>
+      <p>출근 : {{ checkIn ? checkIn : '-' }}</p>
+      <p>퇴근 : {{ checkOut ? checkOut : '-' }}</p>
     </div>
-
     <div class="circle-box">
       <div class="circle">
         <svg viewBox="0 0 36 36">
@@ -46,36 +43,294 @@
         </div>
       </div>
     </div>
-
     <button
       class="check-btn"
       :class="isCheckedIn ? 'btn-gray' : 'btn-blue'"
       @click="handleClick"
-    >
-      {{ isCheckedIn ? '퇴근' : '출근' }}
+      :disabled="isButtonDisabled">
+      {{ buttonText }}
     </button>
   </div>
+  <BaseToast ref="toastRef" />
 </template>
 
 <script setup>
-  import { ref, computed, onUnmounted } from 'vue'
+  import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
+  import { useUserStore } from '@/stores/user'
+  import { useAttendanceStore } from '@/stores/attendance'
+  import BaseToast from '@/components/toast/BaseToast.vue'
 
-  const props = defineProps({
-    name: { type: String, default: '김랑랑' },
-    position: { type: String, default: '사원' }
+  const attendanceStore = useAttendanceStore()
+
+  // 상태
+  const name = ref('')
+  const position = ref('')
+  const checkIn = computed(() => attendanceStore.checkIn)
+  const checkOut = computed(() => attendanceStore.checkOut)
+  const isCheckedIn = computed(() => attendanceStore.isCheckedIn)
+  const workSeconds = computed({
+    get: () => attendanceStore.workSeconds,
+    set: val => attendanceStore.workSeconds = val
   })
 
-  const checkIn = ref('')
-  const checkOut = ref('')
-  const isCheckedIn = ref(false)
-  const workSeconds = ref(0)
-  let timer = null
+  let interval = null
 
-  const formatTime = () => {
-    const now = new Date()
-    const pad = n => n.toString().padStart(2, '0')
-    return `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`
+  let timer = null
+  let checkInDate = null
+  let isLunchBreak = false
+  const workStatusName = ref('')
+  const buttonText = computed(() => {
+    if (!checkIn.value) return '출근'
+    if (!checkOut.value) return '퇴근'
+    return '완료됨'
+  })
+  const isButtonDisabled = computed(() => !!(checkIn.value && checkOut.value))
+
+  const now = () => new Date()
+
+  const waitUntilNine = () => {
+    const nowTime = now()
+    const nineAM = now()
+    nineAM.setHours(9, 0, 0, 0)
+    const delay = nineAM - nowTime
+    setTimeout(() => startTimer(), delay)
   }
+
+  const skipFirstCheckInWatch = ref(true)
+
+  watch(checkIn, (newVal, oldVal) => {
+
+    if (skipFirstCheckInWatch.value) {
+    skipFirstCheckInWatch.value = false
+    return
+  }
+
+    if (newVal && !oldVal) {
+      const nowTime = now()
+      const nineAM = now()
+      nineAM.setHours(9, 0, 0, 0)
+
+      const noonStart = now()
+      noonStart.setHours(12, 0, 0, 0)
+      const noonEnd = now()
+      noonEnd.setHours(13, 0, 0, 0)
+
+      if (nowTime >= nineAM && !(nowTime >= noonStart && nowTime < noonEnd)) {
+        startTimer()
+      } else {
+        waitUntilNine()
+      }
+    }
+  })
+
+  const toastRef = ref(null)
+
+  function showToast(msg) {
+    toastRef.value?.show(msg)
+  }
+
+  onUnmounted(() => {
+    if (timer) stopTimer()
+    if (interval) clearInterval(interval)
+  })
+
+  onMounted(async () => {
+    const token = useUserStore().accessToken
+    if (!token) return
+
+    try {
+      const res = await fetch('http://localhost:5000/attendance/status/me', {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      const data = await res.json()
+
+      name.value = data.employeeName
+      position.value = data.rankName
+      workStatusName.value = data.workStatusName
+
+      if (data.checkInTime) attendanceStore.setCheckIn(data.checkInTime.split('.')[0])
+      if (data.checkOutTime) attendanceStore.setCheckOut(data.checkOutTime.split('.')[0])
+
+      if (data.checkInTime && data.checkOutTime) {
+      const [h1, m1, s1] = data.checkInTime.split(':').map(Number)
+      const [h2, m2, s2] = data.checkOutTime.split(':').map(Number)
+
+      const checkInDate = now(); checkInDate.setHours(h1, m1, s1, 0)
+
+      // ✅ 기준 퇴근 시간은 18:00 고정
+      const baseCheckOut = new Date()
+      baseCheckOut.setHours(18, 0, 0, 0)
+
+      // 실제 퇴근 시간이 더 빠르면 그 시간, 아니면 18:00까지만 인정
+      const actualCheckOut = now(); actualCheckOut.setHours(h2, m2, s2, 0)
+      const checkOutDate = actualCheckOut < baseCheckOut ? actualCheckOut : baseCheckOut
+
+      let diff = Math.floor((checkOutDate - checkInDate) / 1000)
+
+      const noonStart = now(); noonStart.setHours(12, 0, 0, 0)
+      const noonEnd = now(); noonEnd.setHours(13, 0, 0, 0)
+
+      if (checkInDate < noonStart && checkOutDate > noonEnd) {
+        diff -= 3600 // 점심시간 빼기
+      }
+
+      workSeconds.value = Math.max(0, Math.min(diff, 8 * 3600))
+    }
+
+      if (data.checkInTime && !data.checkOutTime) {
+        const [h, m, s] = data.checkInTime.split(':').map(Number)
+        const checkInTime = now(); checkInTime.setHours(h, m, s, 0)
+        checkInDate = checkInTime
+        const nowTime = now()
+        const nineAM = now(); nineAM.setHours(9, 0, 0, 0)
+        const startTime = checkInTime < nineAM ? nineAM : checkInTime
+        let elapsed = Math.floor((nowTime - startTime) / 1000)
+        const noonStart = now(); noonStart.setHours(12, 0, 0, 0)
+        const noonEnd = now(); noonEnd.setHours(13, 0, 0, 0)
+        if (nowTime >= noonStart && nowTime < noonEnd) {
+          isLunchBreak = true
+          elapsed = Math.floor((noonStart - startTime) / 1000)
+        } else if (checkInTime < noonStart && nowTime >= noonEnd) {
+          elapsed -= 3600
+        }
+        elapsed = Math.min(elapsed, 8 * 3600)
+        workSeconds.value = Math.max(elapsed, 0)
+        if (nowTime >= nineAM && !(nowTime >= noonStart && nowTime < noonEnd)) {
+          startTimer()
+        } else {
+          waitUntilNine()
+        }
+      }
+
+      const nowTime = now()
+      const eighteenPM = now(); eighteenPM.setHours(18, 0, 0, 0)
+      if (data.checkInTime && !data.checkOutTime && nowTime >= eighteenPM) {
+        workSeconds.value = 8 * 3600
+      }
+
+    } catch (err) {
+      console.error('내 근무 현황 API 호출 실패:', err)
+    }
+  })
+
+  const postCheckIn = async () => {
+    const token = useUserStore().accessToken
+    try {
+      const res = await fetch('http://localhost:5000/attendance/check-in', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      })
+      if (!res.ok) throw new Error(await res.text())
+      const nowTime = now()
+      attendanceStore.setCheckIn(formatTime(nowTime))
+      workSeconds.value = 0
+      const nineAM = now(); nineAM.setHours(9, 0, 0, 0)
+      if (nowTime >= nineAM) startTimer()
+      else waitUntilNine()
+    } catch (err) {
+      console.error('출근 등록 실패:', err.message)
+      showToast('출근 등록 중 오류가 발생했습니다.')
+    }
+  }
+
+  const postCheckOut = async () => {
+    const token = useUserStore().accessToken
+    try {
+      const res = await fetch('http://localhost:5000/attendance/check-out', {
+        method: 'PUT',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      })
+      if (!res.ok) throw new Error(await res.text())
+      attendanceStore.setCheckOut(formatTime(now()))
+      stopTimer()
+    } catch (err) {
+      console.error('퇴근 등록 실패:', err.message)
+      showToast('퇴근 등록 중 오류가 발생했습니다.')
+    }
+  }
+
+  const handleClick = () => {
+    const nowTime = now()
+    const hours = nowTime.getHours()
+    const isBefore12 = hours < 12
+    const isBefore18 = hours < 18
+
+    if (!isCheckedIn.value) {
+      if (
+        (workStatusName.value === '오전반차' && isBefore12) ||
+        (workStatusName.value !== '오전반차' && !isBefore12)
+      ) {
+        showToast('출근 가능 시간이 아닙니다.')
+        return
+      }
+      attendanceStore.setCheckIn(formatTime(nowTime))
+      workSeconds.value = 0
+      const nineAM = now(); nineAM.setHours(9, 0, 0, 0)
+      if (nowTime >= nineAM) startTimer()
+      else waitUntilNine()
+      postCheckIn()
+    } else {
+      if (
+        (workStatusName.value === '오후반차' && isBefore12) ||
+        (workStatusName.value !== '오후반차' && isBefore18)
+      ) {
+        showToast('퇴근 가능 시간이 아닙니다.')
+        return
+      }
+      attendanceStore.setCheckOut(formatTime(nowTime))
+      stopTimer()
+      postCheckOut()
+    }
+  }
+
+  const formatTime = time => {
+    const pad = n => n.toString().padStart(2, '0')
+    return `${pad(time.getHours())}:${pad(time.getMinutes())}:${pad(time.getSeconds())}`
+  }
+
+  const startTimer = () => {
+
+    if (timer) return
+
+    const baseSeconds = 8 * 3600
+    if (!checkIn.value) return
+    const [h, m, s] = checkIn.value.split(':').map(Number)
+    checkInDate = now(); checkInDate.setHours(h, m, s, 0)
+
+    timer = setInterval(() => {
+      const nowTime = now()
+      const noonStart = now(); noonStart.setHours(12, 0, 0, 0)
+      const noonEnd = now(); noonEnd.setHours(13, 0, 0, 0)
+      if (nowTime >= noonStart && nowTime < noonEnd) return
+      if (nowTime >= new Date().setHours(18, 0, 0, 0) || workSeconds.value >= baseSeconds - 1) {
+        workSeconds.value = baseSeconds
+        stopTimer()
+        return
+      }
+      workSeconds.value += 1
+    }, 1000)
+  }
+
+  const stopTimer = () => {
+    clearInterval(timer)
+    timer = null
+  }
+
+  const status = computed(() => {
+    const nowTime = now()
+    const noonStart = now(); noonStart.setHours(12, 0, 0, 0)
+    const noonEnd = now(); noonEnd.setHours(13, 0, 0, 0)
+    if (isCheckedIn.value && nowTime >= noonStart && nowTime < noonEnd) return '점심 시간'
+    if (!isCheckedIn.value && !checkOut.value) return '출근 전'
+    if (isCheckedIn.value) return '근무 중'
+    return '근무 종료'
+  })
 
   const formattedWorkTime = computed(() => {
     const h = Math.floor(workSeconds.value / 3600)
@@ -86,44 +341,11 @@
   })
 
   const percent = computed(() => {
-    const base = 10 //8 * 3600  // 8시간 = 28800초
+    const base = 8 * 3600
     return Math.min((workSeconds.value / base) * 100, 100)
   })
-
-  const status = computed(() => {
-    if (!isCheckedIn.value && !checkOut.value) return '출근 전'
-    if (isCheckedIn.value) return '근무 중'
-    return '근무 종료'
-  })
-
-  const startTimer = () => {
-    timer = setInterval(() => {
-      workSeconds.value++
-    }, 1000)
-  }
-  const stopTimer = () => {
-    clearInterval(timer)
-    timer = null
-  }
-
-  const handleClick = () => {
-    const now = formatTime()
-    if (!isCheckedIn.value) {
-      checkIn.value = now
-      isCheckedIn.value = true
-      workSeconds.value = 0
-      startTimer()
-    } else {
-      checkOut.value = now
-      isCheckedIn.value = false
-      stopTimer()
-    }
-  }
-
-  onUnmounted(() => {
-    if (timer) stopTimer()
-  })
 </script>
+
 
 <style scoped>
   .attendance-summary-card {
@@ -132,7 +354,7 @@
     padding-right: 18px;
     padding-bottom: 18px;
     padding-left: 18px;
-    border-radius: 20px;
+    border-radius: 12px;
     box-shadow: 1px 1px 20px 1px rgba(0, 0, 0, 0.05);
     font-family: 'Pretendard', sans-serif;
   }
@@ -236,9 +458,9 @@
   }
 
   .percent-text .time {
-      font-size: 18px;
-      font-weight: bold;
-      margin: 0;
+    font-size: 18px;
+    font-weight: bold;
+    margin: 0;
   }
 
   .check-btn {
@@ -260,9 +482,9 @@
 
   .check-btn:hover {
     background-color: white;
-      color: #00A8E8;
-      border: 1px solid #00A8E8;
-      box-shadow: inset 1px 1px 10px rgba(0, 0, 0, 0.25);
+    color: #00A8E8;
+    border: 1px solid #00A8E8;
+    box-shadow: inset 1px 1px 10px rgba(0, 0, 0, 0.25);
   }
 
   .btn-blue {

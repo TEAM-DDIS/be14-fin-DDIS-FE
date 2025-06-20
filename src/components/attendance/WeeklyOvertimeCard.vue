@@ -35,42 +35,130 @@
     </p>
     <!-- Apply Button -->
     <button class="apply-btn" @click="onApply">근무 신청</button>
+    <Teleport to="body">
+      <div v-if="show" class="overlay">
+        <div class="modal">
+          <span class="modal-desc">근무 신청</span>
+          <OverTimeEventCard @cancel="show = false" @submit="handleSubmit" />
+        </div>
+      </div>
+    </Teleport>
   </div>
+  <BaseToast ref="toastRef"/>
 </template>
 
-<script setup>
-  import { computed, defineEmits, defineProps } from 'vue'
+<script setup lang="ts">
+  import { ref, onMounted, computed } from 'vue'
+  import axios from 'axios'
+  import OverTimeEventCard from './OverTimeEventCard.vue'
+  import { useUserStore } from '@/stores/user'
+  import BaseToast from '@/components/toast/BaseToast.vue'
 
-  const props = defineProps({
-    extended: { type: Number, default: 5 },  // 연장 근무 시간
-    night:    { type: Number, default: 2 },  // 야간 근무 시간
-    holiday:  { type: Number, default: 2 }   // 휴일 근무 시간
+  const toastRef = ref(null)
+
+  function showToast(msg) {
+    toastRef.value?.show(msg)
+  }
+
+  const show = ref(false)
+
+  const summary = ref({
+    regularOvertime: 0,
+    nightOvertime: 0,
+    holidayOvertime: 0,
+    totalOvertime: 0,
   })
 
-  const emits = defineEmits(['apply'])
-
-  const totalHours = computed(() => props.extended + props.night + props.holiday)
-
+  // 비율 계산
   const extendedPercent = computed(() =>
-    totalHours.value > 0 ? (props.extended  / totalHours.value) * 100 : 0
+    summary.value.totalOvertime === 0
+      ? 0
+      : (summary.value.regularOvertime / summary.value.totalOvertime) * 100
   )
   const nightPercent = computed(() =>
-    totalHours.value > 0 ? (props.night     / totalHours.value) * 100 : 0
+    summary.value.totalOvertime === 0
+      ? 0
+      : (summary.value.nightOvertime / summary.value.totalOvertime) * 100
   )
   const holidayPercent = computed(() =>
-    totalHours.value > 0 ? (props.holiday   / totalHours.value) * 100 : 0
+    summary.value.totalOvertime === 0
+      ? 0
+      : (summary.value.holidayOvertime / summary.value.totalOvertime) * 100
   )
 
-  function onApply() {
-    emits('apply')
+  // 총 시간 (시 단위, 반올림)
+  const totalHours = computed(() =>
+    Math.round(summary.value.totalOvertime / 60)
+  )
+
+  const onApply = () => {
+    show.value = true
   }
+
+  const handleSubmit = async (data) => {
+    const userStore = useUserStore()
+    const token = userStore.accessToken
+    
+    try {
+      const res = await fetch('http://localhost:5000/attendance/overtime-request', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+      })
+
+      if (!res.ok) {
+      const errorText = await res.text()
+      let message = '요청 실패'
+      try {
+        const errorJson = JSON.parse(errorText)
+        message = errorJson.message || message
+      } catch (parseError) {
+        message = errorText // JSON 아님
+      }
+      throw new Error(message)
+    }
+
+    showToast('근무 신청이 완료되었습니다.')
+    show.value = false
+
+      const summaryRes = await axios.get('http://localhost:5000/attendance/overtime-summary', {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      summary.value = summaryRes.data
+    } catch (err) {
+      showToast('초과 근무는 주당 누적 12시간을 초과할 수 없습니다.')
+      show.value = false
+    }
+  }
+
+  onMounted(async () => {
+    const token = localStorage.getItem('token')
+    if (!token) {
+      console.error('토큰이 없습니다. 로그인 후 다시 시도하세요.')
+      return
+    }
+
+    try {
+      const res = await axios.get('http://localhost:5000/attendance/overtime-summary', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+      summary.value = res.data
+    } catch (e) {
+      console.error('초과근무 요약 조회 실패:', e)
+    }
+  })
 </script>
 
 <style scoped>
   .weekly-overtime-card {
     background: white;
     padding: 18px;
-    border-radius: 20px;
+    border-radius: 12px;
     box-shadow: 1px 1px 20px 1px rgba(0, 0, 0, 0.05);
     font-family: 'Pretendard', sans-serif;
   }
@@ -139,23 +227,55 @@
   /* Apply Button */
   .apply-btn {
     display: block;
-    width: 93px;
-    height: 37px;
-    background-color: #00A8E8;
+    background-color: #00a8e8;
     color: white;
-    font-size: 14px;
     font-weight: bold;
     border: 1px solid transparent;
     border-radius: 10px;
-    cursor: pointer;
+    padding: 10px 30px;
     margin: 16px 0 0 auto;
+    cursor: pointer;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
     transition: background-color 0.2s, box-shadow 0.2s;
+    box-sizing: border-box;
   }
   .apply-btn:hover {
     background-color: white;
-      color: #00A8E8;
-      border: 1px solid #00A8E8;
-      box-shadow: inset 1px 1px 10px rgba(0, 0, 0, 0.25);
+    color: #00A8E8;
+    border: 1px solid #00A8E8;
+    box-shadow: inset 1px 1px 10px rgba(0, 0, 0, 0.25);
+  }
+
+    /* 모달 전체 배경 */
+  .overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0, 0, 0, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+  }
+
+  /* 모달 내용 */
+  .modal {
+    background: white;
+    padding: 30px;
+    border-radius: 12px;
+    width: 420px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
+    position: relative !important;
+  }
+
+  .modal-desc {
+    display: block;
+    text-align: center;
+    font-weight: bold;
+    font-size: 20px;
+    margin-bottom: 20px;
+  }
+
+  :deep(.overtime-datepicker) {
+    z-index: 3000 !important; /* Element Plus 기본보다 높게 */
   }
 </style>

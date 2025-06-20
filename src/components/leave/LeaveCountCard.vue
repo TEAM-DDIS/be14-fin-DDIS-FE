@@ -22,11 +22,11 @@
     <div class="notice-box">
       <div class="notice-item">
         <span class="label">1차촉진(사용계획작성)</span>
-        <span class="value blue">{{ leaveData.first_notice_date }}</span>
+        <span class="value blue">{{ leaveData.first_notice_date || '-' }}</span>
       </div>
       <div class="notice-item">
         <span class="label">2차촉진(사용시기통보)</span>
-        <span class="value">{{ leaveData.second_notice_date || '-' }}</span>
+        <span class="value blue">{{ leaveData.second_notice_date || '-' }}</span>
       </div>
     </div>
   </div>
@@ -34,6 +34,7 @@
 
 <script setup>
   import { ref, onMounted } from 'vue'
+  import { useUserStore } from '@/stores/user'
 
   const leaveData = ref({
     total_days: 0,
@@ -45,9 +46,39 @@
   })
 
   onMounted(async () => {
-    const res = await fetch('/attendance.json')
-    const json = await res.json()
-    leaveData.value = json.leave[0]
+    const userStore = useUserStore()
+    const token = userStore.accessToken
+
+    if (!token) {
+      console.error('로그인이 필요합니다.')
+      return
+    }
+
+    try {
+      const res = await fetch('http://localhost:5000/attendance/leave/status/me', {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      })
+
+      if (!res.ok) {
+        throw new Error('연차 정보 조회 실패')
+      }
+
+      const json = await res.json()
+
+      leaveData.value = {
+        total_days: json.totalLeave,
+        used_days: json.usedLeave,
+        pending_leave_days: json.pendingLeave,
+        remaining_days: json.remainingLeave,
+        first_notice_date: json.firstPromotionDate,
+        second_notice_date: json.secondPromotionDate
+      }
+
+    } catch (err) {
+      console.error('API 오류:', err)
+    }
   })
 </script>
 
@@ -58,7 +89,7 @@
     background: #fff;
     padding-top: 30px;
     padding-bottom: 30px;
-    border-radius: 20px;
+    border-radius: 12px;
       box-shadow: 1px 1px 20px 1px rgba(0, 0, 0, 0.05);
     flex-wrap: wrap;
   }
@@ -89,8 +120,8 @@
     display: flex;
     flex-direction: column;
     min-width: 120px;
-    align-items: center;     /* ✅ 가운데 정렬 */
-    text-align: center;      /* ✅ 텍스트도 중앙 정렬 */
+    align-items: center;
+    text-align: center;
   }
 
   .label {
@@ -101,7 +132,7 @@
   }
 
   .value {
-    font-size: 30px;
+    font-size: 25px;
     font-weight: bold;
     color: black;
   }

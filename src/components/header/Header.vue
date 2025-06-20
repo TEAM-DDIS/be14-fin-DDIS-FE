@@ -10,8 +10,9 @@
 
     <!-- 오른쪽: 알림 + 유저 정보 or 로그인 버튼 -->
     <div class="header-right">
-      <div class="notice">
-        <img src="@/assets/icons/bell.svg" alt="notice"/>
+      <div class="notice" @click="toggleNotification()">
+        <img src="@/assets/icons/bell.svg" alt="notice"  class="notice-img"/>
+        <span v-if="unreadCount > 0" class="badge">{{ unreadCount }}</span>
       </div>
 
       <template v-if="user">
@@ -29,23 +30,127 @@
         </RouterLink>
       </template>
     </div>
+
+    <NoticeModal
+      v-if="showNotification"
+      :notifications="notifications"
+      @close="closeNotification"
+      @notificationClick="handleNotificationClick"
+    />
   </header>
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter, RouterLink } from 'vue-router'
 import { useUserStore } from '@/stores/user'
+import NoticeModal from '@/components/notice/NoticeModal.vue'
 
 const router = useRouter()
 const userStore = useUserStore()
 
-// userStore.user 에 유저 객체가 담기면 로그인 상태
+// 모달 표시 여부
+const showNotification = ref(false)
+// 알림 목록
+const notifications = ref([])
+
+// ① 페이지 로드 직후 알림을 한 번 가져와서
+//    새로고침 직후에도 벳지를 보여 줄 수 있게 한다.
+onMounted(async () => {
+  try {
+    await fetchNotifications()
+  } catch (e) {
+    console.error('초기 알림 불러오기 실패:', e)
+  }
+})
+
+// 읽지 않은 알림 개수
+const unreadCount = computed(() =>
+  notifications.value.filter(n => n.unread).length
+)
+
+// 로그인 상태 (Pinia store)
 const user = computed(() => userStore.user)
 
+// 로그아웃 처리
 function logout() {
   userStore.logout()
   router.push({ name: 'Login' })
+}
+
+// 모달 토글: 열릴 때마다 최신 알림 조회, 오류 있어도 열기 유지
+async function toggleNotification() {
+  // if (!showNotification.value) {
+  //   try {
+  //     await fetchNotifications()
+  //   } catch (e) {
+  //     console.error('알림 불러오기 중 오류:', e)
+  //   }
+  // }
+  showNotification.value = !showNotification.value
+}
+
+// 알림 목록 조회 함수
+async function fetchNotifications() {
+  const token = localStorage.getItem('token')
+  const res = await fetch('http://localhost:5000/notice/me', {
+    headers: {
+      'Authorization': `Bearer ${token}`
+    }
+  })
+  if (!res.ok) {
+    throw new Error(`알림 불러오기 실패: ${res.status}`)
+  }
+  const data = await res.json()
+  notifications.value = data.map(item => ({
+    id: item.noticeId,
+    type: item.noticeType,
+    content: item.noticeContent,
+    createdAt: item.createdAt,
+    unread: !item.isRead,
+    relatedId: item.relatedId
+  }))
+}
+
+// 알림 클릭 시 읽음 처리 + 라우팅
+async function handleNotificationClick(item) {
+  const token = localStorage.getItem('token')
+  try {
+    const res = await fetch(`http://localhost:5000/notice/${item.id}/read`, {
+      method: 'PATCH',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    })
+    if (!res.ok) console.warn('읽음 처리 실패:', res.status)
+    // 로컬에서도 즉시 읽음 표시
+    item.unread = false
+  } catch (err) {
+    console.error('읽음 처리 중 예외 발생:', err)
+  }
+
+  // 모달 닫기
+  showNotification.value = false
+
+  // 타입별 네비게이션
+  switch (item.type) {
+    case '연차촉진':
+      router.push({ path: '/attendance/myLeave' })
+      break
+    case '결재':
+      router.push({ path: '/draftdoc/approve' })
+      break
+    case '인사발령':
+      router.push({ path: '/org/appointment' })
+      break
+    default:
+      router.push({ path: '/' })
+  }
+}
+
+// 모달 닫기 함수
+function closeNotification() {
+  showNotification.value = false
 }
 </script>
 
@@ -74,12 +179,30 @@ function logout() {
 .header-right {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 18px;
 }
 
 .notice {
-  width: 24px;
-  height: 24px;
+  position: relative;
+  margin-top: 4px;
+}
+
+.badge {
+  position: absolute;
+  top: -4px;
+  right: -8px;
+  background: rgb(255, 0, 0);
+  color: #fff;
+  border-radius: 50%;
+  padding: 0 6px;
+  font-size: 0.75rem;
+  line-height: 1.5;
+}
+
+.notice-img {
+  width: 28px;
+  height: 28px;
+  cursor: pointer;
 }
 
 .profile-wrapper {

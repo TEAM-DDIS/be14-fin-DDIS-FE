@@ -16,28 +16,45 @@
 
         <!-- ✅ items가 있을 때만 렌더링 -->
         <ul class="submenu-list" v-if="sectionData.items">
-            <li
-            v-for="(item, i) in sectionData.items"
-            :key="i"
-            >
-            <RouterLink
-                v-if="item.path"
-                :to="item.path"
-                class="submenu-link"
-            >
-                {{ item.name }}
-            </RouterLink>
-            <span v-else>{{ item.name }}</span> <!-- 경로 없으면 그냥 텍스트로 표시 -->
-            </li>
+            <template v-for="(item, i) in filteredItems(sectionData.items)" :key="i">
+                <li>
+                <RouterLink
+                    v-if="item.path"
+                    :to="item.path"
+                    class="submenu-link"
+                >
+                    {{ item.name }}
+                </RouterLink>
+                <span v-else>{{ item.name }}</span>
+                </li>
+            </template>
         </ul>
     </div>
-  </aside>
+   </aside>
 </template>
 
 
 <script setup>
     import { computed } from 'vue'
     import { RouterLink, useRouter } from 'vue-router'
+    import { useUserStore } from '@/stores/user'
+
+    const userStore  = useUserStore()
+    const isHrTeam   = computed(() => {
+    // 액세스 토큰이 'deptName' 혹은 'roles'에 HR이 있으면 true
+    try {
+        const payload = JSON.parse(
+        atob(userStore.accessToken.split('.')[1].replace(/-/g,'+').replace(/_/g,'/'))
+        )
+        return (
+        payload.deptName === '인사부서' ||            // 부서명으로 체크
+        payload.auth?.includes('ROLE_HR')                // 롤로 체크
+        )
+    } catch { return false }
+    })
+    function filteredItems(items) {
+        return items.filter(it => !(it.hrOnly && !isHrTeam.value))
+    }
 
 
     const props = defineProps({
@@ -97,6 +114,7 @@
                     { 
                         name: '전체 출근 정정 관리',
                         path: '/attendance/allCorrection',
+                        hrOnly: true 
                     },
                 ]
             },
@@ -109,6 +127,7 @@
                     { 
                         name: '전체 출퇴근 관리',
                         path: '/attendance/allCommute',
+                        hrOnly: true 
                     },
                 ]
             },
@@ -121,6 +140,7 @@
                     { 
                         name: '전체 연차 관리',
                         path: '/attendance/allLeave',
+                        hrOnly: true
                     },
                 ]
             }
@@ -152,6 +172,7 @@
                     { 
                         name: '인사발령 등록',
                         path: '/org/appointment/register',
+                        hrOnly: true
                     },
                 ]
             },
@@ -161,12 +182,12 @@
             '기안 작성': {
                 items: [
                     {
-                        name: '기안작성', 
-                        path: '/draftdoc/draftcreate'
+                        name: '기안양식함', 
+                        path: '/eapproval/temp'
                     },
                     {
                         name: '임시저장함', 
-                        path: '/draftdoc/temporarydoc'
+                        path: '/eapproval/temporarydoc'
                     },
                 ]
             },
@@ -174,19 +195,19 @@
                 items: [
                     {
                         name: '기안함', 
-                        path: '/draftdoc/mydraft'
+                        path: '/eapproval/mydraft'
                     },
                     {
                         name: '결재함', 
-                        path: '/draftdoc/approve'
+                        path: '/eapproval/approve'
                     },
                     {
                         name: '수신함', 
-                        path: '/draftdoc/inbox'
+                        path: '/eapproval/receiver'
                     },
                     {
                         name: '참조함', 
-                        path: '/draftdoc/reference'
+                        path: '/eapproval/reference'
                     },
                 ]
             },
@@ -201,19 +222,21 @@
                     },
                     { 
                         name: '급여명세서 발급', 
-                        path: '/salary/payroll/issue' 
+                        path: '/salary/payroll/issue',
+                        hrOnly: true 
                     },
                 ]
             },
             '퇴직 관리': {
                 items: [
                     { 
-                        name: '예상 퇴직금 조회', 
+                        name: '예상 퇴직금 계산', 
                         path: '/salary/retirement/estimate' 
                     },
                     { 
                         name: '퇴직금 지급 현황', 
-                        path: '/salary/retirement/status' 
+                        path: '/salary/retirement/status',
+                        hrOnly: true 
                     },
                 ]
             }
@@ -226,6 +249,10 @@
                         name: '평가', 
                         path: '/org/evaluation'
                     },
+                    {
+                        name: '내가 쓴 평가',
+                        path: '/org/myevaluation'
+                    }
                 ]
             },
             '성과 관리': {
@@ -236,20 +263,20 @@
                     },
                     { 
                         name: '성과 이력',
-                        path: '/org/achievment'
+                        path: '/org/achievment',
+                        hrOnly: true
                     },
                 ]
             }
         },
     }
-
     const subSections = computed(() => subMenuMap[props.menu] || null)
 </script>
 
 <style scoped>
     .sub-sidebar {
         margin-top: -6px;
-  box-shadow: 2px 0 5px rgba(0,0,0,0.05);
+        box-shadow: 2px 0 5px rgba(0,0,0,0.05);
 
         width: 180px;
         padding: 20px 12px;
@@ -258,6 +285,9 @@
         display: flex;
         flex-direction: column;
         gap: 30px;
+      
+
+
     }
 
     .main-title {
