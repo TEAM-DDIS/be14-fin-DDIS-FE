@@ -103,14 +103,14 @@ onMounted(async () => {
       await userStore.fetchAllEmployees()
 
     // 개인 일정
-    const scheduleRes = await fetch('http://localhost:8000/attendance/schedule/today', {
+    const scheduleRes = await fetch('http://localhost:5000/attendance/schedule/today', {
       headers: { Authorization: `Bearer ${token}` }
     })
     const scheduleData = await scheduleRes.json()
     schedules.value = Array.isArray(scheduleData) ? scheduleData : [scheduleData]
 
     // 팀 회의 일정
-    const meetingRes = await fetch('http://localhost:8000/attendance/meeting/today', {
+    const meetingRes = await fetch('http://localhost:5000/attendance/meeting/today', {
       headers: { Authorization: `Bearer ${token}` }
     })
     const meetingData = await meetingRes.json()

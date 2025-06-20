@@ -230,7 +230,7 @@ const employeeCache = reactive(new Map())
 // 초기 전체 계층 로드
 onMounted(async () => {
   try {
-    const resp = await axios.get('http://localhost:8000/structure/hierarchy')
+    const resp = await axios.get('http://localhost:5000/structure/hierarchy')
     const full = Array.isArray(resp.data) ? resp.data : []
 
    fullHierarchy.value = full
@@ -288,7 +288,7 @@ async function loadEmployeeInfo() {
 
   if (!emp) {
     try {
-      const res = await axios.get(`http://localhost:8000/introduction/employee/${id}`)
+      const res = await axios.get(`http://localhost:5000/introduction/employee/${id}`)
       emp = res.data
       employeeCache.set(id, emp)     // 캐시에 저장
     } catch {
@@ -391,7 +391,7 @@ watch(() => form.org.headId, async headId => {
   departmentsNew.value = teamsNew.value = jobsNew.value = positionsNew.value = ranksNew.value = []
   if (!headId) return gridApi.value.refreshCells({ columns:['new'], force:true })
 
-  const r = await axios.get(`http://localhost:8000/structure/heads/${headId}/departments`)
+  const r = await axios.get(`http://localhost:5000/structure/heads/${headId}/departments`)
   departmentsNew.value = r.data
   gridApi.value.refreshCells({ columns:['new'], force:true })
 })
@@ -402,7 +402,7 @@ watch(() => form.org.departmentId, async deptId => {
   teamsNew.value = jobsNew.value = positionsNew.value = ranksNew.value = []
   if (!deptId) return gridApi.value.refreshCells({ columns:['new'], force:true })
 
-  const r = await axios.get(`http://localhost:8000/structure/departments/${deptId}`)
+  const r = await axios.get(`http://localhost:5000/structure/departments/${deptId}`)
   teamsNew.value = r.data.teams
   gridApi.value.refreshCells({ columns:['new'], force:true })
 })
@@ -413,7 +413,7 @@ watch(() => form.org.teamId, async teamId => {
   jobsNew.value = positionsNew.value = ranksNew.value = []
   if (!teamId) return gridApi.value.refreshCells({ columns:['new'], force:true })
 
-  const r = await axios.get(`http://localhost:8000/introduction/team/${teamId}/job`)
+  const r = await axios.get(`http://localhost:5000/introduction/team/${teamId}/job`)
   jobsNew.value = r.data.map(j => ({
     jobId: j.jobId, jobName: j.jobName, jobCode: j.jobCode
   }))
@@ -426,8 +426,8 @@ watch(() => form.org.jobId, async jobId => {
   positionsNew.value = ranksNew.value = []
   if (jobId) {
     const [posRes, rankRes] = await Promise.all([
-      axios.get(`http://localhost:8000/introduction/job/${jobId}/positions`),
-      axios.get(`http://localhost:8000/introduction/job/${jobId}/ranks`)
+      axios.get(`http://localhost:5000/introduction/job/${jobId}/positions`),
+      axios.get(`http://localhost:5000/introduction/job/${jobId}/ranks`)
     ])
     positionsNew.value = posRes.data
     ranksNew.value = rankRes.data
@@ -724,7 +724,7 @@ async function submit() {
 
   try {
     await axios.post(
-      'http://localhost:8000/appointment/create',
+      'http://localhost:5000/appointment/create',
       payload,
       { headers: { 'Content-Type': 'application/json' } }
     );

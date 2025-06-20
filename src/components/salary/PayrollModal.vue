@@ -177,7 +177,7 @@ async function sendMail() {
       deductions: props.slip.deductions
     }
 
-    await axios.post('http://localhost:8000/payroll/mail', payload, {
+    await axios.post('http://localhost:5000/payroll/mail', payload, {
       headers: {
         Authorization: `Bearer ${token}`
       }

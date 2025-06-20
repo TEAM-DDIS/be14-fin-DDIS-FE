@@ -177,7 +177,7 @@ onMounted(async () => {
 })
 
 async function fetchEmployeeInfo() {
-  const { data } = await axios.get(`http://localhost:8000/payroll/me`, {
+  const { data } = await axios.get(`http://localhost:5000/payroll/me`, {
     headers: { Authorization: `Bearer ${accessToken.value}` }
   })
   employee.value = data
@@ -197,7 +197,7 @@ async function fetchSalaryHistory() {
   while (current <= end) {
     const yyyymm = `${current.getFullYear()}-${String(current.getMonth() + 1).padStart(2, '0')}`
     try {
-      const { data } = await axios.get(`http://localhost:8000/payroll/me/salary`, {
+      const { data } = await axios.get(`http://localhost:5000/payroll/me/salary`, {
         params: { month: yyyymm },
         headers: { Authorization: `Bearer ${accessToken.value}` }
       })
@@ -222,7 +222,7 @@ function scrollToSalarySection() {
 }
 
 async function selectSlip(month) {
-  const response = await axios.get(`http://localhost:8000/payroll/me/salary`, {
+  const response = await axios.get(`http://localhost:5000/payroll/me/salary`, {
     params: { month },
     headers: { Authorization: `Bearer ${accessToken.value}` }
   })

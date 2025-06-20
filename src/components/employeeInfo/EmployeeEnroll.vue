@@ -419,7 +419,7 @@ import { useUserStore } from '@/stores/user'
 import axios from 'axios' 
 
 // Axios 기본 URL 설정
-axios.defaults.baseURL = 'http://localhost:8000'
+axios.defaults.baseURL = 'http://localhost:5000'
 
 
 const userStore = useUserStore()

@@ -127,7 +127,7 @@
   // 컴포넌트가 마운트되면 조직도 API 호출
   onMounted(async () => {
     try {
-      const res = await fetch('http://localhost:8000/structure/hierarchy')
+      const res = await fetch('http://localhost:5000/structure/hierarchy')
       hierarchy.value = await res.json()
           hierarchy.value.forEach(head => {
       head.headManager = findManager(head.departments, '본부장')
