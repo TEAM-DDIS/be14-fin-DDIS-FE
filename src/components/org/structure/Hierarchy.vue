@@ -16,6 +16,16 @@
               :class="expanded['h' + head.headId] ? 'fa fa-chevron-down' : 'fa fa-chevron-right'"
             />
             {{ head.headName }}
+            <button
+              v-if="!expanded['h' + head.headId]"
+              @click.stop="expandHead(head)"
+              class="sub-btn"
+            >+</button>
+            <button
+              v-else
+              @click.stop="collapseHead(head)"
+              class="sub-btn"
+            >-</button>
           </div>
 
           <ul v-show="expanded['h' + head.headId]" class="org-list">
@@ -25,6 +35,16 @@
                   :class="expanded['d' + dept.departmentId] ? 'fa fa-chevron-down' : 'fa fa-chevron-right'"
                 />
                 {{ dept.departmentName }}
+                <button
+                  v-if="!expanded['d' + dept.departmentId]"
+                  @click.stop="expandDept(dept)"
+                  class="sub-btn"
+                >+</button>
+                <button
+                  v-else
+                  @click.stop="collapseDept(dept)"
+                  class="sub-btn"
+                >-</button>
               </div>
 
               <div v-show="expanded['d' + dept.departmentId]" class="dept-children">
@@ -40,14 +60,6 @@
                       />
                       {{ team.teamName }}
                     </div>
-
-                    <!-- <ul v-show="expanded['t' + team.teamId]" class="member-list">
-                      <li v-for="emp in filteredTeamMembers(team)" :key="emp.employeeId">
-                        <div class="node emp">
-                          {{ emp.rankName }} {{ emp.positionName }}: {{ emp.employeeName }}
-                        </div>
-                      </li>
-                    </ul> -->
                   </li>
                 </ul>
               </div>
@@ -106,15 +118,6 @@ function getCompanyRep() {
   return ''
 }
 
-// 부서장 필터링 헬퍼
-function isDeptManager(emp) {
-  return emp.rankName === '부장' && emp.positionName === '부서장'
-}
-
-// 팀원 리스트에서 부서장만 제외
-function filteredTeamMembers(team) {
-  return team.members.filter(emp => !isDeptManager(emp))
-}
 
 // 전체 열기
 function expandAll() {
@@ -141,6 +144,43 @@ function collapseAll() {
     })
   })
 }
+
+// 본부 단위 전체 펼치기/닫기
+function expandHead(head) {
+  expanded['h' + head.headId] = true
+  head.departments.forEach(dept => {
+    expanded['d' + dept.departmentId] = true
+    dept.teams.forEach(team => {
+      expanded['t' + team.teamId] = true
+    })
+  })
+}
+
+function collapseHead(head) {
+  expanded['h' + head.headId] = false
+  head.departments.forEach(dept => {
+    expanded['d' + dept.departmentId] = false
+    dept.teams.forEach(team => {
+      expanded['t' + team.teamId] = false
+    })
+  })
+}
+
+// 부서 단위 전체 펼치기/닫기
+function expandDept(dept) {
+  expanded['d' + dept.departmentId] = true
+  dept.teams.forEach(team => {
+    expanded['t' + team.teamId] = true
+  })
+}
+
+function collapseDept(dept) {
+  expanded['d' + dept.departmentId] = false
+  dept.teams.forEach(team => {
+    expanded['t' + team.teamId] = false
+  })
+}
+
 </script>
 
 <style scoped>
@@ -187,6 +227,20 @@ function collapseAll() {
   box-shadow: inset 1px 1px 10px rgba(0, 0, 0, 0.25);
 }
 
+.sub-btn {
+  margin-left: 8px;
+  font-size: 12px;
+  font-weight: bold;
+  padding: 2px 6px;
+  border: none;
+  border-radius: 4px;
+  background: #ddd;
+  cursor: pointer;
+}
+.sub-btn:hover {
+  background: #aaa;
+}
+
 .org-list,
 .org-list ul {
   list-style: none;
@@ -197,12 +251,10 @@ function collapseAll() {
   height: 400px;
   overflow-y: auto;
 
-  /* Firefox */
   scrollbar-width: thin;
   scrollbar-color: rgba(0,0,0,0.2) rgba(0,0,0,0.05);
 }
 
-/* WebKit 기반 스크롤바 전체 너비/트랙/슬라이더 */
 .org-box::-webkit-scrollbar {
   width: 6px;
 }
@@ -219,28 +271,9 @@ function collapseAll() {
   background-color: rgba(0,0,0,0.3);
 }
 
-/* 모든 화살표 버튼(위/아래, 좌/우) 완전 제거 */
-/* .org-box::-webkit-scrollbar-button,
-.org-box::-webkit-scrollbar-button:start,
-.org-box::-webkit-scrollbar-button:end,
-.org-box::-webkit-scrollbar-button:vertical:decrement,
-.org-box::-webkit-scrollbar-button:vertical:increment,
-.org-box::-webkit-scrollbar-button:horizontal:decrement,
-.org-box::-webkit-scrollbar-button:horizontal:increment {
-  display: none;
-  width: 0;
-  height: 0;
-} */
-
-/* (선택) 모서리 코너 부분도 투명 처리 */
 .org-box::-webkit-scrollbar-corner {
   background: transparent;
 }
-
-/* 
-.org-box.scrollbar {
- scrollbar-width: none;
-} */
 
 .org-list li {
   position: relative;
@@ -309,8 +342,7 @@ function collapseAll() {
 .node.head:hover,
 .node.dept:hover,
 .node.team:hover {
-  background-color: #f0f0f0;
-  border-radius: 4px;
+  color: #00a8e8;
 }
 
 .dept-children {

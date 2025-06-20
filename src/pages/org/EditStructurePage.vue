@@ -13,23 +13,6 @@
 
         <!-- － 버튼: DeleteModal 열기 -->
        <button @click="openDeleteModal" class="toolbar-btn-delete">삭제</button>
-
-
-        <!-- 검색 입력란: 엔터 키 누르면 searchOrg 호출 -->
-        <div class="search">
-          <img
-            src="@/assets/icons/search.svg"
-            alt="search"
-            class="search-img"
-          />
-          <input
-            type="text"
-            v-model="searchKeyword"
-            placeholder="조직 검색"
-            class="toolbar-search"
-            @keyup.enter="searchOrg"
-          />
-        </div>
       </div>
     </div>
 
@@ -56,7 +39,23 @@
       <div class="section">
         <p class="desc2">조직 정보 조회</p>
         <div class="card info-panel scrollbar">
-          <h2 class="card-title">조직 정보</h2>
+          <div class="info-header">
+            <h2 class="card-title">조직 정보</h2>
+           <div class="search">
+              <img
+                src="@/assets/icons/search.svg"
+                alt="search"
+                class="search-img"
+              />
+              <input
+                type="text"
+                v-model="searchKeyword"
+                placeholder="조직 검색"
+                class="toolbar-search"
+                @keyup.enter="searchOrg"
+              />
+            </div>
+          </div>
 
           <div class="info-body">
             <!-- 1) 부서가 선택된 경우 -->
@@ -224,7 +223,6 @@
       </div>
     </div>
 
-    <!-- 신규 조직 등록 모달 -->
     <AddModal
       v-if="showAddModal"
       :show="showAddModal"
@@ -235,7 +233,6 @@
       @close="showAddModal = false"
     />
 
-    <!-- 조직 삭제 모달 -->
     <DeleteModal
       v-if="showDeleteModal"
       :orgOptions="orgOptions"
@@ -262,33 +259,20 @@ const deleteType = ref('')
 
 const router = useRouter()
 const userStore = useUserStore()
-const token = localStorage.getItem('token')
 
-
-// 로딩 여부
 const dataLoaded = ref(false)
-
-// 검색어
 const searchKeyword = ref('')
 
-// 선택된 부서/팀/사원
 const selectedDept     = ref(null)
 const selectedTeam     = ref(null)
 const selectedEmployee = ref(null)
 
-// 부서/팀별 직원 목록
-const deptMembers = ref([])  // Department 단위
-const teamMembers = ref([])  // Team 단위
+const deptMembers = ref([])
+const teamMembers = ref([])
 
-// 이동 패널 표시 여부
-const showMovePanel = ref(false)
-
-// Add/Delete 모달 표시 여부
 const showAddModal    = ref(false)
 const showDeleteModal = ref(false)
 
-// --- 데이터 스토어 정의 ---
-// 백엔드 /structure/hierarchy 에서 받아온 본부→부서→팀 계층을 저장합니다.
 const dataStore = reactive({
   headquarters: [],
   departments: [],
@@ -313,11 +297,10 @@ function parseJwtPayload(token) {
   }
 }
 
-// 실제 권한 검사
+const token = userStore.accessToken
 const payload = parseJwtPayload(userStore.accessToken || token)
 const isHR = payload?.role?.includes('ROLE_HR') || payload?.auth?.includes('ROLE_HR')
 
-// 접근 불가 시 리다이렉트
 if (!isHR) {
   showToast('접근 권한이 없습니다.')
   router.push('/error403')
@@ -328,15 +311,12 @@ if (!isHR) {
   function showToast(msg) {
     toastRef.value?.show(msg)
   }
-
-// 조직 종류 옵션 (“본부/부서/팀”)
 const orgOptions = [
   { id: 'head', name: '본부' },
   { id: 'department', name: '부서' },
   { id: 'team', name: '팀' }
 ]
 
-// 삭제 모달 관련
 const deleteListAll = computed(() => {
   return {
     head: dataStore.headquarters.map(hq => ({
@@ -360,11 +340,12 @@ const deleteList = computed(() => {
 
 onMounted(async () => {
   try {
-    // 1) 조직 계층 조회 (GET /structure/hierarchy)
-    const res = await axios.get('http://localhost:8000/structure/hierarchy')
+    const res = await axios.get('http://localhost:8000/structure/hierarchy', {
+      params,
+      headers: { Authorization: `Bearer ${token}` }
+    })
     dataStore.headquarters = res.data
 
-    // 2) hierarchyData 순회하며 departments, teams 배열 채우기
     const deptList = []
     const teamList = []
     res.data.forEach(h => {
@@ -394,9 +375,6 @@ onMounted(async () => {
   }
 })
 
-
-// --- 부서 선택 핸들러 ---
-// OrgHierarchyAll 컴포넌트에서 @dept-selected="onDeptSelected"
 async function onDeptSelected(dept) {
   selectedDept.value     = dept
   selectedTeam.value     = null
@@ -404,7 +382,6 @@ async function onDeptSelected(dept) {
   teamMembers.value      = []
   deptMembers.value      = []
 
-  // GET /structure/departments/{deptId}/members
   try {
     const res = await axios.get(
       `http://localhost:8000/structure/departments/${dept.departmentId}/members`
@@ -416,8 +393,6 @@ async function onDeptSelected(dept) {
   }
 }
 
-// --- 팀 선택 핸들러 ---
-// OrgHierarchyAll 컴포넌트에서 @team-selected="onTeamSelected"
 async function onTeamSelected(team) {
   selectedTeam.value     = team
   selectedDept.value     = null
@@ -425,7 +400,6 @@ async function onTeamSelected(team) {
   deptMembers.value      = []
   teamMembers.value      = []
 
-  // GET /structure/teams/{teamId}/members
   try {
     const res = await axios.get(
       `http://localhost:8000/structure/teams/${team.teamId}/members`
@@ -437,67 +411,57 @@ async function onTeamSelected(team) {
   }
 }
 
-// 사원 클릭 시
 function onEmployeeClick(emp) {
   selectedEmployee.value = emp
 }
 
-// --- 헬퍼 함수들 ---
-// headId → headName 조회
 function getHeadNameById(headId) {
   const h = dataStore.headquarters.find(hq => hq.headId === headId)
   return h ? h.headName : ''
 }
-// headId → headCode 조회
+
 function getHeadCodeById(headId) {
   const h = dataStore.headquarters.find(hq => hq.headId === headId)
   return h ? h.headCode : ''
 }
 
-// departmentId → departmentName 조회
 function getDeptNameById(deptId) {
   const d = dataStore.departments.find(x => x.departmentId === deptId)
   return d ? d.departmentName : ''
 }
-// departmentId → departmentCode 조회
+
 function getDeptCodeById(deptId) {
   const d = dataStore.departments.find(x => x.departmentId === deptId)
   return d ? d.departmentCode : ''
 }
 
-// departmentId → 상위 headName 조회
 function getHeadNameByDept(deptId) {
   const d = dataStore.departments.find(x => x.departmentId === deptId)
   return d ? getHeadNameById(d.headId) : ''
 }
-// departmentId → 상위 headCode 조회
+
 function getHeadCodeByDept(deptId) {
   const d = dataStore.departments.find(x => x.departmentId === deptId)
   return d ? getHeadCodeById(d.headId) : ''
 }
 
-// departmentId → 소속 팀 이름 배열
 const teamNamesOfDept = computed(() => {
   if (!selectedDept.value) return []
   return selectedDept.value.teams.map(t => t.teamName)
 })
 
-// --- 검색 기능 (“부서명/부서코드”, “팀명/팀코드”) ---
 function searchOrg() {
   const key = searchKeyword.value.trim().toLowerCase()
   if (!key) {
     showToast('검색어를 입력해 주세요.')
     return
   }
-
-  // 부서 찾기: departmentName 또는 departmentCode
   const foundDept = dataStore.departments.find(
     d =>
       d.departmentName.toLowerCase().includes(key) ||
       d.departmentCode.toLowerCase().includes(key)
   )
   if (foundDept) {
-    // dataStore.headquarters 내부 departments 배열에서 동일한 departmentId 객체를 찾아서 onDeptSelected 호출
     for (const h of dataStore.headquarters) {
       const match = h.departments.find(dd => dd.departmentId === foundDept.departmentId)
       if (match) {
@@ -507,7 +471,6 @@ function searchOrg() {
     }
   }
 
-  // 팀 찾기: teamName 또는 teamCode
   const foundTeam = dataStore.teams.find(
     t =>
       t.teamName.toLowerCase().includes(key) ||
@@ -528,27 +491,29 @@ function searchOrg() {
   showToast('검색 결과가 없습니다.')
 }
 
-// --- AddModal / DeleteModal 제어 로직 ---
 function openAddModal() {
   showAddModal.value = true
 }
 
-// 모달 submit 핸들러
 async function handleAddOrg({ type, name, parentId }) {
   try {
-    let res
+    const headers = { 
+      Authorization: `Bearer ${localStorage.getItem('token')}` 
+    }
     if (type === 'head') {
-      res = await axios.post('http://localhost:8000/org/create/head', { headName: name })
+      res = await axios.post('http://localhost:8000/org/create/head', 
+      { headName: name },
+      { headers}
+    )
       dataStore.headquarters.push(res.data)
     }
     else if (type === 'department') {
       res = await axios.post('http://localhost:8000/org/create/department', {
         departmentName: name,
-        headId: parentId
-      })
-      // 리스트에 추가
+        headId: parentId},
+        { headers }
+      )
       dataStore.departments.push(res.data)
-      // 트리에도 반영
       const head = dataStore.headquarters.find(h => h.headId === parentId)
       head && head.departments.push({ ...res.data, teams: [] })
     }
@@ -556,9 +521,9 @@ async function handleAddOrg({ type, name, parentId }) {
       res = await axios.post('http://localhost:8000/org/create/team', {
         teamName: name,
         departmentId: parentId
-      })
+      },
+    { headers })
       dataStore.teams.push(res.data)
-      // 트리에도 반영
       for (const h of dataStore.headquarters) {
         const dept = h.departments.find(d => d.departmentId === parentId)
         if (dept) {
@@ -583,7 +548,6 @@ function closeDeleteModal() {
 }
 async function handleDeleteOrg({ type, ids }) {
   try {
-    // axios.delete 엔드포인트 매핑
     const endpointMap = {
       head: 'head',
       department: 'department',
@@ -597,20 +561,18 @@ async function handleDeleteOrg({ type, ids }) {
     )
     showToast('삭제 성공!')
     showDeleteModal.value = false
-    await loadHierarchy()   // 삭제 후 트리 다시 로드
+    await loadHierarchy()
   } catch (err) {
     console.error('삭제 실패', err)
     showToast('삭제 중 오류가 발생했습니다.')
   }
 }
 
-// 트리 전체를 다시 불러오는 유틸 (onMounted 로직 재사용)
 async function loadHierarchy() {
   const res = await fetch('http://localhost:8000/structure/hierarchy')
   const hierarchyData = await res.json()
   dataStore.headquarters = hierarchyData
 
-  // departments/teams 배열도 재구성 …
   const depts = []
   const teams = []
   hierarchyData.forEach(h => {
@@ -637,7 +599,6 @@ async function loadHierarchy() {
 
 onMounted(loadHierarchy)
 
-// --- 부서/팀 이동용 핸들러 ---
 function onDeptSelectedForMove(dept) {
   console.log('이동용 부서 선택 ▶', dept)
 }
@@ -647,8 +608,6 @@ function onTeamSelectedForMove(team) {
 </script>
 
 <style scoped>
-/* 공통 리셋 */
-
 .page-container {
   height: 120vh;
   display: flex;
@@ -756,15 +715,14 @@ function onTeamSelectedForMove(team) {
   border: 1px solid #dddddd;
   border-radius: 8px;
   font-size: 16px;
-  width: 310px;
-  height: 50%;
+  width: 200px;
+  height: 40%;
 }
 .toolbar-search:focus {
   outline: none;
   border: 1px solid black;
 }
 
-/* 3열 레이아웃 */
 .content-grid {
   display: grid;
   grid-template-columns: 0.8fr 1.2fr 1fr;
@@ -778,7 +736,13 @@ function onTeamSelectedForMove(team) {
   flex-direction: column;
 }
 
-/* Card */
+.info-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px; 
+}
+
 .card {
   background: #fff;
   border-radius: 12px;
@@ -793,7 +757,6 @@ function onTeamSelectedForMove(team) {
   margin-bottom: 12px;
 }
 
-/* ② 조직도 조회 */
 .tree-panel {
   height: 550px;
   display: flex;
@@ -819,7 +782,6 @@ function onTeamSelectedForMove(team) {
   margin-top: 40px;
 }
 
-/* ③ 부서/팀 정보 카드 */
 .section-title {
   display: inline-block;
   border-bottom: 4px solid #00a8e8;
@@ -833,16 +795,12 @@ function onTeamSelectedForMove(team) {
 .info-panel {
   display: flex;
   flex-direction: column;
-  height: 550px;            /* 고정 높이 */
-  overflow: hidden;         /* 외부 스크롤 숨김 */
+  height: 550px;
+  overflow: hidden;
   overflow-y: auto;
   padding: 10px 30px;
 }
 
-/* .info-body {
-  overflow: hidden;
-  overflow-y: auto;
-} */
 .info-panel.scrollbar {
   scrollbar-width: none;
 }
@@ -891,7 +849,6 @@ function onTeamSelectedForMove(team) {
   margin-top: 40px;
 }
 
-/* ④ 부서 이동 카드 */
 .move-panel {
   height: 550px;
   display: flex;

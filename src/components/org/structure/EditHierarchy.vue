@@ -28,7 +28,16 @@
         >
           <i :class="expanded[hq.headCode] ? 'fa fa-chevron-down' : 'fa fa-chevron-right'" />
           {{ hq.headName }}
-          
+          <button
+              v-if="!expanded[hq.headCode]"
+              @click.stop="expandHead(hq)"
+              class="sub-btn"
+            >+</button>
+            <button
+              v-else
+              @click.stop="collapseHead(hq)"
+              class="sub-btn"
+            >-</button>
         </div>
 
         <!-- 본부가 펼쳐져 있을 때 하위 부서 목록 표시 -->
@@ -53,7 +62,16 @@
                   : 'fa fa-chevron-right'"
               />
               {{ dept.departmentName }}
-              
+              <button
+                  v-if="!expanded[dept.departmentCode]"
+                  @click.stop="expandDept(dept)"
+                  class="sub-btn"
+                >+</button>
+                <button
+                  v-else
+                  @click.stop="collapseDept(dept)"
+                  class="sub-btn"
+                >-</button>
             </div>
 
             <!-- 부서가 펼쳐졌을 때 하위 팀 표시 -->
@@ -107,13 +125,11 @@
       <span v-if="pendingMoves.length">(총 {{ pendingMoves.length }}건 대기 중)</span>
     </div>
   </div>
-  <BaseToast ref="toastRef" />
 </template>
 
 <script setup>
 import { reactive, ref, onMounted } from 'vue'
 import axios from 'axios'
-import BaseToast from '@/components/toast/BaseToast.vue'
 
 const dragData = ref({ type: null, item: null }) 
 const pendingMoves = ref([])  
@@ -379,6 +395,46 @@ function collapseAll() {
     expanded[key] = false
   })
 }
+
+
+// 본부 단위 전체 펼치기/닫기
+function expandHead(head) {
+  // 본부 키는 headCode
+  expanded[head.headCode] = true
+  head.departments.forEach(dept => {
+    // 부서는 departmentCode
+    expanded[dept.departmentCode] = true
+    dept.teams.forEach(team => {
+      // 팀은 teamCode
+      expanded[team.teamCode] = true
+    })
+  })
+}
+
+function collapseHead(head) {
+  expanded[head.headCode] = false
+  head.departments.forEach(dept => {
+    expanded[dept.departmentCode] = false
+    dept.teams.forEach(team => {
+      expanded[team.teamCode] = false
+    })
+  })
+}
+
+// 부서 단위 전체 펼치기/닫기
+function expandDept(dept) {
+  expanded[dept.departmentCode] = true
+  dept.teams.forEach(team => {
+    expanded[team.teamCode] = true
+  })
+}
+
+function collapseDept(dept) {
+  expanded[dept.departmentCode] = false
+  dept.teams.forEach(team => {
+    expanded[team.teamCode] = false
+  })
+}
 </script>
 
 <style scoped>
@@ -416,7 +472,20 @@ function collapseAll() {
   box-shadow: inset 1px 1px 10px rgba(0, 0, 0, 0.25);
 }
 
-/* 최상위 DDIS 노드 스타일 */
+.sub-btn {
+  margin-left: 8px;
+  font-size: 12px;
+  font-weight: bold;
+  padding: 2px 6px;
+  border: none;
+  border-radius: 4px;
+  background: #ddd;
+  cursor: pointer;
+}
+.sub-btn:hover {
+  background: #aaa;
+}
+
 .node.head-root {
   font-size: 20px;
   font-weight: bold;
@@ -430,14 +499,7 @@ function collapseAll() {
   font-size: 12px;
   color: #00a8e8;
 }
-/* “EXPANDED” 상태 강조 */
-/* .expanded-root {
-  background-color: #f3f3f3;
-  border-radius: 4px;
-  padding: 2px 4px;
-} */
 
-/* 계층별 리스트 */
 .org-list,
 .org-list ul {
   list-style: none;
