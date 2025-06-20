@@ -22,7 +22,11 @@ const props = defineProps({
   from: { type: String, default: 'bot' },
   sender: String,
   text: String,
-  time: String,
+  time: new Date().toLocaleTimeString([], {
+  hour: '2-digit',
+  minute: '2-digit',
+  hour12: true
+}),
   avatar: String
 })
 
