@@ -66,7 +66,7 @@ async function onLogin() {
   errorMessage.value = ''
   try {
     // 1) 로그인 요청
-    const res = await fetch('https://isddishr.site/login', {
+    const res = await fetch('https://ddis-be-alb-1219702514.ap-northeast-2.elb.amazonaws.com/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ employeeId: userId.value, employeePwd: password.value })
