@@ -15,7 +15,7 @@
   <div class="employee-detail" :class="{ 'editing-mode': isEditing }">
     <div class="card compact-card adjusted-card short-height-card overflow-scroll-wrapper top-card">
       <div class="top-card-layout">
-                <!-- 프로필 -->
+        <!-- 프로필 -->
         <div class="profile-area">
           <div class="profile-wrapper">
             <!-- 실제 이미지(또는 placeholder)를 클릭 가능하게 -->
@@ -24,12 +24,12 @@
               :src="previewSrc"
               class="profile-img"
               :class="{ editable: isEditing }"
-              @click="isEditing && triggerFileSelect()"
+              @click="triggerFileSelect"
             />
             <div
               v-else
               class="profile-placeholder-box editable"
-              @click="isEditing && triggerFileSelect()"
+              @click="triggerFileSelect"
             >
               <span>사진 없음</span>
             </div>
@@ -70,123 +70,96 @@
               :readonly="!isEditing"
             />
           </div>
-                              <!-- 직무 선택 -->
-            <div class="info-item">
-              <label class="label-bold">직무</label>
-              
-
-              <!-- 수정 중이면 드롭다운 -->
-              <select
-                v-if="isEditing"
-                v-model="form.jobId"
-                class="same-size-input"
+          <!-- 직무 선택 -->
+          <div class="info-item">
+            <label class="label-bold">직무</label>
+            <!-- 수정 중이면 드롭다운 -->
+            <select
+              v-if="isEditing"
+              v-model="form.jobId"
+              class="same-size-input"
+            >
+              <option value="">선택</option>
+              <option
+                v-for="opt in jobOptions"
+                :key="opt.id"
+                :value="opt.id"
               >
+                {{ opt.name }}
+              </option>
+            </select>
+            <!-- 아니면 읽기 전용 텍스트 -->
+            <input
+              v-else
+              class="same-size-input"
+              :value="jobOptions.find(o => o.id === form.jobId)?.name || '-'"
+              readonly
+            />
+          </div>
+          <div class="info-item">
+            <label class="label-bold">근무형태
+              <span class="required-star">*</span>
+            </label>
+            <!-- 수정 모드일 때만 드롭다운 -->
+            <template v-if="isEditing">
+              <select v-model="form.workType" class="same-size-input">
                 <option value="">선택</option>
                 <option
-                  v-for="opt in jobOptions"
+                  v-for="opt in workTypeOptions"
+                  :key="opt"
+                  :value="opt"
+                >
+                  {{ opt }}
+                </option>
+              </select>
+            </template>
+            <!-- 보기 모드일 때는 읽기 전용 텍스트 -->
+            <template v-else>
+              <input
+                class="same-size-input"
+                :value="form.workType || '-'"
+                readonly
+              />
+            </template>
+          </div>
+          <div class="info-item">
+            <label class="label-bold">
+              본부
+              <span class="required-star">*</span>
+            </label>
+            <input
+              class="same-size-input"
+              :value="headOptions.find(o => o.id === form.headId)?.name || '-'"
+              readonly
+            />
+          </div>
+          <div class="info-item">
+            <label class="label-bold">
+              직책
+              <span class="required-star">*</span>
+            </label>
+            <!-- 수정 모드일 때 드롭다운 -->
+            <template v-if="isEditing">
+              <select v-model="form.positionId" class="same-size-input">
+                <option value="">선택</option>
+                <option
+                  v-for="opt in positionOptions"
                   :key="opt.id"
                   :value="opt.id"
                 >
                   {{ opt.name }}
                 </option>
               </select>
-
-              <!-- 아니면 읽기 전용 텍스트 -->
+            </template>
+            <!-- 보기 모드일 때 읽기 전용 텍스트 -->
+            <template v-else>
               <input
-                v-else
                 class="same-size-input"
-                :value="jobOptions.find(o => o.id === form.jobId)?.name || '-'"
+                :value="positionOptions.find(o => o.id === form.positionId)?.name || '-'"
                 readonly
               />
-            </div>
-            <div class="info-item">
-              <label class="label-bold">근무형태
-                <span class="required-star">*</span>
-              </label>
-
-              <!-- 수정 모드일 때만 드롭다운 -->
-              <template v-if="isEditing">
-                <select v-model="form.workType" class="same-size-input">
-                  <option value="">선택</option>
-                  <option
-                    v-for="opt in workTypeOptions"
-                    :key="opt"
-                    :value="opt"
-                  >
-                    {{ opt }}
-                  </option>
-                </select>
-              </template>
-
-              <!-- 보기 모드일 때는 읽기 전용 텍스트 -->
-              <template v-else>
-                <input
-                  class="same-size-input"
-                  :value="form.workType || '-'"
-                  readonly
-                />
-              </template>
-            </div>
-            <div class="info-item">
-              <label class="label-bold">
-                본부
-                <span class="required-star">*</span>
-              </label>
-
-              <!-- 수정 모드일 때 드롭다운 -->
-              <template v-if="isEditing">
-                <select v-model="form.headId" class="same-size-input">
-                  <option value="">선택</option>
-                  <option
-                    v-for="opt in headOptions"
-                    :key="opt.id"
-                    :value="opt.id"
-                  >
-                    {{ opt.name }}
-                  </option>
-                </select>
-              </template>
-
-              <!-- 보기 모드일 때 읽기 전용 텍스트 -->
-              <template v-else>
-                <input
-                  class="same-size-input"
-                  :value="headOptions.find(o => o.id === form.headId)?.name || '-'"
-                  readonly
-                />
-              </template>
-            </div>
-
-            <div class="info-item">
-              <label class="label-bold">
-                직책
-                <span class="required-star">*</span>
-              </label>
-
-              <!-- 수정 모드일 때 드롭다운 -->
-              <template v-if="isEditing">
-                <select v-model="form.positionId" class="same-size-input">
-                  <option value="">선택</option>
-                  <option
-                    v-for="opt in positionOptions"
-                    :key="opt.id"
-                    :value="opt.id"
-                  >
-                    {{ opt.name }}
-                  </option>
-                </select>
-              </template>
-
-              <!-- 보기 모드일 때 읽기 전용 텍스트 -->
-              <template v-else>
-                <input
-                  class="same-size-input"
-                  :value="positionOptions.find(o => o.id === form.positionId)?.name || '-'"
-                  readonly
-                />
-              </template>
-            </div>
-
+            </template>
+          </div>
           <div class="info-item">
             <label class="label-bold">입사일
               <span class="required-star">*</span> 
@@ -198,37 +171,17 @@
               부서
               <span class="required-star">*</span>
             </label>
-
-            <!-- 수정 모드일 때 드롭다운 -->
-            <template v-if="isEditing">
-              <select v-model="form.departmentId" class="same-size-input">
-                <option value="">선택</option>
-                <option
-                  v-for="opt in departmentOptions"
-                  :key="opt.id"
-                  :value="opt.id"
-                >
-                  {{ opt.name }}
-                </option>
-              </select>
-            </template>
-
-            <!-- 보기 모드일 때 읽기 전용 텍스트 -->
-            <template v-else>
-              <input
-                class="same-size-input"
-                :value="departmentOptions.find(o => o.id === form.departmentId)?.name || '-'"
-                readonly
-              />
-            </template>
+            <input
+              class="same-size-input"
+              :value="departmentOptions.find(o => o.id === form.departmentId)?.name || '-'"
+              readonly
+            />
           </div>
-
           <div class="info-item">
             <label class="label-bold">
               직급
               <span class="required-star">*</span>
             </label>
-
             <!-- 수정 모드일 때 드롭다운 -->
             <template v-if="isEditing">
               <select v-model="form.rankId" class="same-size-input">
@@ -242,7 +195,6 @@
                 </option>
               </select>
             </template>
-
             <!-- 보기 모드일 때 읽기 전용 텍스트 -->
             <template v-else>
               <input
@@ -261,36 +213,20 @@
               팀
               <span class="required-star">*</span>
             </label>
-
-            <!-- 수정 모드일 때만 드롭다운 -->
-            <template v-if="isEditing">
-              <select v-model="form.teamId" class="same-size-input">
-                <option value="">선택</option>
-                <option
-                  v-for="opt in teamOptions"
-                  :key="opt.id"
-                  :value="opt.id"
-                >
-                  {{ opt.name }}
-                </option>
-              </select>
-            </template>
-
-            <!-- 보기 모드일 때는 읽기 전용 텍스트 -->
-            <template v-else>
-              <input
-                class="same-size-input"
-                :value="teamOptions.find(o => o.id === form.teamId)?.name || '-'"
-                readonly
-              />
-            </template>
+            <input
+              class="same-size-input"
+              :value="teamOptions.find(o => o.id === form.teamId)?.name || '-'"
+              readonly
+            />
           </div>
           <div class="info-item">
             <label class="label-bold">연락처
               <span class="required-star">*</span> 
             </label>
             <input class="same-size-input" v-model="form.employeeContact" :readonly="!isEditing" />
+            <span v-if="isEditing && errors.contact" class="error-text">{{ errors.contact }}</span>
           </div>
+          <div class="info-item"></div>
           <div class="info-item">
             <label class="label-bold">사번
               <span class="required-star">*</span> 
@@ -302,6 +238,7 @@
               <span class="required-star">*</span> 
             </label>
             <input class="same-size-input" v-model="form.employeeEmail" :readonly="!isEditing"/>
+            <span v-if="isEditing && errors.email" class="error-text">{{ errors.email }}</span>
           </div>
         </div>
       </div>
@@ -309,330 +246,323 @@
 
     <!-- HR 권한이 있을 때만 탭 및 하단 컨텐츠 보여주기 -->
     <template v-if="isHR">
-      <!-- 탭 영역 -->
-      <div class="tabs">
-        <button
-          v-for="tab in tabs"
-          :key="tab"
-          :class="['tab', { active: currentTab === tab }]"
-          @click="currentTab = tab"
-        >
-          {{ tab }}
-        </button>
+      <!-- 🔷 겹쳐지는 탭 스타일 적용 -->
+      <div class="tab-wrapper">
+        <div class="tab-menu">
+          <button
+            v-for="tab in tabs"
+            :key="tab"
+            :class="{ active: currentTab === tab }"
+            @click="currentTab = tab"
+          >
+            {{ tab }}
+          </button>
+        </div>
       </div>
 
       <!-- 하단 카드: 탭별 읽기 전용 필드 -->
       <div class="card tab-content overflow-scroll-wrapper bottom-card">
-        <!-- 인사정보 -->
-        <div v-if="currentTab === '인사정보'">
-          <div class="grid-info scrollable-grid">
-            <div class="info-column">
-            <div class="info-item">
-              <label class="label-bold">
-                성별
-                <span class="required-star">*</span>
-              </label>
-
-              <!-- 수정 모드일 때 드롭다운 -->
-              <template v-if="isEditing">
-                <select v-model="form.employeeGender" class="same-size-input">
-                  <option value="">선택</option>
-                  <option
-                    v-for="g in genderOptions"
-                    :key="g"
-                    :value="g"
-                  >
-                    {{ g }}
-                  </option>
-                </select>
-              </template>
-
-              <!-- 보기 모드일 때 읽기 전용 텍스트 -->
-              <template v-else>
-                <input
-                  class="same-size-input"
-                  :value="form.employeeGender || '-'"
-                  readonly
-                />
-              </template>
+        <div class="tab-content-wrapper">
+          <!-- 인사정보 -->
+          <div v-if="currentTab === '인사정보'">
+            <div class="grid-info scrollable-grid">
+              <div class="info-column">
+                <div class="info-item">
+                  <label class="label-bold">
+                    성별
+                    <span class="required-star">*</span>
+                  </label>
+                  <!-- 수정 모드일 때 드롭다운 -->
+                  <template v-if="isEditing">
+                    <select v-model="form.employeeGender" class="same-size-input">
+                      <option value="">선택</option>
+                      <option
+                        v-for="g in genderOptions"
+                        :key="g"
+                        :value="g"
+                      >
+                        {{ g }}
+                      </option>
+                    </select>
+                  </template>
+                  <template v-else>
+                    <input
+                      class="same-size-input"
+                      :value="form.employeeGender || '-'"
+                      readonly
+                    />
+                  </template>
+                </div>
+                <div class="info-item">
+                  <label class="label-bold">거래 은행
+                    <span class="required-star">*</span> 
+                  </label>
+                  <input class="same-size-input" v-model="form.bankName" :readonly="!isEditing" />
+                </div>
+                <div class="info-item">
+                  <label class="label-bold">
+                    4대 보험
+                    <span class="required-star">*</span>
+                  </label>
+                  <template v-if="isEditing">
+                    <select v-model="form.isFourInsurances" class="same-size-input">
+                      <option value="">선택</option>
+                      <option
+                        v-for="opt in insuranceOptions"
+                        :key="opt"
+                        :value="opt"
+                      >
+                        {{ opt }}
+                      </option>
+                    </select>
+                  </template>
+                  <template v-else>
+                    <input
+                      class="same-size-input"
+                      :value="form.isFourInsurances || '-'"
+                      readonly
+                    />
+                  </template>
+                </div>
+                <div class="info-item">
+                  <label class="label-bold">생년월일
+                    <span class="required-star">*</span> 
+                  </label>
+                  <input type="date" class="same-size-input" v-model="form.employeeBirth" :readonly="!isEditing" />
+                </div>
+                <div class="info-item">
+                  <label class="label-bold">계좌 번호
+                    <span class="required-star">*</span> 
+                  </label>
+                  <input class="same-size-input" v-model="form.bankAccount" :readonly="!isEditing" />
+                  <span v-if="isEditing && errors.bankAccount" class="error-text">{{ errors.bankAccount }}</span>
+                </div>
+                <div class="info-item"></div>
+                <div class="info-item">
+                  <label class="label-bold">국적
+                    <span class="required-star">*</span> 
+                  </label>
+                  <input class="same-size-input" v-model="form.employeeNation" :readonly="!isEditing" />
+                </div>
+                <div class="info-item">
+                  <label class="label-bold">예금주
+                    <span class="required-star">*</span> 
+                  </label>
+                  <input class="same-size-input" v-model="form.bankDepositor" :readonly="!isEditing" />
+                </div>
+              </div>
             </div>
-            <div class="info-item">
-              <label class="label-bold">국적
-                <span class="required-star">*</span> 
-              </label>
-              <input class="same-size-input" v-model="form.employeeNation" :readonly="!isEditing" />
+          </div>
+          <!-- 개인정보 -->
+          <div v-else-if="currentTab === '개인정보'">
+            <div class="grid-info scrollable-grid">
+              <div class="info-column">
+                <div class="info-item">
+                  <label class="label-bold">주민등록번호
+                    <span class="required-star">*</span> 
+                  </label>
+                  <input class="same-size-input" v-model="form.employeeResident" :readonly="!isEditing" />
+                  <span v-if="isEditing && errors.resident" class="error-text">{{ errors.resident }}</span>
+                </div>
+                <div class="info-item">
+                  <label class="label-bold">
+                    졸업년도
+                  </label>
+                  <!-- 수정 모드일 때 드롭다운 -->
+                  <template v-if="isEditing">
+                    <select class="same-size-input" v-model="form.graduationYear">
+                      <option value="">선택</option>
+                      <option
+                        v-for="year in yearOptions"
+                        :key="year"
+                        :value="year"
+                      >
+                        {{ year }}
+                      </option>
+                    </select>
+                  </template>
+                  <!-- 보기 모드일 때 읽기 전용 텍스트 -->
+                  <template v-else>
+                    <input
+                      class="same-size-input"
+                      :value="form.graduationYear || '-'" 
+                      readonly
+                    />
+                  </template>
+                </div>
+                <div class="info-item">
+                  <label class="label-bold">
+                    결혼 여부
+                    <span class="required-star">*</span>
+                  </label>
+                  <template v-if="isEditing">
+                    <select v-model="form.isMarriage" class="same-size-input">
+                      <option value="">선택</option>
+                      <option
+                        v-for="opt in marriageOptions"
+                        :key="opt"
+                        :value="opt"
+                      >
+                        {{ opt }}
+                      </option>
+                    </select>
+                  </template>
+                  <template v-else>
+                    <input
+                      class="same-size-input"
+                      :value="form.isMarriage || '-'"
+                      readonly
+                    />
+                  </template>
+                </div>
+                <div class="info-item">
+                  <label class="label-bold">주소
+                    <span class="required-star">*</span> 
+                  </label>
+                  <input class="same-size-input" v-model="form.employeeAddress" :readonly="!isEditing"/>
+                </div>
+                <div class="info-item">
+                  <label class="label-bold">경력 년수</label>
+                  <input type="number" class="same-size-input" v-model="form.careerYearCount" :readonly="!isEditing"/>
+                </div>
+                <div class="info-item">
+                  <label class="label-bold">결혼 일자</label>
+                  <input type="date" class="same-size-input" v-model="form.marriageDate" :readonly="!isEditing" />
+                </div>
+                <div class="info-item">
+                  <label class="label-bold">최종 학력
+                    <span class="required-star">*</span> 
+                  </label>
+                  <input class="same-size-input" v-model="form.finalAcademic" :readonly="!isEditing" />
+                </div>
+                <div class="info-item">
+                  <label class="label-bold">이전 근무 회사</label>
+                  <input class="same-size-input" v-model="form.previousCompany" :readonly="!isEditing" />
+                </div>
+                <div class="info-item">
+                  <label class="label-bold">부양 가족 수
+                    <span class="required-star">*</span> 
+                  </label>
+                  <input type="number" class="same-size-input" v-model="form.familyCount" :readonly="!isEditing" />
+                </div>
+                <div class="info-item">
+                  <label class="label-bold">출신학교
+                    <span class="required-star">*</span> 
+                  </label>
+                  <input class="same-size-input" v-model="form.employeeSchool" :readonly="!isEditing" />
+                </div>
+                <div class="info-item">
+                  <label class="label-bold">
+                    장애 여부
+                    <span class="required-star">*</span>
+                  </label>
+                  <template v-if="isEditing">
+                    <select v-model="form.isDisorder" class="same-size-input">
+                      <option value="">선택</option>
+                      <option
+                        v-for="opt in disorderOptions"
+                        :key="opt"
+                        :value="opt"
+                      >
+                        {{ opt }}
+                      </option>
+                    </select>
+                  </template>
+                  <template v-else>
+                    <input
+                      class="same-size-input"
+                      :value="form.isDisorder || '-'"
+                      readonly
+                    />
+                  </template>
+                </div>
+                <div class="info-item"></div>
+                <div class="info-item">
+                  <label class="label-bold">전공</label>
+                  <input class="same-size-input" v-model="form.employeeDept" :readonly="!isEditing" />
+                </div>
+                <div class="info-item">
+                  <label class="label-bold">
+                    병역 여부
+                    <span class="required-star">*</span>
+                  </label>
+                  <template v-if="isEditing">
+                    <select v-model="form.militaryType" class="same-size-input">
+                      <option value="">선택</option>
+                      <option
+                        v-for="m in militaryOptions"
+                        :key="m"
+                        :value="m"
+                      >
+                        {{ m }}
+                      </option>
+                    </select>
+                  </template>
+                  <!-- 보기 모드일 때 읽기 전용 텍스트 -->
+                  <template v-else>
+                    <input
+                      class="same-size-input"
+                      :value="form.militaryType || '-'"
+                      readonly
+                    />
+                  </template>
+                </div>
+              </div>
             </div>
-            <div class="info-item">
-              <label class="label-bold">생년월일
-                <span class="required-star">*</span> 
-              </label>
-              <input type="date" class="same-size-input" v-model="form.employeeBirth" :readonly="!isEditing" />
+          </div>
+          <!-- 인사발령 탭: AG Grid -->
+          <div v-else-if="currentTab === '인사발령'">
+            <div class="ag-theme-alpine ag-grid-box">
+              <AgGridVue
+                :columnDefs="appointmentColumnDefs"
+                :gridOptions="{ theme: 'legacy' }"
+                :rowData="appointmentData"
+                :defaultColDef="defaultColDef"
+                :pagination="true"
+                :paginationPageSize="pageSize"
+                rowSelection="multiple"
+                @grid-ready="onGridReady"
+                @cell-clicked="onCellClick"
+                style="width:100%; height:100%"
+              />
             </div>
-            <div class="info-item">
-              <label class="label-bold">
-                4대 보험
-                <span class="required-star">*</span>
-              </label>
-              <template v-if="isEditing">
-                <select v-model="form.isFourInsurances" class="same-size-input">
-                  <option value="">선택</option>
-                  <option
-                    v-for="opt in insuranceOptions"
-                    :key="opt"
-                    :value="opt"
-                  >
-                    {{ opt }}
-                  </option>
-                </select>
-              </template>
-              <template v-else>
-                <input
-                  class="same-size-input"
-                  :value="form.isFourInsurances || '-'"
-                  readonly
-                />
-              </template>
+          </div>
+          <!-- 징계 탭: AG Grid -->
+          <div v-else-if="currentTab === '징계'">
+            <div class="ag-theme-alpine ag-grid-box">
+              <AgGridVue
+                :columnDefs="disciplineColumnDefs"
+                :gridOptions="{ theme: 'legacy' }"
+                :rowData="disciplineData"
+                :defaultColDef="defaultColDef"
+                :pagination="true"
+                :paginationPageSize="pageSize"
+                rowSelection="multiple"
+                @grid-ready="onGridReady"
+                @cell-clicked="onCellClick"
+                style="width:100%; height:100%"
+              />
             </div>
-            <div class="info-item">
-              <label class="label-bold">거래 은행
-                <span class="required-star">*</span> 
-              </label>
-              <input class="same-size-input" v-model="form.bankName" :readonly="!isEditing" />
-            </div>
-            <div class="info-item">
-              <label class="label-bold">예금주
-                <span class="required-star">*</span> 
-              </label>
-              <input class="same-size-input" v-model="form.bankDepositor" :readonly="!isEditing" />
-            </div>
-            <div class="info-item">
-              <label class="label-bold">계좌 번호
-                <span class="required-star">*</span> 
-              </label>
-              <input class="same-size-input" v-model="form.bankAccount" :readonly="!isEditing" />
-            </div>
+          </div>
+          <!-- 계약 탭: AG Grid -->
+          <div v-else-if="currentTab === '계약'">
+            <div class="ag-theme-alpine ag-grid-box">
+              <AgGridVue
+                :columnDefs="contractColumnDefs"
+                :gridOptions="{ theme: 'legacy' }"
+                :rowData="contractData"
+                :defaultColDef="defaultColDef"
+                :pagination="true"
+                :paginationPageSize="pageSize"
+                rowSelection="multiple"
+                @grid-ready="onGridReady"
+                @cell-clicked="onCellClick"
+                style="width:100%; height:100%"
+              />
             </div>
           </div>
         </div>
-
-        <!-- 개인정보 -->
-        <div v-else-if="currentTab === '개인정보'">
-          <div class="grid-info scrollable-grid">
-            <div class="info-column">
-            <div class="info-item">
-              <label class="label-bold">주민등록번호
-                <span class="required-star">*</span> 
-              </label>
-              <input class="same-size-input" v-model="form.employeeResident" :readonly="!isEditing" />
-            </div>
-            <div class="info-item">
-              <label class="label-bold">주소
-                <span class="required-star">*</span> 
-              </label>
-              <input class="same-size-input" v-model="form.employeeAddress" :readonly="!isEditing"/>
-            </div>
-            <div class="info-item">
-              <label class="label-bold">출신학교
-                <span class="required-star">*</span> 
-              </label>
-              <input class="same-size-input" v-model="form.employeeSchool" :readonly="!isEditing" />
-            </div>
-            <div class="info-item">
-              <label class="label-bold">
-                장애 여부
-                <span class="required-star">*</span>
-              </label>
-
-              <template v-if="isEditing">
-                <select v-model="form.isDisorder" class="same-size-input">
-                  <option value="">선택</option>
-                  <option
-                    v-for="opt in disorderOptions"
-                    :key="opt"
-                    :value="opt"
-                  >
-                    {{ opt }}
-                  </option>
-                </select>
-              </template>
-              <template v-else>
-                <input
-                  class="same-size-input"
-                  :value="form.isDisorder || '-'"
-                  readonly
-                />
-              </template>
-            </div>
-            <div class="info-item">
-              <label class="label-bold">
-                병역 여부
-                <span class="required-star">*</span>
-              </label>
-
-              <!-- 수정 모드일 때 드롭다운 -->
-              <template v-if="isEditing">
-                <select v-model="form.militaryType" class="same-size-input">
-                  <option value="">선택</option>
-                  <option
-                    v-for="m in militaryOptions"
-                    :key="m"
-                    :value="m"
-                  >
-                    {{ m }}
-                  </option>
-                </select>
-              </template>
-
-              <!-- 보기 모드일 때 읽기 전용 텍스트 -->
-              <template v-else>
-                <input
-                  class="same-size-input"
-                  :value="form.militaryType || '-'"
-                  readonly
-                />
-              </template>
-            </div>
-            <div class="info-item">
-              <label class="label-bold">부양 가족 수
-                <span class="required-star">*</span> 
-              </label>
-              <input type="number" class="same-size-input" v-model="form.familyCount" :readonly="!isEditing" />
-            </div>
-            <div class="info-item">
-              <label class="label-bold">
-                결혼 여부
-                <span class="required-star">*</span>
-              </label>
-
-              <!-- 수정 모드일 때 드롭다운 -->
-              <template v-if="isEditing">
-                <select v-model="form.isMarriage" class="same-size-input">
-                  <option value="">선택</option>
-                  <option
-                    v-for="opt in marriageOptions"
-                    :key="opt"
-                    :value="opt"
-                  >
-                    {{ opt }}
-                  </option>
-                </select>
-              </template>
-
-              <!-- 보기 모드일 때 읽기 전용 텍스트 -->
-              <template v-else>
-                <input
-                  class="same-size-input"
-                  :value="form.isMarriage || '-'"
-                  readonly
-                />
-              </template>
-            </div>
-            <div class="info-item">
-              <label class="label-bold">결혼 일자</label>
-              <input type="date" class="same-size-input" v-model="form.marriageDate" :readonly="!isEditing" />
-            </div>
-            <div class="info-item">
-              <label class="label-bold">경력 년수</label>
-              <input type="number" class="same-size-input" v-model="form.careerYearCount" :readonly="!isEditing"/>
-            </div>
-            <div class="info-item">
-              <label class="label-bold">이전 근무 회사</label>
-              <input class="same-size-input" v-model="form.previousCompany" :readonly="!isEditing" />
-            </div>
-            <div class="info-item">
-              <label class="label-bold">최종 학력
-                <span class="required-star">*</span> 
-              </label>
-              <input class="same-size-input" v-model="form.finalAcademic" :readonly="!isEditing" />
-            </div>
-            <div class="info-item">
-              <label class="label-bold">전공</label>
-              <input class="same-size-input" v-model="form.employeeDept" :readonly="!isEditing" />
-            </div>
-            <div class="info-item">
-              <label class="label-bold">
-                졸업년도
-              </label>
-              <!-- 수정 모드일 때 드롭다운 -->
-              <template v-if="isEditing">
-              <select class="same-size-input" v-model="form.graduationYear">
-                <option value="">선택</option>
-                <option
-                  v-for="year in yearOptions"
-                  :key="year"
-                  :value="year"
-                >
-                  {{ year }}
-                </option>
-              </select>
-              </template>
-
-              <!-- 보기 모드일 때 읽기 전용 텍스트 -->
-              <template v-else>
-                <input
-                  class="same-size-input"
-                  :value="form.graduationYear || '-'" 
-                  readonly
-                />
-              </template>
-            </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- 인사발령 탭: AG Grid -->
-        <div v-else-if="currentTab === '인사발령'">
-          <div class="ag-theme-alpine ag-grid-box">
-            <AgGridVue
-              :columnDefs="appointmentColumnDefs"
-              :gridOptions="{ theme: 'legacy' }"
-              :rowData="appointmentData"
-              :defaultColDef="defaultColDef"
-              :pagination="true"
-              :paginationPageSize="pageSize"
-              rowSelection="multiple"
-              @grid-ready="onGridReady"
-              @cell-clicked="onCellClick"
-              style="width:100%; height:100%"
-            />
-          </div>
-        </div>
-
-        <!-- 징계 탭: AG Grid -->
-        <div v-else-if="currentTab === '징계'">
-          <div class="ag-theme-alpine ag-grid-box">
-            <AgGridVue
-              :columnDefs="disciplineColumnDefs"
-              :gridOptions="{ theme: 'legacy' }"
-              :rowData="disciplineData"
-              :defaultColDef="defaultColDef"
-              :pagination="true"
-              :paginationPageSize="pageSize"
-              rowSelection="multiple"
-              @grid-ready="onGridReady"
-              @cell-clicked="onCellClick"
-              style="width:100%; height:100%"
-            />
-          </div>
-        </div>
-
-        <!-- 계약 탭: AG Grid -->
-        <div v-else-if="currentTab === '계약'">
-          <div class="ag-theme-alpine ag-grid-box">
-            <AgGridVue
-              :columnDefs="contractColumnDefs"
-              :gridOptions="{ theme: 'legacy' }"
-              :rowData="contractData"
-              :defaultColDef="defaultColDef"
-              :pagination="true"
-              :paginationPageSize="pageSize"
-              rowSelection="multiple"
-              @grid-ready="onGridReady"
-              @cell-clicked="onCellClick"
-              style="width:100%; height:100%"
-            />
-          </div>
-        </div>
+        
         <!-- ───────── 하단 고정 버튼 ───────── -->
         <div class="action-buttons-bottom">
           <!-- 보기 모드 → 수정 버튼 -->
@@ -643,7 +573,6 @@
           >
             수정
           </button>
-
           <!-- 편집 모드 → 취소 / 저장 버튼 -->
           <template v-else-if="isHR && isEditing">
             <button class="btn-delete" @click="cancelEdit">
@@ -657,16 +586,17 @@
       </div>
     </template>
   </div>
+  <BaseToast ref="toastRef" />
 </template>
 
-
 <script setup>
-import { ref, reactive, onMounted, computed, readonly } from 'vue'
+import { ref, reactive, onMounted, computed, readonly, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import axios from 'axios'
 import { useUserStore } from '@/stores/user'
 import { AgGridVue } from 'ag-grid-vue3'
 import detailIconUrl from '@/assets/icons/detail_appointment.svg'
+import BaseToast from '@/components/toast/BaseToast.vue'
 import {
   ModuleRegistry,
   AllCommunityModule,
@@ -679,7 +609,7 @@ import {
 } from 'ag-grid-community'
 
 // — Axios 기본 URL
-axios.defaults.baseURL = 'http://localhost:8000'
+axios.defaults.baseURL = 'http://localhost:5000'
 
 // — AG Grid 모듈 등록
 ModuleRegistry.registerModules([
@@ -696,6 +626,54 @@ ModuleRegistry.registerModules([
 const route     = useRoute()
 const router    = useRouter()
 const userStore = useUserStore()
+const toastRef = ref(null)
+
+// 유효성 검사 에러 상태
+const errors = reactive({
+  contact: '',
+  email: '',
+  resident: '',
+  bankAccount: ''
+})
+
+// 정규식 패턴 정의
+const patterns = {
+  contact: /^\d{3}-\d{3,4}-\d{4}$/,
+  email:   /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+  resident:/^[0-9]{6}-[1-4][0-9]{6}$/,  // ex. 900101-1234567
+  bankAccount: /^[0-9]{6,20}$/          // 6~20자리 숫자
+}
+
+// 유효성 검사 함수
+function validate(field, value) {
+  if (!value) {
+    errors[field] = ''
+    return
+  }
+  
+  if (!patterns[field].test(value)) {
+    switch (field) {
+      case 'contact':
+        errors.contact = '010-1234-5678 형식으로 입력하세요.'
+        break
+      case 'email':
+        errors.email = '유효한 이메일을 입력하세요.'
+        break
+      case 'resident':
+        errors.resident = '예: 900101-1234567 형식으로 입력하세요.'
+        break
+      case 'bankAccount':
+        errors.bankAccount = '숫자만, 6~20자리로 입력하세요.'
+        break
+    }
+  } else {
+    errors[field] = ''
+  }
+}
+
+function showToast(msg) {
+  toastRef.value?.show(msg)
+}
 
 // JWT 토큰 디코딩 유틸
 function parseJwtPayload(token) {
@@ -738,7 +716,6 @@ let gridApi         = null
 function onGridReady(params) { gridApi = params.api }
 
 // 드롭다운 옵션 리스트
-
 const currentYear = new Date().getFullYear()
 
 const yearOptions = Array.from(
@@ -747,22 +724,17 @@ const yearOptions = Array.from(
 )
 
 const workTypeOptions = ['정규직', '계약직']
-
-const militaryOptions = ['군필', '미필', '보충역', '면제']
-
+const militaryOptions = ['군필', '미필', '보충역', '면제', '해당 없음']
 const genderOptions = ['남', '여']
-
 const insuranceOptions   = ['가입','미가입']
-
 const disorderOptions    = ['장애','비장애']
-
 const marriageOptions    = ['미혼','기혼']
 
 const headOptions = [
   { id: 1, name: '개발본부' },
   { id: 2, name: '경영지원본부' },
   { id: 3, name: '사업본부' },
-  { id: 4, name: '소속없음' },
+  { id: 4, name: '대표' },
 ]
 
 const departmentOptions = [
@@ -772,7 +744,7 @@ const departmentOptions = [
   { id: 4, name: '재무회계부서' },
   { id: 5, name: '마케팅부서' },
   { id: 6, name: '영업부서' },
-  { id: 7, name: '소속없음' },
+  { id: 7, name: '대표' },
 ]
 
 const teamOptions = [
@@ -788,7 +760,7 @@ const teamOptions = [
   { id: 10, name: '퍼포먼스팀' },
   { id: 11, name: 'B2B영업팀' },
   { id: 12, name: 'B2C영업팀' },
-  { id: 13, name: '소속없음' },
+  { id: 13, name: '대표' },
 ]
 
 const jobOptions = [
@@ -848,30 +820,30 @@ const positionOptions = [
 ]
 
 // — 인사발령 컬럼 정의
-  const appointmentColumnDefs = ref([
-    // 순번
-    {
-      headerName: '번호',
-      width: 90,
-      valueGetter: params => params.node.rowIndex + 1,
-      sortable: false,
-      suppressMenu: true
-    },
-    // 사원번호
-    { headerName: '사원번호', field: 'employeeId',             flex: 1 },
-    // 발령사유
-    { headerName: '발령사유', field: 'appointmentReason',      flex: 1 },
-    // 발령유형
-    { headerName: '발령유형', field: 'appointmentType',        flex: 1 },
-    // 발령일자
-    { headerName: '발령일자', field: 'appointmentEffectiveDate', flex: 1 },
-    {
+const appointmentColumnDefs = ref([
+  // 순번
+  {
+    headerName: '번호',
+    width: 90,
+    valueGetter: params => params.node.rowIndex + 1,
+    sortable: false,
+    suppressMenu: true
+  },
+  // 사원번호
+  { headerName: '사원번호', field: 'employeeId',             flex: 1 },
+  // 발령사유
+  { headerName: '발령사유', field: 'appointmentReason',      flex: 1 },
+  // 발령유형
+  { headerName: '발령유형', field: 'appointmentType',        flex: 1 },
+  // 발령일자
+  { headerName: '발령일자', field: 'appointmentEffectiveDate', flex: 1 },
+  {
     headerName: '상세',
     field: 'detail',
     width: 80,
     cellRenderer: () => `<img src="${detailIconUrl}" class="detail-btn"/>`
-    }
-  ])
+  }
+])
 
 // — 징계 컬럼 정의
 const disciplineColumnDefs = ref([
@@ -983,7 +955,7 @@ function cancelEdit() {
 }
 
 async function saveChanges() {
-    const requiredChecks = [
+  const requiredChecks = [
     { key: 'employeePhotoUrl',   msg: '사진을 업로드해주세요.' },
     { key: 'employeeName',       msg: '사원명을 입력해주세요.' },
     { key: 'employmentDate',     msg: '입사일을 선택해주세요.' },
@@ -1007,12 +979,19 @@ async function saveChanges() {
     { key: 'isFourInsurances',   msg: '4대 보험 여부를 선택해주세요.' },
   ];
 
-    for (const { key, msg } of requiredChecks) {
-      const val = form[key];
-      if (val === '' || val === null || val === undefined) {
-        return alert(msg);
-      }
+  for (const { key, msg } of requiredChecks) {
+    const val = form[key];
+    if (val === '' || val === null || val === undefined) {
+      return showToast(msg);
     }
+  }
+
+  // 유효성 검사 에러 확인
+  const hasValidationErrors = Object.values(errors).some(error => error !== '')
+  if (hasValidationErrors) {
+    return showToast('입력 형식을 확인해주세요.')
+  }
+
   // HR 전용 DTO
   const hrDto = {
     employeeName:      form.employeeName,
@@ -1058,14 +1037,13 @@ async function saveChanges() {
       hrDto,
       { headers: authHeaders() }
     );
-    alert('수정이 완료되었습니다.');
+    showToast('수정이 완료되었습니다.');
     isEditing.value = false;
   } catch (err) {
     console.error(err);
-    alert('저장에 실패했습니다.');
+    showToast('저장에 실패했습니다.');
   }
 }
-
 
 async function downloadFile(fileUrl, fileName) {
   try {
@@ -1088,29 +1066,29 @@ async function downloadFile(fileUrl, fileName) {
     URL.revokeObjectURL(url)
   } catch (err) {
     console.error('파일 다운로드 실패:', err)
-    alert('파일 다운로드에 실패했습니다.')
+    showToast('파일 다운로드에 실패했습니다.')
   }
 }
 
 async function onCellClick(e) {
-    // 1) 상세 버튼 클릭
-    if (e.colDef.field === 'detail') {
-      router.push(`/org/appointment/${e.data.appointmentHistoryId}`)
-      return
-    }
+  // 1) 상세 버튼 클릭
+  if (e.colDef.field === 'detail') {
+    router.push(`/org/appointment/${e.data.appointmentHistoryId}`)
+    return
+  }
 
-    // 2) 파일 목록 클릭 시 다운로드
-    if (
-      e.colDef.field === 'fileList' &&
-      e.event.target.matches('a') &&
-      e.event.target.dataset.idx != null
-    ) {
-      e.event.preventDefault()
-      const idx  = Number(e.event.target.dataset.idx)
-      const file = (e.data.fileList || [])[idx]
-      if (!file) return
-      await downloadFile(file.fileUrl, file.fileName)
-    }
+  // 2) 파일 목록 클릭 시 다운로드
+  if (
+    e.colDef.field === 'fileList' &&
+    e.event.target.matches('a') &&
+    e.event.target.dataset.idx != null
+  ) {
+    e.event.preventDefault()
+    const idx  = Number(e.event.target.dataset.idx)
+    const file = (e.data.fileList || [])[idx]
+    if (!file) return
+    await downloadFile(file.fileUrl, file.fileName)
+  }
 }
 
 // — 사원 기본 정보 폼
@@ -1158,11 +1136,16 @@ const form = reactive({
   teamId:           ''
 })
 
+// watch로 실시간 검사
+watch(() => form.employeeContact, v => validate('contact', v))
+watch(() => form.employeeEmail,   v => validate('email',   v))
+watch(() => form.employeeResident, v => validate('resident', v))
+watch(() => form.bankAccount,     v => validate('bankAccount', v))
+
 // — 뒤로가기
 function goBack() {
   router.back()
 }
-
 
 // 프로필 이미지 미리보기 URL
 const previewSrc = ref('')      
@@ -1275,7 +1258,7 @@ onMounted(async () => {
     }
   } catch (err) {
     console.error(err);
-    alert('사원 정보를 불러오는 데 실패했습니다.');
+    showToast('사원 정보를 불러오는 데 실패했습니다.');
     router.back();
     return;
   }
@@ -1315,7 +1298,6 @@ onMounted(async () => {
 });
 </script>
 
-
 <style scoped>
 /* 페이지 타이틀과 설명 */
 .page-title {
@@ -1324,7 +1306,7 @@ onMounted(async () => {
   color: #00a8e8;
 }
 
-/* “사원 상세 조회” 텍스트와 버튼을 같은 행에 배치 */
+/* "사원 상세 조회" 텍스트와 버튼을 같은 행에 배치 */
 .desc-row {
   display: flex;
   align-items: center;   /* 텍스트와 버튼을 수직 가운데 정렬 */
@@ -1345,8 +1327,9 @@ onMounted(async () => {
 }
 
 .back-btn {
+  color: #00a8e8;
   width: 24px;
-  margin-right: -2px;
+  margin-right: -13px;
   cursor: pointer;
 }
 
@@ -1408,6 +1391,20 @@ onMounted(async () => {
   box-sizing: border-box;
 }
 
+/* 하단 카드에 상대 위치 설정 */
+.bottom-card {
+  position: relative;
+  min-height: 200px; /* 최소 높이 설정으로 버튼이 항상 보이도록 */
+  padding-bottom: 80px; /* 버튼 공간 확보 */
+  border-radius: 0px 12px 12px 12px; /* 새로운 탭 디자인에 맞춰 조정 */
+}
+
+/* 탭 콘텐츠 래퍼 */
+.tab-content-wrapper {
+  width: 100%;
+  height: 100%;
+}
+
 /* 상단 카드 내부 레이아웃 */
 .top-card-layout {
   display: flex;
@@ -1462,6 +1459,57 @@ onMounted(async () => {
   width: 40px;
   height: 40px;
 }
+.upload-btn-icon:hover .upload-icon {
+  filter: invert(41%) sepia(50%) saturate(6012%) hue-rotate(173deg) brightness(90%) contrast(98%);
+}
+
+/* 액션 버튼을 하단 카드의 오른쪽 하단에 고정 */
+.action-buttons-bottom {
+  position: absolute;
+  bottom: 20px;
+  right: 40px;
+  display: flex;
+  gap: 8px;
+  z-index: 10;
+}
+
+/* 🔷 새로운 겹쳐지는 탭 스타일 */
+.tab-wrapper {
+  position: relative;
+  z-index: 2;
+  margin-top: 15px;
+}
+
+.tab-menu {
+  display: flex;
+  align-items: flex-end;
+  gap: 0;
+  position: relative;
+}
+
+/* 기본 탭 버튼 */
+.tab-menu button {
+  font-size: 16px;
+  padding: 10px 30px;
+  border: none;
+  border-bottom: none;
+  background-color: #C8C8C8;
+  color: white;
+  cursor: pointer;
+  border-top-left-radius: 12px;
+  border-top-right-radius: 12px;
+  position: relative;
+  z-index: 1;
+  margin-right: -20px; /* ✅ 가로 겹치기 */
+  transition: all 0.2s ease;
+}
+
+/* 선택된 탭 위로 */
+.tab-menu button.active {
+  background-color: #fff;
+  color: #000;
+  z-index: 3;
+}
 
 /* ──────────────────────────────────────────────────────────────────────────
    위쪽 카드 전용 그리드 (3열 × 5행)
@@ -1490,6 +1538,11 @@ onMounted(async () => {
   }
 }
 
+.grid-info,
+.ag-grid-box {
+  margin-bottom: 24px;    /* 원하는 간격으로 조절 */
+}
+
 /* AG Grid 컨테이너 */
 .ag-grid-box {
   width: 100%;
@@ -1508,6 +1561,8 @@ onMounted(async () => {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  position: relative;
+  margin-bottom: 8px;
 }
 .label-bold {
   font-weight: 600;
@@ -1522,27 +1577,6 @@ onMounted(async () => {
   border: 1px solid #ccc;
   border-radius: 4px;
   box-sizing: border-box;
-}
-
-/* 탭 메뉴 */
-.tabs {
-  display: flex;
-  gap: 1px;
-  margin-top: 15px;
-  border-bottom: 1px solid #ccc;
-}
-.tab {
-  padding: 0.5rem 1.2rem;
-  cursor: pointer;
-  background: #e0e0e0;
-  border: 1px solid #ccc;
-  border-bottom: none;
-  border-radius: 4px 4px 0 0;
-}
-.tab.active {
-  background: #fff;
-  font-weight: bold;
-  border-bottom: 1px solid #fff;
 }
 
 /* 셀 중앙 정렬 */
@@ -1628,11 +1662,37 @@ input[readonly] {
   text-decoration: underline;
   cursor: pointer;
 }
-.action-buttons-bottom {
+
+.detail-btn {
+  background: none;
+  border: none;
+  padding: 4px;
+  cursor: pointer;
+  width: 30px;
+  height: 30px;
+}
+
+.error-text {
   position: absolute;
-  bottom: 16px;
-  right: 16px;
-  display: flex;
-  gap: 8px;
+  top: 0;
+  left: 300px;
+  color: #e74c3c;
+  font-size: 0.8rem;
+  z-index: 10;
+  white-space: nowrap;  /* 텍스트 줄바꿈 방지 */
+  min-width: max-content;  /* 내용에 맞는 최소 너비 */
+  overflow: visible;  /* 넘치는 텍스트 표시 */
+}
+
+/* 반응형 대응 */
+@media (max-width: 768px) {
+  .action-buttons-bottom {
+    bottom: 15px;
+    right: 20px;
+  }
+
+  .bottom-card {
+    padding-bottom: 70px;
+  }
 }
 </style>

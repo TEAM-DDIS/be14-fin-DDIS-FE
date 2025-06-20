@@ -38,7 +38,7 @@
     }
 
     try {
-      const res = await fetch('http://localhost:8000/attendance/status/team', {
+      const res = await fetch('http://localhost:5000/attendance/status/team', {
         headers: {
           Authorization: `Bearer ${token}`
         }

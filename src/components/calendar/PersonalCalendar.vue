@@ -84,7 +84,7 @@
       const token = userStore.accessToken
 
       try {
-          const res = await fetch('http://localhost:8000/attendance/schedule/personal', {
+          const res = await fetch('http://localhost:5000/attendance/schedule/personal', {
               method: 'POST',
               headers: {
                   'Authorization': `Bearer ${token}`,
@@ -198,7 +198,7 @@
   const handleUpdate = async (updated) => {
   const token = useUserStore().accessToken
 
-  await fetch(`http://localhost:8000/attendance/schedule/personal/${updated.id}`, {
+  await fetch(`http://localhost:5000/attendance/schedule/personal/${updated.id}`, {
     method: 'PUT',
     headers: {
       Authorization: `Bearer ${token}`,
@@ -225,7 +225,7 @@
   const handleDelete = async (id) => {
     const token = useUserStore().accessToken
 
-    await fetch(`http://localhost:8000/attendance/schedule/personal/${id}`, {
+    await fetch(`http://localhost:5000/attendance/schedule/personal/${id}`, {
       method: 'DELETE',
       headers: {
         Authorization: `Bearer ${token}`
@@ -246,7 +246,7 @@
           return
       }
 
-      const res = await fetch('http://localhost:8000/attendance/calendar/personal', {
+      const res = await fetch('http://localhost:5000/attendance/calendar/personal', {
           headers: { Authorization: `Bearer ${token}` }
       })
 

@@ -190,7 +190,7 @@ async function sendMail() {
   toastRef.value?.show('메일 전송 중입니다...')
 
   try {
-    await axios.post('http://localhost:8000/retirement/mail', {
+    await axios.post('http://localhost:5000/retirement/mail', {
       ...props.slip,
       totalYears: totalYears.value,
       averageDailySalary: averageDailySalary.value,

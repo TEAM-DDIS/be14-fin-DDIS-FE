@@ -50,7 +50,7 @@
         startDate: range.start,
         endDate: range.end
       })
-      const res = await fetch(`http://localhost:8000/attendance/commute/me?${query}`, {
+      const res = await fetch(`http://localhost:5000/attendance/commute/me?${query}`, {
         headers: {
           Authorization: `Bearer ${token}`
         }
