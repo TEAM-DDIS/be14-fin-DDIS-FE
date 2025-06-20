@@ -140,7 +140,7 @@ async function sendMessage() {
   }
 }
 
-// 🎯 드래그 기능
+// 드래그 기능
 const modalRef = ref(null)
 const isDragging = ref(false)
 let offsetX = 0
@@ -228,8 +228,14 @@ function onMouseUp() {
   transition: opacity 0.2s ease;
 }
 
+/* ✅ 드래그 중일 때 */
 .header.dragging {
-  opacity: 0.7;
+  opacity: 0.6;
+}
+
+/* ✅ 호버 시 반투명 */
+.header:hover {
+  opacity: 0.8;
 }
 
 .title-row {
