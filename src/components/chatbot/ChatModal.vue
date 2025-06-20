@@ -59,7 +59,11 @@ const messages = ref([
     from: 'bot',
     sender: 'ERPIZZA 비서',
     text: '안녕하세요! 무엇을 도와드릴까요?',
-    time: new Date().toLocaleTimeString()
+    time: new Date().toLocaleTimeString([], {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true
+    })
   }
 ])
 
@@ -82,7 +86,11 @@ async function sendMessage() {
   messages.value.push({
     from: 'user',
     text: trimmed,
-    time: now.toLocaleTimeString()
+    time: new Date().toLocaleTimeString([], {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true
+    })
   })
 
   const payload = {
@@ -98,7 +106,11 @@ async function sendMessage() {
     from: 'bot',
     sender: 'ERPIZZA 비서',
     text: '',
-    time: new Date().toLocaleTimeString()
+    time: new Date().toLocaleTimeString([], {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true
+    })
   }
   messages.value.push(botMsg)
   scrollToBottom()
