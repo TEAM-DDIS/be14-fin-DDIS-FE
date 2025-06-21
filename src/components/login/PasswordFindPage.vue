@@ -127,7 +127,7 @@ watch(authMethod, () => {
 watch(employeeId, async id => {
   if (!id || authMethod.value !== 'otp') return
   try {
-    const r = await fetch(`http://localhost:5000${BASE}/mfa/exists?empId=${id}`)
+    const r = await fetch(`https://ddis-be-alb-1219702514.ap-northeast-2.elb.amazonaws.com${BASE}/mfa/exists?empId=${id}`)
     otpRegistered.value = r.ok
   } catch { /* 무시 */ }
 })
@@ -136,7 +136,7 @@ watch(employeeId, async id => {
 async function requestCode() {
   clearMsg()
   try {
-    const res = await fetch(`http://localhost:5000${BASE}/request`, {
+    const res = await fetch(`https://ddis-be-alb-1219702514.ap-northeast-2.elb.amazonaws.com${BASE}/request`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ employeeId: Number(employeeId.value), email: email.value })
@@ -151,7 +151,7 @@ async function requestCode() {
 async function verifyCode() {
   clearMsg()
   try {
-    const res = await fetch(`http://localhost:5000${BASE}/verify`, {
+    const res = await fetch(`https://ddis-be-alb-1219702514.ap-northeast-2.elb.amazonaws.com${BASE}/verify`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ tokenId: tokenId.value, code: code.value })
@@ -167,7 +167,7 @@ async function registerOtp() {
   clearMsg()
   try {
     const res = await fetch(
-      `http://localhost:5000${BASE}/mfa/qr?empId=${employeeId.value}`
+      `https://ddis-be-alb-1219702514.ap-northeast-2.elb.amazonaws.com${BASE}/mfa/qr?empId=${employeeId.value}`
     )
     if (!res.ok) throw new Error('OTP 메일 발송 실패')
     qrRequested.value = true
@@ -178,7 +178,7 @@ async function registerOtp() {
 async function verifyOtp() {
   clearMsg()
   try {
-    const res = await fetch(`http://localhost:5000${BASE}/mfa/verify`, {
+    const res = await fetch(`https://ddis-be-alb-1219702514.ap-northeast-2.elb.amazonaws.com${BASE}/mfa/verify`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -201,7 +201,7 @@ async function resetPassword() {
     return
   }
   try {
-    const res = await fetch(`http://localhost:5000${BASE}/change-password`, {
+    const res = await fetch(`https://ddis-be-alb-1219702514.ap-northeast-2.elb.amazonaws.com${BASE}/change-password`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json'
        },

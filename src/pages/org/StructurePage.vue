@@ -128,7 +128,7 @@ function parseJwtPayload(token) {
 // 1) 초기 로딩: 조직 계층 가져오기 
 onMounted(async () => {
   try {
-    const url = 'http://localhost:5000/structure/hierarchy'
+    const url = 'https://ddis-be-alb-1219702514.ap-northeast-2.elb.amazonaws.com/structure/hierarchy'
     console.log('📥 조직 계층 호출 URL:', url)
     const res = await fetch(url)
     if (!res.ok) throw new Error(`HTTP ${res.status}`)
@@ -157,7 +157,7 @@ function onTeamSelected(team) {
 // 3) 팀원 클릭 시: 사원 상세 조회
 async function onEmployeeSelected(emp) {
   try {
-    const url = `http://localhost:5000/structure/employee/${emp.employeeId}`
+    const url = `https://ddis-be-alb-1219702514.ap-northeast-2.elb.amazonaws.com/structure/employee/${emp.employeeId}`
     console.log('📥 사원 상세 호출 URL:', url)
     const res = await fetch(url)
     if (!res.ok) throw new Error(`HTTP ${res.status}`)

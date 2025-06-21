@@ -226,7 +226,7 @@ const userStore = useUserStore()
 async function getUploadInfo(file) {
   const token = localStorage.getItem('token')
   const qs = new URLSearchParams({ filename: file.name, contentType: file.type }).toString()
-  const res = await fetch(`http://localhost:5000/s3/upload-url?${qs}`, {
+  const res = await fetch(`https://ddis-be-alb-1219702514.ap-northeast-2.elb.amazonaws.com/s3/upload-url?${qs}`, {
     headers: { Authorization: `Bearer ${token}` }
   })
   if (!res.ok) throw new Error('Presign URL 요청 실패')
@@ -342,7 +342,7 @@ export default {
 
     //   /* /1) 서버에 temp 저장 */
     //   try {
-    //     await axios.post('http://localhost:5000/drafts/temp', payload, {
+    //     await axios.post('https://ddis-be-alb-1219702514.ap-northeast-2.elb.amazonaws.com/drafts/temp', payload, {
     //       headers:{ Authorization:`Bearer ${userStore.getItem('token')}` }
     //     })
     //     console.log('💾 [auto] 서버 임시저장 성공')
@@ -356,7 +356,7 @@ export default {
     // ① 기안자 정보 불러오기 -  서버에서 현재 로그인한 기안자 정보 조회 후 기본 폼 채움
     async loadDrafterInfo() {
       try {
-        const res = await fetch("http://localhost:5000/drafter/me", {
+        const res = await fetch("https://ddis-be-alb-1219702514.ap-northeast-2.elb.amazonaws.com/drafter/me", {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`
           }
@@ -386,7 +386,7 @@ export default {
   try {
     // response 객체에서 바로 data만 꺼내오기
     const { data } = await axios.get(
-      "http://localhost:5000/approval-line",
+      "https://ddis-be-alb-1219702514.ap-northeast-2.elb.amazonaws.com/approval-line",
       {
         params:     { employeeId: empId },
         headers:    { Authorization: `Bearer ${localStorage.getItem("token")}` }
@@ -541,7 +541,7 @@ async confirmDraftSave() {
       // (b) 서버에 POST 요청
        try {
         const res = await axios.post(
-          "http://localhost:5000/drafts/creation", submitData, {
+          "https://ddis-be-alb-1219702514.ap-northeast-2.elb.amazonaws.com/drafts/creation", submitData, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`
           }

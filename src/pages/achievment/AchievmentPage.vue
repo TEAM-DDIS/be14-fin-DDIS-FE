@@ -75,7 +75,7 @@ const rowData = ref([])
 
 // 전체 성과 이력 조회
 async function loadData() {
-  const url = 'http://localhost:5000/review/history/all'
+  const url = 'https://ddis-be-alb-1219702514.ap-northeast-2.elb.amazonaws.com/review/history/all'
   try {
     const res = await fetch(url, {
       headers: {

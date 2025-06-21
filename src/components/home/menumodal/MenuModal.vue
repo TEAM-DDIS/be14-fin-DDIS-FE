@@ -83,7 +83,7 @@ const isHrTeam = computed(() => {
 
 onMounted(async () => {
   try {
-    const { data } = await axios.get('http://localhost:5000/menus', {
+    const { data } = await axios.get('https://ddis-be-alb-1219702514.ap-northeast-2.elb.amazonaws.com/menus', {
       headers: {
         'Authorization': `Bearer ${token}`
       }
@@ -149,7 +149,7 @@ async function addFavorite(menuItem) {
   }
 
   try {
-    await axios.post('http://localhost:5000/menus/favorites', {
+    await axios.post('https://ddis-be-alb-1219702514.ap-northeast-2.elb.amazonaws.com/menus/favorites', {
       menuId: menuItem.menuId,
       displayOrder: currentList.length + 1
     }, {

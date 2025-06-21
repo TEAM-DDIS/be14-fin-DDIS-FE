@@ -53,7 +53,7 @@ const endpoint = computed(() =>
 const rowData = ref([]);
 const loadData = async () => {
   try {
-    const res = await fetch(`http://localhost:5000${endpoint.value}`, {
+    const res = await fetch(`https://ddis-be-alb-1219702514.ap-northeast-2.elb.amazonaws.com${endpoint.value}`, {
       headers: {
         Authorization: `Bearer ${localStorage.getItem('token')}`,
         'Content-Type': 'application/json'

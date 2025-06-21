@@ -203,7 +203,7 @@ const filteredData = computed(() => {
 // 9) API 호출
 onMounted(async () => {
   try {
-    const res = await axios.get('http://localhost:5000/employees/list', {
+    const res = await axios.get('https://ddis-be-alb-1219702514.ap-northeast-2.elb.amazonaws.com/employees/list', {
       headers: { Authorization: `Bearer ${userStore.accessToken}` }
     })
     rowData.value = Array.isArray(res.data)
