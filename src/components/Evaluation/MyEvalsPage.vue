@@ -156,7 +156,7 @@ async function fetchGoals() {
   const token = localStorage.getItem('token')
   try {
     const res = await fetch(
-      `http://localhost:5000/review/${reviewerId}/performance`,
+      `https://ddis-be-alb-1219702514.ap-northeast-2.elb.amazonaws.com/review/${reviewerId}/performance`,
       { headers: { Authorization: `Bearer ${token}` } }
     )
     if (!res.ok) throw new Error('내가 쓴 평가 불러오기 실패')
@@ -213,7 +213,7 @@ async function submitReview() {
 
   try {
     const res = await fetch(
-      `http://localhost:5000/review/manager/performance/${performanceId}/evaluate`,
+      `https://ddis-be-alb-1219702514.ap-northeast-2.elb.amazonaws.com/review/manager/performance/${performanceId}/evaluate`,
       {
         method: 'POST',
         headers: {

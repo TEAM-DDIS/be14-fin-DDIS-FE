@@ -116,33 +116,33 @@ onMounted(async () => {
 
   try {
     // 유저 정보
-    const resUser = await fetch('http://localhost:5000/employees/myinfo', { headers })
+    const resUser = await fetch('https://ddis-be-alb-1219702514.ap-northeast-2.elb.amazonaws.com/employees/myinfo', { headers })
     if (!resUser.ok) throw new Error('유저 정보 조회 실패')
     user.value = await resUser.json()
 
     // 잔여 연차
-    const resLeave = await fetch('http://localhost:5000/attendance/leave/status/me', { headers })
+    const resLeave = await fetch('https://ddis-be-alb-1219702514.ap-northeast-2.elb.amazonaws.com/attendance/leave/status/me', { headers })
     if (resLeave.ok) {
       const data = await resLeave.json()
       remainLeave.value = data?.remainingLeave ?? 0
     }
 
     // 주 근무 시간
-    const resWork = await fetch('http://localhost:5000/attendance/work-duration-summary', { headers })
+    const resWork = await fetch('https://ddis-be-alb-1219702514.ap-northeast-2.elb.amazonaws.com/attendance/work-duration-summary', { headers })
     if (resWork.ok) {
       const data = await resWork.json()
       weeklyWorkHours.value = convertMinutesToHours(data?.totalWorkDuration ?? 0)
     }
 
     // 주 초과 근무 시간
-    const resOvertime = await fetch('http://localhost:5000/attendance/overtime-summary', { headers })
+    const resOvertime = await fetch('https://ddis-be-alb-1219702514.ap-northeast-2.elb.amazonaws.com/attendance/overtime-summary', { headers })
     if (resOvertime.ok) {
       const data = await resOvertime.json()
       weeklyOvertimeHours.value = convertMinutesToHours(data?.totalOvertime ?? 0)
     }
 
     // 상신 문서
-    const resDrafts = await fetch('http://localhost:5000/drafts/query', { headers })
+    const resDrafts = await fetch('https://ddis-be-alb-1219702514.ap-northeast-2.elb.amazonaws.com/drafts/query', { headers })
     if (resDrafts.ok) {
       const data = await resDrafts.json()
       draftCount.value = data.filter(doc => doc.status === '대기중').length
@@ -150,7 +150,7 @@ onMounted(async () => {
     }
 
     // 결재 대기 문서
-    const resApprovals = await fetch('http://localhost:5000/approvals', { headers })
+    const resApprovals = await fetch('https://ddis-be-alb-1219702514.ap-northeast-2.elb.amazonaws.com/approvals', { headers })
     if (resApprovals.ok) {
       const data = await resApprovals.json()
       approveWaitingCount.value = data.filter(doc => doc.status === '대기중').length

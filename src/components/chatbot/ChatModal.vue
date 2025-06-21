@@ -116,7 +116,7 @@ async function sendMessage() {
   scrollToBottom()
 
   try {
-    const response = await fetch('http://localhost:8888/query-stream', {
+    const response = await fetch('https://ddis-be-alb-1219702514.ap-northeast-2.elb.amazonaws.com/query-stream', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)

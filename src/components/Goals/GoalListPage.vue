@@ -299,7 +299,7 @@ function getKoreaLocalDateTimeString() {
 // 목표 목록을 백엔드에서 가져오기
 function fetchGoals() {
   const token = localStorage.getItem('token')
-  fetch('http://localhost:5000/goals', {
+  fetch('https://ddis-be-alb-1219702514.ap-northeast-2.elb.amazonaws.com/goals', {
     headers: { Authorization: `Bearer ${token}` }
   })
     .then(res => res.json())
@@ -393,7 +393,7 @@ async function fetchPresignedUrls() {
 
       // 2) GET /s3/download-url?filename=…&contentType=…
       const res = await fetch(
-        `http://localhost:5000/s3/download-url?${qs}`,
+        `https://ddis-be-alb-1219702514.ap-northeast-2.elb.amazonaws.com/s3/download-url?${qs}`,
         { headers: { Authorization: `Bearer ${token}` } }
       )
       if (!res.ok) throw new Error("프리사인드 URL 생성 실패")
@@ -440,7 +440,7 @@ async function downloadAttachment(fileKey, fileType) {
 
     // ① 다운로드용 presign URL 요청
     const res = await fetch(
-      `http://localhost:5000/s3/download-url?${qs}`,
+      `https://ddis-be-alb-1219702514.ap-northeast-2.elb.amazonaws.com/s3/download-url?${qs}`,
       {
         headers: { Authorization: `Bearer ${token}` }
       }
@@ -492,7 +492,7 @@ async function addGoal() {
   }
 
   try {
-    const res = await fetch('http://localhost:5000/goals', {
+    const res = await fetch('https://ddis-be-alb-1219702514.ap-northeast-2.elb.amazonaws.com/goals', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -534,7 +534,7 @@ function confirmDelete(id) {
 async function deleteGoals(id) {
   try {
     const token = localStorage.getItem('token')
-    const res = await fetch(`http://localhost:5000/goals/${id}`, {
+    const res = await fetch(`https://ddis-be-alb-1219702514.ap-northeast-2.elb.amazonaws.com/goals/${id}`, {
       method: 'DELETE',
       headers: {
         Authorization: `Bearer ${token}`,
@@ -575,7 +575,7 @@ if (form.file) {
     }).toString();
 
     const presignRes = await fetch(
-      `http://localhost:5000/s3/upload-url?${qs}`,
+      `https://ddis-be-alb-1219702514.ap-northeast-2.elb.amazonaws.com/s3/upload-url?${qs}`,
       {
         method: 'GET',
         headers: {
@@ -622,7 +622,7 @@ if (form.file) {
     let res
     if (hasPerformance.value) {
       res = await fetch(
-        `http://localhost:5000/goalsperf/${g.goalId}/performance/${form.performanceId}`,
+        `https://ddis-be-alb-1219702514.ap-northeast-2.elb.amazonaws.com/goalsperf/${g.goalId}/performance/${form.performanceId}`,
         {
           method: 'PUT',
           headers: {
@@ -634,7 +634,7 @@ if (form.file) {
       )
     } else {
       res = await fetch(
-        `http://localhost:5000/goalsperf/${g.goalId}/performance`,
+        `https://ddis-be-alb-1219702514.ap-northeast-2.elb.amazonaws.com/goalsperf/${g.goalId}/performance`,
         {
           method: 'POST',
           headers: {
@@ -667,7 +667,7 @@ async function deletePerf() {
   const token = localStorage.getItem('token')
   try {
     const res = await fetch(
-      `http://localhost:5000/goalsperf/${g.goalId}/performance/${form.performanceId}`,
+      `https://ddis-be-alb-1219702514.ap-northeast-2.elb.amazonaws.com/goalsperf/${g.goalId}/performance/${form.performanceId}`,
       {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` }

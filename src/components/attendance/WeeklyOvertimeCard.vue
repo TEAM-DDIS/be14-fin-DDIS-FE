@@ -44,7 +44,7 @@
       </div>
     </Teleport>
   </div>
-  <BaseToast ref="toastRef" />
+  <BaseToast ref="toastRef"/>
 </template>
 
 <script setup lang="ts">
@@ -100,7 +100,7 @@
     const token = userStore.accessToken
     
     try {
-      const res = await fetch('http://localhost:5000/attendance/overtime-request', {
+      const res = await fetch('https://ddis-be-alb-1219702514.ap-northeast-2.elb.amazonaws.com/attendance/overtime-request', {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`,
@@ -124,7 +124,7 @@
     showToast('근무 신청이 완료되었습니다.')
     show.value = false
 
-      const summaryRes = await axios.get('http://localhost:5000/attendance/overtime-summary', {
+      const summaryRes = await axios.get('https://ddis-be-alb-1219702514.ap-northeast-2.elb.amazonaws.com/attendance/overtime-summary', {
         headers: { Authorization: `Bearer ${token}` }
       })
       summary.value = summaryRes.data
@@ -142,7 +142,7 @@
     }
 
     try {
-      const res = await axios.get('http://localhost:5000/attendance/overtime-summary', {
+      const res = await axios.get('https://ddis-be-alb-1219702514.ap-northeast-2.elb.amazonaws.com/attendance/overtime-summary', {
         headers: {
           Authorization: `Bearer ${token}`,
         },

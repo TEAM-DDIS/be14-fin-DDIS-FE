@@ -173,7 +173,7 @@ const selectedJobs = computed(() => {
 // 컴포넌트 마운트 시 데이터 로드
 onMounted(async () => {
   try {
-    const BASE = 'http://localhost:5000/introduction'
+    const BASE = 'https://ddis-be-alb-1219702514.ap-northeast-2.elb.amazonaws.com/introduction'
 
     // 1) 팀 상세 정보 조회
     const teamRes = await fetch(`${BASE}/team/${teamId}`)

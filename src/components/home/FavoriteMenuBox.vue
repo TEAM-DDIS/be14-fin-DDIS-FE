@@ -61,7 +61,7 @@ const favorites = ref([])
 const fetchFavorites = async () => {
   try {
     const { data } = await axios.get(
-      'http://localhost:5000/menus/favorites/me',
+      'https://ddis-be-alb-1219702514.ap-northeast-2.elb.amazonaws.com/menus/favorites/me',
       {
         headers: {
           Authorization: `Bearer ${token}`

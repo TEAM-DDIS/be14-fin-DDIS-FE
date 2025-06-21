@@ -144,7 +144,7 @@ function authHeaders() {
 // — 1) 초기 데이터 로드
 onMounted(async () => {
   try {
-    const res = await axios.get('http://localhost:5000/boards/lists', {
+    const res = await axios.get('https://ddis-be-alb-1219702514.ap-northeast-2.elb.amazonaws.com/boards/lists', {
       headers: authHeaders()
     })
     fullData.value = res.data
@@ -187,7 +187,7 @@ async function confirmDelete() {
   const ids = sel.map(r => r.boardId)
   try {
     await Promise.all(ids.map(id =>
-      axios.delete(`http://localhost:5000/boards/${id}`, {
+      axios.delete(`https://ddis-be-alb-1219702514.ap-northeast-2.elb.amazonaws.com/boards/${id}`, {
         headers: authHeaders()
       })
     ))

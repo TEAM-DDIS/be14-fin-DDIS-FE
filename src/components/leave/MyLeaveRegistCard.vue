@@ -52,7 +52,7 @@
     }
 
     try {
-      const res = await fetch('http://localhost:5000/attendance/leave/history/request/me', {
+      const res = await fetch('https://ddis-be-alb-1219702514.ap-northeast-2.elb.amazonaws.com/attendance/leave/history/request/me', {
         headers: {
           Authorization: `Bearer ${token}`
         }

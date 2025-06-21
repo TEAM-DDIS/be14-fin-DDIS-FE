@@ -129,7 +129,7 @@
       const token = userStore.accessToken
 
       try {
-          const res = await fetch('http://localhost:5000/attendance/schedule/meeting', {
+          const res = await fetch('https://ddis-be-alb-1219702514.ap-northeast-2.elb.amazonaws.com/attendance/schedule/meeting', {
               method: 'POST',
               headers: {
                   'Authorization': `Bearer ${token}`,
@@ -174,7 +174,7 @@
   const handleUpdate = async (updated) => {
   const token = useUserStore().accessToken
 
-  await fetch(`http://localhost:5000/attendance/schedule/meeting/${updated.id}`, {
+  await fetch(`https://ddis-be-alb-1219702514.ap-northeast-2.elb.amazonaws.com/attendance/schedule/meeting/${updated.id}`, {
     method: 'PUT',
     headers: {
       Authorization: `Bearer ${token}`,
@@ -201,7 +201,7 @@
   const handleDelete = async (id) => {
     const token = useUserStore().accessToken
 
-    await fetch(`http://localhost:5000/attendance/schedule/meeting/${id}`, {
+    await fetch(`https://ddis-be-alb-1219702514.ap-northeast-2.elb.amazonaws.com/attendance/schedule/meeting/${id}`, {
       method: 'DELETE',
       headers: {
         Authorization: `Bearer ${token}`
@@ -219,7 +219,7 @@
 
     if (!token) return
 
-    const res = await fetch('http://localhost:5000/attendance/calendar/team', {
+    const res = await fetch('https://ddis-be-alb-1219702514.ap-northeast-2.elb.amazonaws.com/attendance/calendar/team', {
       headers: { Authorization: `Bearer ${token}` }
     })
 

@@ -425,7 +425,7 @@ import BaseToast from '@/components/toast/BaseToast.vue'
 import axios from 'axios' 
 
 // Axios 기본 URL 설정
-axios.defaults.baseURL = 'http://localhost:5000'
+axios.defaults.baseURL = 'https://ddis-be-alb-1219702514.ap-northeast-2.elb.amazonaws.com'
 
 
 const userStore = useUserStore()

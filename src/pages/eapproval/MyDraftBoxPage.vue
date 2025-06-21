@@ -131,7 +131,7 @@ function formatDate(datetime) {
 
 async function fetchMyDrafts() {
   try {
-    const res = await axios.get('http://localhost:5000/approvals/draftDoc', {
+    const res = await axios.get('https://ddis-be-alb-1219702514.ap-northeast-2.elb.amazonaws.com/approvals/draftDoc', {
       headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
     })
 

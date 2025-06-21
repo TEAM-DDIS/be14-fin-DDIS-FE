@@ -189,7 +189,7 @@ function handleSalaryInput(e) {
 // 내 정보 불러오기 (employeeId 따로 필요 없음)
 onMounted(async () => {
   try {
-    const { data } = await axios.get(`http://localhost:5000/payroll/me`, {
+    const { data } = await axios.get(`https://ddis-be-alb-1219702514.ap-northeast-2.elb.amazonaws.com/payroll/me`, {
       headers: { Authorization: `Bearer ${token}` }
     })
     employee.value = data
