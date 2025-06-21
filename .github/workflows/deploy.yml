@@ -72,3 +72,9 @@ jobs:
         version_label: github-action-${{ github.sha }}
         region: ap-northeast-2
         deployment_package: deploy/deploy.zip
+
+    - name: Upload deploy.zip artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: deploy-package
+        path: deploy.zip
