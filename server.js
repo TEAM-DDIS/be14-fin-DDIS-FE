@@ -10,6 +10,14 @@ const port = process.env.PORT || 8080;  // Elastic Beanstalk가 사용하는 포
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
+const server = http.createServer((req, res) => {
+    if (req.url === '/health') {
+        res.writeHead(200, { 'Content-Type': 'text/plain' });
+        res.end('OK');
+        return;
+    }
+})
+
 app.use(express.static(path.join(__dirname, 'dist')));
 
 app.get('*', (req, res) => {
