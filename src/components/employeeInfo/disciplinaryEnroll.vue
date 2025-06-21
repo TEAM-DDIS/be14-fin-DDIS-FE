@@ -1,13 +1,6 @@
 <template>
   <!-- 상단 헤더 -->
-    <h1 class="page-title">
-        <img
-        src="@/assets/icons/back_btn.svg"
-        alt="back"
-        class="back-btn"
-        @click="goBack"
-        />징계 관리
-    </h1>
+    <h1 class="page-title">징계 관리</h1>
   <p class="desc">징계 등록</p>
 
   <div class="card">
@@ -112,6 +105,7 @@
       <button class="btn btn-save" @click="onSave">저장</button>
     </div>
   </div>
+  <BaseToast ref="toastRef" />
 </template>
 
 <script setup>
@@ -119,6 +113,7 @@ import { ref, reactive, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
 import { useUserStore } from '@/stores/user'
+import BaseToast from '@/components/toast/BaseToast.vue'
 
 // ————————————————————————————————————————————————————————————————
 // 1) Axios 기본 URL 설정
@@ -137,6 +132,11 @@ const userStore = useUserStore()
 const fileInput = ref(null)
 const files = ref([])            // 실제 File 객체 목록
 const previewUrls = ref([])      // 미리보기용 URL 목록
+const toastRef = ref(null)
+
+  function showToast(msg) {
+    toastRef.value?.show(msg)
+  }
 
 function triggerFileSelect() {
   fileInput.value?.click()
@@ -145,7 +145,7 @@ function triggerFileSelect() {
 function onFileChange(e) {
   const selected = Array.from(e.target.files || [])
   if (selected.length > 5) {
-    alert('최대 5장까지 업로드할 수 있습니다.')
+    showToast('최대 5장까지 업로드할 수 있습니다.')
   }
   const limited = selected.slice(0, 5)
   files.value = limited
@@ -217,7 +217,7 @@ async function onSave() {
     !form.disciplinaryDate ||
     files.value.length === 0
   ) {
-    return alert('모든 항목을 입력하고, 파일을 업로드해야 저장할 수 있습니다.')
+    return showToast('모든 항목을 입력하고, 파일을 업로드해야 저장할 수 있습니다.')
   }
 
   try {
@@ -252,11 +252,11 @@ async function onSave() {
       { headers: authHeaders() }
     )
 
-    alert('징계가 정상 등록되었습니다.')
+    showToast('징계가 정상 등록되었습니다.')
     router.push('/employeeInfo/disciplinary')
   } catch (err) {
     console.error('등록 중 오류:', err.response?.status, err.response?.data)
-    alert(err.response?.data?.message || `등록에 실패했습니다 (HTTP ${err.response?.status}).`)
+    showToast(err.response?.data?.message || `등록에 실패했습니다 (HTTP ${err.response?.status}).`)
   }
 }
 

@@ -149,11 +149,25 @@ function showToast(msg) {
 }
 const salaryColumnDefs = [
   { headerName: '지급일자', field: 'salaryDate' },
-  { headerName: '총지급', field: 'totalIncome' },
-  { headerName: '총공제', field: 'totalDeductions' },
-  { headerName: '실지급', field: 'netSalary' }
+  {
+    headerName: '총지급',
+    field: 'totalIncome',
+    valueFormatter: params => formatCurrency(params.value),
+    cellClass: 'right-align'
+  },
+  {
+    headerName: '총공제',
+    field: 'totalDeductions',
+    valueFormatter: params => formatCurrency(params.value),
+    cellClass: 'right-align'
+  },
+  {
+    headerName: '실지급',
+    field: 'netSalary',
+    valueFormatter: params => formatCurrency(params.value),
+    cellClass: 'right-align'
+  }
 ]
-
 function parseJwtPayload() {
   try {
     const token = accessToken.value || ''

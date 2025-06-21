@@ -62,6 +62,7 @@
       <img :src="selectedImageUrl" alt="징계서류 이미지" class="preview-image" />
     </div>
   </div>
+  <BaseToast ref="toastRef" />
 </template>
 
 <script setup>
@@ -70,6 +71,7 @@ import axios from 'axios'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { AgGridVue } from 'ag-grid-vue3'
+import BaseToast from '@/components/toast/BaseToast.vue'
 import {
   ModuleRegistry,
   AllCommunityModule,
@@ -150,8 +152,8 @@ const columnDefs = ref([
     width: 50,
     pinned: 'left'
   },
-  { headerName: '번호',            field: 'disciplinaryId',          width: 80, cellClass: 'center-align' },
-  { headerName: '사원명',          field: 'employeeName',            flex: 1.2 },
+  { headerName: '번호', valueGetter: params => params.api.getDisplayedRowCount() - params.node.rowIndex, sortable: false, flex:0.3},
+  { headerName: '사원명',          field: 'employeeName',            flex: 0.3},
   {
     headerName: '징계 서류',
     field: 'fileList',
@@ -168,11 +170,11 @@ const columnDefs = ref([
       }</div>`
     }
   },
-  { headerName: '징계 내용',      field: 'disciplinaryDescription', flex: 2 },
+  { headerName: '징계 내용',      field: 'disciplinaryDescription', flex: 1.5 },
   {
     headerName: '징계일자',
     field: 'disciplinaryDate',
-    flex: 1,
+    flex: 0.7,
     cellClass: 'center-align',
     valueFormatter: ({ value }) => {
       const d = new Date(value)
@@ -187,6 +189,11 @@ const rowData         = ref([])
 const searchText      = ref('')
 const pageSize        = ref(20)
 const showDeleteModal = ref(false)
+const toastRef = ref(null)
+
+  function showToast(msg) {
+    toastRef.value?.show(msg)
+  }
 
 // — 데이터 로드 (인사팀 전용 API)
 onMounted(async () => {
@@ -201,7 +208,7 @@ onMounted(async () => {
     rowData.value  = res.data
   } catch (e) {
     console.error('징계 목록 조회 실패:', e)
-    alert('징계 목록을 불러오는 중 오류가 발생했습니다.')
+    showToast('징계 목록을 불러오는 중 오류가 발생했습니다.')
   }
 })
 
@@ -218,7 +225,7 @@ const filteredData = computed(() => {
 function onDeleteClick() {
   const sel = gridApi?.getSelectedRows() || []
   if (!sel.length) {
-    alert('삭제할 항목을 선택하세요.')
+    showToast('삭제할 항목을 선택하세요.')
     return
   }
   showDeleteModal.value = true
@@ -250,10 +257,10 @@ async function confirmDelete() {
     fullData.value = fullData.value.filter(r => !deleteIds.includes(r.disciplinaryId))
     rowData.value  = rowData.value.filter(r => !deleteIds.includes(r.disciplinaryId))
     gridApi.deselectAll()
-    alert('선택 항목이 삭제되었습니다.')
+    showToast('선택 항목이 삭제되었습니다.')
   } catch (err) {
     console.error('삭제 실패:', err)
-    alert('삭제 중 오류가 발생했습니다.')
+    showToast('삭제 중 오류가 발생했습니다.')
   } finally {
     showDeleteModal.value = false
   }
@@ -299,7 +306,7 @@ async function onCellClick(e) {
       URL.revokeObjectURL(url)
     } catch (err) {
       console.error('파일 다운로드 실패:', err)
-      alert('파일 다운로드에 실패했습니다.')
+      showToast('파일 다운로드에 실패했습니다.')
     }
     return
   }

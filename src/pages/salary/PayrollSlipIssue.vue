@@ -255,9 +255,26 @@ const salaryColumnDefs = [
   { headerName: '사원번호', field: 'employeeId' },
   { headerName: '성명', field: 'employeeName' },
   { headerName: '지급일자', field: 'salaryDate' },
-  { headerName: '총지급', field: 'totalIncome' },
-  { headerName: '총공제', field: 'totalDeductions' },
-  { headerName: '실지급', field: 'netSalary' }
+  {
+    headerName: '총지급',
+    field: 'totalIncome',
+    valueFormatter: params => formatCurrency(params.value),
+    cellClass: 'right-align'
+  },
+  {
+    headerName: '총공제',
+    field: 'totalDeductions',
+    valueFormatter: params => formatCurrency(params.value),
+    cellClass: 'right-align'
+  },
+  {
+    headerName: '실지급',
+    field: 'netSalary',
+    valueFormatter: params => formatCurrency(params.value),
+    cellClass: 'right-align'
+  }
+
+  
 ]
 
 const uniqueHeads = computed(() => [...new Set(employees.value.map(e => e.headName).filter(Boolean))])

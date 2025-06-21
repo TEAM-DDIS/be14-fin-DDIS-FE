@@ -60,6 +60,7 @@
       <img :src="selectedImageUrl" alt="파일 미리보기" class="preview-image" />
     </div>
   </div>
+  <BaseToast ref="toastRef" />
 </template>
 
 <script setup>
@@ -68,6 +69,7 @@ import axios from 'axios'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { AgGridVue } from 'ag-grid-vue3'
+import BaseToast from '@/components/toast/BaseToast.vue'
 import {
   ModuleRegistry,
   AllCommunityModule,
@@ -95,6 +97,11 @@ ModuleRegistry.registerModules([
 
 const router    = useRouter()
 const userStore = useUserStore()
+const toastRef = ref(null)
+
+  function showToast(msg) {
+    toastRef.value?.show(msg)
+  }
 
 // JWT 토큰 디코딩 유틸
 function parseJwtPayload(token) {
@@ -154,7 +161,7 @@ const columnDefs = ref([
     width: 50,
     pinned: 'left'
   },
-  { headerName: 'ID',               field: 'contractId',          width: 80, cellClass: 'center-align' },
+  { headerName: '번호', valueGetter: params => params.api.getDisplayedRowCount() - params.node.rowIndex, sortable: false, flex:0.5 },
   { headerName: '사원명',           field: 'employeeName',        flex: 1.2 },
   { headerName: '계약 설명',        field: 'contractDescription', flex: 2 },
   {
@@ -220,7 +227,7 @@ onMounted(async () => {
     rowData.value  = res.data
   } catch (e) {
     console.error('계약 목록 조회 실패:', e)
-    alert('계약 목록을 불러오는 중 오류가 발생했습니다.')
+    showToast('계약 목록을 불러오는 중 오류가 발생했습니다.')
   }
 })
 
@@ -236,7 +243,7 @@ const filteredData = computed(() => {
 // 삭제
 function onDeleteClick() {
   const sel = gridApi?.getSelectedRows()||[]
-  if (!sel.length) return alert('삭제할 항목을 선택하세요.')
+  if (!sel.length) return showToast('삭제할 항목을 선택하세요.')
   showDeleteModal.value = true
 }
 function cancelDelete() {
@@ -252,10 +259,10 @@ async function confirmDelete() {
     fullData.value = fullData.value.filter(r=>!ids.includes(r.contractId))
     rowData.value  = rowData.value.filter(r=>!ids.includes(r.contractId))
     gridApi.deselectAll()
-    alert('삭제되었습니다.')
+    showToast('삭제되었습니다.')
   } catch(err) {
     console.error(err)
-    alert('삭제 중 오류가 발생했습니다.')
+    showToast('삭제 중 오류가 발생했습니다.')
   } finally {
     showDeleteModal.value = false
   }
@@ -301,7 +308,7 @@ async function onCellClick(e) {
       URL.revokeObjectURL(url)
     } catch (err) {
       console.error('파일 다운로드 실패:', err)
-      alert('파일 다운로드에 실패했습니다.')
+      showToast('파일 다운로드에 실패했습니다.')
     }
     return
   }
