@@ -444,7 +444,7 @@ function collapseDept(dept) {
 <style scoped>
 .org-container {
   font-size: 14px;
-  color: var(--text-main);
+  color: #333;
   padding: 0 12px;
 }
 

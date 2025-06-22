@@ -26,9 +26,6 @@
   --modal-bg: #ffffff;
   --modal-box-bg: #f5f5f5;
   --modal-text: #222;
-
-  /* table 사용 시 */
-  --bg-label-cell: #f8f9fa; 
 }
 
 body.dark {
@@ -59,8 +56,6 @@ body.dark {
   --text-sub: #bbb;
   --text-muted: #999;
   --text-disabled: #666;
-
-  --bg-label-cell: #2a2a2a;
 
     /* AG Grid 다크모드용 변수 추가 */
   --ag-background-color: #1e1e1e;

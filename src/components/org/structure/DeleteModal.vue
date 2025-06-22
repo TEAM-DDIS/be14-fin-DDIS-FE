@@ -3,6 +3,7 @@
     <div class="modal-content">
       <h3 class="modal-title">조직 삭제</h3>
 
+      <!-- 조직 종류 선택 -->
       <label class="modal-label" for="delete-org-type">삭제할 조직 종류</label>
       <select
         id="delete-org-type"
@@ -19,6 +20,7 @@
         </option>
       </select>
 
+      <!-- 체크박스 목록 -->
       <div v-if="filteredDeleteList.length" class="delete-list">
         <label v-for="item in filteredDeleteList" :key="item.value" class="delete-list-item">
           <input type="checkbox" :value="item.value" v-model="localSelectedIds" />
@@ -30,6 +32,7 @@
         <span v-else>선택된 조직이 없습니다.</span>
       </div>
 
+      <!-- 버튼 -->
       <div class="modal-buttons">
         <button class="modal-btn-cancel" @click="$emit('close')">취소</button>
         <button class="modal-btn-delete" @click="onConfirm" :disabled="!localSelectedIds.length">
@@ -64,7 +67,7 @@ const localSelectedIds = ref([])
 
 const router = useRouter()
 const userStore = useUserStore()
-const token = userStore.accessToken
+const token = localStorage.getItem('token')
 
 function parseJwtPayload(token) {
   try {
@@ -82,9 +85,11 @@ function parseJwtPayload(token) {
   }
 }
 
-const payload = parseJwtPayload(token)
+// 실제 권한 검사
+const payload = parseJwtPayload(userStore.accessToken || token)
 const isHR = payload?.role?.includes('ROLE_HR') || payload?.auth?.includes('ROLE_HR')
 
+// 접근 불가 시 리다이렉트
 if (!isHR) {
   showToast('접근 권한이 없습니다.')
   router.push('/error403')
@@ -118,7 +123,7 @@ function onConfirm() {
   z-index: 1000;
 }
 .modal-content {
-  background: var(--modal-box-bg);
+  background: #fff;
   border-radius: 10px;
   padding: 24px 32px;
   width: 450px;
@@ -141,12 +146,10 @@ function onConfirm() {
   width: 100%;
   padding: 8px 12px;
   font-size: 14px;
-  border: 1px solid var(--border-color);
+  border: 1px solid #ddd;
   border-radius: 6px;
   margin-bottom: 16px;
   box-sizing: border-box;
-  background: var(--modal-bg);
-  color: var(--text-main);
 }
 .modal-select:focus {
     outline: none;
@@ -156,7 +159,7 @@ function onConfirm() {
 .delete-list {
   max-height: 200px;
   overflow-y: auto;
-  border: 1px solid var(--border-color);
+  border: 1px solid #ddd;
   padding: 8px;
   border-radius: 6px;
   margin-bottom: 16px;

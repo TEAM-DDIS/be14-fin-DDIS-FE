@@ -649,7 +649,7 @@ function handleReload() {
 .toolbar-card {
   display: flex;
   align-items: center;
-  background: var(--bg-box);
+  background: #fff;
   border-radius: 12px;
   padding: 10px 24px;
   height: 70px;
@@ -734,7 +734,6 @@ function handleReload() {
   font-size: 16px;
   width: 200px;
   height: 40%;
-  background: var(--modal-box-bg);
 }
 .toolbar-search:focus {
   outline: none;
@@ -762,7 +761,7 @@ function handleReload() {
 }
 
 .card {
-  background: var(--bg-box);
+  background: #fff;
   border-radius: 12px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
   padding: 10px 30px;
@@ -852,7 +851,6 @@ function handleReload() {
 .member-table th {
   background: #f9fafb;
   font-weight: 500;
-  background-color: var(--bg-label-cell);
 }
 .member-table tr.active {
   background: #ececec;
@@ -886,7 +884,7 @@ function handleReload() {
 }
 .move-instruction {
   font-size: 14px;
-  color: var(--text-sub);
+  color: #555;
   margin-bottom: 16px;
 }
 </style>

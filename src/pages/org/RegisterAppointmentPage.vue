@@ -724,7 +724,7 @@ function cancel() {
 }
 
 .content-box {
-  background: var(--bg-box);
+  background: #fff;
   border-radius: 12px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
   margin-left: 20px;
@@ -768,12 +768,12 @@ function cancel() {
 }
 .info-table th,
 .info-table td {
-  border: 1px solid var(--border-color);
+  border: 1px solid #c8c8c8;
   padding: 12px 12px;
 }
 .info-table th {
   width: 120px;
-  background-color: var(--bg-label-cell);
+  background: #f8f9fa;
 }
 .info-section input[type="text"],
 .info-section input[type="date"],
@@ -782,7 +782,7 @@ function cancel() {
   box-sizing: border-box;
   padding: 8px 12px;
   font-size: 14px;
-  border: 2px solid var(--border-color);
+  border: 2px solid #c8c8c8;
   border-radius: 8px;
   outline: none;
   font-family: 'inter';
@@ -793,13 +793,13 @@ function cancel() {
   border: 1px solid black;
 }
 .info-section input[type="text"]::placeholder {
-  color: var(--text-main);
+  color: #555;
 }
 
 .button-group {
   position: absolute;
   bottom: 50px;
-  right: 240px;
+  right: 200px;
   display: flex;
   gap: 15px;
 }

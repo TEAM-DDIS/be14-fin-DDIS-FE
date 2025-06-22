@@ -5,6 +5,8 @@
         <p class="modal-title">조직 선택</p>
       </header>
 
+      <!-- 검색 결과 리스트 -->
+
       <OrgTree
         :hierarchy="props.hierarchy"
         :show-ranks="props.showRanks"
@@ -26,7 +28,7 @@
 </template>
 
 <script setup>
-  import { ref, computed } from 'vue'
+  import { ref, computed, watch } from 'vue'
   import OrgTree from '@/components/org/structure/HierarchyAppointment.vue'
 
   const props = defineProps({
@@ -43,7 +45,8 @@
     }
   })
 
-const emit = defineEmits(['select', 'close'])
+  const emit = defineEmits(['select', 'close'])
+  const searchResults = ref([]) 
 
 const selectedOrg = ref({
   headId: null,
@@ -93,8 +96,9 @@ function findHeadIdByDepartmentId(deptId) {
 
 function handleJobSelect(job) {
   selectedOrg.value.jobId = job.jobId
-  selectedOrg.value.jobName = job.jobName
+  selectedOrg.value.jobName = job.jobName       // ✅ 이거 빠졌으면 grid에 안 뜸!
   selectedOrg.value.jobCode = job.jobCode || null
+  console.log('🟢 직무 선택됨:', job)
 }
 
 const isComplete = computed(() =>
@@ -130,10 +134,10 @@ function handleConfirm() {
   
 }
 .modal-content {
-  background: var(--modal-box-bg);
-  padding: 40px;
-  border-radius: 12px;
-  width: 500px;
+  background: white;
+  padding: 30px;
+  border-radius: 10px;
+  width: 400px;
 }
 .modal-header {
   display: flex;

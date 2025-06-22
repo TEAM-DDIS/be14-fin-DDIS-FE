@@ -101,7 +101,7 @@ function onSave() {
   z-index: 1000;
 }
 .modal {
-  background: var(--modal-box-bg);
+  background: #fff;
   padding: 30px;
   border-radius: 12px;
   width: 480px;
@@ -122,12 +122,11 @@ h3 {
   align-items: center;
   gap: 12px;
   margin: 16px 10px;
-  
 }
 .modal-content label {
   font-size: 15px;
   font-weight: bold;
-  color: var(--modal-text);
+  color: #333;
   width: 100%;
   text-align: left;
 }
@@ -135,12 +134,10 @@ h3 {
 .modal-content textarea {
   width: 80%;
   padding: 8px;
-  border: 1px solid var(--border-color);
+  border: 1px solid #ccc;
   border-radius: 8px;
   font-size: 14px;
   font-family: inherit;
-  background: var(--modal-box-bg);
-  color: var(--modal-text);
 }
 .modal-content input:focus,
 .modal-content textarea:focus {
@@ -198,6 +195,5 @@ h3 {
   font-size: 20px;
   margin-bottom: 12px;
   letter-spacing: 0.5px;
-  color: var(--modal-text);
 }
 </style>
