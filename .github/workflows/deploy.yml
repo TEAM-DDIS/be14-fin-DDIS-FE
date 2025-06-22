@@ -62,16 +62,26 @@ jobs:
         cp Procfile deploy/Procfile
         cd deploy && zip -r deploy.zip .
 
+    - name: Get current time
+      uses: 1466587594/get-current-time@v2
+      id: current-time
+      with:
+        format: YYYYMMDD-HHmmss
+        utcOffset: "+09:00"
+
     - name: Beanstalk Deploy
       uses: einaregilsson/beanstalk-deploy@v22
       with:
         aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        application_name: Ddis-f-env-v2
-        environment_name: Ddis-f-env-v2
-        version_label: github-action-${{ github.sha }}
+        application_name: ddis-f-v3
+        environment_name: Ddis-f-v3-env
+        version_label: github-action-${{ steps.current-time.outputs.formattedTime }}
         region: ap-northeast-2
         deployment_package: deploy/deploy.zip
+        use_existing_version_if_available: false
+        wait_for_deployment: true
+        wait_for_environment_recovery: 300
 
     - name: Upload deploy.zip artifact
       if: always()
