@@ -96,66 +96,75 @@
 </script>
 
 <style scoped>
-    .event-form {
-        flex: 1;
-    }
+.event-form {
+  flex: 1;
+}
 
-    .btn-area {
-        display: flex;
-        justify-content: flex-end;
-        margin-top: 30px;
-    }
+.btn-area {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 30px;
+}
 
-    .submit-btn {
-        width: 96px;
-        height: 40px;
-        font-size: 14px;
-        font-weight: bold;
-        background-color: #00a8e8;
-        color: white;
-        border: 1px solid transparent;
-        border-radius: 10px;
-        padding: 10px 30px;
-        cursor: pointer;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-        transition: background-color 0.2s, box-shadow 0.2s;
-        box-sizing: border-box;
-    }
+/* 확인 버튼 (기본 primary) */
+.submit-btn {
+  width: 96px;
+  height: 40px;
+  font-size: 14px;
+  font-weight: bold;
+  background-color: var(--primary);
+  color: var(--text-on-primary);
+  border: 1px solid transparent;
+  border-radius: 10px;
+  padding: 10px 30px;
+  cursor: pointer;
+  box-shadow: 0 2px 8px var(--hover-shadow);
+  transition: background-color 0.2s, box-shadow 0.2s;
+  box-sizing: border-box;
+}
+.submit-btn:hover {
+  background-color: var(--text-on-primary);
+  color: var(--primary);
+  border-color: var(--primary);
+  box-shadow: inset 1px 1px 10px rgba(0, 0, 0, 0.25);
+}
 
-    .submit-btn:hover {
-        background-color: white;
-        color: #00a8e8;
-        border-color: #00a8e8;
-        box-shadow: inset 1px 1px 10px rgba(0, 0, 0, 0.25);
-    }
+/* 삭제 버튼 (secondary) */
+.delete-btn {
+  width: 96px;
+  height: 40px;
+  font-size: 14px;
+  font-weight: bold;
+  background-color: var(--bg-menu-btn-hover);
+  color: var(--text-main);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  padding: 10px 30px;
+  cursor: pointer;
+  box-shadow: 0 2px 8px var(--hover-shadow);
+  transition: background-color 0.2s, box-shadow 0.2s;
+  box-sizing: border-box;
+}
+.delete-btn:hover {
+  background-color: var(--text-main);
+  color: var(--text-on-primary);
+}
 
-    .delete-btn {
-        width: 96px;
-        height: 40px;
-        font-size: 14px;
-        font-weight: bold;
-        background-color: #d3d3d3;
-        color: #000;
-        border: none;
-        border-radius: 10px;
-        padding: 10px 30px;
-        cursor: pointer;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-        transition: background-color 0.2s, box-shadow 0.2s;
-        box-sizing: border-box;
-    }
+/* 카드 전체 */
+.personal-event-card {
+  --el-color-primary: var(--primary) !important;
+  background-color: var(--bg-box);
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 1px 1px 20px var(--hover-shadow);
+  color: var(--text-main);
+}
 
-    .delete-btn:hover {
-        background-color: #000;
-        color: #fff;
-    }
-
-    .personal-event-card {
-        --el-color-primary: #000 !important;
-    }
-
-    :deep(.el-form-item__label) {
-        color: #000;
-        font-size: 18px;
-    }
+/* 라벨 폰트 */
+:deep(.el-form-item__label) {
+  color: var(--text-main);
+  font-size: 16px;
+  font-weight: 500;
+}
 </style>

@@ -43,7 +43,7 @@ defineEmits(['add-favorite'])
 .sub-sidebar {
   position: relative !important; /* 부모 기준 위치 설정 */
   width: 280px;
-  background: white;
+  background: var(--bg-box); 
   padding: 15px 25px;
   display: flex;
   flex-direction: column;
@@ -59,8 +59,8 @@ defineEmits(['add-favorite'])
   font-size: 14px;
   padding-bottom: 4px;
   margin-bottom: 6px;
-  color: #222;
-  border-bottom: 1px solid #ccc;
+  color: var(--text-main);
+  border-bottom: 1px solid var(--border-color);
   transition: color 0.2s ease;
 }
 
@@ -81,6 +81,7 @@ defineEmits(['add-favorite'])
   padding: 2px 15px;
   font-size: 14px;
   margin-bottom: 3px;
+  color: var(--text-main);
 }
 
 /* '＋' 버튼 스타일 */

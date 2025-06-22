@@ -50,39 +50,38 @@ function onClick(menu) {
 
 <style scoped>
 .sidebar {
-  overflow-x: hidden; /* ✅ 수평 스크롤 제거 */
+  overflow-x: hidden;
   margin-top: -6px;
   width: 180px;
   overflow-y: auto;
-  min-height: calc(100vh - 60px); /* ✅ 화면 하단까지 배경 보이게 */
-  background-color: #f5f5f5;
+  min-height: calc(100vh - 60px);
+  background-color: var(--bg-sidebar);
   padding: 20px;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  box-shadow: 0.5px 0 5px rgba(0, 0, 0, 0.1);
+  box-shadow: 0.5px 0 5px var(--shadow-sidebar);
   gap: 22px;
-  overflow: visible;  /* ✅ 스크롤 제거 */
+  overflow: visible;
 }
 
-/* 출근 박스는 마진 없이 자동으로 하단에 배치 */
 .attendance-card {
   opacity: 80%;
   margin-left: -5px;
   position: sticky;
   bottom: 20px;
-  margin-top: auto; /* 남은 공간 밀어내고 하단 고정 */
+  margin-top: auto;
 }
 
 .home {
-  background-color: #00A8E8;
-  color: white;
+  background-color: var(--primary);
+  color: var(--text-on-primary);
   font-weight: bold;
   font-size: 18px;
   text-align: left;
   padding: 12px 20px;
-  width: calc(100% + 20px); /* ✅ 사이드바 오른쪽 padding 무시 */
-  margin-right: -20px;       /* ✅ 사이드바 padding 보정 */
+  width: calc(100% + 20px);
+  margin-right: -20px;
   border-top-left-radius: 20px;
   border-bottom-left-radius: 20px;
   border-top-right-radius: 0;
@@ -93,19 +92,19 @@ function onClick(menu) {
 }
 
 .home:hover {
-  background-color: #007db3; /* 약간 어두운 파랑 */
+  background-color: var(--primary-hover);
   cursor: pointer;
-  box-shadow: 0px 0px 10px 10px rgba(0, 0, 0, 0.03) inset;
+  box-shadow: inset 0px 0px 10px 10px var(--hover-shadow);
 }
 
 .home-link {
-  text-decoration: none;     /* ✅ 밑줄 제거 */
-  color: inherit;            /* ✅ 상속된 글자색 유지 */
+  text-decoration: none;
+  color: inherit;
 }
 
 .menu-button {
-  width: 95%;            /* 사이드바 너비에 딱 맞춤 */
-  background-color: white;
+  width: 95%;
+  background: var(--bg-box);
   margin-left: 7px;
   font-weight: bold;
   border: none;
@@ -113,13 +112,13 @@ function onClick(menu) {
   padding: 15px 0;
   font-size: 16px;
   cursor: pointer;
-  box-shadow: 0px 0px 5px 4px rgba(0, 0, 0, 0.03);
+  box-shadow: 0px 0px 5px 4px var(--menu-btn-shadow);
   transition: background-color 0.3s, box-shadow 0.3s;
   text-align: center;
 }
 
 .menu-button:hover {
-  background-color: #d6d6d6;
-  box-shadow: inset 0px 0px 10px 10px rgba(0, 0, 0, 0.1);
+  background-color: var(--bg-menu-btn-hover);
+  box-shadow: inset 0px 0px 10px 10px var(--hover-shadow);
 }
 </style>
