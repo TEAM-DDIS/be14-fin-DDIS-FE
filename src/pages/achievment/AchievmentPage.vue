@@ -59,6 +59,7 @@
 <script setup>
 import { ref, onMounted,reactive, computed  } from 'vue'
 import AgGrid from '@/components/grid/BaseGrid.vue'
+import { useUserStore } from '@/stores/user'
 
 // 컬럼 정의
 
@@ -68,7 +69,7 @@ const filters = reactive({
   departmentName: '',
   teamName: ''
 })
-
+const token = useUserStore().accessToken
 
 // 행 데이터
 const rowData = ref([])
@@ -79,7 +80,7 @@ async function loadData() {
   try {
     const res = await fetch(url, {
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json'
       }
     })

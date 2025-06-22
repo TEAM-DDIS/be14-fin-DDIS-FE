@@ -217,6 +217,7 @@ const userStore = useUserStore()
 const showMyPerfModal = ref(false)
 // presigned URL 저장
 const presignedUrls = ref([])
+const token = useUserStore().accessToken
 
 // 신규 목표 등록용 reactive 객체
 const newGoal = reactive({
@@ -298,7 +299,6 @@ function getKoreaLocalDateTimeString() {
 
 // 목표 목록을 백엔드에서 가져오기
 function fetchGoals() {
-  const token = localStorage.getItem('token')
   fetch('http://localhost:8000/goals', {
     headers: { Authorization: `Bearer ${token}` }
   })
@@ -377,7 +377,6 @@ function openGoalForm() {
 //  프리사인드 URL 미리 가져오기
 // -----------------------------
 async function fetchPresignedUrls() {
-  const token = localStorage.getItem('token')
   presignedUrls.value = []
 
   for (let i = 0; i < form.existingAttachmentKeys.length; i++) {
@@ -431,7 +430,6 @@ function getDownloadUrlWithDisposition(presignedUrl, filename) {
 // -----------------------------
 async function downloadAttachment(fileKey, fileType) {
   try {
-    const token = localStorage.getItem('token');
     // 쿼리스트링 생성
     const qs = new URLSearchParams({
       filename: fileKey,

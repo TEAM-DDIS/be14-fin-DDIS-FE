@@ -244,14 +244,14 @@ import { useUserStore } from '@/stores/user'
 
 // 인증과 사용자 상태
 const userStore      = useUserStore()
-const accessToken    = computed(() => userStore.accessToken)
+const token    = useUserStore().accessToken
 const currentUser    = computed(() => userStore.user)
 const selectedHistory = ref(null)
 
 
 function getPayload() {
   try {
-    const raw = accessToken.value.split('.')[1].replace(/-/g,'+').replace(/_/g,'/')
+    const raw = token.split('.')[1].replace(/-/g,'+').replace(/_/g,'/')
     return JSON.parse(atob(raw))
   } catch {
     return {}
@@ -350,7 +350,7 @@ function selectHistory(h) {
 async function fetchTeam() {
   if (!teamId.value) return
   const res = await fetch(`http://localhost:8000/review/${teamId.value}`, {
-    headers: { Authorization: `Bearer ${accessToken.value}` }
+    headers: { Authorization: `Bearer ${token}` }
   })
   if (!res.ok) throw new Error('팀원 불러오기 실패')
   employees.value = await res.json()
@@ -364,7 +364,7 @@ async function loadHistory() {
   try {
     const res = await fetch(
       `http://localhost:8000/review/history/${selectedEmployee.value}`,
-      { headers: { Authorization: `Bearer ${accessToken.value}` }}
+      { headers: { Authorization: `Bearer ${token}` }}
     )
     if (!res.ok) throw new Error(await res.text())
     const raw = await res.json()
@@ -401,7 +401,7 @@ async function submitManagerEval(decision) {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization:   `Bearer ${accessToken.value}`
+          Authorization:   `Bearer ${token}`
         },
         body: JSON.stringify(payload)
       }
