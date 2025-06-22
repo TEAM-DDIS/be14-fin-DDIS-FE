@@ -94,7 +94,7 @@ async function sendMessage() {
   })
 
   const payload = {
-    question: trimmed,
+    query: trimmed,
     session_id: sessionId,
     employee_id: employeeId
   }
