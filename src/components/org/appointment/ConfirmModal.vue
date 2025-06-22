@@ -32,7 +32,7 @@ defineProps({
 }
 
 .modal-content {
-  background: white;
+  background: var(--modal-box-bg);
   padding: 20px;
   border-radius: 12px;
   width: 300px;
