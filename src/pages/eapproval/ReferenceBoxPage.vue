@@ -65,7 +65,7 @@ const fetchDocs = async () => {
       date: search.value.date || ''
     })
 
-    const res = await fetch(`http://localhost:5000/drafts/query/reference?${params.toString()}`, {
+    const res = await fetch(`https://ddis-be-alb-1219702514.ap-northeast-2.elb.amazonaws.com/drafts/query/reference?${params.toString()}`, {
        method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`,  // ✅ 핵심
@@ -145,7 +145,7 @@ function handleFormRowClick(params) {
   const token = localStorage.getItem('token')
 
   if (!doc.readAt) {
-    fetch(`http://localhost:5000/drafts/query/reference/${doc.docId}/read`, {
+    fetch(`https://ddis-be-alb-1219702514.ap-northeast-2.elb.amazonaws.com/drafts/query/reference/${doc.docId}/read`, {
       method: 'PATCH',
       headers: {
         Authorization: `Bearer ${token}`,

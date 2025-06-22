@@ -103,7 +103,7 @@
     try {
       const token = userStore.accessToken
 
-      const res = await fetch('http://localhost:5000/attendance/leave/history/used/all', {
+      const res = await fetch('https://ddis-be-alb-1219702514.ap-northeast-2.elb.amazonaws.com/attendance/leave/history/used/all', {
         method: 'GET',
         headers: {
           Authorization: `Bearer ${token}`

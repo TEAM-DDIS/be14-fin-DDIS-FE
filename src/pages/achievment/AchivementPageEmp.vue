@@ -40,7 +40,7 @@ const rowData = ref([])
 
 onMounted(async () => {
   try {
-    const res = await fetch('http://localhost:5000/review/history/all')
+    const res = await fetch('https://ddis-be-alb-1219702514.ap-northeast-2.elb.amazonaws.com/review/history/all')
     if (res.ok) {
       rowData.value = await res.json()
     } else {

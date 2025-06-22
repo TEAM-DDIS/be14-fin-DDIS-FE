@@ -140,10 +140,10 @@ onMounted(async () => {
   if (!token) return
 
   const [resPersonal, resTeam] = await Promise.all([
-    fetch('http://localhost:5000/attendance/calendar/personal', {
+    fetch('https://ddis-be-alb-1219702514.ap-northeast-2.elb.amazonaws.com/attendance/calendar/personal', {
       headers: { Authorization: `Bearer ${token}` }
     }),
-    fetch('http://localhost:5000/attendance/calendar/team', {
+    fetch('https://ddis-be-alb-1219702514.ap-northeast-2.elb.amazonaws.com/attendance/calendar/team', {
       headers: { Authorization: `Bearer ${token}` }
     })
   ])

@@ -82,7 +82,7 @@ import {
 } from 'ag-grid-community'
 
 // Axios 기본 URL
-axios.defaults.baseURL = 'http://localhost:5000'
+axios.defaults.baseURL = 'https://ddis-be-alb-1219702514.ap-northeast-2.elb.amazonaws.com'
 
 // AG Grid 모듈 등록
 ModuleRegistry.registerModules([

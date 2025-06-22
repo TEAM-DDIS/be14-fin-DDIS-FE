@@ -361,7 +361,7 @@ const deleteList = computed(() => {
 onMounted(async () => {
   try {
     // 1) 조직 계층 조회 (GET /structure/hierarchy)
-    const res = await axios.get('http://localhost:5000/structure/hierarchy')
+    const res = await axios.get('https://ddis-be-alb-1219702514.ap-northeast-2.elb.amazonaws.com/structure/hierarchy')
     dataStore.headquarters = res.data
 
     // 2) hierarchyData 순회하며 departments, teams 배열 채우기
@@ -407,7 +407,7 @@ async function onDeptSelected(dept) {
   // GET /structure/departments/{deptId}/members
   try {
     const res = await axios.get(
-      `http://localhost:5000/structure/departments/${dept.departmentId}/members`
+      `https://ddis-be-alb-1219702514.ap-northeast-2.elb.amazonaws.com/structure/departments/${dept.departmentId}/members`
     )
     deptMembers.value = res.data
   } catch (e) {
@@ -428,7 +428,7 @@ async function onTeamSelected(team) {
   // GET /structure/teams/{teamId}/members
   try {
     const res = await axios.get(
-      `http://localhost:5000/structure/teams/${team.teamId}/members`
+      `https://ddis-be-alb-1219702514.ap-northeast-2.elb.amazonaws.com/structure/teams/${team.teamId}/members`
     )
     teamMembers.value = res.data
   } catch (e) {
@@ -538,11 +538,11 @@ async function handleAddOrg({ type, name, parentId }) {
   try {
     let res
     if (type === 'head') {
-      res = await axios.post('http://localhost:5000/org/create/head', { headName: name })
+      res = await axios.post('https://ddis-be-alb-1219702514.ap-northeast-2.elb.amazonaws.com/org/create/head', { headName: name })
       dataStore.headquarters.push(res.data)
     }
     else if (type === 'department') {
-      res = await axios.post('http://localhost:5000/org/create/department', {
+      res = await axios.post('https://ddis-be-alb-1219702514.ap-northeast-2.elb.amazonaws.com/org/create/department', {
         departmentName: name,
         headId: parentId
       })
@@ -553,7 +553,7 @@ async function handleAddOrg({ type, name, parentId }) {
       head && head.departments.push({ ...res.data, teams: [] })
     }
     else if (type === 'team') {
-      res = await axios.post('http://localhost:5000/org/create/team', {
+      res = await axios.post('https://ddis-be-alb-1219702514.ap-northeast-2.elb.amazonaws.com/org/create/team', {
         teamName: name,
         departmentId: parentId
       })
@@ -592,7 +592,7 @@ async function handleDeleteOrg({ type, ids }) {
     const endpoint = endpointMap[type]
     await Promise.all(
       ids.map(id =>
-        axios.delete(`http://localhost:5000/org/delete/${endpoint}/${id}`)
+        axios.delete(`https://ddis-be-alb-1219702514.ap-northeast-2.elb.amazonaws.com/org/delete/${endpoint}/${id}`)
       )
     )
     showToast('삭제 성공!')
@@ -606,7 +606,7 @@ async function handleDeleteOrg({ type, ids }) {
 
 // 트리 전체를 다시 불러오는 유틸 (onMounted 로직 재사용)
 async function loadHierarchy() {
-  const res = await fetch('http://localhost:5000/structure/hierarchy')
+  const res = await fetch('https://ddis-be-alb-1219702514.ap-northeast-2.elb.amazonaws.com/structure/hierarchy')
   const hierarchyData = await res.json()
   dataStore.headquarters = hierarchyData
 
