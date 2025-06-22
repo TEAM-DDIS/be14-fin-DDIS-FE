@@ -1,4 +1,3 @@
-// ES Module을 유지하되, 더 안정적으로 작성
 import express from "express"
 import path from "path"
 import { fileURLToPath } from "url"
@@ -19,12 +18,9 @@ app.get("/health", (req, res) => {
   res.status(200).json({
     status: "OK",
     timestamp: new Date().toISOString(),
-    env: process.env.NODE_ENV,
+    env: process.env.NODE_ENV || "development",
   })
 })
-
-// API 라우트들이 있다면 여기에 추가
-// app.use('/api', apiRoutes);
 
 // SPA를 위한 fallback - Vue Router 지원
 app.get("*", (req, res) => {
@@ -38,7 +34,7 @@ app.use((err, req, res, next) => {
 })
 
 app.listen(port, "0.0.0.0", () => {
-  console.log(`🚀 Server is running on port ${port}`)
-  console.log(`📁 Serving static files from: ${path.join(__dirname, "dist")}`)
+  console.log(`🚀 Server running on port ${port}`)
+  console.log(`📁 Serving from: ${path.join(__dirname, "dist")}`)
   console.log(`🌍 Environment: ${process.env.NODE_ENV || "development"}`)
 })
