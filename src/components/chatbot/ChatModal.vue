@@ -291,7 +291,7 @@ function onMouseUp() {
   border-radius: 8px;
   background: #fff;
   outline: none;
-  color: var(--text-main);
+  /* color: var(--text-main); */
   margin-right: 8px;
   transition: border-color 0.2s ease;
 }
