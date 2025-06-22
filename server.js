@@ -12,14 +12,14 @@ const __dirname = dirname(__filename);
 
 app.use(express.static(path.join(__dirname, 'dist')));
 
+app.get('/', (req, res) => {
+  res.send('ok!');
+});
+
 app.get('*', (req, res) => {
   res.sendFile(path.resolve(__dirname, 'dist', 'index.html'));
 });
 
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
-});
-
-app.get('/', (req, res) => {
-  res.send('ok!');
 });
