@@ -1,4 +1,3 @@
-<!-- src/components/EditJobModal.vue -->
 <template>
   <div class="modal-overlay" @click.self="$emit('close')">
     <div class="modal scrollbar">
@@ -10,16 +9,16 @@
         <label>직무명</label>
         <input v-model="local.job_name" type="text" />
 
-        <label>주요 역할 (줄바꿈 구분)</label>
+        <label>주요 역할</label>
         <textarea v-model="local.job_role_text" rows="4" />
 
-        <label>필요 역량 (줄바꿈 구분)</label>
+        <label>필요 역량</label>
         <textarea v-model="local.job_need_text" rows="4" />
 
-        <label>필수 조건 (줄바꿈 구분)</label>
+        <label>필수 조건</label>
         <textarea v-model="local.job_necessary_text" rows="4" />
 
-        <label>우대 사항 (줄바꿈 구분)</label>
+        <label>우대 사항</label>
         <textarea v-model="local.job_preference_text" rows="4" />
       </div>
       <div class="modal-actions">
@@ -41,7 +40,6 @@ const props = defineProps({
 })
 const emit = defineEmits(['close', 'save'])
 
-// 로컬 복사 + textarea 편집용 문자열으로 변환
 const local = reactive({
   job_id: props.initial.jobId,
   team_name: props.initial.teamName || '',
@@ -52,7 +50,6 @@ const local = reactive({
   job_preference_text: (props.initial.jobPreference || []).join('\n'),
 })
 
-// 부모 prop 바뀌면 동기화
 watch(
   () => props.initial,
   val => {
@@ -105,8 +102,8 @@ function onSave() {
 }
 .modal {
   background: #fff;
-  padding: 24px;
-  border-radius: 8px;
+  padding: 30px;
+  border-radius: 12px;
   width: 480px;
   max-width: 90%;
   height: 80%;
@@ -124,11 +121,12 @@ h3 {
   flex-direction: column;
   align-items: center;
   gap: 12px;
-  margin: 16px 0;
+  margin: 16px 10px;
 }
 .modal-content label {
-  font-size: 14px;
-  color: #424242;
+  font-size: 15px;
+  font-weight: bold;
+  color: #333;
   width: 100%;
   text-align: left;
 }
@@ -137,7 +135,7 @@ h3 {
   width: 80%;
   padding: 8px;
   border: 1px solid #ccc;
-  border-radius: 4px;
+  border-radius: 8px;
   font-size: 14px;
   font-family: inherit;
 }
@@ -146,10 +144,12 @@ h3 {
   outline: none;
   border: 1px solid black;
 }
+
 .modal-actions {
   display: flex;
-  justify-content: flex-end;
-  gap: 8px;
+  justify-content: center;
+  gap: 20px;
+  margin-top: 30px;
 }
 
 .btn-save {

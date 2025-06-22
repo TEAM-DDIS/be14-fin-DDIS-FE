@@ -1,4 +1,4 @@
-<!-- AppointmentDetailPage.vue -->
+<!-- 조직 및 직무 > 인사발령 > 인사발령 상세 -->
 <template>
   <div class="detail-page">
     <h1 class="page-title">
@@ -11,7 +11,6 @@
     <p class="desc">이력 상세 조회</p>
         
     <div v-if="appointmentDetail" class="content-box">
-      <!-- 상단 기본 정보 -->
       <table class="header-table">
         <tr>
           <th>사원번호</th>
@@ -73,7 +72,6 @@ async function loadDetail() {
     const res = await fetch(`${HISTORY_API}/history/${appointmentHistoryId}`)
     if (!res.ok) throw new Error(res.statusText)
 
-    // API에서 employeeName 포함된 단일 DTO 받음
     const dto = await res.json()
     appointmentDetail.value = Array.isArray(dto) ? dto[0] : dto
     rowDataDetail.value     = Array.isArray(dto) ? dto : [dto]
@@ -84,7 +82,6 @@ async function loadDetail() {
 
 onMounted(loadDetail)
 
-// AG Grid 컬럼 정의: DTO 필드명(camelCase)에 맞춤
 const detailColumnDefs = [
   { headerName: '사원번호',     field: 'employeeId',               width:180 },
   { headerName: '사원명',       field: 'employeeName',             flex: 1 },
@@ -103,6 +100,7 @@ const detailColumnDefs = [
 }
 .back-btn {
   width: 24px;
+  height: 24px;
   margin-right: -10px;
   cursor: pointer;
 }
@@ -117,10 +115,10 @@ const detailColumnDefs = [
   border-radius: 12px;
   padding: 20px 32px;
   box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-  margin: 24px;
+  margin-left: 20px;
 }
 .header-table {
-  width: 70%;
+  width: 60%;
   border-collapse: collapse;
   margin: 30px auto 40px;
 }
@@ -135,7 +133,7 @@ const detailColumnDefs = [
   text-align: left;
 }
 .grid-wrapper {
-  width: 80%;
+  width: 60%;
   margin: 40px auto;
 }
 .loading {

@@ -1,7 +1,7 @@
-<!-- components/common/ConfirmModal.vue -->
 <template>
   <div class="modal-overlay" @click.self="$emit('cancel')">
     <div class="modal-content">
+      <p class="modal-title">인사발령 이력 삭제</p>
       <p class="modal-message">{{ message }}</p>
       <div class="modal-actions">
           <button class="btn cancel" @click="$emit('cancel')">취소</button>
@@ -33,22 +33,28 @@ defineProps({
 
 .modal-content {
   background: white;
-  padding: 24px 32px;
-  border-radius: 10px;
-  min-width: 300px;
+  padding: 20px;
+  border-radius: 12px;
+  width: 300px;
   text-align: center;
 }
 
-.modal-message {
+.modal-title {
   font-size: 18px;
   font-weight: bold;
-  margin-bottom: 50px;
+  margin-bottom: 30px;
+}
+
+.modal-message {
+  font-size: 15px;
+  margin-bottom: 40px;
 }
 
 .modal-actions {
   display: flex;
   justify-content: center;
   gap: 20px;
+  margin-bottom: 10px;
 }
 
 .btn {

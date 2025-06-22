@@ -1,29 +1,31 @@
+<!-- 조직 및 직무 > 조직 구성 > 조직 구성 조회-->
 <template>
   <div class="page-container">
-    <h1 class="page-title">조직 구성</h1>
+    <h1 class="page-title">
+      <img src="@/assets/icons/back_btn.svg"
+      alt="back"
+      class="back-btn"
+      @click="goBack" />
+      조직 구성
+    </h1>
 
-    <!-- ① 조직도 편집 툴바 (기존과 동일) -->
     <div class="section">
       <p class="desc">조직도 편집</p>
       <div class="toolbar-card">
         <h2 class="toolbar-label">조직도 편집</h2>
-
-        <!-- ＋ 버튼: AddModal 열기 -->
-        <button @click="openAddModal" class="toolbar-btn-register">등록</button>
-
-        <!-- － 버튼: DeleteModal 열기 -->
-       <button @click="openDeleteModal" class="toolbar-btn-delete">삭제</button>
+        <div class="toolbar-btns">
+          <button @click="openDeleteModal" class="toolbar-btn-delete">삭제</button>
+          <button @click="openAddModal" class="toolbar-btn-register">등록</button>
+        </div>
       </div>
     </div>
 
     <div class="content-grid">
-      <!-- ② 조직도 조회 패널 (Tree) -->
       <div class="section">
         <p class="desc2">조직도 조회</p>
         <div class="card tree-panel scrollbar">
           <h2 class="card-title">조직도</h2>
           <div class="tree-container">
-            <!-- OrgHierarchyAll 컴포넌트: :headquarters 하나만 넘겨줍니다 -->
             <OrgHierarchyAll
               v-if="dataLoaded"
               :headquarters="dataStore.headquarters"
@@ -35,7 +37,6 @@
         </div>
       </div>
 
-      <!-- ③ 부서/팀 정보 + 직원 목록 패널 -->
       <div class="section">
         <p class="desc2">조직 정보 조회</p>
         <div class="card info-panel scrollbar">
@@ -58,7 +59,6 @@
           </div>
 
           <div class="info-body">
-            <!-- 1) 부서가 선택된 경우 -->
             <div v-if="selectedDept" class="info-content">
               <ul class="info-list">
                 <h3 class="section-title">부서 정보</h3>
@@ -124,7 +124,6 @@
               </div>
             </div>
 
-            <!-- 2) 팀이 선택된 경우 -->
             <div v-else-if="selectedTeam" class="info-content">
               <ul class="info-list">
                 <h3 class="section-title">팀 정보</h3>
@@ -189,7 +188,6 @@
               </div>
             </div>
 
-            <!-- 3) 아무것도 선택되지 않은 경우 -->
             <div v-else class="placeholder-info">
               좌측 트리에서 부서 또는 팀을 선택하거나, 검색창에 부서/팀을 입력하세요.
             </div>
@@ -217,6 +215,7 @@
               :ranks="dataStore.rank"
               @dept-selected="onDeptSelectedForMove"
               @team-selected="onTeamSelectedForMove"
+              @reload="handleReload" 
             />
           </div>
         </div>
@@ -240,7 +239,7 @@
       @close="closeDeleteModal"
       @confirm="handleDeleteOrg"
     />
-  </div>
+  </div>  
   <BaseToast ref="toastRef" />
 </template>
 
@@ -306,16 +305,20 @@ if (!isHR) {
   router.push('/error403')
 }
 
-  const toastRef = ref(null)
+const toastRef = ref(null)
 
-  function showToast(msg) {
-    toastRef.value?.show(msg)
-  }
+function showToast(msg) {
+  toastRef.value?.show(msg)
+}
 const orgOptions = [
   { id: 'head', name: '본부' },
   { id: 'department', name: '부서' },
   { id: 'team', name: '팀' }
 ]
+
+function goBack() {
+  router.back()
+}
 
 const deleteListAll = computed(() => {
   return {
@@ -333,20 +336,14 @@ const deleteListAll = computed(() => {
     }))
   }
 })
-const deleteList = computed(() => {
-  return deleteListAll.value[ deleteType.value ] || []
-})
-
 
 onMounted(async () => {
   try {
     const res = await axios.get('http://localhost:5000/structure/hierarchy', {
-      params,
       headers: { Authorization: `Bearer ${token}` }
     })
 
     dataStore.headquarters = res.data
-
     const deptList = []
     const teamList = []
     res.data.forEach(h => {
@@ -372,7 +369,6 @@ onMounted(async () => {
 
     dataLoaded.value = true
   } catch (err) {
-    console.error('❌ 초기 데이터 로드 실패:', err)
   }
 })
 
@@ -389,7 +385,6 @@ async function onDeptSelected(dept) {
     )
     deptMembers.value = res.data
   } catch (e) {
-    console.error('❌ 부서원 조회 실패:', e)
     deptMembers.value = []
   }
 }
@@ -407,7 +402,6 @@ async function onTeamSelected(team) {
     )
     teamMembers.value = res.data
   } catch (e) {
-    console.error('❌ 팀원 조회 실패:', e)
     teamMembers.value = []
   }
 }
@@ -501,26 +495,30 @@ async function handleAddOrg({ type, name, parentId }) {
     const headers = { 
       Authorization: `Bearer ${localStorage.getItem('token')}` 
     }
-    if (type === 'head') {
-      res = await axios.post('http://localhost:5000/org/create/head', { headName: name },  { headers})
+   if (type === 'head') {
+     const res = await axios.post(
+       'http://localhost:5000/org/create/head',
+       { headName: name },
+       { headers }
+     )
       dataStore.headquarters.push(res.data)
     }
-    else if (type === 'department') {
-      res = await axios.post('http://localhost:5000/org/create/department', {
-        departmentName: name,
-        headId: parentId},
-        { headers }
-      )
+   else if (type === 'department') {
+     const res = await axios.post(
+       'http://localhost:5000/org/create/department',
+       { departmentName: name, headId: parentId },
+       { headers }
+     )
       dataStore.departments.push(res.data)
       const head = dataStore.headquarters.find(h => h.headId === parentId)
       head && head.departments.push({ ...res.data, teams: [] })
     }
-    else if (type === 'team') {
-      res = await axios.post('http://localhost:5000/org/create/team', {
-        teamName: name,
-        departmentId: parentId
-      },
-    { headers })
+   else if (type === 'team') {
+     const res = await axios.post(
+       'http://localhost:5000/org/create/team',
+       { teamName: name, departmentId: parentId },
+       { headers }
+     )
       dataStore.teams.push(res.data)
       for (const h of dataStore.headquarters) {
         const dept = h.departments.find(d => d.departmentId === parentId)
@@ -552,9 +550,14 @@ async function handleDeleteOrg({ type, ids }) {
       team: 'team'
     }
     const endpoint = endpointMap[type]
+    const headers = { Authorization: `Bearer ${token}` }
+
     await Promise.all(
       ids.map(id =>
-        axios.delete(`http://localhost:5000/org/delete/${endpoint}/${id}`)
+       axios.delete(
+         `http://localhost:5000/org/delete/${endpoint}/${id}`,
+         { headers }
+       )
       )
     )
     showToast('삭제 성공!')
@@ -603,6 +606,10 @@ function onDeptSelectedForMove(dept) {
 function onTeamSelectedForMove(team) {
   console.log('이동용 팀 선택 ▶', team)
 }
+
+function handleReload() {
+  window.location.reload()
+}
 </script>
 
 <style scoped>
@@ -616,6 +623,13 @@ function onTeamSelectedForMove(team) {
   margin-left: 20px;
   margin-bottom: 30px;
   color: #00a8e8;
+}
+
+.back-btn {
+  width: 24px;
+  height: 24px;
+  margin-right: -10px;
+  cursor: pointer;
 }
 
 .desc {
@@ -632,26 +646,31 @@ function onTeamSelectedForMove(team) {
   font-size: 18px;
 }
 
-
-/* ① 조직도 편집 툴바 */
 .toolbar-card {
   display: flex;
   align-items: center;
   background: #fff;
   border-radius: 12px;
   padding: 10px 24px;
-  height: 100px;
+  height: 70px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
   margin-bottom: 50px;
-  gap: 15px;
+  gap: 20px;
   margin-left: 20px;
 }
 .toolbar-label {
   font-weight: bold;
-  font-size: 20px;
-  margin-right: 12px;
-  /* margin-bottom: 12px; */
+  font-size: 22px;
+  margin-left: 10px;
+  margin-right: 45px;
 }
+.toolbar-btns {
+  display: flex;
+  gap: 12px;
+  margin-left: auto; 
+  margin-right: 20px;
+}
+
 .toolbar-btn-register {
   display: flex;
   align-items: center;
