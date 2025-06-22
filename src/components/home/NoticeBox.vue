@@ -83,7 +83,7 @@ function formatDate(dateStr) {
 .section-title {
   font-size: 17px;
   font-weight: bold;
-  color: #000;
+  color: var(--text-main);
 }
 
 /* ↗ 바로가기 버튼 */
@@ -97,7 +97,7 @@ function formatDate(dateStr) {
   transition: color 0.2s;
 }
 .shortcut:hover {
-  color: #000;
+color: var(--text-main);  
 }
 
 /* 구분선 */
@@ -150,7 +150,7 @@ function formatDate(dateStr) {
   flex: 1;
   font-size: 14px;
   font-weight: 500;
-  color: #000;
+  color: var(--text-main);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -198,12 +198,13 @@ function formatDate(dateStr) {
   width: 100%;
   height: 20px;
   pointer-events: none; /* 클릭 막지 않게 */
-  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.09), #fff);
+  background: var(--fade-background);
 }
 
 /* 전체 박스 스타일 */
 .box {
-  background: #fff;
+  background: var(--bg-box);
+  color: var(--text-main);
   border-radius: 15px;
   padding: 20px;
   max-height: 200px;

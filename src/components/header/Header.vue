@@ -1,4 +1,3 @@
-<!-- src/components/header/Header.vue -->
 <template>
   <header class="header">
     <!-- 왼쪽: 로고 -->
@@ -8,26 +7,32 @@
       </RouterLink>
     </div>
 
-    <!-- 오른쪽: 알림 + 유저 정보 or 로그인 버튼 -->
+    <!-- 오른쪽: 알림 + 다크모드 + 유저 정보 or 로그인 버튼 -->
     <div class="header-right">
+      <!-- 알림 -->
       <div class="notice" @click="toggleNotification()">
-        <img src="@/assets/icons/bell.svg" alt="notice"  class="notice-img"/>
+        <img src="@/assets/icons/bell.svg" alt="notice" class="notice-img" />
         <span v-if="unreadCount > 0" class="badge">{{ unreadCount }}</span>
       </div>
 
+      <!-- 다크모드 텍스트 + 파란 토글 스위치 -->
+      <div class="darkmode-toggle">
+        <span class="toggle-label">다크모드</span>
+        <label class="switch">
+          <input type="checkbox" :checked="isDarkMode" @change="$emit('toggle-dark-mode')" />
+          <span class="slider"></span>
+        </label>
+      </div>
+
       <template v-if="user">
-        <!-- 로그인 되었을 때: 프로필 + 로그아웃 -->
         <div class="profile-wrapper">
-          <img src="/images/erpizza_profile.svg" alt="profile" class="profile-img"/>
+          <img src="/images/erpizza_profile.svg" alt="profile" class="profile-img" />
           <span class="user-name">{{ user.employeeName }}님</span>
         </div>
         <button class="btn-logout" @click="logout">로그아웃</button>
       </template>
       <template v-else>
-        <!-- 로그인 전일 때 -->
-        <RouterLink to="/org/login" class="btn-login-header">
-          로그인
-        </RouterLink>
+        <RouterLink to="/org/login" class="btn-login-header">로그인</RouterLink>
       </template>
     </div>
 
@@ -40,22 +45,23 @@
   </header>
 </template>
 
+
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { useRouter, RouterLink } from 'vue-router'
+import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import NoticeModal from '@/components/notice/NoticeModal.vue'
+
+defineProps({
+  isDarkMode: Boolean
+})
 
 const router = useRouter()
 const userStore = useUserStore()
 
-// 모달 표시 여부
 const showNotification = ref(false)
-// 알림 목록
 const notifications = ref([])
 
-// ① 페이지 로드 직후 알림을 한 번 가져와서
-//    새로고침 직후에도 벳지를 보여 줄 수 있게 한다.
 onMounted(async () => {
   try {
     await fetchNotifications()
@@ -64,43 +70,29 @@ onMounted(async () => {
   }
 })
 
-// 읽지 않은 알림 개수
 const unreadCount = computed(() =>
   notifications.value.filter(n => n.unread).length
 )
 
-// 로그인 상태 (Pinia store)
 const user = computed(() => userStore.user)
 
-// 로그아웃 처리
 function logout() {
   userStore.logout()
   router.push({ name: 'Login' })
 }
 
-// 모달 토글: 열릴 때마다 최신 알림 조회, 오류 있어도 열기 유지
 async function toggleNotification() {
-  // if (!showNotification.value) {
-  //   try {
-  //     await fetchNotifications()
-  //   } catch (e) {
-  //     console.error('알림 불러오기 중 오류:', e)
-  //   }
-  // }
   showNotification.value = !showNotification.value
 }
 
-// 알림 목록 조회 함수
 async function fetchNotifications() {
   const token = localStorage.getItem('token')
   const res = await fetch('https://api.isddishr.site/notice/me', {
     headers: {
-      'Authorization': `Bearer ${token}`
+      Authorization: `Bearer ${token}`
     }
   })
-  if (!res.ok) {
-    throw new Error(`알림 불러오기 실패: ${res.status}`)
-  }
+  if (!res.ok) throw new Error(`알림 불러오기 실패: ${res.status}`)
   const data = await res.json()
   notifications.value = data.map(item => ({
     id: item.noticeId,
@@ -112,27 +104,21 @@ async function fetchNotifications() {
   }))
 }
 
-// 알림 클릭 시 읽음 처리 + 라우팅
 async function handleNotificationClick(item) {
   const token = localStorage.getItem('token')
   try {
     const res = await fetch(`https://api.isddishr.site/notice/${item.id}/read`, {
       method: 'PATCH',
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
+      headers: { Authorization: `Bearer ${token}` }
     })
     if (!res.ok) console.warn('읽음 처리 실패:', res.status)
-    // 로컬에서도 즉시 읽음 표시
     item.unread = false
   } catch (err) {
     console.error('읽음 처리 중 예외 발생:', err)
   }
 
-  // 모달 닫기
   showNotification.value = false
 
-  // 타입별 네비게이션
   switch (item.type) {
     case '연차촉진':
       router.push({ path: '/attendance/myLeave' })
@@ -148,7 +134,6 @@ async function handleNotificationClick(item) {
   }
 }
 
-// 모달 닫기 함수
 function closeNotification() {
   showNotification.value = false
 }
@@ -158,18 +143,17 @@ function closeNotification() {
 .header {
   width: 100%;
   height: 60px;
-  min-height: 60px;     /* ✅ 높이 보장 */
-  max-height: 60px;
-  overflow: hidden;      /* ✅ 내부 넘침 방지 */
-  white-space: nowrap;   /* ✅ 한 줄 유지 */
-  text-overflow: ellipsis; /* ✅ 텍스트 넘칠 때 말줄임 */
-  box-sizing: border-box;
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 0 16px;
-  background-color: #f9f9f9;
-  border-bottom: 1px solid #ddd;
+  background-color: var(--bg-main);
+  border-bottom: 1px solid var(--border-color);
+  box-sizing: border-box;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  transition: background-color 0.3s, border-color 0.3s;
 }
 
 .logo-img {
@@ -186,23 +170,22 @@ function closeNotification() {
   position: relative;
   margin-top: 4px;
 }
-
 .badge {
   position: absolute;
   top: -4px;
   right: -8px;
-  background: rgb(255, 0, 0);
-  color: #fff;
+  background: red;
+  color: white;
   border-radius: 50%;
   padding: 0 6px;
   font-size: 0.75rem;
   line-height: 1.5;
 }
-
 .notice-img {
   width: 28px;
   height: 28px;
   cursor: pointer;
+  filter: var(--icon-filter, brightness(0));
 }
 
 .profile-wrapper {
@@ -210,44 +193,86 @@ function closeNotification() {
   align-items: center;
   gap: 8px;
 }
-
 .profile-img {
   width: 28px;
   height: 28px;
   border-radius: 50%;
   object-fit: cover;
 }
-
 .user-name {
   font-size: 14px;
   line-height: 28px;
   font-weight: 500;
+  color: var(--text-main);
 }
 
-.btn-login-header {
-  padding: 6px 12px;
-  background-color: #00aeef;
-  color: white;
-  border-radius: 4px;
-  text-decoration: none;
-  font-weight: 500;
-  transition: background-color 0.2s;
-}
-.btn-login-header:hover {
-  background-color: #0096d6;
-}
-
+.btn-login-header,
 .btn-logout {
-  padding: 2px 6px;
-  background-color: #e74c3c;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
+  padding: 6px 12px;
+  background-color: var(--primary);
+  border-radius: 6px;
   font-weight: 500;
-  transition: background-color 0.2s;
+  transition: background-color 0.2s, color 0.2s, box-shadow 0.2s;
+  border:  1px solid transparent;
+  cursor: pointer;
+  box-shadow: inset 0 0 0 transparent;
+  text-decoration: none;
+  color: white;
 }
+
+.btn-login-header:hover,
 .btn-logout:hover {
-  background-color: #c0392b;
+  background-color: white;
+  color: var(--primary);
+  box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.15);
+  border: 1px solid var(--primary);
+}
+
+.darkmode-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-main);
+}
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 48px;
+  height: 24px;
+}
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.slider {
+  background-color: #ccc;
+  border-radius: 24px;
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  transition: 0.4s;
+}
+.slider::before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  border-radius: 50%;
+  transition: 0.4s;
+}
+input:checked + .slider {
+  background-color: var(--primary);
+}
+input:checked + .slider::before {
+  transform: translateX(24px);
 }
 </style>

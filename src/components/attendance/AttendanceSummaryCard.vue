@@ -349,7 +349,7 @@
 
 <style scoped>
   .attendance-summary-card {
-    background: white;
+    background: var(--bg-box);
     padding-top: 8px;    /* 상단만 8px 로 줄임 */
     padding-right: 18px;
     padding-bottom: 18px;
@@ -357,6 +357,7 @@
     border-radius: 12px;
     box-shadow: 1px 1px 20px 1px rgba(0, 0, 0, 0.05);
     font-family: 'Pretendard', sans-serif;
+    color: var(--text-main);
   }
 
   .greeting {
@@ -370,11 +371,13 @@
   .greeting-main {
     font-size: 18px;
     font-weight: 600;
+    color: var(--text-main);
   }
   /* “님 안녕하세요.” */
   .greeting-sub {
     font-size: 16px;
     font-weight: 400;
+    color: var(--text-sub);
   }
 
   /* status 부분 래핑 */
@@ -387,6 +390,7 @@
   .status-main {
     font-size: 18px;
     font-weight: 600;
+    color: var(--text-main);
   }
 
   /* “입니다.” */
@@ -394,12 +398,13 @@
     font-size: 16px;
     font-weight: 400;
     margin-left: 4px;
+    color: var(--text-sub);
   }
 
   .time-info {
     font-size: 12px;
     margin-bottom: 16px;
-    color: #666;
+    color: var(--text-sub);
     text-align: right;
   }
 
@@ -424,7 +429,7 @@
 
   .circle-bg {
     fill: none;
-    stroke: #eee;
+    stroke: var(--border-color);
     stroke-width: 3;
   }
 
@@ -448,12 +453,12 @@
   .percent-text strong {
     font-size: 22px;
     font-weight: bold;
-    color: #000;
+    color: var(--text-main);
   }
 
   .percent-text .label {
     font-size: 12px;
-    color: #666;
+    color: var(--text-sub);
     margin: 4px 0 2px;
   }
 
@@ -461,6 +466,7 @@
     font-size: 18px;
     font-weight: bold;
     margin: 0;
+    color: var(--text-main);
   }
 
   .check-btn {
@@ -470,28 +476,28 @@
     border-radius: 10px;
     font-weight: bold;
     font-size: 18px;
-    color: white;
+    color: var(--text-on-primary);
     padding-bottom: 4px;
     margin: 0 auto;
     margin-top: 50px;
     display: block;
     cursor: pointer;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    box-shadow: 1px 1px 20px 1px rgba(0, 0, 0, 0.05);
     transition: background-color 0.2s, box-shadow 0.2s;
   }
 
   .check-btn:hover {
     background-color: white;
-    color: #00A8E8;
-    border: 1px solid #00A8E8;
+    color: var(--primary);
+    border: 1px solid var(--primary);
     box-shadow: inset 1px 1px 10px rgba(0, 0, 0, 0.25);
   }
 
   .btn-blue {
-    background-color: #00A8E8;
+  background-color: var(--primary);
   }
 
   .btn-gray {
-    background-color: #00A8E8;
+  background-color: var(--primary);
   }
 </style>

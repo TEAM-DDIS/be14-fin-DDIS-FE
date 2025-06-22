@@ -152,17 +152,18 @@ onMounted(fetchFavorites)
 
 /* 개별 자주 쓰는 메뉴 항목 */
 .favorite-item {
-  background-color: #fff;
+  background-color: var(--bg-main); 
   border-radius: 8px;
   padding: 12px;
   font-size: 14px;
   display: flex;
   align-items: center;
   position: relative;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 1px 3px var(--hover-shadow);
   min-height: 30px;
   width: 180px;
   gap: 8px;
+  color: var(--text-main); 
 }
 
 /* 메뉴 이름 텍스트 */

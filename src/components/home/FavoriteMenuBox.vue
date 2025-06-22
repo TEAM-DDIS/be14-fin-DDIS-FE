@@ -123,6 +123,7 @@ onMounted(fetchFavorites)
 
 .menu-item,
 .edit-button {
+
   width: 100%;
   min-height: 65px;
   max-width: 300px;
@@ -140,30 +141,33 @@ onMounted(fetchFavorites)
 
 /* 개별 효과는 따로 */
 .menu-item {
-  background-color: #ffffff;
-  color: #7D7D7D;
+  background-color: var(--bg-box);
+  color: var(--text-sub);
   cursor: pointer;
   word-break: break-word;
+  transition: background-color 0.2s, color 0.2s;
 }
 .menu-item:hover {
-  background-color: #00a8e8;
+  background-color: var(--primary);
   color: #fff;
 }
 
 .edit-button {
-  background-color: #D3D3D3;
+  background-color: var(--text-muted);
   font-weight: 600;
   border: none;
   cursor: pointer;
   transition: background-color 0.2s;
   margin-bottom: 10px;
+  color: var(--text-main);
 }
 .edit-button:hover {
-  background-color: #000000;
-  color: white;
+  background-color: var(--primary-dark);
+  color: var(--text-main);
 }
 .box {
-  background: #fff;
+  background: var(--bg-box);
+    color: var(--text-main);
   border-radius: 15px;
   padding: 20px;
   min-height: 200px;
