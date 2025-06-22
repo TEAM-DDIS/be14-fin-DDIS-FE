@@ -1,5 +1,5 @@
 <template>
-  <div class="modal-overlay" @click.self="$emit('cancel')">
+  <div class="modal-overlay">
     <div class="modal-content">
       <p class="modal-title">인사발령 이력 삭제</p>
       <p class="modal-message">{{ message }}</p>

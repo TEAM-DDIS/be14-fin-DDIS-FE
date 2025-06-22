@@ -1,5 +1,5 @@
 <template>
-  <div class="modal-overlay" @click.self="close">
+  <div class="modal-overlay">
     <div class="modal-box">
       <p class="modal-title">조직 구성 편집 취소</p>
       <p class="modal-message">{{ message }}</p>

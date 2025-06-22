@@ -1,5 +1,5 @@
 <template>
-  <div class="modal-overlay" @click.self="$emit('close')">
+  <div class="modal-overlay">
     <div class="modal scrollbar">
       <h3>직무 정보 편집</h3>
       <div class="modal-content">

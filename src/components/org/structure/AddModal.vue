@@ -1,5 +1,5 @@
 <template>
-  <div v-if="show" class="modal-overlay" @click.self="$emit('close')">
+  <div v-if="show" class="modal-overlay">
     <div class="modal-content">
       <h3 class="modal-title">신규 조직 등록</h3>
 
