@@ -50,7 +50,7 @@
     }
 
     try {
-      const res = await fetch('https://ddis-be-alb-1219702514.ap-northeast-2.elb.amazonaws.com/attendance/correction/history/process/me', {
+      const res = await fetch('https://api.isddishr.site/attendance/correction/history/process/me', {
         headers: {
           Authorization: `Bearer ${token}`
         }

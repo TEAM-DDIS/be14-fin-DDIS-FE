@@ -100,7 +100,7 @@
     const token = userStore.accessToken
     
     try {
-      const res = await fetch('https://ddis-be-alb-1219702514.ap-northeast-2.elb.amazonaws.com/attendance/overtime-request', {
+      const res = await fetch('https://api.isddishr.site/attendance/overtime-request', {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`,
@@ -124,7 +124,7 @@
     showToast('근무 신청이 완료되었습니다.')
     show.value = false
 
-      const summaryRes = await axios.get('https://ddis-be-alb-1219702514.ap-northeast-2.elb.amazonaws.com/attendance/overtime-summary', {
+      const summaryRes = await axios.get('https://api.isddishr.site/attendance/overtime-summary', {
         headers: { Authorization: `Bearer ${token}` }
       })
       summary.value = summaryRes.data
@@ -142,7 +142,7 @@
     }
 
     try {
-      const res = await axios.get('https://ddis-be-alb-1219702514.ap-northeast-2.elb.amazonaws.com/attendance/overtime-summary', {
+      const res = await axios.get('https://api.isddishr.site/attendance/overtime-summary', {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -156,7 +156,7 @@
 
 <style scoped>
   .weekly-overtime-card {
-    background: white;
+    background: var(--bg-box);
     padding: 18px;
     border-radius: 12px;
     box-shadow: 1px 1px 20px 1px rgba(0, 0, 0, 0.05);
@@ -180,7 +180,7 @@
     display: flex;
     align-items: center;
     font-size: 12px;
-    color: #333;
+    color: var(--text-main);
   }
   .dot {
     display: inline-block;
@@ -189,7 +189,7 @@
     border-radius: 50%;
     margin-right: 4px;
   }
-  .dot.extended { background-color: #00A8E8; }
+  .dot.extended {background-color: var(--primary); }
   .dot.night    { background-color: #FFD59E; }
   .dot.holiday  { background-color: #F7A6A6; }
 
@@ -197,7 +197,7 @@
   .bar {
     position: relative;
     height: 8px;
-    background: #eee;
+    background: var(--bg-menu-btn-hover);
     border-radius: 4px;
     overflow: hidden;
     margin-bottom: 12px;
@@ -206,7 +206,7 @@
     height: 100%;
     float: left;
   }
-  .segment.extended { background-color: #00A8E8; }
+  .segment.extended { background-color: var(--primary); }
   .segment.night    { background-color: #FFD59E; }
   .segment.holiday  { background-color: #F7A6A6; }
 
@@ -215,11 +215,11 @@
     font-size: 20px;
     font-weight: 700;
     margin-bottom: 8px;
-    color: #333;
+    color: var(--text-main);
   }
   .desc {
     font-size: 11px;
-    color: #666;
+    color: var(--text-sub);
     line-height: 1.4;
     margin-bottom: 16px;
   }
@@ -227,8 +227,8 @@
   /* Apply Button */
   .apply-btn {
     display: block;
-    background-color: #00a8e8;
-    color: white;
+    background-color: var(--primary);
+    color: var(--text-on-primary);
     font-weight: bold;
     border: 1px solid transparent;
     border-radius: 10px;
@@ -240,9 +240,9 @@
     box-sizing: border-box;
   }
   .apply-btn:hover {
-    background-color: white;
-    color: #00A8E8;
-    border: 1px solid #00A8E8;
+    background-color: var(--text-on-primary);
+    color: var(--primary);
+    border: 1px solid var(--primary);
     box-shadow: inset 1px 1px 10px rgba(0, 0, 0, 0.25);
   }
 
@@ -259,12 +259,13 @@
 
   /* 모달 내용 */
   .modal {
-    background: white;
+    background: var(--modal-bg);
     padding: 30px;
     border-radius: 12px;
     width: 420px;
     box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
     position: relative !important;
+    color: var(--modal-text);
   }
 
   .modal-desc {

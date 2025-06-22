@@ -12,6 +12,15 @@ const __dirname = dirname(__filename);
 
 app.use(express.static(path.join(__dirname, 'dist')));
 
+// 헬스체크 엔드포인트 (EB용)
+app.get("/health", (req, res) => {
+  res.status(200).json({
+    status: "OK",
+    timestamp: new Date().toISOString(),
+    env: process.env.NODE_ENV || "development",
+  })
+})
+
 app.get('*', (req, res) => {
   res.sendFile(path.resolve(__dirname, 'dist', 'index.html'));
 });
@@ -20,6 +29,4 @@ app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
 
-app.get('/', (req, res) => {
-  res.send('ok');
-});
+

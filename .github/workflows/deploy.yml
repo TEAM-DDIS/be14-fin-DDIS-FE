@@ -7,15 +7,11 @@ permissions:
 on:
   pull_request:
     branches:
-      - main
-    types:
-      - opened
-      - reopened
-      - synchronize
-
+      - "main"
+    types: [ opened, reopened, synchronize ]
   push:
     branches:
-      - main
+      - "main"
 
 jobs:
   deploy:
@@ -29,10 +25,6 @@ jobs:
       uses: actions/setup-node@v2
       with:
         node-version: '20'
-
-    - name: Clean node_modules and lockfile
-      run: |
-        rm -rf node_modules package-lock.json
 
     - name: Install dependencies
       run: npm install
@@ -56,7 +48,7 @@ jobs:
     - name: Generate deployment package
       run: |
         mkdir -p deploy
-        cp -r dist deploy/
+        cp -r dist deploy/  # dist 디렉토리를 포함
         cp package.json deploy/
         cp server.js deploy/ 
         cp Procfile deploy/Procfile
@@ -67,15 +59,8 @@ jobs:
       with:
         aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        application_name: Ddis-f-env-v2
-        environment_name: Ddis-f-env-v2
+        application_name: ddis-f-v4
+        environment_name: Ddis-f-v4-env
         version_label: github-action-${{ github.sha }}
         region: ap-northeast-2
         deployment_package: deploy/deploy.zip
-
-    - name: Upload deploy.zip artifact
-      if: always()
-      uses: actions/upload-artifact@v4
-      with:
-        name: deploy-package
-        path: deploy/deploy.zip

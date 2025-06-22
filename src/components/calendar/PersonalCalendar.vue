@@ -84,7 +84,7 @@
       const token = userStore.accessToken
 
       try {
-          const res = await fetch('https://ddis-be-alb-1219702514.ap-northeast-2.elb.amazonaws.com/attendance/schedule/personal', {
+          const res = await fetch('https://api.isddishr.site/attendance/schedule/personal', {
               method: 'POST',
               headers: {
                   'Authorization': `Bearer ${token}`,
@@ -198,7 +198,7 @@
   const handleUpdate = async (updated) => {
   const token = useUserStore().accessToken
 
-  await fetch(`https://ddis-be-alb-1219702514.ap-northeast-2.elb.amazonaws.com/attendance/schedule/personal/${updated.id}`, {
+  await fetch(`https://api.isddishr.site/attendance/schedule/personal/${updated.id}`, {
     method: 'PUT',
     headers: {
       Authorization: `Bearer ${token}`,
@@ -225,7 +225,7 @@
   const handleDelete = async (id) => {
     const token = useUserStore().accessToken
 
-    await fetch(`https://ddis-be-alb-1219702514.ap-northeast-2.elb.amazonaws.com/attendance/schedule/personal/${id}`, {
+    await fetch(`https://api.isddishr.site/attendance/schedule/personal/${id}`, {
       method: 'DELETE',
       headers: {
         Authorization: `Bearer ${token}`
@@ -246,7 +246,7 @@
           return
       }
 
-      const res = await fetch('https://ddis-be-alb-1219702514.ap-northeast-2.elb.amazonaws.com/attendance/calendar/personal', {
+      const res = await fetch('https://api.isddishr.site/attendance/calendar/personal', {
           headers: { Authorization: `Bearer ${token}` }
       })
 
@@ -291,14 +291,12 @@
 
 <style scoped>
   /* 캘린더 박스 */
-  .personal-calendar {
-    background-color: #ffffff;
-    border-radius: 12px;
-    box-shadow: 1px 1px 20px 1px rgba(0, 0, 0, 0.05);
-    padding-left: 25px;
-    padding-top: 25px;
-    padding-bottom: 25px;
-  }
+.personal-calendar {
+  background-color: var(--bg-box);
+  border-radius: 12px;
+  box-shadow: 1px 1px 20px var(--shadow-sidebar);
+  padding: 25px 0 25px 25px;
+}
 
   /* legend + 버튼을 좌우 정렬 */
   .legend-wrapper {
@@ -312,13 +310,14 @@
     display: flex;
     gap: 16px;
     margin-bottom: 12px;
+    color: var(--text-sub);
   }
 
   .legend-item {
     display: flex;
     align-items: center;
     font-size: 12px;
-    color: #333;
+    color: var(--text-sub);
   }
 
   .dot {
@@ -338,9 +337,9 @@
 
   /* 일정 등록 버튼 */
   .register-btn {
-    background-color: #00A8E8;
-    border: 1px solid #00A8E8;
-    color: #fff;
+    background-color: var(--primary);
+    border: 1px solid var(--primary);
+    color: var(--text-on-primary);
     font-weight: bold;
     border-radius: 10px;
     padding: 4px 12px;
@@ -350,9 +349,9 @@
     font-size: 14px;
   }
   .register-btn:hover {
-    background-color: #fff;
-    color: #00A8E8;
-    border: 1px solid #00A8E8;
+    background-color: var(--text-on-primary);
+    color: var(--primary);
+    border: 1px solid var(--primary);
     box-shadow: inset 1px 1px 6px rgba(0,0,0,0.1);
   }
 
@@ -369,7 +368,8 @@
   }
 
   .modal {
-    background: white;
+    background: var(--modal-bg);
+    color: var(--modal-text);
     padding: 30px;
     border-radius: 12px;
     width: 420px;
@@ -415,33 +415,33 @@
 
   /* 이벤트 색상 */
   :deep(.calendar--personal .event-leave) {
-    background-color: white !important;
+    background-color: var(--event-bg-default) !important;
     border: 3.5px solid #8C9FFF !important;
   }
 
   :deep(.calendar--personal .event-half-am),
   :deep(.calendar--personal .event-half-pm) {
-    background-color: white !important;
+    background-color: var(--event-bg-default) !important;
     border: 3.5px solid #8CC2FF !important;
   }
 
   :deep(.calendar--personal .event-trip) {
-    background-color: white !important;
+    background-color: var(--event-bg-default) !important;
     border: 3.5px solid #C5E695 !important;
   }
 
   :deep(.calendar--personal .event-out) {
-    background-color: white !important;
+    background-color: var(--event-bg-default) !important;
     border: 3.5px solid #D0F0B0 !important;
   }
 
   :deep(.calendar--personal .event-late) {
-    background-color: white !important;
+    background-color: var(--event-bg-default) !important;
     border: 3.5px solid #FFD38C !important;
   }
 
   :deep(.calendar--personal .event-absent) {
-    background-color: white !important;
+    background-color: var(--event-bg-default) !important;
     border: 3.5px solid #FF8C9A !important;
   }
 
@@ -481,12 +481,12 @@
   :deep(.calendar--personal .event-status-schedule) {
     font-size: 16px;
     /* font-weight: 600; */
-    color: black;
+    color: var(--text-main);
   }
 
   :deep(.calendar--personal .event-status),
   :deep(.calendar--personal .event-employee) {
-    color: black;
+    color: var(--text-main);
     font-size: 16px;
   }
 
@@ -497,7 +497,7 @@
   :deep(.calendar--personal .event-employee),
   :deep(.calendar--personal .event-employee-schedule) {
     font-size: 16px;
-    color: black;
+    color: var(--text-main);
   }
 
   :deep(.calendar--personal .event-status) {
@@ -507,13 +507,13 @@
   /* 스케줄 타입은 white text */
   :deep(.calendar--personal .event-status-schedule),
   :deep(.calendar--personal .event-employee-schedule) {
-    color: white;
+    color: var(--text-main);
   }
 
   /* 버튼들 */
   :deep(.calendar--personal .fc-button) {
-    background-color: #00A8E8 !important;
-    color: white !important;
+    background-color: var(--primary) !important;
+  color: var(--text-on-primary) !important;
     border: 1px solid transparent !important;
     padding: 4px 10px !important;
     border-radius: 6px !important;
@@ -534,14 +534,14 @@
   }
 
   :deep(.calendar--personal .fc-today-button.fc-button-primary:hover) {
-    background-color: white !important;
+    background-color: var(--event-bg-default) !important;
     color: #00A8E8 !important;
     border: 1px solid #00A8E8 !important;
     box-shadow: inset 1px 1px 10px rgba(0, 0, 0, 0.25) !important;
   }
 
   :deep(.calendar--personal .fc-button:hover) {
-    background-color: white !important;
+    background-color: var(--event-bg-default) !important;
     color: #00A8E8 !important;
     border: 1px solid #00A8E8 !important;
     box-shadow: inset 1px 1px 10px rgba(0, 0, 0, 0.25) !important;
@@ -552,7 +552,7 @@
   }
 
   :deep(.calendar--personal .fc-today-button:disabled) {
-    background-color: #00A8E8 !important;
+    background-color: var(--primary) !important;
     color: white !important;
   }
 
@@ -560,7 +560,7 @@
   :deep(.calendar--personal .fc-toolbar-title) {
     font-size: 18px !important;
     font-weight: 700 !important;
-    color: #333 !important;
+    color: var(--text-main) !important;
     font-family: 'Pretendard', sans-serif !important;
   }
 </style>

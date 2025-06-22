@@ -65,7 +65,7 @@ const isHrTeam = computed(() => {
 // 자주 쓰는 메뉴 불러오기
 const fetchFavorites = async () => {
   try {
-    const { data } = await axios.get('https://ddis-be-alb-1219702514.ap-northeast-2.elb.amazonaws.com/menus/favorites/me', {
+    const { data } = await axios.get('https://api.isddishr.site/menus/favorites/me', {
       headers: {
         'Authorization': `Bearer ${token}`
       }
@@ -82,7 +82,7 @@ const fetchFavorites = async () => {
 // 자주 쓰는 메뉴 삭제
 const remove = async (menuId) => {
   try {
-    await axios.delete('https://ddis-be-alb-1219702514.ap-northeast-2.elb.amazonaws.com/menus/favorites', {
+    await axios.delete('https://api.isddishr.site/menus/favorites', {
       params: { menuId },
       headers: {
         'Authorization': `Bearer ${token}`
@@ -106,7 +106,7 @@ const handleDragEnd = async () => {
   }))
 
   try {
-    await axios.patch('https://ddis-be-alb-1219702514.ap-northeast-2.elb.amazonaws.com/menus/favorites/order', { orders }, {
+    await axios.patch('https://api.isddishr.site/menus/favorites/order', { orders }, {
       headers: {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json'
@@ -152,17 +152,18 @@ onMounted(fetchFavorites)
 
 /* 개별 자주 쓰는 메뉴 항목 */
 .favorite-item {
-  background-color: #fff;
+  background-color: var(--bg-main); 
   border-radius: 8px;
   padding: 12px;
   font-size: 14px;
   display: flex;
   align-items: center;
   position: relative;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 1px 3px var(--hover-shadow);
   min-height: 30px;
   width: 180px;
   gap: 8px;
+  color: var(--text-main); 
 }
 
 /* 메뉴 이름 텍스트 */

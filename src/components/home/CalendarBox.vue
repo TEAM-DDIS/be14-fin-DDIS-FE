@@ -140,10 +140,10 @@ onMounted(async () => {
   if (!token) return
 
   const [resPersonal, resTeam] = await Promise.all([
-    fetch('https://ddis-be-alb-1219702514.ap-northeast-2.elb.amazonaws.com/attendance/calendar/personal', {
+    fetch('https://api.isddishr.site/attendance/calendar/personal', {
       headers: { Authorization: `Bearer ${token}` }
     }),
-    fetch('https://ddis-be-alb-1219702514.ap-northeast-2.elb.amazonaws.com/attendance/calendar/team', {
+    fetch('https://api.isddishr.site/attendance/calendar/team', {
       headers: { Authorization: `Bearer ${token}` }
     })
   ])
@@ -233,7 +233,7 @@ onActivated(() => {
 :deep(.calendar--home .event-status),
 :deep(.calendar--home .event-employee) {
   font-size: 11px;
-  color: black;
+  color: var(--text-main);
 }
 :deep(.calendar--home .event-status) {
   font-weight: 500;
@@ -243,8 +243,21 @@ onActivated(() => {
 :deep(.calendar--home .event-status-meeting),
 :deep(.calendar--home .event-employee-meeting) {
   font-size: 11px;
-  color: white;
+  color: var(--text-on-primary); 
 }
+:deep(.calendar--home .fc-col-header-cell) {
+  border-bottom: 1px solid var(--calendar-border-color);
+}
+:deep(.calendar--home .calendar-card) {
+  border: 1px solid var(--calendar-border-color);
+}
+:deep(.calendar--home .fc-event) {
+  border: 1px solid var(--calendar-border-color);
+}
+:deep(.calendar--home .fc-daygrid-day) {
+  border: 1px solid var(--calendar-border-color);
+}
+
 :deep(.calendar--home .event-status-schedule),
 :deep(.calendar--home .event-status-meeting) {
   font-weight: 400;
@@ -252,28 +265,28 @@ onActivated(() => {
 
 /* 이벤트 타입별 테두리 색상 */
 :deep(.calendar--home .event-leave) {
-  background-color: white !important;
+  background-color: var(--event-bg-default) !important;
   border: 2px solid #8C9FFF !important;
 }
 :deep(.calendar--home .event-half-am),
 :deep(.calendar--home .event-half-pm) {
-  background-color: white !important;
+  background-color: var(--event-bg-default) !important;
   border: 2px solid #8CC2FF !important;
 }
 :deep(.calendar--home .event-trip) {
-  background-color: white !important;
+  background-color: var(--event-bg-default) !important;
   border: 2px solid #C5E695 !important;
 }
 :deep(.calendar--home .event-out) {
-  background-color: white !important;
+  background-color: var(--event-bg-default) !important;
   border: 2px solid #D0F0B0 !important;
 }
 :deep(.calendar--home .event-late) {
-  background-color: white !important;
+  background-color: var(--event-bg-default) !important;
   border: 2px solid #FFD38C !important;
 }
 :deep(.calendar--home .event-absent) {
-  background-color: white !important;
+  background-color: var(--event-bg-default) !important;
   border: 2px solid #FF8C9A !important;
 }
 :deep(.calendar--home .event-personal) {
@@ -290,8 +303,8 @@ onActivated(() => {
 }
 /* 툴바 버튼 */
 :deep(.calendar--home .fc-button) {
-  background-color: #00A8E8 !important;
-  color: white !important;
+  background-color: var(--primary) !important;
+  color: var(--text-on-primary) !important;
   border: 1px solid transparent !important;
   padding: 1px 1px !important;
   border-radius: 6px !important;
@@ -299,6 +312,29 @@ onActivated(() => {
   font-weight: bold !important;
   height: 20px !important;
 }
+:deep(.calendar--home td:last-child),
+:deep(.calendar--home .fc-daygrid-body tr > td:last-child) {
+  border-right: 1px solid var(--calendar-border-color) !important;
+}
+:deep(.calendar--home td:last-child),
+:deep(.calendar--home tr:last-child td) {
+  border-right: 1px solid var(--calendar-border-color);
+  border-bottom: 1px solid var(--calendar-border-color);
+}
+:deep(.calendar--home .fc-scrollgrid) {
+  border: 1px solid var(--calendar-border-color);
+  border-collapse: collapse; 
+}
+:deep(.calendar--home .fc-scrollgrid-section) {
+  border-bottom: 1px solid var(--calendar-border-color);
+}
+:deep(.calendar--home .fc-col-header-cell) {
+  border: 1px solid var(--calendar-border-color);
+}
+:deep(.calendar--home .fc-daygrid-day) {
+  border: 1px solid var(--calendar-border-color);
+}
+
 :deep(.calendar--home .fc-prev-button),
 :deep(.calendar--home .fc-next-button) {
   width: 40px !important;
@@ -330,13 +366,13 @@ onActivated(() => {
 :deep(.calendar--home .fc-toolbar-title) {
   font-size: 13px !important;
   font-weight: 700 !important;
-  color: #333 !important;
+  color: var(--text-main) !important;
   font-family: 'Pretendard', sans-serif !important;
 }
 
 /* 스크롤바 */
 :deep(.calendar--home .fc-scroller::-webkit-scrollbar) {
-  width: 4px;
+  width: 1px;
 }
 :deep(.calendar--home .fc-scroller::-webkit-scrollbar-thumb) {
   background-color: rgba(0, 0, 0, 0.2);
@@ -358,27 +394,28 @@ onActivated(() => {
 .tab-menu button {
   font-size: 15px;
   padding: 6px 14px;
-  background-color: #c8c8c8;
+  background-color: var(--bg-menu-btn-hover); 
   border: none;
   border-radius: 10px 10px 0 0;
   margin-right: -8px;
   box-shadow: 1px 1px 20px rgba(0, 0, 0, 0.05);
   transition: all 0.2s ease;
-  color: white;
+  color: var(--text-main);   
   cursor: pointer;
 }
 .tab-menu button.active {
-  background-color: white;
-  color: black;
+  background-color: var(--bg-box);
+  color: var(--text-main);       
   font-weight: bold;
 }
 
 /* 캘린더 카드 */
 .calendar-card {
-  background-color: white;
+  background-color: var(--bg-box); 
   border-radius: 0px 10px 10px 10px;
   box-shadow: 1px 1px 20px rgba(0, 0, 0, 0.05);
   padding: 20px;
+  color: var(--text-main);  
 }
 
 /* 범례 스타일 */
@@ -387,11 +424,12 @@ onActivated(() => {
   gap: 12px;
   margin-bottom: 12px;
   font-size: 11px;
+  color: var(--text-sub); 
 }
 .legend-item {
   display: flex;
   align-items: center;
-  color: #333;
+  color: var(--text-sub);
 }
 .dot {
   display: inline-block;

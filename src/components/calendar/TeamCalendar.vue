@@ -129,7 +129,7 @@
       const token = userStore.accessToken
 
       try {
-          const res = await fetch('https://ddis-be-alb-1219702514.ap-northeast-2.elb.amazonaws.com/attendance/schedule/meeting', {
+          const res = await fetch('https://api.isddishr.site/attendance/schedule/meeting', {
               method: 'POST',
               headers: {
                   'Authorization': `Bearer ${token}`,
@@ -174,7 +174,7 @@
   const handleUpdate = async (updated) => {
   const token = useUserStore().accessToken
 
-  await fetch(`https://ddis-be-alb-1219702514.ap-northeast-2.elb.amazonaws.com/attendance/schedule/meeting/${updated.id}`, {
+  await fetch(`https://api.isddishr.site/attendance/schedule/meeting/${updated.id}`, {
     method: 'PUT',
     headers: {
       Authorization: `Bearer ${token}`,
@@ -201,7 +201,7 @@
   const handleDelete = async (id) => {
     const token = useUserStore().accessToken
 
-    await fetch(`https://ddis-be-alb-1219702514.ap-northeast-2.elb.amazonaws.com/attendance/schedule/meeting/${id}`, {
+    await fetch(`https://api.isddishr.site/attendance/schedule/meeting/${id}`, {
       method: 'DELETE',
       headers: {
         Authorization: `Bearer ${token}`
@@ -219,7 +219,7 @@
 
     if (!token) return
 
-    const res = await fetch('https://ddis-be-alb-1219702514.ap-northeast-2.elb.amazonaws.com/attendance/calendar/team', {
+    const res = await fetch('https://api.isddishr.site/attendance/calendar/team', {
       headers: { Authorization: `Bearer ${token}` }
     })
 
@@ -268,7 +268,7 @@
   :deep(.calendar--team .fc-col-header-cell.fc-day-sat) { color: blue; }
   :deep(.calendar--team .fc-daygrid-day.fc-day-sun .fc-daygrid-day-number) { color: red; }
   :deep(.calendar--team .fc-daygrid-day.fc-day-sat .fc-daygrid-day-number) { color: blue; }
-  :deep(.calendar--team .fc-day-today) { background-color: #ddf2ff !important; }
+  :deep(.calendar--team .fc-day-today) {  background-color: var(--fade-background) !important;}
 
   :deep(.calendar--team .fc-daygrid-event) {
     height: auto !important;
@@ -295,7 +295,7 @@
 
   :deep(.calendar--team .event-status),
   :deep(.calendar--team .event-employee) {
-    color: black;
+    color: var(--text-main);
     font-size: 16px;
   }
 
@@ -305,7 +305,7 @@
 
   :deep(.calendar--team .event-status-meeting),
   :deep(.calendar--team .event-employee-meeting) {
-    color: white;
+    color: var(--text-on-primary);
     font-size: 16px;
   }
 
@@ -314,19 +314,19 @@
   }
 
   /* 상태별 색상 */
-  :deep(.calendar--team .event-leave) { background: white !important; border: 3px solid #8C9FFF !important; }
+  :deep(.calendar--team .event-leave) { background: var(--event-bg-default) !important; border: 3px solid #8C9FFF !important; }
   :deep(.calendar--team .event-half-am),
-  :deep(.calendar--team .event-half-pm) { background: white !important; border: 3px solid #8CC2FF !important; }
-  :deep(.calendar--team .event-trip) { background: white !important; border: 3px solid #C5E695 !important; }
-  :deep(.calendar--team .event-out) { background: white !important; border: 3px solid #D0F0B0 !important; }
-  :deep(.calendar--team .event-late) { background: white !important; border: 3px solid #FFD38C !important; }
-  :deep(.calendar--team .event-absent) { background: white !important; border: 3px solid #FF8C9A !important; }
+  :deep(.calendar--team .event-half-pm) { background: var(--event-bg-default) !important; border: 3px solid #8CC2FF !important; }
+  :deep(.calendar--team .event-trip) { background: var(--event-bg-default) !important; border: 3px solid #C5E695 !important; }
+  :deep(.calendar--team .event-out) { background: var(--event-bg-default) !important; border: 3px solid #D0F0B0 !important; }
+  :deep(.calendar--team .event-late) { background: var(--event-bg-default) !important; border: 3px solid #FFD38C !important; }
+  :deep(.calendar--team .event-absent) { background: var(--event-bg-default) !important; border: 3px solid #FF8C9A !important; }
   :deep(.calendar--team .event-meeting) {   background-color: #c1c1c1 !important;
     border: 2px solid #c1c1c1 !important;}
 
   /* 버튼 */
   :deep(.calendar--team .fc-button) {
-    background-color: #00A8E8 !important;
+    background-color: var(--primary) !important;
     color: white !important;
     border: 1px solid transparent !important;
     border-radius: 6px !important;
@@ -347,7 +347,7 @@
   }
 
   :deep(.calendar--team .fc-button:hover) {
-    background-color: white !important;
+    background-color: var(--text-on-primary) !important;
     color: #00A8E8 !important;
     border: 1px solid #00A8E8 !important;
     box-shadow: inset 1px 1px 6px rgba(0, 0, 0, 0.2) !important;
@@ -358,14 +358,14 @@
   }
 
   :deep(.calendar--team .fc-today-button:disabled) {
-    background-color: #00A8E8 !important;
+    background-color: var(--primary) !important;
     color: white !important;
   }
 
   :deep(.calendar--team .fc-prev-button),
   :deep(.calendar--team .fc-next-button),
   :deep(.calendar--team .fc-today-button) {
-    background-color: #00A8E8 !important;
+    background-color: var(--primary) !important;
     color: white !important;
     border: 1px solid transparent !important;
     border-radius: 6px !important;
@@ -391,12 +391,12 @@
   :deep(.calendar--team .fc-toolbar-title) {
     font-size: 18px !important;
     font-weight: bold !important;
-    color: #333 !important;
+    color: var(--text-main) !important;
   }
 
   /* 기타 스타일 유지 */
   .team-calendar {
-          background-color: #ffffff;
+          background-color: var(--bg-box);
           border-radius: 12px;
           box-shadow: 1px 1px 20px 1px rgba(0, 0, 0, 0.05);
           padding-left: 25px;
@@ -414,13 +414,14 @@
     display: flex;
     gap: 16px;
     margin-bottom: 12px;
+    color: var(--text-sub);
   }
 
   .legend-item {
     display: flex;
     align-items: center;
     font-size: 12px;
-    color: #333;
+    color: var(--text-sub);
   }
 
   .dot {
@@ -438,9 +439,9 @@
   .dot.absent { background-color: #FF8C9A; }
   .dot.meeting { background-color: #c1c1c1; }
   .register1-btn {
-      background-color: #00A8E8;
-      border: 1px solid #00A8E8;
-      color: #fff;
+      background-color: var(--primary);
+      border: 1px solid var(--primary);
+      color: var(--text-on-primary);
       font-weight: bold;
       border-radius: 10px;
       padding: 4px 12px;
@@ -451,9 +452,9 @@
   }
 
   .register1-btn:hover {
-    background-color: #fff;
-    color: #00A8E8;
-    border: 1px solid #00A8E8;
+    background-color: var(--text-on-primary);
+    color: var(--primary);
+    border: 1px solid var(--primary);
     box-shadow: inset 1px 1px 6px rgba(0,0,0,0.1);
   }
 
@@ -465,7 +466,8 @@
   }
 
   .modal {
-    background: white;
+    background-color: var(--modal-bg);
+    color: var(--modal-text);
     padding: 30px;
     border-radius: 12px;
     width: 420px;

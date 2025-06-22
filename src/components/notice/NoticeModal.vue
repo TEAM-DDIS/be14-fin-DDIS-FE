@@ -63,7 +63,7 @@ onMounted(() => {
   const employeeId = localStorage.getItem('employeeId')
 
   const stompClient = new Client({
-    brokerURL: `ws://ddis-be-alb-1219702514.ap-northeast-2.elb.amazonaws.com/ws-notice`,
+    brokerURL: `ws://api.isddishr.site/ws-notice`,
     connectHeaders: {
       Authorization: `Bearer ${token}`
     },
@@ -92,7 +92,7 @@ onMounted(() => {
 async function onClick(item) {
   const token = localStorage.getItem('token')
   try {
-    const res = await fetch(`https://ddis-be-alb-1219702514.ap-northeast-2.elb.amazonaws.com/notice/${item.id}/read`, {
+    const res = await fetch(`https://api.isddishr.site/notice/${item.id}/read`, {
       method: 'PATCH',
       headers: {
         'Authorization': `Bearer ${token}`

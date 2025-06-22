@@ -66,7 +66,7 @@ function goBack() {
   router.back()
 }
 
-const HISTORY_API = 'https://ddis-be-alb-1219702514.ap-northeast-2.elb.amazonaws.com/appointment-history'
+const HISTORY_API = 'https://api.isddishr.site/appointment-history'
 
 async function loadDetail() {
   try {

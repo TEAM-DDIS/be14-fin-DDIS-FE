@@ -99,7 +99,7 @@
           return
         }
 
-        const res = await fetch('https://ddis-be-alb-1219702514.ap-northeast-2.elb.amazonaws.com/attendance/check-in', {
+        const res = await fetch('https://api.isddishr.site/attendance/check-in', {
           method: 'POST',
           headers: {
             Authorization: `Bearer ${token}`,
@@ -122,7 +122,7 @@
           return
         }
 
-        const res = await fetch('https://ddis-be-alb-1219702514.ap-northeast-2.elb.amazonaws.com/attendance/check-out', {
+        const res = await fetch('https://api.isddishr.site/attendance/check-out', {
           method: 'PUT',
           headers: {
             Authorization: `Bearer ${token}`,
@@ -149,7 +149,7 @@
     const token = userStore.accessToken
     if (!token) return
 
-    const res = await fetch('https://ddis-be-alb-1219702514.ap-northeast-2.elb.amazonaws.com/attendance/status/me', {
+    const res = await fetch('https://api.isddishr.site/attendance/status/me', {
       headers: { Authorization: `Bearer ${token}` }
     })
 

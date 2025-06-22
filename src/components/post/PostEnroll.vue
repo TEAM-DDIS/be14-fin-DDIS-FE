@@ -106,7 +106,7 @@ import axios from 'axios'
 import { useUserStore } from '@/stores/user'
 
 
-axios.defaults.baseURL = 'https://ddis-be-alb-1219702514.ap-northeast-2.elb.amazonaws.com'
+axios.defaults.baseURL = 'https://api.isddishr.site'
 
 const router    = useRouter()
 const userStore = useUserStore()

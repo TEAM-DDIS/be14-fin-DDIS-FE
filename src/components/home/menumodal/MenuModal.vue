@@ -83,7 +83,7 @@ const isHrTeam = computed(() => {
 
 onMounted(async () => {
   try {
-    const { data } = await axios.get('https://ddis-be-alb-1219702514.ap-northeast-2.elb.amazonaws.com/menus', {
+    const { data } = await axios.get('https://api.isddishr.site/menus', {
       headers: {
         'Authorization': `Bearer ${token}`
       }
@@ -149,7 +149,7 @@ async function addFavorite(menuItem) {
   }
 
   try {
-    await axios.post('https://ddis-be-alb-1219702514.ap-northeast-2.elb.amazonaws.com/menus/favorites', {
+    await axios.post('https://api.isddishr.site/menus/favorites', {
       menuId: menuItem.menuId,
       displayOrder: currentList.length + 1
     }, {
@@ -178,12 +178,13 @@ async function addFavorite(menuItem) {
 }
 
 .modal-container {
-  background: #fff;
+  background: var(--bg-main);
   width: 770px;
   height: 700px;
   border-radius: 16px;
   display: flex;
   flex-direction: column;
+  color: var(--text-main);
 }
 
 .modal-header {
@@ -192,9 +193,10 @@ async function addFavorite(menuItem) {
   padding: 15px;
   font-weight: bold;
   font-size: 18px;
-  background: #fff;
+ background: var(--bg-box); 
   display: flex;
   justify-content: space-between;
+  color: var(--text-main); 
 }
 
 .modal-body {
@@ -214,6 +216,7 @@ async function addFavorite(menuItem) {
   height: 110px;
   z-index: 10;
   pointer-events: none;
+    filter: var(--arrow-filter);
 }
 
 .close-btn {
@@ -221,8 +224,9 @@ async function addFavorite(menuItem) {
   border: none;
   background: transparent;
   cursor: pointer;
+  color: var(--text-main);
 }
 .close-btn:hover {
-  color: #00a8e8;
+  color: var(--primary);
 }
 </style>

@@ -66,7 +66,7 @@ async function onLogin() {
   errorMessage.value = ''
   try {
     // 1) 로그인 요청
-    const res = await fetch('https://ddis-be-alb-1219702514.ap-northeast-2.elb.amazonaws.com/login', {
+    const res = await fetch('https://api.isddishr.site/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ employeeId: userId.value, employeePwd: password.value })
@@ -88,7 +88,7 @@ async function onLogin() {
     localStorage.setItem('token', token)
 
     // 4) 내 정보 요청
-    const userRes = await fetch('https://ddis-be-alb-1219702514.ap-northeast-2.elb.amazonaws.com/users/me', {
+    const userRes = await fetch('https://api.isddishr.site/users/me', {
       headers: { Authorization: `Bearer ${token}` }
     })
     if (!userRes.ok) {

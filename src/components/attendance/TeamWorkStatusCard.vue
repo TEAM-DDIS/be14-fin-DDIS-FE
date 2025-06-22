@@ -38,7 +38,7 @@
     }
 
     try {
-      const res = await fetch('https://ddis-be-alb-1219702514.ap-northeast-2.elb.amazonaws.com/attendance/status/team', {
+      const res = await fetch('https://api.isddishr.site/attendance/status/team', {
         headers: {
           Authorization: `Bearer ${token}`
         }
@@ -60,7 +60,7 @@
 
 <style scoped>
   .team-status-card {
-    background-color: #ffffff;
+    background-color: var(--bg-box);
     border-radius: 20px;
     box-shadow: 1px 1px 20px 1px rgba(0, 0, 0, 0.05);
     padding: 20px;
@@ -72,14 +72,14 @@
     font-weight: bold;
     padding-bottom: 10px;
     margin-bottom: 16px;
-    color: #00A8E8;
+    color: var(--primary);
     border-bottom: 0.5px solid #C6C6C6;
   }
 
   .loading-msg,
   .no-data-msg {
     font-size: 14px;
-    color: #777;
+    color: var(--text-muted);
     text-align: center;
     padding: 24px 0;
   }

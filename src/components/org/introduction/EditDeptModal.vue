@@ -81,7 +81,7 @@ watch(
 // 컴포넌트 마운트 시 전체 부서 목록 호출
 onMounted(async () => {
   try {
-    const res = await fetch('https://ddis-be-alb-1219702514.ap-northeast-2.elb.amazonaws.com/introduction/department')
+    const res = await fetch('https://api.isddishr.site/introduction/department')
     if (!res.ok) throw new Error(res.statusText)
     const data = await res.json()
     departments.value = data

@@ -98,89 +98,104 @@
 </script>
 
 <style scoped>
-    .overtime-request-card {
-        --el-color-primary: #000;
-    }
+.overtime-request-card {
+  --el-color-primary: var(--primary);
+  background-color: var(--bg-box);
+  color: var(--text-main);
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 1px 10px rgba(0, 0, 0, 0.05);
+}
 
-    .btn-area {
-        display: flex;
-        justify-content: flex-end;
-        margin-top: 30px;
-    }
+/* 버튼 영역 */
+.btn-area {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 30px;
+}
 
-    .submit-btn {
-        width: 96px;
-        height: 40px;
-        font-size: 14px;
-        font-weight: bold;
-        background-color: #00a8e8;
-        color: white;
-        border: 1px solid transparent;
-        border-radius: 10px;
-        padding: 10px 30px;
-        cursor: pointer;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-        transition: background-color 0.2s, box-shadow 0.2s;
-        box-sizing: border-box;
-    }
+/* 기본 버튼 스타일 */
+.submit-btn,
+.cancle-btn {
+  width: 96px;
+  height: 40px;
+  font-size: 14px;
+  font-weight: bold;
+  border-radius: 10px;
+  padding: 10px 30px;
+  box-sizing: border-box;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: background-color 0.2s, box-shadow 0.2s, color 0.2s;
+}
 
-    .submit-btn:hover {
-        background-color: white;
-        color: #00a8e8;
-        border-color: #00a8e8;
-        box-shadow:
-        inset 1px 1px 10px rgba(0, 0, 0, 0.25);
-    }
+/* 신청 버튼 (primary) */
+.submit-btn {
+  background-color: var(--primary);
+  color: var(--text-on-primary);
+  border: 1px solid transparent;
+}
+.submit-btn:hover {
+  background-color: var(--text-on-primary);
+  color: var(--primary);
+  border-color: var(--primary);
+  box-shadow: inset 1px 1px 10px rgba(0, 0, 0, 0.25);
+}
 
-    .cancle-btn {
-        width: 96px;
-        height: 40px;
-        font-size: 14px;
-        font-weight: bold;
-        background-color: #D3D3D3;
-        color: #000;
-        border: none;
-        border-radius: 10px;
-        padding: 10px 30px;
-        font-weight: bold;
-        cursor: pointer;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-        transition: background-color 0.2s, box-shadow 0.2s;
-        box-sizing: border-box;
-    }
-    .cancle-btn:hover {
-        background-color: #000;
-        color: #fff;
-    }
+/* 취소 버튼 (gray) */
+.cancle-btn {
+  background-color: var(--bg-menu-btn-hover);
+  color: var(--text-main);
+  border: none;
+}
+.cancle-btn:hover {
+  background-color: var(--text-main);
+  color: var(--text-on-primary);
+}
 
-    .time-input-wrapper {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
+/* 시간 입력 래퍼 */
+.time-input-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
 
-    .duration-input {
-        width: 120px;
-    }
+.duration-input {
+  width: 120px;
+}
 
-    .unit-label {
-        font-size: 14px;
-        color: black;
-        white-space: nowrap;
-    }
+/* 단위 라벨 */
+.unit-label {
+  font-size: 14px;
+  color: var(--text-main);
+  white-space: nowrap;
+}
 
-    :deep(.overtime-datepicker) {
-        z-index: 99999 !important;
-        position: relative !important;
-    }
+/* Element Plus 데이트 피커 위치 대응 */
+:deep(.overtime-datepicker) {
+  z-index: 99999 !important;
+  position: relative !important;
+}
 
-    :deep(.el-picker__popper.overtime-datepicker) {
-        z-index: 20000 !important;
-        position: fixed !important;
-    }
+:deep(.el-picker__popper.overtime-datepicker) {
+  z-index: 20000 !important;
+  position: fixed !important;
+}
 
-    :deep(.el-form-item__label) {
-        color: #000;
-        font-size: 18px;
-    }
+/* 엘라벨 색상 */
+:deep(.el-form-item__label) {
+  color: var(--text-main);
+  font-size: 18px;
+}
+
+:deep(.el-radio__label) {
+  color: var(--text-main);
+  font-size: 14px;
+}
+
+:deep(.el-radio__input.is-checked + .el-radio__label) {
+  font-weight: bold;
+  color: var(--primary);
+}
 </style>
+

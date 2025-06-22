@@ -49,7 +49,7 @@
     }
 
     try {
-      const res = await fetch('https://ddis-be-alb-1219702514.ap-northeast-2.elb.amazonaws.com/attendance/meeting/today', {
+      const res = await fetch('https://api.isddishr.site/attendance/meeting/today', {
         headers: { Authorization: `Bearer ${token}` }
       })
 
@@ -76,7 +76,7 @@
 
 <style scoped>
   .meeting-event-card {
-    background-color: #ffffff;
+    background-color: var(--bg-box);
     border-radius: 20px;
     box-shadow: 1px 1px 20px rgba(0, 0, 0, 0.05);
     padding: 20px;
@@ -87,12 +87,12 @@
     font-size: 16px;
     font-weight: 600;
     margin-bottom: 12px;
-    color: #333;
+    color: var(--text-main);
   }
 
   .msg {
     font-size: 14px;
-    color: #777;
+    color: var(--text-muted);
     text-align: center;
     padding: 40px 0;
   }
@@ -106,15 +106,15 @@
   }
 
   .meeting-table thead {
-    background-color: #E7E7E7;
+    background-color: var(--bg-menu-btn-hover);
   }
 
   .meeting-table th,
   .meeting-table td {
-    border: 2px solid #F8F9FA;
+    border: 2px solid var(--border-color);
     padding: 8px 12px;
     font-size: 14px;
-    color: #333;
+    color: var(--text-main);
   }
 
   .meeting-table th {
@@ -133,6 +133,6 @@
 
   /* 행 Hover 효과 */
   .meeting-table tbody tr:hover {
-    background-color: #f3f4f6;
+    background-color: var(--bg-menu-btn-hover);
   }
 </style>

@@ -127,7 +127,7 @@
   // 컴포넌트가 마운트되면 조직도 API 호출
   onMounted(async () => {
     try {
-      const res = await fetch('https://ddis-be-alb-1219702514.ap-northeast-2.elb.amazonaws.com/structure/hierarchy')
+      const res = await fetch('https://api.isddishr.site/structure/hierarchy')
       hierarchy.value = await res.json()
           hierarchy.value.forEach(head => {
       head.headManager = findManager(head.departments, '본부장')

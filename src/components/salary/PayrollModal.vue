@@ -177,7 +177,7 @@ async function sendMail() {
       deductions: props.slip.deductions
     }
 
-    await axios.post('https://ddis-be-alb-1219702514.ap-northeast-2.elb.amazonaws.com/payroll/mail', payload, {
+    await axios.post('https://api.isddishr.site/payroll/mail', payload, {
       headers: {
         Authorization: `Bearer ${token}`
       }

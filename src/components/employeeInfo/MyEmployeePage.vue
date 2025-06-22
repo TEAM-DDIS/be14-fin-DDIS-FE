@@ -337,7 +337,7 @@ import {
 } from 'ag-grid-community'
 
 // Axios 기본 URL 설정
-axios.defaults.baseURL = 'https://ddis-be-alb-1219702514.ap-northeast-2.elb.amazonaws.com'
+axios.defaults.baseURL = 'https://api.isddishr.site'
 
 // AG Grid 모듈 등록
 ModuleRegistry.registerModules([
