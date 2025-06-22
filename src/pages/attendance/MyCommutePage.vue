@@ -50,7 +50,7 @@
         startDate: range.start,
         endDate: range.end
       })
-      const res = await fetch(`https://ddis-be-alb-1219702514.ap-northeast-2.elb.amazonaws.com/attendance/commute/me?${query}`, {
+      const res = await fetch(`https://api.isddishr.site/attendance/commute/me?${query}`, {
         headers: {
           Authorization: `Bearer ${token}`
         }

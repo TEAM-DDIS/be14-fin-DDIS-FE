@@ -73,7 +73,7 @@ const expanded = reactive({})
 
 onMounted(async () => {
   try {
-    const res = await fetch('https://ddis-be-alb-1219702514.ap-northeast-2.elb.amazonaws.com/structure/hierarchy')
+    const res = await fetch('https://api.isddishr.site/structure/hierarchy')
     if (!res.ok) throw new Error(`HTTP ${res.status}`)
     hierarchy.value = await res.json()
   } catch (err) {

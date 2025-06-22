@@ -48,7 +48,7 @@ function goToDetail(id) {
 onMounted(async () => {
   const token = useUserStore().accessToken
   try {
-    const res = await axios.get('https://ddis-be-alb-1219702514.ap-northeast-2.elb.amazonaws.com/boards/lists', {
+    const res = await axios.get('https://api.isddishr.site/boards/lists', {
       headers: {
         Authorization: `Bearer ${token}`
       }

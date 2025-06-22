@@ -135,7 +135,7 @@ import BaseToast from '@/components/toast/BaseToast.vue'
 import { useUserStore } from '@/stores/user'
 
 // Axios 기본 URL 설정
-axios.defaults.baseURL = 'https://ddis-be-alb-1219702514.ap-northeast-2.elb.amazonaws.com'
+axios.defaults.baseURL = 'https://api.isddishr.site'
 
 // 라우터 & 스토어
 const router = useRouter()

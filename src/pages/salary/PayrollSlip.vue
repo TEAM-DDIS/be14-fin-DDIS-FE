@@ -191,7 +191,7 @@ onMounted(async () => {
 })
 
 async function fetchEmployeeInfo() {
-  const { data } = await axios.get(`https://ddis-be-alb-1219702514.ap-northeast-2.elb.amazonaws.com/payroll/me`, {
+  const { data } = await axios.get(`https://api.isddishr.site/payroll/me`, {
     headers: { Authorization: `Bearer ${accessToken.value}` }
   })
   employee.value = data
@@ -211,7 +211,7 @@ async function fetchSalaryHistory() {
   while (current <= end) {
     const yyyymm = `${current.getFullYear()}-${String(current.getMonth() + 1).padStart(2, '0')}`
     try {
-      const { data } = await axios.get(`https://ddis-be-alb-1219702514.ap-northeast-2.elb.amazonaws.com/payroll/me/salary`, {
+      const { data } = await axios.get(`https://api.isddishr.site/payroll/me/salary`, {
         params: { month: yyyymm },
         headers: { Authorization: `Bearer ${accessToken.value}` }
       })
@@ -236,7 +236,7 @@ function scrollToSalarySection() {
 }
 
 async function selectSlip(month) {
-  const response = await axios.get(`https://ddis-be-alb-1219702514.ap-northeast-2.elb.amazonaws.com/payroll/me/salary`, {
+  const response = await axios.get(`https://api.isddishr.site/payroll/me/salary`, {
     params: { month },
     headers: { Authorization: `Bearer ${accessToken.value}` }
   })

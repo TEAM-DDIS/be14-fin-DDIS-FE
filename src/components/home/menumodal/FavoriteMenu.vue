@@ -65,7 +65,7 @@ const isHrTeam = computed(() => {
 // 자주 쓰는 메뉴 불러오기
 const fetchFavorites = async () => {
   try {
-    const { data } = await axios.get('https://ddis-be-alb-1219702514.ap-northeast-2.elb.amazonaws.com/menus/favorites/me', {
+    const { data } = await axios.get('https://api.isddishr.site/menus/favorites/me', {
       headers: {
         'Authorization': `Bearer ${token}`
       }
@@ -82,7 +82,7 @@ const fetchFavorites = async () => {
 // 자주 쓰는 메뉴 삭제
 const remove = async (menuId) => {
   try {
-    await axios.delete('https://ddis-be-alb-1219702514.ap-northeast-2.elb.amazonaws.com/menus/favorites', {
+    await axios.delete('https://api.isddishr.site/menus/favorites', {
       params: { menuId },
       headers: {
         'Authorization': `Bearer ${token}`
@@ -106,7 +106,7 @@ const handleDragEnd = async () => {
   }))
 
   try {
-    await axios.patch('https://ddis-be-alb-1219702514.ap-northeast-2.elb.amazonaws.com/menus/favorites/order', { orders }, {
+    await axios.patch('https://api.isddishr.site/menus/favorites/order', { orders }, {
       headers: {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json'

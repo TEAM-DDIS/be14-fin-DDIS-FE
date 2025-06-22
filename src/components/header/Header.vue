@@ -93,7 +93,7 @@ async function toggleNotification() {
 // 알림 목록 조회 함수
 async function fetchNotifications() {
   const token = localStorage.getItem('token')
-  const res = await fetch('https://ddis-be-alb-1219702514.ap-northeast-2.elb.amazonaws.com/notice/me', {
+  const res = await fetch('https://api.isddishr.site/notice/me', {
     headers: {
       'Authorization': `Bearer ${token}`
     }
@@ -116,7 +116,7 @@ async function fetchNotifications() {
 async function handleNotificationClick(item) {
   const token = localStorage.getItem('token')
   try {
-    const res = await fetch(`https://ddis-be-alb-1219702514.ap-northeast-2.elb.amazonaws.com/notice/${item.id}/read`, {
+    const res = await fetch(`https://api.isddishr.site/notice/${item.id}/read`, {
       method: 'PATCH',
       headers: {
         'Authorization': `Bearer ${token}`

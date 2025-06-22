@@ -84,7 +84,7 @@
       const token = userStore.accessToken
 
       try {
-          const res = await fetch('https://ddis-be-alb-1219702514.ap-northeast-2.elb.amazonaws.com/attendance/schedule/personal', {
+          const res = await fetch('https://api.isddishr.site/attendance/schedule/personal', {
               method: 'POST',
               headers: {
                   'Authorization': `Bearer ${token}`,
@@ -198,7 +198,7 @@
   const handleUpdate = async (updated) => {
   const token = useUserStore().accessToken
 
-  await fetch(`https://ddis-be-alb-1219702514.ap-northeast-2.elb.amazonaws.com/attendance/schedule/personal/${updated.id}`, {
+  await fetch(`https://api.isddishr.site/attendance/schedule/personal/${updated.id}`, {
     method: 'PUT',
     headers: {
       Authorization: `Bearer ${token}`,
@@ -225,7 +225,7 @@
   const handleDelete = async (id) => {
     const token = useUserStore().accessToken
 
-    await fetch(`https://ddis-be-alb-1219702514.ap-northeast-2.elb.amazonaws.com/attendance/schedule/personal/${id}`, {
+    await fetch(`https://api.isddishr.site/attendance/schedule/personal/${id}`, {
       method: 'DELETE',
       headers: {
         Authorization: `Bearer ${token}`
@@ -246,7 +246,7 @@
           return
       }
 
-      const res = await fetch('https://ddis-be-alb-1219702514.ap-northeast-2.elb.amazonaws.com/attendance/calendar/personal', {
+      const res = await fetch('https://api.isddishr.site/attendance/calendar/personal', {
           headers: { Authorization: `Bearer ${token}` }
       })
 

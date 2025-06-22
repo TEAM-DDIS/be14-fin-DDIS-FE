@@ -153,7 +153,7 @@ import axios from 'axios'
 import { useRoute, useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 
-axios.defaults.baseURL = 'https://ddis-be-alb-1219702514.ap-northeast-2.elb.amazonaws.com'
+axios.defaults.baseURL = 'https://api.isddishr.site'
 
 const route     = useRoute()
 const router    = useRouter()

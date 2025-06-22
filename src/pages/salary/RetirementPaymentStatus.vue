@@ -158,7 +158,7 @@ async function fetchRetirements() {
     : { provisionMonthFrom: dateRange.value.start, provisionMonthTo: dateRange.value.end }
 
   try {
-    const { data } = await axios.get('https://ddis-be-alb-1219702514.ap-northeast-2.elb.amazonaws.com/payroll/retirements', {
+    const { data } = await axios.get('https://api.isddishr.site/payroll/retirements', {
       params: {
         ...params,
         provisionSituation: provisionSituation.value || '',
@@ -197,7 +197,7 @@ async function openModal() {
   }
 
   try {
-    const { data } = await axios.get(`https://ddis-be-alb-1219702514.ap-northeast-2.elb.amazonaws.com/payroll/retirements/${selectedSlip.value.employeeId}`, {
+    const { data } = await axios.get(`https://api.isddishr.site/payroll/retirements/${selectedSlip.value.employeeId}`, {
       headers: { Authorization: `Bearer ${token}` }
     })
     selectedSlip.value = data

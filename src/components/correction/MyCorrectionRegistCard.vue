@@ -56,7 +56,7 @@
     }
 
     try {
-      const res = await fetch('https://ddis-be-alb-1219702514.ap-northeast-2.elb.amazonaws.com/attendance/correction/request', {
+      const res = await fetch('https://api.isddishr.site/attendance/correction/request', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -74,7 +74,7 @@
       showToast('출근 정정 신청이 완료되었습니다.')
 
       // 신청 성공 후 리스트 다시 불러오기
-      const reload = await fetch('https://ddis-be-alb-1219702514.ap-northeast-2.elb.amazonaws.com/attendance/correction/history/request/me', {
+      const reload = await fetch('https://api.isddishr.site/attendance/correction/history/request/me', {
         headers: { Authorization: `Bearer ${token}` }
       })
       leaveRegistData.value = await reload.json()
@@ -113,7 +113,7 @@
     }
 
     try {
-      const res = await fetch('https://ddis-be-alb-1219702514.ap-northeast-2.elb.amazonaws.com/attendance/correction/history/request/me', {
+      const res = await fetch('https://api.isddishr.site/attendance/correction/history/request/me', {
         headers: {
           Authorization: `Bearer ${token}`
         }

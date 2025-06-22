@@ -49,7 +49,7 @@
     }
 
     try {
-      const res = await fetch('https://ddis-be-alb-1219702514.ap-northeast-2.elb.amazonaws.com/attendance/meeting/today', {
+      const res = await fetch('https://api.isddishr.site/attendance/meeting/today', {
         headers: { Authorization: `Bearer ${token}` }
       })
 

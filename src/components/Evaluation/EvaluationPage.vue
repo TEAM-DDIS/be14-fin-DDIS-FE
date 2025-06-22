@@ -349,7 +349,7 @@ function selectHistory(h) {
 // 초기: 팀원 목록 조회
 async function fetchTeam() {
   if (!teamId.value) return
-  const res = await fetch(`https://ddis-be-alb-1219702514.ap-northeast-2.elb.amazonaws.com/review/${teamId.value}`, {
+  const res = await fetch(`https://api.isddishr.site/review/${teamId.value}`, {
     headers: { Authorization: `Bearer ${accessToken.value}` }
   })
   if (!res.ok) throw new Error('팀원 불러오기 실패')
@@ -363,7 +363,7 @@ async function loadHistory() {
   if (!selectedEmployee.value) return
   try {
     const res = await fetch(
-      `https://ddis-be-alb-1219702514.ap-northeast-2.elb.amazonaws.com/review/history/${selectedEmployee.value}`,
+      `https://api.isddishr.site/review/history/${selectedEmployee.value}`,
       { headers: { Authorization: `Bearer ${accessToken.value}` }}
     )
     if (!res.ok) throw new Error(await res.text())
@@ -396,7 +396,7 @@ async function submitManagerEval(decision) {
   }
   try {
     const res = await fetch(
-      `https://ddis-be-alb-1219702514.ap-northeast-2.elb.amazonaws.com/review/manager/performance/${perfId}/evaluate`,
+      `https://api.isddishr.site/review/manager/performance/${perfId}/evaluate`,
       {
         method: 'POST',
         headers: {
