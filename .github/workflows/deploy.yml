@@ -5,14 +5,6 @@ permissions:
   pull-requests: write
 
 on:
-  pull_request:
-    branches:
-      - main
-    types:
-      - opened
-      - reopened
-      - synchronize
-
   push:
     branches:
       - main
@@ -23,44 +15,91 @@ jobs:
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
 
     - name: Setup Node.js
-      uses: actions/setup-node@v2
+      uses: actions/setup-node@v4
       with:
         node-version: '20'
-
-    - name: Clean node_modules and lockfile
-      run: |
-        rm -rf node_modules package-lock.json
+        cache: 'npm'
 
     - name: Install dependencies
-      run: npm install
+      run: npm ci
 
     - name: Build project
       run: npm run build
 
-    - name: Install AWS CLI
+    - name: Verify build output
       run: |
-        curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-        unzip awscliv2.zip
-        sudo ./aws/install --update
+        echo "Build output:"
+        ls -la dist/
+        echo "Package.json type:"
+        grep '"type"' package.json || echo "No type specified"
 
     - name: Configure AWS credentials
-      uses: aws-actions/configure-aws-credentials@v1
+      uses: aws-actions/configure-aws-credentials@v4
       with:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: ap-northeast-2
 
+    - name: Create EB configuration for ES Modules
+      run: |
+        mkdir -p .ebextensions
+        
+        # Node.js ES Module 지원 설정
+        cat > .ebextensions/01_nodejs_esm.config << 'EOF'
+        option_settings:
+          aws:elasticbeanstalk:container:nodejs:
+            NodeCommand: "node server.js"
+            NodeVersion: 20.11.1
+          aws:elasticbeanstalk:application:environment:
+            NODE_ENV: production
+            NODE_OPTIONS: "--experimental-modules"
+          aws:elasticbeanstalk:command:
+            Timeout: 900
+            IgnoreHealthCheck: true
+          aws:elasticbeanstalk:healthreporting:system:
+            SystemType: enhanced
+            HealthCheckSuccessThreshold: Warning
+        EOF
+        
+        # 헬스체크 설정
+        cat > .ebextensions/02_healthcheck.config << 'EOF'
+        option_settings:
+          aws:elasticbeanstalk:application:
+            Application Healthcheck URL: /health
+        EOF
+        
+        # 로그 설정
+        cat > .ebextensions/03_logs.config << 'EOF'
+        files:
+          "/opt/elasticbeanstalk/tasks/bundlelogs.d/01-app-logs.conf":
+            mode: "000644"
+            owner: root
+            group: root
+            content: |
+              /var/log/eb-engine.log
+              /var/log/eb-hooks.log
+              /var/log/nodejs/nodejs.log*
+        EOF
+
     - name: Generate deployment package
       run: |
         mkdir -p deploy
+        
+        # 필요한 파일들 복사
         cp -r dist deploy/
-        cp package.json deploy/
-        cp server.js deploy/ 
-        cp Procfile deploy/Procfile
-        cd deploy && zip -r deploy.zip .
+        cp package*.json deploy/
+        cp server.js deploy/
+        cp Procfile deploy/
+        cp -r .ebextensions deploy/
+        
+        # 배포 패키지 생성
+        cd deploy && zip -r ../deploy.zip .
+        
+        echo "Deployment package contents:"
+        cd .. && unzip -l deploy.zip | head -20
 
     - name: Get current time
       uses: 1466587594/get-current-time@v2
@@ -69,23 +108,23 @@ jobs:
         format: YYYYMMDD-HHmmss
         utcOffset: "+09:00"
 
-    - name: Beanstalk Deploy
+    - name: Deploy to Elastic Beanstalk
       uses: einaregilsson/beanstalk-deploy@v22
       with:
         aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         application_name: ddis-f-v3
         environment_name: Ddis-f-v3-env
-        version_label: github-action-${{ steps.current-time.outputs.formattedTime }}
+        version_label: vue-esm-${{ steps.current-time.outputs.formattedTime }}
         region: ap-northeast-2
-        deployment_package: deploy/deploy.zip
+        deployment_package: deploy.zip
         use_existing_version_if_available: false
         wait_for_deployment: true
-        wait_for_environment_recovery: 300
+        wait_for_environment_recovery: 900
 
     - name: Upload deploy.zip artifact
       if: always()
       uses: actions/upload-artifact@v4
       with:
-        name: deploy-package
-        path: deploy/deploy.zip
+        name: deploy-package-${{ github.run_number }}
+        path: deploy.zip

@@ -1,25 +1,44 @@
-import express from 'express';
-import path from 'path';
-import { fileURLToPath } from 'url';
-import { dirname } from 'path';
+// ES Module을 유지하되, 더 안정적으로 작성
+import express from "express"
+import path from "path"
+import { fileURLToPath } from "url"
+import { dirname } from "path"
 
-const app = express();
-const port = process.env.PORT || 8080;  // Elastic Beanstalk가 사용하는 포트
+const app = express()
+const port = process.env.PORT || 8080
 
-// __dirname을 ES 모듈에서 사용할 수 있도록 설정
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+// ES Module에서 __dirname 사용을 위한 설정
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
 
-app.use(express.static(path.join(__dirname, 'dist')));
+// 정적 파일 서빙
+app.use(express.static(path.join(__dirname, "dist")))
 
-app.get('/', (req, res) => {
-  res.send('ok!');
-});
+// 헬스체크 엔드포인트 (EB용)
+app.get("/health", (req, res) => {
+  res.status(200).json({
+    status: "OK",
+    timestamp: new Date().toISOString(),
+    env: process.env.NODE_ENV,
+  })
+})
 
-app.get('*', (req, res) => {
-  res.sendFile(path.resolve(__dirname, 'dist', 'index.html'));
-});
+// API 라우트들이 있다면 여기에 추가
+// app.use('/api', apiRoutes);
 
-app.listen(port, () => {
-  console.log(`Server is running on port ${port}`);
-});
+// SPA를 위한 fallback - Vue Router 지원
+app.get("*", (req, res) => {
+  res.sendFile(path.resolve(__dirname, "dist", "index.html"))
+})
+
+// 에러 핸들링
+app.use((err, req, res, next) => {
+  console.error("Server error:", err)
+  res.status(500).json({ error: "Internal Server Error" })
+})
+
+app.listen(port, "0.0.0.0", () => {
+  console.log(`🚀 Server is running on port ${port}`)
+  console.log(`📁 Serving static files from: ${path.join(__dirname, "dist")}`)
+  console.log(`🌍 Environment: ${process.env.NODE_ENV || "development"}`)
+})
