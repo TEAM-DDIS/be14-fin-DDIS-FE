@@ -28,7 +28,7 @@ export const useUserStore = defineStore('user', {
     async fetchAllEmployees() {
       if (!this.accessToken) return
       try {
-        const res = await fetch('http://localhost:8000/employees/list', {
+        const res = await fetch('http://localhost:5000/employees/list', {
           headers: { Authorization: `Bearer ${this.accessToken}` }
         })
         const data = await res.json()

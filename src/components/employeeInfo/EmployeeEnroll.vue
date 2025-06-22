@@ -133,7 +133,7 @@
             <select v-model="form.departmentId" class="same-size-input">
               <option value="">선택</option>
               <option 
-                v-for="opt in departmentOptions" 
+                v-for="opt in filteredDepartmentOptions" 
                 :key="opt.id" 
                 :value="opt.id"
               >
@@ -170,7 +170,7 @@
             <select v-model="form.teamId" class="same-size-input">
               <option value="">선택</option>
               <option 
-                v-for="opt in teamOptions" 
+                v-for="opt in filteredTeamOptions" 
                 :key="opt.id" 
                 :value="opt.id"
               >
@@ -178,11 +178,13 @@
               </option>
             </select>
           </div>
+
           <div class="info-item">
             <label class="label-bold">연락처
               <span class="required-star">*</span> 
             </label>
             <input class="same-size-input" v-model="form.employeeContact" />
+            <span v-if="errors.contact" class="error-text">{{ errors.contact }}</span>
           </div>
           <div class="info-item"></div>
 
@@ -201,6 +203,7 @@
               <span class="required-star">*</span> 
             </label>
             <input class="same-size-input" v-model="form.employeeEmail" />
+            <span v-if="errors.email" class="error-text">{{ errors.email }}</span>
           </div>
           <div class="info-item"></div>
         </div>
@@ -282,10 +285,11 @@
               <input class="same-size-input" v-model="form.bankDepositor" />
             </div>
             <div class="info-item">
-              <label class="label-bold">계좌
+              <label class="label-bold">계좌번호
                 <span class="required-star">*</span> 
               </label>
               <input class="same-size-input" v-model="form.bankAccount" />
+              <span v-if="errors.bankAccount" class="error-text">{{ errors.bankAccount }}</span>
             </div>
           </div>
         </div>
@@ -300,6 +304,7 @@
                 <span class="required-star">*</span> 
               </label>
               <input class="same-size-input" v-model="form.employeeResident" />
+              <span v-if="errors.resident" class="error-text">{{ errors.resident }}</span>
             </div>
             <div class="info-item">
               <label class="label-bold">주소
@@ -405,27 +410,33 @@
     </div>
     </div>
   </div>
-
+  <BaseToast ref="toastRef" />
 </template>
 
 
 
 
 <script setup>
-import { ref, reactive, watch, onMounted } from 'vue'
+import { ref, reactive, watch, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
+import BaseToast from '@/components/toast/BaseToast.vue'
 
 import axios from 'axios' 
 
 // Axios 기본 URL 설정
-axios.defaults.baseURL = 'http://localhost:8000'
+axios.defaults.baseURL = 'http://localhost:5000'
 
 
 const userStore = useUserStore()
 
 const tabs = ['인사정보','개인정보']
 const currentTab = ref('인사정보')
+const toastRef = ref(null)
+
+  function showToast(msg) {
+    toastRef.value?.show(msg)
+  }
 
 const router = useRouter()
 
@@ -445,7 +456,7 @@ const fileInput  = ref(null)
 
 const workTypeOptions = ['정규직', '계약직']
 
-const militaryOptions = ['군필', '미필', '보충역', '면제']
+const militaryOptions = ['군필', '미필', '보충역', '면제', '해당 없음']
 
 const genderOptions = ['남', '여']
 
@@ -459,7 +470,7 @@ const headOptions = [
   { id: 1, name: '개발본부' },
   { id: 2, name: '경영지원본부' },
   { id: 3, name: '사업본부' },
-  { id: 4, name: '소속없음' },
+  { id: 4, name: '대표' },
 ]
 
 const departmentOptions = [
@@ -469,7 +480,7 @@ const departmentOptions = [
   { id: 4, name: '재무회계부서' },
   { id: 5, name: '마케팅부서' },
   { id: 6, name: '영업부서' },
-  { id: 7, name: '소속없음' },
+  { id: 7, name: '대표' },
 ]
 
 const teamOptions = [
@@ -485,7 +496,7 @@ const teamOptions = [
   { id: 10, name: '퍼포먼스팀' },
   { id: 11, name: 'B2B영업팀' },
   { id: 12, name: 'B2C영업팀' },
-  { id: 13, name: '소속없음' },
+  { id: 13, name: '대표' },
 ]
 
 const jobOptions = [
@@ -612,6 +623,26 @@ const teamMap = {
   '영업부서': ['B2B영업팀', 'B2C영업팀']
 }
 
+const filteredDepartmentOptions = computed(() => {
+  if (!form.headId) return []
+  
+  const selectedHead = headOptions.find(h => h.id === form.headId)
+  if (!selectedHead) return []
+  
+  const allowedDepartments = departmentMap[selectedHead.name] || []
+  return departmentOptions.filter(dept => allowedDepartments.includes(dept.name))
+})
+
+const filteredTeamOptions = computed(() => {
+  if (!form.departmentId) return []
+  
+  const selectedDept = departmentOptions.find(d => d.id === form.departmentId)
+  if (!selectedDept) return []
+  
+  const allowedTeams = teamMap[selectedDept.name] || []
+  return teamOptions.filter(team => allowedTeams.includes(team.name))
+})
+
   function onUploadClick() {
     fileInput.value?.click()
   }
@@ -652,7 +683,55 @@ function authHeaders() {
   }
 }
 
-// ⑥ 저장 로직
+const errors = reactive({
+  contact: '',
+  email: '',
+  resident: '',
+  bankAccount: ''
+})
+
+// 2) 정규식 패턴 정의
+const patterns = {
+  contact: /^\d{3}-\d{3,4}-\d{4}$/,
+  email:   /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+  resident:/^[0-9]{6}-[1-4][0-9]{6}$/,  // ex. 900101-1234567
+  bankAccount: /^[0-9]{6,20}$/          // 6~20자리 숫자
+}
+
+// 3) 유효성 검사 함수
+function validate(field, value) {
+  if (!value) {
+    errors[field] = ''
+    return
+  }
+  
+  if (!patterns[field].test(value)) {
+    switch (field) {
+      case 'contact':
+        errors.contact = '010-1234-5678 형식으로 입력하세요.'
+        break
+      case 'email':
+        errors.email = '유효한 이메일을 입력하세요.'
+        break
+      case 'resident':
+        errors.resident = '예: 900101-1234567 형식으로 입력하세요.'
+        break
+      case 'bankAccount':
+        errors.bankAccount = '숫자만, 6~20자리로 입력하세요.'
+        break
+    }
+  } else {
+    errors[field] = ''
+  }
+}
+
+// 4) watch로 실시간 검사
+watch(() => form.employeeContact, v => validate('contact', v))
+watch(() => form.employeeEmail,   v => validate('email',   v))
+watch(() => form.employeeResident, v => validate('resident', v))
+watch(() => form.bankAccount,     v => validate('bankAccount', v))
+
+
 async function onSave() {
     // 1) 필수 입력 항목과 누락 시 보여줄 메시지를 배열로 정의
     const requiredChecks = [
@@ -679,12 +758,17 @@ async function onSave() {
     { key: 'isFourInsurances',   msg: '4대 보험 여부를 선택해주세요.' },
   ];
 
-    // 2) 하나라도 누락되었으면 해당 메시지 alert 후 리턴
     for (const { key, msg } of requiredChecks) {
       const val = form[key];
       if (val === '' || val === null || val === undefined) {
-        return alert(msg);
+        return showToast(msg);
       }
+    }
+
+    // 2) 유효성 검사 에러 확인
+    const hasValidationErrors = Object.values(errors).some(error => error !== '')
+    if (hasValidationErrors) {
+      return showToast('입력 형식을 확인해주세요.')
     }
 
     console.log('▶ 서버로 보내는 form.employeePhotoUrl:', form.employeePhotoUrl)
@@ -699,16 +783,16 @@ async function onSave() {
         { headers: authHeaders() }
       );
       console.log('등록 응답:', res.data)
-      alert(`등록되었습니다 (ID: ${res.data})`);
+      showToast(`등록되었습니다 (ID: ${res.data})`);
       router.push('/employeeInfo/employeeList');
     } catch (err) {
       if (err.response) {
         console.error('HTTP', err.response.status)
         console.error('Response data:', err.response.data)
-        alert(err.response.data.message || JSON.stringify(err.response.data))
+        showToast(err.response.data.message || JSON.stringify(err.response.data))
       } else {
         console.error(err)
-        alert('알 수 없는 오류가 발생했습니다.')
+        showToast('알 수 없는 오류가 발생했습니다.')
     }
   }
 }
@@ -862,6 +946,9 @@ function onBackClick() {
   width: 40px;
   height: 40px;
 }
+.upload-btn-icon:hover .upload-icon {
+  filter: invert(41%) sepia(50%) saturate(6012%) hue-rotate(173deg) brightness(90%) contrast(98%);
+}
 
 /* ──────────────────────────────────────────────────────────────────────────
    위쪽 카드 전용 그리드 (3열 × 5행)
@@ -877,8 +964,8 @@ function onBackClick() {
 /* 아래쪽 카드 그리드 (원본 그대로) */
 .grid-info {
   display: grid;
-  grid-template-columns: repeat(3, minmax(300px, 1fr));
-  gap: 2rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 2.5rem;
   width: 100%;
   box-sizing: border-box;
   flex-wrap: wrap;
@@ -897,6 +984,8 @@ function onBackClick() {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  position: relative;
+  margin-bottom: 8px;
 }
 .label-bold {
   font-weight: 600;
@@ -996,5 +1085,16 @@ function onBackClick() {
   background-color: white;
   color: #00a8e8;
   border: 1px solid #00a8e8;
+}
+.error-text {
+  position: absolute;
+  top: 0;
+  left: 300px;
+  color: #e74c3c;
+  font-size: 0.8rem;
+  z-index: 10;
+  white-space: nowrap;  /* 텍스트 줄바꿈 방지 */
+  min-width: max-content;  /* 내용에 맞는 최소 너비 */
+  overflow: visible;  /* 넘치는 텍스트 표시 */
 }
 </style>

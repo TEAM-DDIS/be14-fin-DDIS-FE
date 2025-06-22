@@ -103,7 +103,7 @@
         endDate: range.end
       })
 
-      const res = await fetch(`http://localhost:8000/attendance/commute/${employeeId}?${query}`, {
+      const res = await fetch(`http://localhost:5000/attendance/commute/${employeeId}?${query}`, {
         headers: {
           Authorization: `Bearer ${token}` // ✅ 헤더에 토큰 추가
         }

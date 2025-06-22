@@ -66,7 +66,7 @@ async function onLogin() {
   errorMessage.value = ''
   try {
     // 1) 로그인 요청
-    const res = await fetch('http://localhost:8000/login', {
+    const res = await fetch('http://localhost:5000/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ employeeId: userId.value, employeePwd: password.value })
@@ -87,7 +87,7 @@ async function onLogin() {
     userStore.setAccessToken(token)
 
     // 4) 내 정보 요청
-    const userRes = await fetch('http://localhost:8000/users/me', {
+    const userRes = await fetch('http://localhost:5000/users/me', {
       headers: { Authorization: `Bearer ${token}` }
     })
     if (!userRes.ok) {

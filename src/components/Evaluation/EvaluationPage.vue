@@ -349,7 +349,8 @@ function selectHistory(h) {
 // 초기: 팀원 목록 조회
 async function fetchTeam() {
   if (!teamId.value) return
-  const res = await fetch(`http://localhost:8000/review/${teamId.value}`, {
+
+  const res = await fetch(`http://localhost:5000/review/${teamId.value}`, {
     headers: { Authorization: `Bearer ${token}` }
   })
   if (!res.ok) throw new Error('팀원 불러오기 실패')
@@ -363,7 +364,8 @@ async function loadHistory() {
   if (!selectedEmployee.value) return
   try {
     const res = await fetch(
-      `http://localhost:8000/review/history/${selectedEmployee.value}`,
+
+      `http://localhost:5000/review/history/${selectedEmployee.value}`,
       { headers: { Authorization: `Bearer ${token}` }}
     )
     if (!res.ok) throw new Error(await res.text())
@@ -396,7 +398,7 @@ async function submitManagerEval(decision) {
   }
   try {
     const res = await fetch(
-      `http://localhost:8000/review/manager/performance/${perfId}/evaluate`,
+      `http://localhost:5000/review/manager/performance/${perfId}/evaluate`,
       {
         method: 'POST',
         headers: {

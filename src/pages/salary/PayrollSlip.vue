@@ -149,11 +149,25 @@ function showToast(msg) {
 }
 const salaryColumnDefs = [
   { headerName: '지급일자', field: 'salaryDate' },
-  { headerName: '총지급', field: 'totalIncome' },
-  { headerName: '총공제', field: 'totalDeductions' },
-  { headerName: '실지급', field: 'netSalary' }
+  {
+    headerName: '총지급',
+    field: 'totalIncome',
+    valueFormatter: params => formatCurrency(params.value),
+    cellClass: 'right-align'
+  },
+  {
+    headerName: '총공제',
+    field: 'totalDeductions',
+    valueFormatter: params => formatCurrency(params.value),
+    cellClass: 'right-align'
+  },
+  {
+    headerName: '실지급',
+    field: 'netSalary',
+    valueFormatter: params => formatCurrency(params.value),
+    cellClass: 'right-align'
+  }
 ]
-
 function parseJwtPayload() {
   try {
     const token = accessToken.value || ''
@@ -177,7 +191,7 @@ onMounted(async () => {
 })
 
 async function fetchEmployeeInfo() {
-  const { data } = await axios.get(`http://localhost:8000/payroll/me`, {
+  const { data } = await axios.get(`http://localhost:5000/payroll/me`, {
     headers: { Authorization: `Bearer ${accessToken.value}` }
   })
   employee.value = data
@@ -197,7 +211,7 @@ async function fetchSalaryHistory() {
   while (current <= end) {
     const yyyymm = `${current.getFullYear()}-${String(current.getMonth() + 1).padStart(2, '0')}`
     try {
-      const { data } = await axios.get(`http://localhost:8000/payroll/me/salary`, {
+      const { data } = await axios.get(`http://localhost:5000/payroll/me/salary`, {
         params: { month: yyyymm },
         headers: { Authorization: `Bearer ${accessToken.value}` }
       })
@@ -222,7 +236,7 @@ function scrollToSalarySection() {
 }
 
 async function selectSlip(month) {
-  const response = await axios.get(`http://localhost:8000/payroll/me/salary`, {
+  const response = await axios.get(`http://localhost:5000/payroll/me/salary`, {
     params: { month },
     headers: { Authorization: `Bearer ${accessToken.value}` }
   })

@@ -115,7 +115,7 @@ const isHR = computed(() => {
 // — grid column 정의
 const columnDefs = ref([
   { headerName: '',       field: 'checkbox', checkboxSelection: true, headerCheckboxSelection: true, width:50, pinned:'left' },
-  { headerName: '번호',     field: 'boardId',      width:100, cellClass:'center-align' },
+  { headerName: '번호', valueGetter: params => params.api.getDisplayedRowCount() - params.node.rowIndex, sortable: false, flex: 0.3, cellClass:'center-align' },
   { headerName: '제목',     field: 'boardTitle',   flex:2 },
   { headerName: '작성자',   field: 'employeeName', flex:1, cellClass:'center-align' },
   { headerName: '작성일자',
@@ -144,7 +144,7 @@ function authHeaders() {
 // — 1) 초기 데이터 로드
 onMounted(async () => {
   try {
-    const res = await axios.get('http://localhost:8000/boards/lists', {
+    const res = await axios.get('http://localhost:5000/boards/lists', {
       headers: authHeaders()
     })
     fullData.value = res.data
@@ -187,7 +187,7 @@ async function confirmDelete() {
   const ids = sel.map(r => r.boardId)
   try {
     await Promise.all(ids.map(id =>
-      axios.delete(`http://localhost:8000/boards/${id}`, {
+      axios.delete(`http://localhost:5000/boards/${id}`, {
         headers: authHeaders()
       })
     ))

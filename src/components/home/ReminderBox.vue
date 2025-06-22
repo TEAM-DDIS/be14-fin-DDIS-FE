@@ -36,7 +36,10 @@
 
       <!-- 이벤트 -->
       <div class="reminder-box event-schedule">
-        <div class="reminder-title">이벤트</div>
+        <div class="reminder-title">
+          이벤트
+          <span class="date-range">({{ birthdayRangeText }})</span>
+        </div>
           <ul class="reminder-list custom-bullet">
             <li v-for="user in birthdayUsers" :key="user.employeeId" class="event">
               <span class="bullet"></span>
@@ -103,14 +106,14 @@ onMounted(async () => {
       await userStore.fetchAllEmployees()
 
     // 개인 일정
-    const scheduleRes = await fetch('http://localhost:8000/attendance/schedule/today', {
+    const scheduleRes = await fetch('http://localhost:5000/attendance/schedule/today', {
       headers: { Authorization: `Bearer ${token}` }
     })
     const scheduleData = await scheduleRes.json()
     schedules.value = Array.isArray(scheduleData) ? scheduleData : [scheduleData]
 
     // 팀 회의 일정
-    const meetingRes = await fetch('http://localhost:8000/attendance/meeting/today', {
+    const meetingRes = await fetch('http://localhost:5000/attendance/meeting/today', {
       headers: { Authorization: `Bearer ${token}` }
     })
     const meetingData = await meetingRes.json()
@@ -124,6 +127,21 @@ onMounted(async () => {
     loading.value = false
   }
 })
+
+const birthdayRangeText = computed(() => {
+  const today = new Date()
+  const endDate = new Date()
+  endDate.setDate(today.getDate() + 6)
+
+  const formatDate = (date) => {
+    const m = String(date.getMonth() + 1).padStart(2, '0')
+    const d = String(date.getDate()).padStart(2, '0')
+    return `${m}월 ${d}일`
+  }
+
+  return `${formatDate(today)} ~ ${formatDate(endDate)}`
+})
+
 </script>
 
 <style scoped>
@@ -233,4 +251,11 @@ onMounted(async () => {
   font-size: 17px;
   font-weight: bold;
 }
+.date-range {
+  font-size: 12px;
+  font-weight: 400;
+  color: #666;
+  margin-left: 6px;
+}
+
 </style>

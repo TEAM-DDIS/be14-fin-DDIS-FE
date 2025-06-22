@@ -94,7 +94,7 @@ async function toggleNotification() {
 // 알림 목록 조회 함수
 async function fetchNotifications() {
   const token = localStorage.getItem('token')
-  const res = await fetch('http://localhost:8000/notice/me', {
+  const res = await fetch('http://localhost:5000/notice/me', {
     headers: {
       'Authorization': `Bearer ${token}`
     }
@@ -117,7 +117,7 @@ async function fetchNotifications() {
 async function handleNotificationClick(item) {
   const token = localStorage.getItem('token')
   try {
-    const res = await fetch(`http://localhost:8000/notice/${item.id}/read`, {
+    const res = await fetch(`http://localhost:5000/notice/${item.id}/read`, {
       method: 'PATCH',
       headers: {
         'Authorization': `Bearer ${token}`

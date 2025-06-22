@@ -59,6 +59,7 @@
       </div>
     </div>
   </div> -->
+  <BaseToast ref="toastRef" />
 </template>
 
 <script setup>
@@ -67,6 +68,7 @@ import { useRouter }            from 'vue-router'
 import axios                     from 'axios'
 import { AgGridVue }             from 'ag-grid-vue3'
 import { useUserStore }          from '@/stores/user'
+import BaseToast from '@/components/toast/BaseToast.vue'
 import {
   ModuleRegistry,
   AllCommunityModule,
@@ -92,6 +94,12 @@ ModuleRegistry.registerModules([
 // 2) Pinia & Router
 const userStore       = useUserStore()
 const router          = useRouter()
+const toastRef = ref(null)
+
+
+  function showToast(msg) {
+    toastRef.value?.show(msg)
+  }
 
 // JWT 토큰 디코딩 유틸
 function parseJwtPayload(token) {
@@ -195,7 +203,7 @@ const filteredData = computed(() => {
 // 9) API 호출
 onMounted(async () => {
   try {
-    const res = await axios.get('http://localhost:8000/employees/list', {
+    const res = await axios.get('http://localhost:5000/employees/list', {
       headers: { Authorization: `Bearer ${userStore.accessToken}` }
     })
     rowData.value = Array.isArray(res.data)
@@ -204,10 +212,10 @@ onMounted(async () => {
   } catch (e) {
     console.error('사원 목록 조회 실패:', e)
     if (e.response?.status === 401) {
-      alert('로그인이 필요합니다.')
+      showToast('로그인이 필요합니다.')
       router.push('/login')
     } else {
-      alert('사원 목록 조회 중 오류가 발생했습니다.')
+      showToast('사원 목록 조회 중 오류가 발생했습니다.')
     }
   }
 })
@@ -232,7 +240,7 @@ function onCellClick(event) {
 function onDeleteClick() {
   const sel = gridApi.getSelectedRows()
   if (!sel.length) {
-    alert('삭제할 사원을 선택하세요.')
+    showToast('삭제할 사원을 선택하세요.')
     return
   }
   showDeleteModal.value = true
@@ -245,7 +253,7 @@ function confirmDelete() {
   rowData.value = rowData.value.filter(r => !selIds.includes(r.employeeId))
   gridApi.deselectAll()
   showDeleteModal.value = false
-  alert('삭제가 완료되었습니다.')
+  showToast('삭제가 완료되었습니다.')
 }
 
 // 13) 등록 이동

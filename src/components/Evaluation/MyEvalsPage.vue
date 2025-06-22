@@ -157,7 +157,7 @@ async function fetchGoals() {
   const reviewerId = userStore.user.employeeId
   try {
     const res = await fetch(
-      `http://localhost:8000/review/${reviewerId}/performance`,
+      `http://localhost:5000/review/${reviewerId}/performance`,
       { headers: { Authorization: `Bearer ${token}` } }
     )
     if (!res.ok) throw new Error('내가 쓴 평가 불러오기 실패')
@@ -214,7 +214,7 @@ async function submitReview() {
 
   try {
     const res = await fetch(
-      `http://localhost:8000/review/manager/performance/${performanceId}/evaluate`,
+      `http://localhost:5000/review/manager/performance/${performanceId}/evaluate`,
       {
         method: 'POST',
         headers: {

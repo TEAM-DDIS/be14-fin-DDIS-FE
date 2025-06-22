@@ -70,7 +70,7 @@ import ConfirmModal from '@/components/org/appointment/ConfirmModal.vue'
 
 ModuleRegistry.registerModules([AllCommunityModule])
 
-const API_BASE        = 'http://localhost:8000/appointment-history'
+const API_BASE        = 'http://localhost:5000/appointment-history'
 const selectedType    = ref('')
 const filterEmployee  = ref('')
 const rowData         = ref([])
@@ -190,7 +190,7 @@ async function onDelete() {
   openConfirmModal(`${idsToDelete.length}건을 삭제하시겠습니까?`, async () => {
   try {
     for (const id of idsToDelete) {
-      const res = await fetch(`http://localhost:8000/appointment/delete/${id}`, {
+      const res = await fetch(`http://localhost:5000/appointment/delete/${id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`

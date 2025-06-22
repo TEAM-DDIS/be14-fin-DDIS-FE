@@ -255,9 +255,26 @@ const salaryColumnDefs = [
   { headerName: '사원번호', field: 'employeeId' },
   { headerName: '성명', field: 'employeeName' },
   { headerName: '지급일자', field: 'salaryDate' },
-  { headerName: '총지급', field: 'totalIncome' },
-  { headerName: '총공제', field: 'totalDeductions' },
-  { headerName: '실지급', field: 'netSalary' }
+  {
+    headerName: '총지급',
+    field: 'totalIncome',
+    valueFormatter: params => formatCurrency(params.value),
+    cellClass: 'right-align'
+  },
+  {
+    headerName: '총공제',
+    field: 'totalDeductions',
+    valueFormatter: params => formatCurrency(params.value),
+    cellClass: 'right-align'
+  },
+  {
+    headerName: '실지급',
+    field: 'netSalary',
+    valueFormatter: params => formatCurrency(params.value),
+    cellClass: 'right-align'
+  }
+
+  
 ]
 
 const uniqueHeads = computed(() => [...new Set(employees.value.map(e => e.headName).filter(Boolean))])
@@ -314,7 +331,7 @@ async function fetchSalaryHistory() {
       rankName: filters.rankName
     }
 
-    const { data } = await axios.get(`http://localhost:8000/payroll/salaries`, {
+    const { data } = await axios.get(`http://localhost:5000/payroll/salaries`, {
       params,
       headers: { Authorization: `Bearer ${token}` }
     })
@@ -337,12 +354,12 @@ async function fetchSalaryHistory() {
 async function selectSlip(e) {
   const row = e.data
   try {
-    const { data: salary } = await axios.get(`http://localhost:8000/payroll/salaries/${row.employeeId}`, {
+    const { data: salary } = await axios.get(`http://localhost:5000/payroll/salaries/${row.employeeId}`, {
       params: { month: row.yearMonth },
       headers: { Authorization: `Bearer ${token}` }
     })
 
-    const { data: emp } = await axios.get(`http://localhost:8000/payroll/employees/${row.employeeId}`, {
+    const { data: emp } = await axios.get(`http://localhost:5000/payroll/employees/${row.employeeId}`, {
       headers: { Authorization: `Bearer ${token}` }
     })
 
@@ -388,7 +405,7 @@ function formatCurrency(val) {
 
 onMounted(async () => {
   try {
-    const res = await axios.get('http://localhost:8000/payroll/employees', {
+    const res = await axios.get('http://localhost:5000/payroll/employees', {
       headers: { Authorization: `Bearer ${token}` }
     })
     employees.value = res.data

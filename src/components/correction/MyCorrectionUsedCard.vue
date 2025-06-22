@@ -50,7 +50,7 @@
     }
 
     try {
-      const res = await fetch('http://localhost:8000/attendance/correction/history/process/me', {
+      const res = await fetch('http://localhost:5000/attendance/correction/history/process/me', {
         headers: {
           Authorization: `Bearer ${token}`
         }

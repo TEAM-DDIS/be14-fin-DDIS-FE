@@ -2,8 +2,16 @@
   <transition name="fade">
     <div class="modal-overlay" @click.self="$emit('close')">
       <transition name="chat-pop">
-        <div class="chatbot-modal">
-          <div class="header">
+        <div
+          class="chatbot-modal"
+          ref="modalRef"
+          :style="{ position: 'absolute', right: '24px', bottom: '24px' }"
+        >
+          <div
+            class="header"
+            @mousedown="onMouseDown"
+            :class="{ dragging: isDragging }"
+          >
             <div class="title-row">
               <img src="@/assets/icons/pizza-icon2.svg" alt="DDIS Logo" class="logo" />
               <span class="title">ERPIZZA</span>
@@ -43,7 +51,6 @@
 <script setup>
 import { ref, nextTick } from 'vue'
 import MessageBubble from './MessageBubble.vue'
-import axios from 'axios'
 
 const chatBody = ref(null)
 const input = ref('')
@@ -52,7 +59,11 @@ const messages = ref([
     from: 'bot',
     sender: 'ERPIZZA 비서',
     text: '안녕하세요! 무엇을 도와드릴까요?',
-    time: new Date().toLocaleTimeString()
+    time: new Date().toLocaleTimeString([], {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true
+    })
   }
 ])
 
@@ -75,7 +86,7 @@ async function sendMessage() {
   messages.value.push({
     from: 'user',
     text: trimmed,
-    time: now.toLocaleTimeString('en-US', {
+    time: new Date().toLocaleTimeString([], {
       hour: '2-digit',
       minute: '2-digit',
       hour12: true
@@ -83,34 +94,98 @@ async function sendMessage() {
   })
 
   const payload = {
-    query: trimmed,
-    employee_id: employeeId,
-    session_id: sessionId
+    question: trimmed,
+    session_id: sessionId,
+    employee_id: employeeId
   }
 
   input.value = ''
   scrollToBottom()
 
-  try {
-    const res = await axios.post('http://localhost:8888/query', payload)
-    const answer = res.data.answer || '죄송합니다, 답변을 생성하지 못했습니다.'
-    messages.value.push({
-      from: 'bot',
-      sender: 'ERPIZZA 비서',
-      text: answer,
-      time: new Date().toLocaleTimeString()
-    })
-  } catch (err) {
-    console.error(err)
-    messages.value.push({
-      from: 'bot',
-      sender: 'ERPIZZA 비서',
-      text: '오류가 발생했습니다. 다시 시도해 주세요.',
-      time: new Date().toLocaleTimeString()
+  const botMsg = {
+    from: 'bot',
+    sender: 'ERPIZZA 비서',
+    text: '',
+    time: new Date().toLocaleTimeString([], {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true
     })
   }
-
+  messages.value.push(botMsg)
   scrollToBottom()
+
+  try {
+    const response = await fetch('http://localhost:8888/query-stream', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    })
+
+    const reader = response.body?.getReader()
+    const decoder = new TextDecoder('utf-8')
+
+    if (reader) {
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
+        const chunk = decoder.decode(value)
+        botMsg.text += chunk
+        scrollToBottom()
+      }
+    }
+  } catch (err) {
+    console.error(err)
+    botMsg.text = '⚠️ 오류가 발생했습니다. 다시 시도해 주세요.'
+  }
+}
+
+// 드래그 기능
+const modalRef = ref(null)
+const isDragging = ref(false)
+let offsetX = 0
+let offsetY = 0
+
+function onMouseDown(e) {
+  const modal = modalRef.value
+  if (!modal) return
+
+  const rect = modal.getBoundingClientRect()
+  offsetX = e.clientX - rect.left
+  offsetY = e.clientY - rect.top
+  isDragging.value = true
+
+  document.addEventListener('mousemove', onMouseMove)
+  document.addEventListener('mouseup', onMouseUp)
+}
+
+function onMouseMove(e) {
+  if (!isDragging.value || !modalRef.value) return
+
+  const modal = modalRef.value
+  const maxLeft = window.innerWidth - modal.offsetWidth
+  const maxTop = window.innerHeight - modal.offsetHeight
+
+  let newLeft = e.clientX - offsetX
+  let newTop = e.clientY - offsetY
+
+  newLeft = Math.max(0, Math.min(newLeft, maxLeft))
+  newTop = Math.max(0, Math.min(newTop, maxTop))
+
+  modal.style.left = `${newLeft}px`
+  modal.style.top = `${newTop}px`
+  modal.style.right = 'auto'
+  modal.style.bottom = 'auto'
+  modal.style.position = 'absolute'
+  modal.style.zIndex = '9999'
+}
+
+function onMouseUp() {
+  if (!isDragging.value) return
+  isDragging.value = false
+
+  document.removeEventListener('mousemove', onMouseMove)
+  document.removeEventListener('mouseup', onMouseUp)
 }
 </script>
 
@@ -129,14 +204,16 @@ async function sendMessage() {
 
 .chatbot-modal {
   width: 450px;
-  max-height: 70vh;
-  min-height: 35vh;
+  height: 70vh; /* 고정된 높이 */
   background: white;
   border-radius: 16px;
   display: flex;
   flex-direction: column;
   overflow: hidden;
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+  position: absolute;
+  right: 24px;
+  bottom: 24px;
 }
 
 .header {
@@ -147,7 +224,20 @@ async function sendMessage() {
   justify-content: space-between;
   align-items: center;
   font-weight: bold;
+  cursor: move;
+  transition: opacity 0.2s ease;
 }
+
+/* ✅ 드래그 중일 때 */
+.header.dragging {
+  opacity: 0.6;
+}
+
+/* ✅ 호버 시 반투명 */
+.header:hover {
+  opacity: 0.8;
+}
+
 .title-row {
   display: flex;
   align-items: center;
@@ -206,7 +296,6 @@ async function sendMessage() {
 }
 .input-area input:focus {
   border-color: #00A8E8;
-  border: 2px solid #00A8E8;
 }
 .send-btn {
   background: #ccc;
@@ -229,7 +318,7 @@ async function sendMessage() {
 
 .fade-enter-active,
 .fade-leave-active {
-  transition: opacity 095s ease;
+  transition: opacity 0.95s ease;
 }
 .fade-enter-from,
 .fade-leave-to {
