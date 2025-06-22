@@ -9,6 +9,7 @@ import ko from 'element-plus/es/locale/lang/ko'
 import 'ag-grid-community/styles/ag-theme-alpine.css'
 import '@/assets/main.css'
 import 'quill/dist/quill.snow.css'
+import '@/assets/theme.css'
 
 import { Buffer } from 'buffer'
 

@@ -159,9 +159,10 @@ const birthdayRangeText = computed(() => {
 }
 
 .reminder-box {
+  background-color: var(--bg-box);
   font-size: 15px;
   flex: 1;
-  background-color: #fff;
+  /* background-color: #fff; */
   border-radius: 10px;
   padding: 12px;
   box-shadow: 0px 0px 5px 1px rgba(0, 0, 0, 0.08);
@@ -238,12 +239,12 @@ const birthdayRangeText = computed(() => {
 .title {
   font-size: 13px;
   font-weight: 400;
-  color: #000;
+  color: var(--text-main);
   word-break: break-word;
 }
 /* 외곽 박스 공통 */
 .box {
-  background: #fff;
+  background-color: var(--bg-box);
   border-radius: 15px;
   padding: 20px;
   min-height: 200px;

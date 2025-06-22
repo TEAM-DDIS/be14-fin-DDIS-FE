@@ -17,13 +17,14 @@ import TeamStatusCard from '@/components/attendance/TeamWorkStatusCard.vue'
 }
 .box {
   margin-top: 30px;
-  background: #fff;
+  background: var(--bg-box);
   border-radius: 15px;
   padding: 20px;
   min-height: 200px;
-  box-shadow: 1px 1px 20px 1px rgba(0, 0, 0, 0.05);
+  box-shadow: 1px 1px 20px 1px var(--hover-shadow);
   font-size: 17px;
   font-weight: bold;
+  color: var(--text-main);
 }
 ::v-deep(.team-status-card) {
   box-shadow: none !important;
@@ -34,7 +35,7 @@ import TeamStatusCard from '@/components/attendance/TeamWorkStatusCard.vue'
 ::v-deep(.team-title) {
   margin-left:3px;
   font-size: 16px;
-  /* color: #333; */
+  color: var(--text-main);
   margin-bottom: 5px;
 }
 ::v-deep(.status-list) {
