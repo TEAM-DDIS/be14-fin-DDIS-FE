@@ -109,8 +109,8 @@
         height: 40px;
         font-size: 14px;
         font-weight: bold;
-        background-color: #00a8e8;
-        color: white;
+        background-color: var(--primary);
+         color: var(--text-on-primary);
         border: 1px solid transparent;
         border-radius: 10px;
         padding: 10px 30px;
@@ -121,9 +121,9 @@
     }
 
     .submit-btn:hover {
-        background-color: white;
-        color: #00a8e8;
-        border-color: #00a8e8;
+        background-color: var(--text-on-primary);
+        color: var(--primary);
+        border-color: var(--primary);
         box-shadow:
         inset 1px 1px 10px rgba(0, 0, 0, 0.25);
     }
@@ -133,9 +133,9 @@
         height: 40px;
         font-size: 14px;
         font-weight: bold;
-        background-color: #D3D3D3;
-        color: #000;
-        border: none;
+        background-color: var(--bg-menu-btn-hover);
+        color: var(--text-main);
+        border: 1px solid var(--border-color);
         border-radius: 10px;
         padding: 10px 30px;
         font-weight: bold;
@@ -145,17 +145,21 @@
         box-sizing: border-box;
     }
     .cancle-btn:hover {
-        background-color: #000;
-        color: #fff;
+        background-color: var(--text-main);
+        color: var(--text-on-primary);
     }
 
     .meeting-event-card {
-        /* 기본 primary 색(파랑)을 검정으로 덮어씁니다 */
-        --el-color-primary: #000 !important;
+        --el-color-primary: var(--primary) !important;
+        background-color: var(--bg-box);
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: 1px 1px 20px var(--hover-shadow);
+        color: var(--text-main);
     }
 
     :deep(.el-form-item__label) {
-        color: #000;
+        color: var(--text-main);
         font-size: 18px;
     }
 </style>

@@ -55,7 +55,7 @@ const avatarSrc = props.avatar || defaultAvatar
 }
 
 .bubble {
-  background: white;
+  background-color: var(--bg-box);
   border-radius: 12px;
   padding: 10px 14px;
   box-shadow: 0 1px 3px rgba(0,0,0,0.1);

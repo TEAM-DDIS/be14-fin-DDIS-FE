@@ -28,11 +28,10 @@ defineEmits(['select'])
 /* 사이드바 컨테이너 스타일 */
 .sidebar {
   align-items: center;
-  background: #fff;
+  background-color: var(--bg-sidebar);
   padding: 20px;
   display: flex;
   flex-direction: column;
-  background-color: #f5f5f5;
   border-radius: 0 0 0 16px;
   gap: 14px;
   height: 100%;
@@ -43,7 +42,7 @@ defineEmits(['select'])
 /* 개별 메뉴 버튼 스타일 */
 .menu-button {
   width: 95%;
-  background: white;
+ background-color: var(--bg-menu-btn); 
   border-radius: 23px;
   padding: 15px 0;
   font-weight: bold;
@@ -51,21 +50,21 @@ defineEmits(['select'])
   text-align: center;
   border: none;
   transition: background-color 0.3s, box-shadow 0.3s;
-  box-shadow: 0px 0px 5px 4px rgba(0, 0, 0, 0.03);
+  box-shadow: 0px 0px 5px 4px var(--menu-btn-shadow);
   user-select: none;
   font-size: 16px;
 }
 
 /* 선택된 메뉴 스타일 */
 .menu-button.active {
-  background-color: #d6d6d6;
-  color: black;
+  background-color: var(--bg-menu-btn-hover);
+  color: var(--text-main);
   box-shadow: inset 0px 0px 10px 10px rgba(0, 0, 0, 0.1);
 }
 
 /* 마우스 호버 시 스타일 */
 .menu-button:hover {
-  background-color: #d6d6d6;
-  box-shadow: inset 0px 0px 10px 10px rgba(0, 0, 0, 0.1);
+  background-color: var(--bg-menu-btn-hover);
+  box-shadow: inset 0px 0px 10px 10px var(--hover-shadow); 
 } 
 </style>

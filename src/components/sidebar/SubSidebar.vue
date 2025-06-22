@@ -33,7 +33,6 @@
    </aside>
 </template>
 
-
 <script setup>
     import { computed } from 'vue'
     import { RouterLink, useRouter } from 'vue-router'
@@ -274,84 +273,78 @@
 </script>
 
 <style scoped>
-    .sub-sidebar {
-        margin-top: -6px;
-        box-shadow: 2px 0 5px rgba(0,0,0,0.05);
+.sub-sidebar {
+  margin-top: -6px;
+  box-shadow: 2px 0 5px var(--menu-btn-shadow);
+  width: 180px;
+  padding: 20px 12px;
+  background-color: var(--bg-sidebar);
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
 
-        width: 180px;
-        padding: 20px 12px;
-        background-color: #f5f5f5;
-        box-sizing: border-box;
-        display: flex;
-        flex-direction: column;
-        gap: 30px;
-      
+.main-title {
+  border: 3px solid var(--primary);
+  border-top-right-radius: 20px;
+  border-bottom-right-radius: 20px;
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+  height: 50px;
+  font-size: 17px;
+  font-weight: bold;
+  text-align: center;
+  padding: 10.5px 0;
+  width: calc(100% + 12px);
+  margin-left: -12px;
+  margin-right: auto;
+  box-sizing: border-box;
+  transition: background-color 0.3s ease;
+  background-color: var(--bg-main);
+  color: var(--text-main);
+}
 
+.submenu-section {
+  display: flex;
+  flex-direction: column;
+}
 
-    }
+.submenu-title {
+  font-weight: bold;
+  font-size: 14px;
+  padding-bottom: 4px;
+  margin-bottom: 6px;
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-main);
+  margin-top: 15px;
+  transition: color 0.2s ease;
+}
 
-    .main-title {
-        border: 3px solid #00a8e8;
-        border-top-right-radius: 20px;
-        border-bottom-right-radius: 20px;
-        border-top-left-radius: 0;
-        border-bottom-left-radius: 0;
-        height: 50px;
-        font-size: 17px;
-        font-weight: bold;
-        text-align: center;
-        padding: 10.5px 0;
-        width: calc(100% + 12px); /* ✅ 사이드바 오른쪽 padding 무시 */
-        margin-left: -12px;       /* ✅ 사이드바 padding 보정 */
-        margin-right: auto; 
+.submenu-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
 
-        box-sizing: border-box;
-        transition: background-color 0.3s ease;
-    }
+.submenu-link,
+.submenu-link:link,
+.submenu-link:visited {
+  color: inherit;
+  text-decoration: none;
+}
 
-    .submenu-section {
-        display: flex;
-        flex-direction: column;
-    }
+.submenu-list li {
+  font-size: 14px;
+  padding: 2px 0 2px 6px;
+  color: var(--text-main);
+  cursor: pointer;
+  text-decoration: none;
+  transition: color 0.2s;
+}
 
-    .submenu-title {
-        font-weight: bold;
-        font-size: 14px;
-        padding-bottom: 4px;
-        margin-bottom: 6px;
-        border-bottom: 1px solid #ccc;
-        color: #222;
-        margin-top: 15px;
-        transition: color 0.2s ease;
-    }
-
-    /* — 기존 .submenu-list 스타일 — */
-    .submenu-list {
-        list-style: none;
-        padding: 0;
-        margin: 0;
-        
-    }
-
-    /* — 링크만 스타일 초기화 — */
-    .submenu-link,
-    .submenu-link:link,
-    .submenu-link:visited {
-        color: inherit;        /* 부모 li의 색(#333)을 물려받음 */
-        text-decoration: none; /* 밑줄 제거 */
-    }
-
-    .submenu-list li {
-        font-size: 14px;
-        padding: 2px 0;
-        padding-left: 6px;
-        color: #333;
-        cursor: pointer;
-        text-decoration: none;
-    }
-
-    .submenu-list li:hover {
-        text-decoration: underline;
-        color: #00a8e8;
-    }
+.submenu-list li:hover {
+  text-decoration: underline;
+  color: var(--primary);
+}
 </style>
