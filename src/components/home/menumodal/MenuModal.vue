@@ -178,12 +178,13 @@ async function addFavorite(menuItem) {
 }
 
 .modal-container {
-  background: #fff;
+  background: var(--bg-main);
   width: 770px;
   height: 700px;
   border-radius: 16px;
   display: flex;
   flex-direction: column;
+  color: var(--text-main);
 }
 
 .modal-header {
@@ -192,9 +193,10 @@ async function addFavorite(menuItem) {
   padding: 15px;
   font-weight: bold;
   font-size: 18px;
-  background: #fff;
+ background: var(--bg-box); 
   display: flex;
   justify-content: space-between;
+  color: var(--text-main); 
 }
 
 .modal-body {
@@ -214,6 +216,7 @@ async function addFavorite(menuItem) {
   height: 110px;
   z-index: 10;
   pointer-events: none;
+    filter: var(--arrow-filter);
 }
 
 .close-btn {
@@ -221,8 +224,9 @@ async function addFavorite(menuItem) {
   border: none;
   background: transparent;
   cursor: pointer;
+  color: var(--text-main);
 }
 .close-btn:hover {
-  color: #00a8e8;
+  color: var(--primary);
 }
 </style>

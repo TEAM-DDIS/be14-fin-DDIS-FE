@@ -192,7 +192,7 @@
 
 <style scoped>
     .all-leave-used-card {
-        background: #fff;
+        background-color: var(--bg-box);
         padding: 30px;
         border-radius:12px;
         box-shadow: 1px 1px 20px 1px rgba(0, 0, 0, 0.05);
@@ -219,7 +219,12 @@
         border: 1px solid #ccc;
         border-radius: 4px;
     }
-
+    .search-bar input,
+    .filters select {
+    background-color: var(--bg-main);
+    color: var(--text-main);
+    border: 1px solid var(--border-color);
+    }
     .search {
         width: 20px;
     }
@@ -228,6 +233,7 @@
         display: flex;
         gap: 30px;
         flex-wrap: wrap;
+        
     }
 
     .filters select {
