@@ -2,14 +2,14 @@
 <template>
   <!-- ◆ 페이지 제목 -->
   <h1 class="page-title">기안작성</h1>
-  <p class="desc">연차신청서 작성</p>
+  <p class="desc">업무 기안 작성</p>
 
   <!-- ◆ 전체 레이아웃 박스 -->
   <div class="main-box">
     <!-- ◆ 폼 컨테이너 -->
     <div class="container">
       <!-- 🔷 기본 정보 입력 영역 -->
-      <h2>연차신청서</h2>
+      <h2>업무 기안</h2>
       <hr class="bold-divider" />
       <table>
         <tbody>
@@ -133,6 +133,7 @@
       </table>
 
       <!-- 🔷 제목 및 첨부파일 -->
+    <div class="section-header">
       <div class="section-title">기안내용</div>
       <hr class="section-divider" />
       <table class="file-table">
@@ -170,74 +171,39 @@
         <li>특수기호 또는 이모지 포함 시 문자가 깨질 수 있습니다.</li>
       </ul>
 
-      <!-- 🔷 연차일 작성 -->
-      <table class="info-table annual-table">
-        <colgroup>
-          <col style="width:25%">
-          <col style="width:25%">
-          <col style="width:25%">
-          <col style="width:25%">
-        </colgroup>
-        <tbody>
-          <tr>
-            <td class="annual-label">총 연차 일수</td>
-            <td class="annual-value">{{ form.annualTotal }}</td>
-            <td class="annual-label">사용가능 연차일수</td>
-            <td class="annual-value">{{ form.annualAvailable }}</td>
-          </tr>
-          <tr>
-            <td class="annual-label">사용 연차 누계</td>
-            <td class="annual-value">{{ form.annualUsed }}</td>
-            <td class="annual-label">신청 연차 일수</td>
-            <td class="annual-value">
-              <input type="number" v-model.number="form.annualRequest" min="0" />
-            </td>
-          </tr>
-          <tr>
-            <td>휴가종류</td>
-            <td colspan="3">
-              <label><input type="radio" name="leaveType" value="연차" v-model="form.leaveType" /> 연차</label>
-              <label style="margin-left:24px;"><input type="radio" name="leaveType" value="오전반차" v-model="form.leaveType" /> 오전반차</label>
-              <label style="margin-left:24px;"><input type="radio" name="leaveType" value="오후반차" v-model="form.leaveType" /> 오후반차</label>
-            </td>
-          </tr>
-          <tr>
-            <td rowspan="2">휴가기간</td>
-            <td colspan="2" class="period-label-cell" style="text-align:center;">시작일자</td>
-            <td colspan="2" class="period-label-cell" style="text-align:center;">종료일자</td>
-          </tr>
-          <tr>
-            <td colspan="2" class="period-input-cell">
-              <input type="date" v-model="form.startDate" />
-            </td>
-            <td colspan="2" class="period-input-cell">
-              <input type="date" v-model="form.endDate" />
-            </td>
-          </tr>
-          <tr>
-            <td>휴가사유</td>
-            <td colspan="3">
-              <textarea v-model="form.reason" style="width:100%;height:180px;"></textarea>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-
+      <!-- 🔷 본문 작성 에디터 -->
+      <div class="content-editor-section">
+        <div class="editor-wrapper">
+          <div class="editor-toolbar-row">
+            <label class="editor-label">본문</label>
+            <div id="custom-toolbar" />
+          </div>
+          <!-- 🔷 Quill 에디터 사용 -->
+          <QuillEditor
+            v-model:content="form.body"
+            contentType="html"
+            theme="snow"
+            :modules="quillModules"
+            class="quill-editor-area"
+          />
+        </div>
+      </div>
     </div>
+  </div>
 
     <!-- 🔷 하단 버튼 (임시저장/상신하기) -->
     <div class="button-group">
-      <button class="button gray" @click="showDraftSaveModal = true">취소</button>
+      <button class="button gray" @click="handleCancel">취소</button>
       <button class="button" @click="showSubmitModal = true">상신</button>
     </div>
   </div>
 
   <!-- 🔷 모달 컴포넌트 영역 -->
-  <DraftSaveModal
+  <!-- <DraftSaveModal
     v-if="showDraftSaveModal"
     @close="showDraftSaveModal = false"
     @submit="confirmDraftSave"
-  />
+  /> -->
   <SubmitModal
     v-if="showSubmitModal"
     @close="showSubmitModal = false"
@@ -247,6 +213,9 @@
 
 
 <script>
+import { QuillEditor } from '@vueup/vue-quill';
+import { ref, reactive, watch, onBeforeMount } from 'vue'
+import debounce from 'lodash-es/debounce'
 import axios from "axios";
 import SelectionModal from '@/components/eapproval/ApprovalLineModal.vue';
 import SubmitModal from '@/components/eapproval/SubmitModal.vue';
@@ -274,6 +243,7 @@ export default {
   name: "CreateDraftPreview",
   components: {
     SelectionModal,
+    QuillEditor,
     SubmitModal,
     DraftSaveModal
   },
@@ -289,10 +259,6 @@ export default {
         reference: "",
         title: "",
         body: "",
-        annualTotal: 0,
-        annualAvailable: 0,
-        annualUsed: 0,
-        annualRequest: 0,
       },
       approvalLines: [],
       receiverList: [],
@@ -313,15 +279,7 @@ export default {
       showReceiverModal: false,
       showReferenceModal: false,
       showSubmitModal: false,
-      showDraftSaveModal: false,
-      startLabelClass: '',
-      endLabelClass: '',
-      startInputClass: '',
-      endInputClass: '',
-      startLabelStyle: 'background: #f8f9fa;',
-      endLabelStyle: 'background: #f8f9fa;',
-      startInputStyle: '',
-      endInputStyle: '',
+      showDraftSaveModal: false
     };
   },
   // created() {
@@ -330,6 +288,7 @@ export default {
   // },
   mounted() {
     //  🔷  컴포넌트 마운트 시 기안자 정보 불러오고, 날짜 초기화 및 임시저장 데이터 복원
+
     this.loadDrafterInfo();
     const now = new Date();
     const yyyy = now.getFullYear();
@@ -526,11 +485,27 @@ async confirmDraftSave() {
     alert('임시저장 실패: ' + (err.response?.data?.message || err.message))
   }
 },
+
     // ⑥ 최종 상신하기: rankName·role 포함  -  상신 버튼 클릭 시 실행되는 최종 제출 로직
     //   1. 입력 데이터 정리
     //   2. 서버에 POST 요청으로 상신 처리
     //   3. 성공 시 사용자 안내 및 페이지 이동
     async confirmSubmit() {
+      // 보존연한 미입력 시 경고
+      if (!this.form.retentionPeriod) {
+        alert('보존연한을 선택해주세요.');
+        return;
+      }
+      // 제목 미입력 시 경고
+      if (!this.form.title || this.form.title.trim() === '') {
+        alert('제목을 입력해주세요.');
+        return;
+      }
+      // 본문 미입력 시 경고
+      if (!this.form.body || this.form.body.trim() === '' || this.form.body === '<p><br></p>') {
+        alert('본문 내용을 입력해주세요.');
+        return;
+      }
       const now = new Date();
       const attachmentKeys = this.uploadedFiles.map(f => f.key);
       const originalFileNames = this.uploadedFiles.map(f => f.name);
@@ -560,6 +535,7 @@ async confirmDraftSave() {
           reference: this.referenceList.map(u => u.name),
         }
       };
+
       console.log("상신 데이터", JSON.stringify(submitData, null, 2));
       
       // (b) 서버에 POST 요청
@@ -571,6 +547,7 @@ async confirmDraftSave() {
           }
         });
         const { docId } = res.data;
+
         // (c) 성공 시 알림 및 이동
         // alert(`상신 완료! 문서번호: ${docId}`);
         alert(`기안문이 상신되었습니다.`);
@@ -581,6 +558,12 @@ async confirmDraftSave() {
         alert("상신 실패: " + (error.response?.data?.message || error.message));
       }
     },
+
+    // 취소 버튼 동작: 모달 대신 DraftTempListPage로 이동
+    handleCancel() {
+      this.$router.push({ name: 'DraftTempList' });
+    },
+
     // ⑦ 파일 업로드 처리
     handleFileUpload(event) {
       this.fileError = "";
@@ -627,6 +610,7 @@ async confirmDraftSave() {
       this.uploadedFiles = this.uploadedFiles.filter(file => !file.selected);
     },
   };
+
 </script>
 
 
@@ -644,6 +628,10 @@ async confirmDraftSave() {
     margin-bottom: 10px;
     font-size: 18px;
   }
+
+.section-header{
+  margin-top: 50px;
+}
 
 /* ✅ 전체 페이지 초기화 및 높이 설정 */
 body, html {
@@ -681,6 +669,81 @@ body, html {
   margin: 20px auto;
 }
 
+/* ✅ 에디터 전체 영역 정렬 */
+.editor-wrapper {
+  display: flex;
+  flex-direction: column;
+}
+
+/* ✅ 에디터 상단 툴바 정렬 (라벨 + 툴바) */
+.editor-toolbar-row {
+  display: flex;
+  flex-direction: column;        /* 라벨과 툴바가 위아래 정렬되는 경우 */
+  padding: 0;
+  margin: 0;
+  border: none;
+  gap: 0;
+
+}
+
+/* ✅ 에디터 라벨 (본문) */
+.editor-label {
+  font-size: 14px;
+  font-weight: bold;
+  white-space: nowrap;
+}
+
+/* ✅ 툴바 영역 (커스텀 툴바 오른쪽 정렬) */
+#custom-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+ /* ✅ Quill 에디터 입력창 스타일 */
+::v-deep(.quill-editor-area .ql-container.ql-snow) {
+  min-height: 300px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 8px;
+  background: #0070e0;
+  font-size: 14px;
+  line-height: 1.6;
+  text-align: left;
+} 
+
+/* Quill 에디터 외곽 회색 선 제거 */
+::v-deep(.quill-editor-area .ql-container.ql-snow) {
+  border-bottom: none !important;
+  margin-bottom: 0 !important;
+  padding-bottom: 0 !important;
+}
+
+
+/* 에디터 내부 여백 제거 */
+::v-deep(.quill-editor-area .ql-editor) {
+  margin-bottom: 0 !important;
+  padding-bottom: 0 !important;
+}
+
+/* ✅ Quill 테이블 스타일 커스터마이징 */
+::v-deep(.quill-editor-area .ql-editor table) {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+::v-deep(.quill-editor-area .ql-editor table td),
+::v-deep(.quill-editor-area .ql-editor table th) {
+  border: 1px solid #ccc;
+  padding: 6px 10px;
+  text-align: center;
+  background-color: #fff;
+}
+
+::v-deep(.quill-editor-area .ql-editor table th) {
+  background-color: #f0f0f0;
+  font-weight: bold;
+}
 
 /* ✅ 제목 영역 구분선 */
 .bold-divider {
@@ -939,16 +1002,17 @@ textarea {
 
 .button-group {
   display: flex;
+  justify-content: flex-end; /* 🔧 오른쪽 정렬 */
   gap: 12px;
+  margin-top: 24px;
   margin-bottom: 70px;
-  margin-left: 985px;
 }
 
 .approval-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-top: 20px;
+  margin-top: 50px;
   margin-bottom: 10px;
 }
 
@@ -961,6 +1025,50 @@ textarea {
   background-color: #fafafa;
 }
 
+/* 에디터 전체 박스 */
+.editor-wrapper {
+  border: 1px solid #ccc;
+  background: #ffffff;
+  padding: 0;
+  margin-top: 12px;
+  min-height: 400px;
+}
+
+/* 본문 입력창 */
+::v-deep(.quill-editor-area .ql-container.ql-snow) {
+  border: none;
+  min-height: 350px;
+  background: #ffffff;
+  font-size: 15px;
+  line-height: 1.7;
+  padding: 0 8px 8px 8px;
+}
+
+/* 에디터 내부 텍스트 여백 */
+::v-deep(.quill-editor-area .ql-editor) {
+  padding: 12px 8px;
+  min-height: 320px;
+  font-family: 'Arial', sans-serif;
+  font-size: 15px;
+  line-height: 1.7;
+}
+
+.editor-label {
+  font-size: 15px;               /* 글자 크기 */
+  font-weight: bold;             /* 글자 굵게 */
+  white-space: nowrap;           /* 줄바꿈 없이 한 줄로 표시 */
+  background-color: #f8f9fa;     /* 파란 배경 색 */
+  text-align: center;            /* 텍스트 가운데 정렬 */
+  display: flex;                 /* Flexbox 사용 */
+  align-items: center;           /* 수직 가운데 정렬 */
+  justify-content: center;       /* 수평 가운데 정렬 */
+  width: 100%;                   /* 부모 영역 기준 전체 너비 */
+  height: 38px;                  /* 부모 영역 기준 전체 높이 */
+  margin: 0;                     /* 바깥 여백 제거 */
+  padding: 0;                    /* 안쪽 여백 제거 */
+  border: none;                  /* 외곽선 제거 */
+  border-radius: 0;              /* 둥근 모서리 제거 */
+}
 
 .hidden-input {
   display: none;
@@ -1011,57 +1119,33 @@ table {
   margin-bottom: 16px;
 }
 
-.annual-table td, .annual-table th {
-  border: 1px solid #ccc;
-  padding: 8px;
-  text-align: center;
-  font-size: 15px;
-  font-weight: normal;
-  background: #fff;
-}
-.annual-table tr td:first-child {
-  background: #f8f9fa;
-  font-weight: bold;
-  width: 140px;
-}
-.annual-table input[type="text"],
-.annual-table input[type="date"],
-.annual-table textarea {
-  border-radius: 6px;
-  border: 1px solid #ccc;
-  padding: 6px 10px;
-  font-size: 15px;
-  background: #fff;
-}
-.annual-table textarea {
-  resize: none;
+/* Quill Editor의 최소 높이 설정 */
+.quill-editor-area {
+  min-height: 200px; /* QuillEditor 컴포넌트 자체의 최소 높이 */
+  /* overflow: hidden; 이 속성은 이제 필요하지 않거나 다른 곳으로 이동 */
 }
 
-.annual-table input[type="radio"] {
-  margin-right: 4px;
+/* Quill Editor의 본문 입력 영역 (ql-editor) 스타일 */
+.quill-editor-area ::v-deep(.ql-editor) {
+  min-height: 200px; /* 본문 영역의 최소 높이 */
+  height: 300px; /* 본문 영역의 고정 높이 */
+  max-height: 300px; /* 본문 영역의 최대 높이 (고정 높이와 동일하게) */
+  overflow-y: auto; /* 내용 초과 시 수직 스크롤바 생성 */
+  box-sizing: border-box;
+  padding: 12px; /* 에디터 내부 여백 */
 }
 
-.annual-table .annual-value {
-  width: 13%;
-  min-width: 30px;
-  text-align: center;
-  background: #fff;
-  font-weight: bold;
+/* Quill Editor의 컨테이너 (ql-container) 스타일 */
+.quill-editor-area ::v-deep(.ql-container) {
+  /* height, overflow-y 설정은 ql-editor로 이동 */
+  border: 1px solid #e3e6ea; /* 컨테이너 테두리 */
+  box-sizing: border-box;
 }
 
-.annual-table .period-label-cell {
-  background: #f8f9fa !important;
-  font-weight: bold;
-  width: 50%;
+/* Quill Editor의 툴바 (ql-toolbar) 스타일 */
+.quill-editor-area ::v-deep(.ql-toolbar) {
+  border: 1px solid #e3e6ea; /* 툴바 테두리 */
+  border-bottom: none; /* 툴바 하단 테두리는 컨테이너와 겹치지 않도록 제거 */
 }
 
-.annual-table .period-input-cell {
-  background: #fff !important;
-  width: 50%;
-}
-
-.annual-table .annual-value input[type="number"] {
-  width: 80px;
-  text-align: right;
-}
 </style>

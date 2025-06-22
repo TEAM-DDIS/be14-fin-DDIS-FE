@@ -57,31 +57,33 @@ const columnDefsByTab = {
     { headerName:"번호", field:"no", width:100 },
     { headerName:"구분", field:"type", width:150 },
     { headerName:"제목", field:"title", flex:1 },
-    { headerName:"상신일시", field:"date", width:230 },
+    { headerName:"상신일시", field:"date", width:230, sort: 'desc' },
     { headerName:"문서상태", field:"docStatus", width:150 },
   ],
   '상신': [ 
     { headerName:"번호", field:"no", width:100 },
     { headerName:"구분", field:"type", width:150 },
     { headerName:"제목", field:"title", flex:1 },
-    { headerName:"상신일시", field:"date", width:230 },
+    { headerName:"상신일시", field:"date", width:230, sort: 'desc' },
     { headerName:"현재 결재자", field:"approver", width:150 },
   ],
   '완료': [
     { headerName:"번호", field:"no", width:100 },
     { headerName:"구분", field:"type", width:150 },
     { headerName:"제목", field:"title", flex:1 },
-    { headerName:"완료일시", field:"completeDate", width:230 },
+    { headerName:"완료일시", field:"completeDate", width:230, sort: 'desc' },
   ],
   '반려': [
     { headerName:"번호", field:"no", width:100 },
     { headerName:"구분", field:"type", width:150 },
     { headerName:"제목", field:"title", flex:1 },
+    // 반려일시 추가
   ],
   '회수': [
     { headerName:"번호", field:"no", width:100 },
     { headerName:"구분", field:"type", width:150 },
     { headerName:"제목", field:"title", flex:1 },
+    // 회수일시 추가
   ]
 }
 const currentColumnDefs = computed(() => columnDefsByTab[tab.value])
@@ -96,28 +98,36 @@ const statusMap = {
 // 3) 필터 & 번호붙이기
 
 const filteredForms = computed(() => {
+  const currentTab = tab.value
+  const expectedStatuses = statusMap[currentTab]
 
-const expectedStatuses = statusMap[tab.value]  // 예: ['심사중', '대기중']
-return docs.value
-    .filter(doc => {
-      if (!doc || !doc.docStatus) return false
-      // 탭 조건에 맞는 docStatus만 통과
-      if (!expectedStatuses.includes(doc.docStatus)) return false
+  // ✅ 필터링
+  const filtered = docs.value.filter(doc => {
+    if (!doc || !doc.docStatus) return false
 
-      // 추가 검색 조건 처리
-      if (search.title && !doc.title?.includes(search.title)) return false
-    // 3) 날짜 검색 (YYYY-MM-DD)
-      if (search.date) {
-        const dateOnly = doc.submittedAt?.slice(0, 10)
-        if (dateOnly !== search.date) return false
-      }
-      return true
-    })
-        .map((doc, idx, arr) => ({
-      ...doc,
-      no: arr.length - idx,  // 번호는 뒤에서부터
-      approver: formatApprover(doc.approverName, doc.approverRank) // ✅ 현재 결재자
-    }))
+    if (!expectedStatuses.includes(doc.docStatus)) return false
+
+    if (search.title && !doc.title?.includes(search.title)) return false
+
+    if (search.date) {
+      const dateField = currentTab === '완료' ? doc.approvedAt : doc.submittedAt
+      const dateOnly = dateField?.slice(0, 10)
+      if (dateOnly !== search.date) return false
+    }
+    return true
+  })
+  // ✅ 정렬: 완료탭은 approvedAt, 나머지는 submittedAt 기준
+  const sorted = filtered.sort((a, b) => {
+    const dateA = new Date(currentTab === '완료' ? a.approvedAt : a.submittedAt)
+    const dateB = new Date(currentTab === '완료' ? b.approvedAt : b.submittedAt)
+    return dateB - dateA // 최신순 정렬
+  })
+  // ✅ 정렬된 후 번호 부여
+  return sorted.map((doc, idx) => ({
+    ...doc,
+    no: idx + 1,  // 최신순 1번부터
+    approver: formatApprover(doc.approverName, doc.approverRank)
+  }))
 })
 
 // 4) API 호출
@@ -169,7 +179,6 @@ onMounted(() => {
 
 
 // 6) 행 클릭 핸들러
-
 function handleFormRowClick(params) {
   console.log('선택된 행:', params.data)
   const docId = params.data.docId
