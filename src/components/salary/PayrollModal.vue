@@ -191,6 +191,9 @@ async function sendMail() {
 
 function downloadPDF() {
   const clone = pdfContent.value.cloneNode(true)
+
+  clone.classList.add('light-mode-export')
+
   clone.querySelectorAll('.no-print').forEach(el => el.remove())
 
   const fileName = `${props.slip.employeeName}_${props.slip.yearMonth.replace('-', '년 ')}월_급여명세서.pdf`
@@ -219,7 +222,7 @@ function downloadPDF() {
 
 /* 모달 본체 */
 .modal {
-  background: var(--bg-main);
+  background: var( --border-color);
   color: var(--text-main);
   border-radius: 12px;
   padding: 24px;
@@ -264,13 +267,14 @@ function downloadPDF() {
 }
 
 .info-table th {
-    background: var(--grid-head);
+  background: var(--grid-head);
   color: var(--text-main);
   padding: 6px 8px;
   text-align: left;
   width: 25%;
 }
 .info-table td {
+  background: var(--bg-main);
   color: var(--text-main);
   padding: 6px 8px;
   width: 25%;
@@ -297,7 +301,7 @@ function downloadPDF() {
   padding: 8px;
 }
 .sub-head th, .sub-sub-head th {
-  background: var(--grid-head);
+  /* background: var(--grid-head); */
   font-weight: bold;
   border: 1px solid var(--calendar-border-color);
 }
@@ -385,3 +389,13 @@ function downloadPDF() {
   width: 50%;
 }
 </style>
+:global(.light-mode-export) {
+  --bg-main: #ffffff;
+  --text-main: #000000;
+  --bg-box: #ffffff;
+  --grid-head: #f1f1f1;
+  --calendar-border-color: #cccccc;
+  --primary: #007bff;
+  --text-on-primary: #ffffff;
+  --border-color: #ffffff;
+}
