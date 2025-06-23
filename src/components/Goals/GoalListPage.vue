@@ -142,35 +142,36 @@
               </tr>
               <tr><th colspan="4">목표내용</th></tr>
               <tr><td colspan="4">{{ selectedGoal.goalContent }}</td></tr>
+              <tr><th colspan="4">첨부파일</th></tr>
+              <tr><td colspan="4"><div v-if="form.existingAttachmentKeys.length" class="existing-files">
+             <ul>
+              <li
+                v-for="(url, idx) in presignedUrls"
+                :key="idx"
+                class="existing-file-item"
+              >
+                <a :href="url" target="_blank" rel="noopener noreferrer" class="link-preview">
+                  {{ form.existingAttachmentFileNames[idx] }}
+                </a>
+            
+                <span class="file-size-text">
+                  ({{ (form.existingAttachmentFileSizes[idx] / 1024 / 1024).toFixed(1) }}MB)
+                </span>
+              </li>
+            </ul>
+          </div></td></tr>
             </tbody>
           </table>
 
           <!-- 3) 이미 등록된 첨부파일이 있으면 목록으로 보여줌 -->
-          <div v-if="form.existingAttachmentKeys.length" class="existing-files">
-            <p class="section-title">기존 첨부파일</p>
-             <ul>
-    <li
-      v-for="(url, idx) in presignedUrls"
-      :key="idx"
-      class="existing-file-item"
-    >
-      <a :href="url" target="_blank" rel="noopener noreferrer" class="link-preview">
-        🔍 {{ form.existingAttachmentFileNames[idx] }}
-      </a>
-  
-      <span class="file-size-text">
-        ({{ (form.existingAttachmentFileSizes[idx] / 1024 / 1024).toFixed(1) }}MB)
-      </span>
-    </li>
-  </ul>
-          </div>
+          
 
           <!-- 실적 입력/수정 폼 -->
           <div class="perf-form">
             <div class="attach-area">
               <label>첨부 파일</label>
               <div class="file-box">
-                <template v-if="form.fileName">
+                <template v-if="form.file">
                   <span class="file-name">{{ form.fileName }}</span>
                   <span class="file-size">{{ form.fileSize }}</span>
                 </template>
@@ -272,21 +273,28 @@ const currentYearGoals = computed(() =>
   )
 )
 
-// 2) 과거 실적만 (작년 이하) & 내 실적만
 const pastPerformances = computed(() =>
   goals.value
     .filter(g =>
+      // 1) 실적이 있고
       g.performance &&
-      new Date(g.goalCreatedAt).getFullYear() < currentYear &&
+      // 2) 매니저 평가가 완료된 것만 (reviewerScore가 null이 아니어야)
+      g.performance.reviewerScore != null &&
+      // 3) 과거 연도 것만
+      new Date(g.goalCreatedAt).getFullYear() <= currentYear &&
+      // 4) 내 실적인 것만
       g.performance.employeeIdSelfreviewer === userStore.employeeId
     )
     .map(g => ({
       performanceId: g.performance.performanceId,
-      goalId: g.goalId, 
-      goalTitle: g.goalTitle,
-      actual: g.performance.performanceValue,
-      comment: g.performance.selfreviewContent,
-      year: new Date(g.goalCreatedAt).getFullYear()
+      goalId:        g.goalId,
+      goalTitle:     g.goalTitle,
+      actual:        g.performance.performanceValue,
+      comment:       g.performance.selfreviewContent,
+      year:          new Date(g.goalCreatedAt).getFullYear(),
+      // 매니저 평가 점수도 보여 주고 싶으면
+      reviewrScore:   g.performance.reviewerScore,
+      reviewScore:  g.reviewScore
     }))
 )
 
@@ -480,7 +488,6 @@ async function addGoal() {
 
   if (!newGoal.goalTitle) return
 
-  const token = localStorage.getItem('token')
   const payload = {
     goalTitle: newGoal.goalTitle,
     goalValue: newGoal.goalValue,
@@ -532,7 +539,6 @@ function confirmDelete(id) {
 // 2) 목표 삭제
 async function deleteGoals(id) {
   try {
-    const token = localStorage.getItem('token')
     const res = await fetch(`http://localhost:5000/goals/${id}`, {
       method: 'DELETE',
       headers: {
@@ -558,7 +564,6 @@ async function submitPerf() {
   const g = selectedGoal.value
   if (!g) return alert('먼저 목표를 선택해주세요.')
 
-  const token = localStorage.getItem('token')
   let attachmentUrlsToSend = [...form.existingAttachmentKeys]
   let fileNamesToSend = [...form.existingAttachmentFileNames]
   let fileTypesToSend = [...form.existingAttachmentFileTypes]
@@ -772,6 +777,9 @@ input#weight.input-complete {
 .goal-container,
 .perf-content {
   flex: 1;
+}
+.existing-file-item{
+  list-style: none;
 }
 .goals-panel::-webkit-scrollbar {
   display: none;
@@ -1234,9 +1242,10 @@ input#weight.input-complete {
   background: #fff;
 }
 .link-preview {
-  margin-right: 8px;
-  color: #007bff;
-  text-decoration: none;
+  color: inherit;            /* 부모 텍스트 색상 그대로 */
+  text-decoration: none;     /* 밑줄 제거 */
+  transition: color 0.2s;    /* 부드러운 색 변화 */
+  cursor: pointer;
 }
 .link-preview:hover {
   text-decoration: underline;
