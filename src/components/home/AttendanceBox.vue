@@ -1,6 +1,6 @@
 <!-- home > 팀 근태 현황 박스 -->
 <template>
-  <div class="box attendance">
+  <div class="box attendance scrollable">
     팀 근무 현황
     <TeamStatusCard />
   </div>
@@ -11,6 +11,21 @@ import TeamStatusCard from '@/components/attendance/TeamWorkStatusCard.vue'
 </script>
 
 <style scoped>
+.box::-webkit-scrollbar {
+  width: 4px;
+}
+.box::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
+}
+.box::-webkit-scrollbar-track {
+  background: transparent;
+}
+.scrollable {
+  max-height: 450px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
 .attendance {
   grid-area: attendance;
   min-height: 420px;
