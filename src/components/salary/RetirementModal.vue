@@ -218,6 +218,9 @@ function downloadPDF() {
   }
 
   const clone = pdfContent.value.cloneNode(true)
+
+  clone.classList.add('light-mode-export')
+
   clone.querySelectorAll('.no-print').forEach(el => el.remove())
 
   html2pdf().from(clone).set({
@@ -257,7 +260,8 @@ function downloadPDF() {
 
 /* 모달 본체 */
 .modal {
-  background: white;
+  background: var( --border-color);
+  color: var(--text-main);
   border-radius: 12px;
   padding: 24px;
   padding-bottom: 80px; /* 하단 버튼 공간 확보 */
@@ -270,6 +274,7 @@ function downloadPDF() {
 
 /* 닫기 버튼 */
 .close-btn {
+  color: var(--primary);
   position: absolute;
   top: 12px;
   right: 16px;
@@ -302,21 +307,21 @@ function downloadPDF() {
 /* 테이블 내부 셀 기본 패딩 + 테두리 */
 .bordered th,
 .bordered td {
-  border: 1px solid #ccc;
+  border: 1px solid var(--calendar-border-color);
   padding: 6px 8px;
 }
 
 /* 배경색 유틸 */
 .gray {
-  background: #f8f9fa;
+  background: var(--grid-head);
   text-align: left;
 }
 .gray-row {
-  background-color: #f8f9fa;
+  background: var(--grid-head);
   border: 1px solid #e0e0e0;
 }
 .white-bg {
-  background: white;
+  background: var(--bg-main);
 }
 
 /* 섹션 제목 테이블 */
@@ -325,11 +330,11 @@ function downloadPDF() {
 }
 .section-title-table td {
   text-align: center;
-  background: #f8f9fa;
+  background: var(--grid-head);
   font-weight: bold;
-  border: 1px solid #ccc;
+  border: 1px solid var(--calendar-border-color);
   padding: 10px;
-  font-size: 16px;
+  color: var(--text-main);
 }
 
 /* 상세/공제 테이블 셀 */
@@ -337,9 +342,10 @@ function downloadPDF() {
 .details-table td,
 .deduction-table th,
 .deduction-table td {
-  border: 1px solid #ccc;
+  border: 1px solid var(--calendar-border-color);
+  background: var(--bg-main);
+  color: var(--text-main);
   padding: 8px;
-  text-align: left;
 }
 
 /* 강조 스타일 */
@@ -348,10 +354,13 @@ function downloadPDF() {
 }
 .highlight {
   font-weight: bold;
-  color: #00a8e8;
+  color: var(--primary);
 }
 .highlight-row {
-  background-color: #f8f9fa;
+  background-color: var(--grid-head);
+  border: 1px solid var(--calendar-border-color);
+    color: var(--text-main);
+
 }
 
 /* 하단 버튼 영역 */
@@ -372,8 +381,8 @@ function downloadPDF() {
 /* 버튼 공통 스타일 */
 .btn {
   position: absolute;
-  background-color: #00a8e8;
-  color: white;
+  background-color: var(--primary);
+  color: var(--text-on-primary);
   font-weight: bold;
   border: 1px solid transparent;
   border-radius: 10px;
@@ -383,9 +392,9 @@ function downloadPDF() {
   transition: background-color 0.2s, box-shadow 0.2s;
 }
 .btn:hover {
-  background-color: white;
-  color: #00a8e8;
-  border-color: #00a8e8;
+  background-color: var(--bg-main);
+  color: var(--primary);
+  border: 1px solid var(--primary);
   box-shadow: inset 1px 1px 10px rgba(0, 0, 0, 0.25);
 }
 .btn.left {
@@ -405,3 +414,13 @@ function downloadPDF() {
   }
 }
 </style>
+:global(.light-mode-export) {
+  --bg-main: #ffffff;
+  --text-main: #000000;
+  --bg-box: #ffffff;
+  --grid-head: #f1f1f1;
+  --calendar-border-color: #cccccc;
+  --primary: #007bff;
+  --text-on-primary: #ffffff;
+  --border-color: #ffffff;
+}
