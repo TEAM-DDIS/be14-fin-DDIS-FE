@@ -145,5 +145,6 @@
         background-color: #fff;
         color: #000;
         z-index: 3;
+        background: var(--bg-box);
     }
 </style>

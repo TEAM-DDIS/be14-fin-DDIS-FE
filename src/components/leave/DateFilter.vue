@@ -68,11 +68,12 @@
     }
 
     input[type="month"] {
-        border: 1px solid #ccc;
+        border: 1px solid var(--border-color);
         border-radius: 8px;
         padding: 6px 8px;
         height: 22px;
-        color: #000;;
+        color: var(--text-main);
+        background: var(--modal-bg);
     }
 
     /* 빈 값일 때 회색 텍스트처럼 보이게 */

@@ -113,6 +113,8 @@ const selected = ref(null)
 const editMode = ref(false)
 const reviewForm = ref({ performanceId: null, score: '', content: '' })
 const userStore = useUserStore()
+const token = useUserStore().accessToken
+
 
 // performance.reviewerScore 가 있는 목표만
 const evaluatedGoals = computed(() =>
@@ -153,7 +155,6 @@ function formatDateTime(iso) {
 
 async function fetchGoals() {
   const reviewerId = userStore.user.employeeId
-  const token = localStorage.getItem('token')
   try {
     const res = await fetch(
       `http://localhost:5000/review/${reviewerId}/performance`,
