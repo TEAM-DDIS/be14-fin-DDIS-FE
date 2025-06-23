@@ -49,7 +49,7 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
-        background: #fff;
+        background: var(--bg-box);
         box-shadow: 1px 1px 20px 1px rgba(0, 0, 0, 0.05);
         padding: 30px;
         border-radius: 12px;
@@ -68,11 +68,12 @@
     }
 
     input[type="month"] {
-        border: 1px solid #ccc;
+        border: 1px solid var(--border-color);
         border-radius: 8px;
         padding: 6px 8px;
         height: 22px;
-        color: #000;
+        color: var(--text-main);
+        background: var(--modal-bg);
     }
 
     /* 빈 값일 때 회색 텍스트처럼 보이게 */

@@ -79,6 +79,7 @@ const user = computed(() => userStore.user)
 function logout() {
   userStore.logout()
   router.push({ name: 'Login' })
+  localStorage.clear()
 }
 
 async function toggleNotification() {
