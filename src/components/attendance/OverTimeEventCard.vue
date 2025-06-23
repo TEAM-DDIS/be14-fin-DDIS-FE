@@ -110,7 +110,7 @@
 /* 버튼 영역 */
 .btn-area {
   display: flex;
-  justify-content: flex-end;
+  justify-content: center;
   margin-top: 30px;
 }
 

@@ -25,13 +25,13 @@
         font-size: 16px;
         margin-top: 60px;
         margin-bottom: 60px;
-        color: #444;
+        color: var(--text-sub);
         text-align: center;
     }
 
     .btn-wrap {
         display: flex;
-        justify-content: flex-end;
+        justify-content: center;
         gap: 12px;
     }
 
@@ -40,8 +40,8 @@
         height: 40px;
         font-size: 14px;
         font-weight: bold;
-        background-color: #00a8e8;
-        color: white;
+        background-color: var(--primary);
+        color: var(--text-on-primary);
         border: 1px solid transparent;
         border-radius: 10px;
         padding: 10px 30px;
@@ -52,9 +52,9 @@
     }
 
     .confirm-btn:hover {
-        background-color: white;
-        color: #00a8e8;
-        border-color: #00a8e8;
+        background-color: var(--bg-main);
+        color:  var(--primary);
+        border-color:  var(--primary);
         box-shadow:
         inset 1px 1px 10px rgba(0, 0, 0, 0.25);
     }

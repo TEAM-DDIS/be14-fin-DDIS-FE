@@ -47,11 +47,11 @@
     { headerName: '근무상태', field: 'workStatus' },
     { headerName: '출근시간', field: 'checkInTime', valueFormatter: p => formatTime(p.value) },
     { headerName: '퇴근시간', field: 'checkOutTime', valueFormatter: p => formatTime(p.value) },
-    { headerName: '근무시간', field: 'workDuration', valueFormatter: p => convertMinutesToHours(p.value) },
-    { headerName: '시간외근무시간', field: 'overtimeExtra', valueFormatter: p => convertMinutesToHours(p.value) },
-    { headerName: '야간근무시간', field: 'overtimeNight', valueFormatter: p => convertMinutesToHours(p.value) },
-    { headerName: '휴일근무시간', field: 'overtimeHoliday', valueFormatter: p => convertMinutesToHours(p.value) },
-    { headerName: '총 근무시간', field: 'totalWorkTime', valueFormatter: p => convertMinutesToHours(p.value) }
+    { headerName: '근무시간', field: 'workDuration', valueFormatter: p => convertMinutesToHours(p.value), width: 160 },
+    { headerName: '시간외근무시간', field: 'overtimeExtra', valueFormatter: p => convertMinutesToHours(p.value), width: 160 },
+    { headerName: '야간근무시간', field: 'overtimeNight', valueFormatter: p => convertMinutesToHours(p.value), width: 160 },
+    { headerName: '휴일근무시간', field: 'overtimeHoliday', valueFormatter: p => convertMinutesToHours(p.value), width: 160 },
+    { headerName: '총 근무시간', field: 'totalWorkTime', valueFormatter: p => convertMinutesToHours(p.value), width: 160 }
   ]
 
 

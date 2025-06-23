@@ -92,7 +92,7 @@
     }
 
     .search-btn {
-        background-color: #00a8e8;
+        background-color: var(--primary);
         color: white;
         font-weight: bold;
         border: 1px solid transparent;
@@ -104,9 +104,9 @@
     }
 
     .search-btn:hover {
-        background-color: white;
-        color: #00a8e8;
-        border-color: #00a8e8;
+        background-color: var(--text-on-primary);
+        color: var(--primary);
+        border-color: var(--primary);
         box-shadow: inset 1px 1px 10px rgba(0, 0, 0, 0.25);
     }
 </style>
