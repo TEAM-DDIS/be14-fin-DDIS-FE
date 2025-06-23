@@ -14,6 +14,16 @@
           <div class="node head" @click="toggle('h'+head.headId)">
             <i :class="expanded['h'+head.headId] ? 'fa fa-chevron-down' : 'fa fa-chevron-right'" />
             {{ head.headName }}
+            <button
+              v-if="!expanded['h' + head.headId]"
+              @click.stop="expandHead(head)"
+              class="sub-btn"
+            >+</button>
+            <button
+              v-else
+              @click.stop="collapseHead(head)"
+              class="sub-btn"
+            >-</button>
           </div>
 
           <ul v-if="expanded['h'+head.headId]" class="org-list">
@@ -21,6 +31,16 @@
               <div class="node dept" @click.stop="toggle('d'+dept.departmentId)">
                 <i :class="expanded['d'+dept.departmentId] ? 'fa fa-chevron-down' : 'fa fa-chevron-right'" />
                 {{ dept.departmentName }}
+                <button
+                  v-if="!expanded['d' + dept.departmentId]"
+                  @click.stop="expandDept(dept)"
+                  class="sub-btn"
+                >+</button>
+                <button
+                  v-else
+                  @click.stop="collapseDept(dept)"
+                  class="sub-btn"
+                >-</button>
               </div>
 
               <ul v-if="expanded['d'+dept.departmentId]" class="team-list">
@@ -263,12 +283,48 @@ function collapseAll() {
     })
   })
 }
+
+// 본부 단위 전체 펼치기/닫기
+function expandHead(head) {
+  expanded['h' + head.headId] = true
+  head.departments.forEach(dept => {
+    expanded['d' + dept.departmentId] = true
+    dept.teams.forEach(team => {
+      expanded['t' + team.teamId] = true
+    })
+  })
+}
+
+function collapseHead(head) {
+  expanded['h' + head.headId] = false
+  head.departments.forEach(dept => {
+    expanded['d' + dept.departmentId] = false
+    dept.teams.forEach(team => {
+      expanded['t' + team.teamId] = false
+    })
+  })
+}
+
+// 부서 단위 전체 펼치기/닫기
+function expandDept(dept) {
+  expanded['d' + dept.departmentId] = true
+  dept.teams.forEach(team => {
+    expanded['t' + team.teamId] = true
+  })
+}
+
+function collapseDept(dept) {
+  expanded['d' + dept.departmentId] = false
+  dept.teams.forEach(team => {
+    expanded['t' + team.teamId] = false
+  })
+}
 </script>
 
 <style scoped>
 .org-container {
   font-size: 14px;
-  color: #333;
+  color: var(--text-main);
   padding: 0 12px;
   margin-bottom: 20px;
 }
@@ -307,6 +363,20 @@ function collapseAll() {
   color: #3f3f3f;
   border-color: #3f3f3f;
   box-shadow: inset 1px 1px 10px rgba(0, 0, 0, 0.25);
+}
+
+.sub-btn {
+  margin-left: 8px;
+  font-size: 12px;
+  font-weight: bold;
+  padding: 2px 6px;
+  border: none;
+  border-radius: 4px;
+  background: #ddd;
+  cursor: pointer;
+}
+.sub-btn:hover {
+  background: #aaa;
 }
 
 .org-list,
@@ -413,7 +483,7 @@ function collapseAll() {
 .node.head:hover,
 .node.dept:hover,
 .node.team:hover {
-  background-color: #f0f0f0;
+  color: #00a8e8;
   border-radius: 4px;
 }
 
