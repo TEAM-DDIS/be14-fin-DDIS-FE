@@ -75,33 +75,6 @@ const showConfirm = ref(false)
 const confirmMessage = ref('')
 let confirmCallback = null
 
-// 인사팀에서만 등록, 삭제버튼 
-const userStore = useUserStore()
-const token = localStorage.getItem('token')
-const payload = parseJwtPayload(userStore.accessToken || token)
-const isHR = payload?.role?.includes('ROLE_HR') || payload?.auth?.includes('ROLE_HR')
-
-function parseJwtPayload(token) {
-  try {
-    const base64Url = token.split('.')[1]
-    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
-    const jsonPayload = decodeURIComponent(
-      atob(base64)
-        .split('')
-        .map(c => `%${('00' + c.charCodeAt(0).toString(16)).slice(-2)}`)
-        .join('')
-    )
-    return JSON.parse(jsonPayload)
-  } catch (e) {
-    return null
-  }
-}
-
-if (!isHR) {
-  showToast('접근 권한이 없습니다.')
-  router.push('/error403')
-}
-
 const toastRef = ref(null)
 
 function showToast(msg) {
