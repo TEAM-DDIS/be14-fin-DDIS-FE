@@ -5,11 +5,13 @@
   <h1 class="page-title">결재함</h1>
 
   <!-- 2. 탭 -->
-  <div class="tabs">
-    <span :class="{ active: tab.value === '전체' }" @click="tab.value = '전체'">전체</span>
-    <span :class="{ active: tab.value === '결재' }" @click="tab.value = '결재'">결재</span>
-    <span :class="{ active: tab.value === '진행' }" @click="tab.value = '진행'">진행</span>
-    <span :class="{ active: tab.value === '완료' }" @click="tab.value = '완료'">완료</span>
+  <div class="tab-wrapper">
+    <div class="tabs">
+      <span :class="{ active: tab.value === '전체' }" @click="tab.value = '전체'">전체</span>
+      <span :class="{ active: tab.value === '결재' }" @click="tab.value = '결재'">결재</span>
+      <span :class="{ active: tab.value === '진행' }" @click="tab.value = '진행'">진행</span>
+      <span :class="{ active: tab.value === '완료' }" @click="tab.value = '완료'">완료</span>
+    </div>
   </div>
 
   <!-- 3. 메인 컨텐츠 박스 (검색 + 테이블) -->
@@ -47,16 +49,24 @@
 import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { AgGridVue } from 'ag-grid-vue3'
 import { useRouter } from 'vue-router'
+import { useUserStore } from '@/stores/user'
 import axios from 'axios'
 import { ModuleRegistry, AllCommunityModule } from 'ag-grid-community'
-
-ModuleRegistry.registerModules([AllCommunityModule])
 
 // 상태 정의
 const tab = reactive({ value: '결재' })
 const search = reactive({ date: '', title: '' })
 const docs = ref([])
-const router = useRouter()  
+const router = useRouter() 
+const userStore = useUserStore()
+
+axios.defaults.headers.common['Authorization'] = `Bearer ${userStore.accessToken}`
+ModuleRegistry.registerModules([AllCommunityModule])
+
+
+function authHeaders() {
+  return { Authorization: `Bearer ${userStore.accessToken}` }
+}
 
 // 기안자 및 직급 포맷팅 헬퍼 함수
 function formatWriter(name, rank) {
@@ -123,7 +133,7 @@ async function fetchApprovals() {
   console.log('✅ fetchApprovals 호출됨. 현재 탭:', tab.value)  // 👈 무조건 찍혀야 함
   try {
     const res = await axios.get(`http://localhost:5000/approvals/ApprovalBox?tab=${tab.value}`, {
-      headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      headers: authHeaders()
     })
     console.log('📦 응답 데이터:', res.data)
     
@@ -227,6 +237,12 @@ function handleFormRowClick(params) {
     margin-bottom: 30px;
     color: #00a8e8;
 }
+
+    /* 🔷 겹쳐지는 탭 스타일 */
+    .tab-wrapper {
+        position: relative;
+        z-index: 2;
+    }
 
 /* 탭 영역 */
 .tabs {
