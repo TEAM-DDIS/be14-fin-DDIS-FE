@@ -12,7 +12,7 @@
         :style="{ width: '100%' }"
       />
       <div class="btn-area">
-        <button class="apply-btn">신청하기</button>
+        <button class="apply-btn" @click="onClick">신청하기</button>
       </div>
     </div>
   </div>
@@ -22,6 +22,13 @@
   import { ref, onMounted } from 'vue'
   import AgGrid from '@/components/grid/BaseGrid.vue'
   import { useUserStore } from '@/stores/user'
+  import { useRouter } from 'vue-router'
+
+  const router = useRouter()
+
+  const onClick = () => {
+    router.push('/eapproval/temp')
+  }
 
   const leaveRegistData = ref([])
 
@@ -78,6 +85,7 @@
       console.error('API 오류:', err)
     }
   })
+  
 </script>
 
 
@@ -101,8 +109,8 @@
 
   .apply-btn {
     display: block;
-    background-color: #00a8e8;
-    color: white;
+    background-color: var(--primary);
+    color: var(--text-on-primary);
     font-weight: bold;
     border: 1px solid transparent;
     border-radius: 10px;
@@ -114,9 +122,9 @@
   }
 
   .apply-btn:hover {
-    background-color: white;
-    color: #00a8e8;
-    border-color: #00a8e8;
+    background-color: var(--text-on-primary);
+    color: var(--primary);
+    border-color: var(--primary);
     box-shadow:
     inset 1px 1px 10px rgba(0, 0, 0, 0.25);
   }

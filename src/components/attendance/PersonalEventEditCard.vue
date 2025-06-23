@@ -136,19 +136,19 @@
   height: 40px;
   font-size: 14px;
   font-weight: bold;
-  background-color: var(--bg-menu-btn-hover);
-  color: var(--text-main);
-  border: 1px solid var(--border-color);
+  background-color: #d3d3d3;
+  color: #000;
+  border: none;
   border-radius: 10px;
   padding: 10px 30px;
   cursor: pointer;
-  box-shadow: 0 2px 8px var(--hover-shadow);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   transition: background-color 0.2s, box-shadow 0.2s;
   box-sizing: border-box;
 }
 .delete-btn:hover {
-  background-color: var(--text-main);
-  color: var(--text-on-primary);
+  background-color: #000;
+  color: #fff;
 }
 
 /* 카드 전체 */

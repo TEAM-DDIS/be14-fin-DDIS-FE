@@ -354,7 +354,9 @@
     .search-bar input {
         width: 150px;
         padding: 6px 8px;
-        border: 1px solid #ccc;
+        border: 1px solid var(--border-color);
+        background: var(--modal-bg);
+        color: var(--text-main);
         border-radius: 4px;
     }
 
@@ -368,13 +370,11 @@
         flex-wrap: wrap;
     }
 
-    .filters-row {
-        margin-bottom: 15px;
-    }
-
     .filters select {
         padding: 6px 8px;
-        border: 1px solid #ccc;
+        border: 1px solid var(--border-color);
+        background: var(--modal-bg);
+        color: var(--text-main);
         border-radius: 4px;
     }
 
@@ -403,31 +403,32 @@
     }
 
     .download-btn {
-        font-size: 14px;
-        font-weight: bold;
-        background-color: #00a8e8;
-        color: white;
-        border: 1px solid transparent;
-        border-radius: 10px;
-        padding: 10px 30px;
-        cursor: pointer;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-        transition: background-color 0.2s, box-shadow 0.2s;
-        box-sizing: border-box;
-        white-space: nowrap;
-    }
+    font-size: 14px;
+    font-weight: bold;
+    background-color: var(--primary);
+    color: var(--text-on-primary);
+    border: 1px solid transparent;
+    border-radius: 10px;
+    padding: 10px 30px;
+    margin-top: 20px;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    transition: background-color 0.2s, box-shadow 0.2s;
+    box-sizing: border-box;
+    white-space: nowrap;
+  }
 
-    .download-btn:hover {
-        background-color: white;
-        color: #00a8e8;
-        border-color: #00a8e8;
-        box-shadow:
-        inset 1px 1px 10px rgba(0, 0, 0, 0.25);
-    }
+  .download-btn:hover {
+    background-color: var(--text-on-primary);
+    color:  var(--primary);
+    border-color: var(--primary);
+    box-shadow:
+    inset 1px 1px 10px rgba(0, 0, 0, 0.25);
+  }
 
     .reject-btn {
-        background-color: #00a8e8;
-        color: white;
+        background-color: var(--primary);
+        color: var(--text-on-primary);
         font-weight: bold;
         border: 1px solid transparent;
         border-radius: 10px;
@@ -439,16 +440,16 @@
     }
 
     .reject-btn:hover {
-        background-color: white;
-        color: #00a8e8;
-        border-color: #00a8e8;
+        background-color: var(--text-on-primary);
+        color: var(--primary);
+        border-color: var(--primary);
         box-shadow:
         inset 1px 1px 10px rgba(0, 0, 0, 0.25);
     }
 
     .apply-btn {
-        background-color: #00a8e8;
-        color: white;
+        background-color: var(--primary);
+        color: var(--text-on-primary);
         font-weight: bold;
         border: 1px solid transparent;
         border-radius: 10px;
@@ -460,9 +461,9 @@
     }
 
     .apply-btn:hover {
-        background-color: white;
-        color: #00a8e8;
-        border-color: #00a8e8;
+        background-color: var(--text-on-primary);
+        color: var(--primary);
+        border-color: var(--primary);
         box-shadow:
         inset 1px 1px 10px rgba(0, 0, 0, 0.25);
     }
@@ -475,7 +476,7 @@
     }
 
     .modal {
-        background: white;
+        background: var(--bg-box);
         padding: 20px;
         border-radius: 12px;
         width: 420px;

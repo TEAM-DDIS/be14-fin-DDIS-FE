@@ -149,8 +149,8 @@
   }
 
   .apply-btn {
-    background-color: #00a8e8;
-    color: white;
+    background-color: var(--primary);
+    color: var(--text-on-primary);
     font-weight: bold;
     border: 1px solid transparent;
     border-radius: 10px;
@@ -162,9 +162,9 @@
   }
 
   .apply-btn:hover {
-    background-color: white;
-    color: #00a8e8;
-    border-color: #00a8e8;
+    background-color: var(--text-on-primary);
+    color: var(--primary);
+    border-color: var(--primary);
     box-shadow:
     inset 1px 1px 10px rgba(0, 0, 0, 0.25);
   }
@@ -177,7 +177,7 @@
   }
 
   .modal {
-    background: white;
+    background: var(--bg-box);
     padding: 30px;
     border-radius: 20px;
     width: 420px;

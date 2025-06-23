@@ -171,7 +171,7 @@
     }
 
     :deep(.el-form-item__label) {
-        color: #000;
+        color: var(--text-main);
         font-size: 18px;
     }
     
