@@ -140,10 +140,10 @@
                 <th>가중치</th><td>{{ selectedGoal.goalWeight }}%</td>
                 <th>목표수치</th><td>{{ selectedGoal.goalValue }}</td>
               </tr>
-              <tr><th colspan="4">목표내용</th></tr>
-              <tr><td colspan="4">{{ selectedGoal.goalContent }}</td></tr>
-              <tr><th colspan="4">첨부파일</th></tr>
-              <tr><td colspan="4"><div v-if="form.existingAttachmentKeys.length" class="existing-files">
+              <tr class="center"><th colspan="4">목표내용</th></tr>
+              <tr class="center"><td colspan="4">{{ selectedGoal.goalContent }}</td></tr>
+              <tr class="center"><th colspan="4">첨부파일</th></tr>
+              <tr class="center"><td colspan="4"><div v-if="form.existingAttachmentKeys.length" class="existing-files">
              <ul>
               <li
                 v-for="(url, idx) in presignedUrls"
@@ -787,8 +787,11 @@ input#weight.input-complete {
 .placeholder {
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: center;       
   flex: 1;
+}
+tr{
+  text-align: left;
 }
 .placeholder-text {
   color: #00a8e8;
@@ -1099,7 +1102,6 @@ input#weight.input-complete {
 .detail-table-vertical td {
   border: 1px solid #e0e0e0;
   padding: 12px;
-  text-align: center;
   font-size: 0.9rem;
 }
 .detail-table-vertical th {
@@ -1153,6 +1155,9 @@ input#weight.input-complete {
   border-radius: 6px;
   padding: 6px 12px;
   gap: 8px;
+}
+.center{
+  text-align: center;
 }
 .btn-attach {
   font-size: 14px;

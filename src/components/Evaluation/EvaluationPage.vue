@@ -336,7 +336,6 @@ const filteredGoals = computed(() => {
 const currentYear      = new Date().getFullYear()
 const currentYearGoals = computed(() =>
   filteredGoals.value
-    .filter(g => g.performanceId != null)
     .filter(g => +g.date.split('-')[0] === currentYear)
 )
 const pastGoals        = computed(() =>
@@ -867,7 +866,7 @@ async function submitManagerEval(decision) {
 .detail-table th,
 .detail-table td {
   padding: 10px;
-  text-align: center;
+  text-align: left;
   border-bottom: 1px solid #e0e0e0;
   border-right: 1px solid #e0e0e0;
   font-size: 0.95rem;
@@ -885,6 +884,7 @@ async function submitManagerEval(decision) {
 .detail-table .subheader td {
   background: #f7f7f7;
   font-weight: 600;
+  text-align: center;
   
 }
 .detail-table .description {
