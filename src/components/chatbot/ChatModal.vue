@@ -51,7 +51,7 @@
 <script setup>
 import { ref, nextTick } from 'vue'
 import MessageBubble from './MessageBubble.vue'
-
+import { useUserStore } from '@/stores/user'
 const chatBody = ref(null)
 const input = ref('')
 const messages = ref([
@@ -69,6 +69,7 @@ const messages = ref([
 
 const sessionId = 'test_session_' + Date.now()
 const employeeId = 'test_employee_001'
+const token = useUserStore().accessToken
 
 function scrollToBottom() {
   nextTick(() => {
@@ -118,7 +119,7 @@ async function sendMessage() {
   try {
     const response = await fetch('http://localhost:8888/query-stream', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json' ,  Authorization: `Bearer ${token}` },
       body: JSON.stringify(payload)
     })
 
@@ -131,6 +132,7 @@ async function sendMessage() {
         if (done) break
         const chunk = decoder.decode(value)
         botMsg.text += chunk
+        messages.value = [...messages.value] 
         scrollToBottom()
       }
     }
