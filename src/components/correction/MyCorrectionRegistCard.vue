@@ -134,7 +134,7 @@
 
 <style scoped>
   .section {
-    background: #fff;
+    background: var(--bg-box);
     padding: 30px;
     border-radius: 0px 12px 12px 12px;
     box-shadow: 1px 1px 20px 1px rgba(0, 0, 0, 0.05);

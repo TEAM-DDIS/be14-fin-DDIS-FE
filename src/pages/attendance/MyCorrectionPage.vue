@@ -66,6 +66,7 @@
         align-items: flex-end;
         gap: 0;
         position: relative;
+        
     }
 
     /* 기본 탭 버튼 */
@@ -87,8 +88,8 @@
 
     /* 선택된 탭 위로 */
     .tab-menu button.active {
-        background-color: #fff;
-        color: #000;
+        background: var(--bg-box);
+        color: var(--text-main);
         z-index: 3;
     }
 </style>

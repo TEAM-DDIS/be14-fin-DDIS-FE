@@ -26,6 +26,37 @@
   --modal-bg: #ffffff;
   --modal-box-bg: #f5f5f5;
   --modal-text: #222;
+
+  /* table 사용 시 */
+  --bg-label-cell: #f8f9fa; 
+
+
+  /* AG Grid*/
+  --ag-header-background-color: #f5f5f5;
+  --ag-header-foreground-color: #333;
+
+  /* 본문(데이터) */
+  --ag-background-color: #ffffff;            /* 컨테이너 배경 */
+  --ag-body-background-color: #ffffff;       /* 셀 배경 */
+  --ag-even-row-background-color: #ffffff;
+  --ag-odd-row-background-color:  #fff;
+  --ag-row-hover-color:           #eee;
+
+  /* 선택된 행 */
+  --ag-selected-row-background-color: #ddeeff;
+
+  /* 테두리 */
+  --ag-row-border-color:         #ccc;
+  --ag-cell-horizontal-border:   solid 1px #ccc;
+
+  /* 텍스트 */
+  --ag-foreground-color:         #222;
+
+  /* 높이·폰트 */
+  --ag-row-height: 48px;
+  --ag-row-height-line: 48px;
+  --ag-font-size:    14px;
+  --ag-font-family:  'Pretendard', sans-serif;
 }
 
 body.dark {
@@ -58,13 +89,18 @@ body.dark {
   --text-disabled: #666;
 
     /* AG Grid 다크모드용 변수 추가 */
-  --ag-background-color: #1e1e1e;
-  --ag-header-background-color: #2a2a2a;
+  --ag-background-color: #1a1a1a;
+  --ag-body-background-color: #2b2b2b;
+  --ag-header-background-color: #1a1a1a;
+  --ag-even-row-background-color: #2b2b2b;
   --ag-odd-row-background-color: #2b2b2b;
   --ag-row-hover-color: #3a3a3a;
   --ag-foreground-color: #f0f0f0;
   --ag-border-color: #444444;
   --ag-header-foreground-color: #fff;
-  --ag-row-border-color: #333;
+  --ag-row-border-color: #505050;
+  --ag-row-hover-color: #2a2a2a;
+  --ag-selected-row-background-color: #757575;
+  --ag-foreground-color: #fff;
   --ag-font-family: 'Pretendard', sans-serif;
 }

@@ -238,7 +238,7 @@
 
     .filters select {
         padding: 6px 8px;
-        border: 1px solid #ccc;
+        border: 1px solid var(--border-color);
         border-radius: 4px;
     }
 
