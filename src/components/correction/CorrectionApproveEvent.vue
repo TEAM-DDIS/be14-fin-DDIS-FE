@@ -31,7 +31,7 @@
 
     .btn-wrap {
         display: flex;
-        justify-content: flex-end;
+        justify-content: center;
         gap: 12px;
     }
 

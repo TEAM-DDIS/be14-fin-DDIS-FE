@@ -101,18 +101,18 @@
         })
     })
     const columnDefs = [
-        { headerName: '번호', valueGetter: params => params.node.rowIndex + 1, sortable: false },
+        { headerName: '번호', valueGetter: params => params.node.rowIndex + 1, sortable: false, width: 100 },
         { headerName: '사번', field: 'employeeId' },
-        { headerName: '성명', field: 'employeeName' },
-        { headerName: '연차', field: 'annualCount' },
-        { headerName: '반차', field: 'halfCount' },
-        { headerName: '출장', field: 'businessTripCount' },
-        { headerName: '외근', field: 'outsideCount' },
-        { headerName: '초과근무', field: 'overtimeCount' },
-        { headerName: '지각', field: 'lateCount' },
-        { headerName: '결근', field: 'absentCount' },
-        { headerName: '출근일수', field: 'presentCount' },
-        { headerName: '총 근무시간', field: 'totalWorkTime', valueFormatter: p => convertMinutesToHours(p.value) }
+        { headerName: '성명', field: 'employeeName', width: 150 },
+        { headerName: '연차', field: 'annualCount', width: 150 },
+        { headerName: '반차', field: 'halfCount', width: 150 },
+        { headerName: '출장', field: 'businessTripCount', width: 150 },
+        { headerName: '외근', field: 'outsideCount', width: 150 },
+        { headerName: '초과근무', field: 'overtimeCount', width: 150 },
+        { headerName: '지각', field: 'lateCount', width: 150 },
+        { headerName: '결근', field: 'absentCount', width: 150 },
+        { headerName: '출근일수', field: 'presentCount', width: 150 },
+        { headerName: '총 근무시간', field: 'totalWorkTime', valueFormatter: p => convertMinutesToHours(p.value), width: 150 }
     ]
 
     const uniqueHeads = computed(() =>

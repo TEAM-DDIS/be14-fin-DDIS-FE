@@ -86,15 +86,15 @@
   })
 
   const columnDefs = [
-    { headerName: '번호', valueGetter: params => params.api.getDisplayedRowCount() - params.node.rowIndex, sortable: false },
+    { headerName: '번호', valueGetter: params => params.api.getDisplayedRowCount() - params.node.rowIndex, sortable: false, width: 100 },
     { headerName: '사번', field: 'employeeCode' },
-    { headerName: '성명', field: 'employeeName' },
-    { headerName: '구분', field: 'leaveType' },
-    { headerName: '처리상태', field: 'approvalStatus' },
+    { headerName: '성명', field: 'employeeName', width: 150 },
+    { headerName: '구분', field: 'leaveType', width: 150 },
+    { headerName: '처리상태', field: 'approvalStatus', width: 150 },
     { headerName: '신청일', field: 'requestDate' },
     { headerName: '시작일', field: 'startDate' },
     { headerName: '종료일', field: 'endDate' },
-    { headerName: '사용일수', field: 'leaveDays' },
+    { headerName: '사용일수', field: 'leaveDays', width: 150 },
     { headerName: '사유', field: 'reason' },
     { headerName: '반려사유', field: 'rejectReason' }
   ]

@@ -102,7 +102,7 @@
 
 .btn-area {
   display: flex;
-  justify-content: flex-end;
+  justify-content: center;
   gap: 8px;
   margin-top: 30px;
 }
