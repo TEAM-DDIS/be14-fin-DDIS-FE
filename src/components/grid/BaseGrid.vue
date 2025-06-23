@@ -1,6 +1,6 @@
 <template>
   <ag-grid-vue
-    class="ag-theme-alpine custom-theme"
+  :class="['custom-theme', isDarkMode ? 'ag-theme-alpine-dark' : 'ag-theme-alpine']"
     :style="`width:${width}; height:${height}`"
     :columnDefs="columnDefs"
     :rowData="rowData"

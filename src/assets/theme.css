@@ -1,0 +1,70 @@
+:root {
+  --bg-box: rgba(255, 255, 255, 0.8); /* 연한 회색 + 살짝 투명 */
+
+  --bg-sidebar: #f5f5f5;
+  --shadow-sidebar: rgba(0, 0, 0, 0.1);
+  --bg-menu-btn: #ffffff;
+  --bg-menu-btn-hover: #d6d6d6;
+  --menu-btn-shadow: rgba(0, 0, 0, 0.03);
+  --hover-shadow: rgba(0, 0, 0, 0.1);
+  --arrow-filter: none;
+  --primary: #00A8E8;
+  --primary-hover: #007db3;
+  --text-on-primary: #ffffff;
+
+  --text-main: #222222;
+  --bg-app: #f9f9f9;
+  --bg-main: #ffffff;
+  --border-color: #dddddd;
+  --fade-background: linear-gradient(to bottom, rgba(255, 255, 255, 0.09), #bdbcbc1f);
+  --text-main: #222;         /* 기본 텍스트 */
+  --text-sub: #444;          /* 중간 텍스트 */
+  --text-muted: #888;        /* 보조 텍스트 */
+  --text-disabled: #c1c1c1;  /* 비활성/최약 텍스트 */
+  --event-bg-default: white;
+  --calendar-border-color: #e0e0e0;
+  --modal-bg: #ffffff;
+  --modal-box-bg: #f5f5f5;
+  --modal-text: #222;
+}
+
+body.dark {
+  --modal-bg: #1a1a1a;
+  --modal-box-bg: #2a2a2a;
+  --modal-text: #f0f0f0;
+  --calendar-border-color: #333333;
+  --event-bg-default: rgba(255, 255, 255, 0.05);
+  --bg-box: rgba(69, 69, 69, 0.8); /* 다크모드용 투명 회색 */
+  --arrow-filter: invert(1); 
+  --bg-sidebar: #1e1e1e;
+  --shadow-sidebar: rgba(255, 255, 255, 0.08);
+  --bg-menu-btn: #2a2a2a;
+  --bg-menu-btn-hover: #3a3a3a;
+  --menu-btn-shadow: rgba(255, 255, 255, 0.03);
+  --hover-shadow: rgba(255, 255, 255, 0.05);
+
+  --primary: #006a91;
+  --primary-hover: #004d6b;
+  --text-on-primary: #ffffff;
+
+  --text-main: #f0f0f0;
+  --bg-app: #121212;
+  --bg-main: #1e1e1e;
+  --border-color: #444444;
+  --fade-background: linear-gradient(to bottom, rgba(30, 30, 30, 0.1), #3f3f3f);
+  --text-main: #f0f0f0;
+  --text-sub: #bbb;
+  --text-muted: #999;
+  --text-disabled: #666;
+
+    /* AG Grid 다크모드용 변수 추가 */
+  --ag-background-color: #1e1e1e;
+  --ag-header-background-color: #2a2a2a;
+  --ag-odd-row-background-color: #2b2b2b;
+  --ag-row-hover-color: #3a3a3a;
+  --ag-foreground-color: #f0f0f0;
+  --ag-border-color: #444444;
+  --ag-header-foreground-color: #fff;
+  --ag-row-border-color: #333;
+  --ag-font-family: 'Pretendard', sans-serif;
+}

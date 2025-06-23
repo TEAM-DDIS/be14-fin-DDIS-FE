@@ -51,7 +51,7 @@
 <script setup>
 import { ref, nextTick } from 'vue'
 import MessageBubble from './MessageBubble.vue'
-
+import { useUserStore } from '@/stores/user'
 const chatBody = ref(null)
 const input = ref('')
 const messages = ref([
@@ -69,6 +69,7 @@ const messages = ref([
 
 const sessionId = 'test_session_' + Date.now()
 const employeeId = 'test_employee_001'
+const token = useUserStore().accessToken
 
 function scrollToBottom() {
   nextTick(() => {
@@ -118,7 +119,7 @@ async function sendMessage() {
   try {
     const response = await fetch('http://localhost:8888/query-stream', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json' ,  Authorization: `Bearer ${token}` },
       body: JSON.stringify(payload)
     })
 
@@ -131,6 +132,7 @@ async function sendMessage() {
         if (done) break
         const chunk = decoder.decode(value)
         botMsg.text += chunk
+        messages.value = [...messages.value] 
         scrollToBottom()
       }
     }
@@ -205,7 +207,7 @@ function onMouseUp() {
 .chatbot-modal {
   width: 450px;
   height: 70vh; /* 고정된 높이 */
-  background: white;
+  background: var(--bg-box);
   border-radius: 16px;
   display: flex;
   flex-direction: column;
@@ -217,8 +219,8 @@ function onMouseUp() {
 }
 
 .header {
-  background: #00A8E8;
-  color: white;
+  background: var(--primary);
+  color: var(--text-on-primary);
   padding: 12px 16px;
   display: flex;
   justify-content: space-between;
@@ -256,13 +258,13 @@ function onMouseUp() {
   cursor: pointer;
 }
 .close-btn:hover {
-  color: black;
+  color: var(--text-main);
 }
 
 .chat-body {
   flex: 1;
   padding: 20px 16px 20px 20px;
-  background: #f7f7f7;
+  background: var(--bg-secondary);
   overflow-y: auto;
   box-sizing: border-box;
 }
@@ -281,7 +283,7 @@ function onMouseUp() {
   border-top: 1px solid #eee;
   display: flex;
   padding: 8px;
-  background: #fff;
+  color: var(--text-main);
 }
 .input-area input {
   flex: 1;
@@ -291,11 +293,12 @@ function onMouseUp() {
   border-radius: 8px;
   background: #fff;
   outline: none;
+  color: var(--text-main);
   margin-right: 8px;
   transition: border-color 0.2s ease;
 }
 .input-area input:focus {
-  border-color: #00A8E8;
+  border-color: var(--primary);
 }
 .send-btn {
   background: #ccc;
@@ -311,7 +314,7 @@ function onMouseUp() {
   background: #00A8E8;
 }
 .send-btn.active:hover {
-  background: white;
+  background: var(--text-on-primary);
   color: #00A8E8;
   border: 1px solid #00A8E8;
 }

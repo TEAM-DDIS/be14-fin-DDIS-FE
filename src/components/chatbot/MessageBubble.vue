@@ -8,14 +8,15 @@
     />
     <div class="bubble" :class="{ 'user-bubble': from === 'user' }">
       <div v-if="sender" class="sender">{{ sender }}</div>
-      <div class="text">{{ text }}</div>
+      <!-- <div class="text" >{{ text }}</div> -->
+      <div class="text" v-html="formattedText"></div>
       <div class="time">{{ time }}</div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { defineProps } from 'vue'
+import { defineProps, computed  } from 'vue'
 import defaultAvatar from '@/assets/icons/profile_img.svg'
 
 const props = defineProps({
@@ -28,6 +29,13 @@ const props = defineProps({
   hour12: true
 }),
   avatar: String
+})
+
+const formattedText = computed(() => {
+  return props.text
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*\*/g, '')
+    .replace(/\n/g, '<br/>')
 })
 
 const avatarSrc = props.avatar || defaultAvatar
@@ -55,7 +63,7 @@ const avatarSrc = props.avatar || defaultAvatar
 }
 
 .bubble {
-  background: white;
+  background-color: var(--bg-box);
   border-radius: 12px;
   padding: 10px 14px;
   box-shadow: 0 1px 3px rgba(0,0,0,0.1);
@@ -74,6 +82,9 @@ const avatarSrc = props.avatar || defaultAvatar
 }
 .text {
   font-size: 14px;
+    white-space: normal;
+  line-height: 1.6;
+  
 }
 .time {
   font-size: 11px;

@@ -80,13 +80,13 @@
   .name {
     font-weight: bold;
     font-size: 16px;
-    color: black;
+    color: var(--text-main, #000);
   }
 
   .role {
     font-weight: bold;
     font-size: 14px;
-    color: #C6C6C6;
+    color: var(--text-sub, #C6C6C6);
   }
 
   /* 기본 badge 스타일 */
@@ -99,7 +99,7 @@
     padding-left: 8px;
     padding-right: 8px;
     border-radius: 30px;
-    color: white;
+    color: var(--text-on-primary, #fff);
     text-align: center;
     white-space: nowrap;
     box-shadow: 1px 1px 10px 1px rgba(0, 0, 0, 0.1);

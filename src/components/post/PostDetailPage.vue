@@ -60,8 +60,8 @@
     </div>
 
     <div class="button-group">
-      <button v-if="isHR" class="btn-save" @click="onEdit">수정</button>
       <button v-if="isHR" class="btn-delete" @click="onDelete">삭제</button>
+      <button v-if="isHR" class="btn-save" @click="onEdit">수정</button>
     </div>
   </div>
 
@@ -141,10 +141,11 @@
     </div>
 
     <div class="action-footer">
-      <button class="btn-save" @click="onCancelEdit">취소</button>
+      <button class="btn-cancel" @click="onCancelEdit">취소</button>
       <button class="btn-save" @click="onSaveEdit">저장</button>
     </div>
   </div>
+  <BaseToast ref="toastRef" />
 </template>
 
 <script setup>
@@ -152,12 +153,18 @@ import { ref, computed, onMounted, nextTick } from 'vue'
 import axios from 'axios'
 import { useRoute, useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
+import BaseToast from '@/components/toast/BaseToast.vue'
 
 axios.defaults.baseURL = 'http://localhost:5000'
 
 const route     = useRoute()
 const router    = useRouter()
 const userStore = useUserStore()
+const toastRef = ref(null)
+
+function showToast(msg) {
+    toastRef.value?.show(msg)
+}
 
 // JWT 토큰 디코딩 유틸
 function parseJwtPayload(token) {
@@ -265,7 +272,7 @@ async function downloadFile(key, name) {
     URL.revokeObjectURL(url)
   } catch (err) {
     console.error('다운로드 실패', err)
-    alert('파일 다운로드 중 오류가 발생했습니다.')
+    showToast('파일 다운로드 중 오류가 발생했습니다.')
   }
 }
 
@@ -273,10 +280,10 @@ async function onDelete() {
   if (!confirm('정말 삭제하시겠습니까?')) return
   try {
     await axios.delete(`/boards/${notice.value.id}`,{ headers:authHeaders() })
-    alert('삭제되었습니다.')
+    showToast('삭제되었습니다.')
     router.push('/post')
   } catch {
-    alert('삭제 중 오류가 발생했습니다.')
+    showToast('삭제 중 오류가 발생했습니다.')
   }
 }
 
@@ -313,8 +320,8 @@ function onEditorInput(e) {
 }
 
 async function onSaveEdit() {
-  if (!editableNotice.value.title.trim()) return alert('제목을 입력해주세요.')
-  if (!editorRef.value.innerText.trim()) return alert('내용을 입력해주세요.')
+  if (!editableNotice.value.title.trim()) return showToast('제목을 입력해주세요.')
+  if (!editorRef.value.innerText.trim()) return showToast('내용을 입력해주세요.')
 
   const uploaded = []
   for (const f of files.value) {
@@ -347,11 +354,11 @@ async function onSaveEdit() {
     await axios.put(`/boards/${notice.value.id}`,payload,{
       headers:{ ...authHeaders(), 'Content-Type':'application/json' }
     })
-    alert('수정되었습니다.')
+    showToast('수정되었습니다.')
     isEditing.value=false
     await fetchNotice()
   } catch {
-    alert('수정 중 오류가 발생했습니다.')
+    showToast('수정 중 오류가 발생했습니다.')
   }
 }
 
@@ -481,6 +488,22 @@ onMounted(fetchNotice)
   box-sizing: border-box;
 }
 .btn-delete:hover {
+  background-color: #000;
+  color: #fff;
+}
+.btn-cancel {
+    background-color: #d3d3d3;
+  color: #000;
+  border: none;
+  border-radius: 10px;
+  padding: 10px 30px;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: background-color 0.2s, box-shadow 0.2s;
+  box-sizing: border-box;
+}
+.btn-cancel:hover{
   background-color: #000;
   color: #fff;
 }

@@ -1,10 +1,9 @@
-<!-- 조직 및 직무 > 인사발령 -->
+<!-- 조직 및 직무 > 인사발령 이력 -->
 <template>
   <h1 class="page-title">인사발령</h1>
   <p class="desc">인사발령 이력 조회</p>
 
   <div class="content-box">
-    <!-- 필터 & 액션 바 -->
     <div class="filter-box">
       <div class="filters">
         <label for="type-select">발령유형</label>
@@ -38,17 +37,12 @@
         @cell-click="onCellClick"
       />
     </div>
-    <div v-if="isHR" class="actions">
-      <!-- selectedCount가 0이면 등록, 아니면 삭제 -->
-      <button
-        :class="['action-btn', selectedCount > 0 ? 'delete' : 'register']"
-        @click="selectedCount > 0 ? onDelete() : goToRegister()"
-      >
-        <i :class="selectedCount > 0 ? 'fa fa-trash' : 'fa fa-plus'"></i>
-        {{ selectedCount > 0 ? '삭제' : '등록' }}
-      </button>
+    <div class="buttons">
+      <button @click="onDelete()" class="btn-delete">삭제</button>
+      <button @click="goToRegister()" class="btn-register">등록</button>
     </div>
   </div>
+
   <ConfirmModal
     v-if="showConfirm"
     :message="confirmMessage"
@@ -103,14 +97,18 @@ function parseJwtPayload(token) {
   }
 }
 
+if (!isHR) {
+  showToast('접근 권한이 없습니다.')
+  router.push('/error403')
+}
 
-  const toastRef = ref(null)
+const toastRef = ref(null)
 
-  function showToast(msg) {
-    toastRef.value?.show(msg)
-  }
+function showToast(msg) {
+  toastRef.value?.show(msg)
+}
 
-  function openConfirmModal(message, onConfirm) {
+function openConfirmModal(message, onConfirm) {
   confirmMessage.value = message
   confirmCallback = onConfirm
   showConfirm.value = true
@@ -124,7 +122,6 @@ function handleCancel() {
   showConfirm.value = false
 }
 
-// 그리드 옵션 (checkbox 포함)
 const gridOptions = {
   theme: 'legacy',
   rowSelection: 'multiple',
@@ -160,7 +157,6 @@ async function loadData(endpoint = 'approved') {
 
 onMounted(loadData)
 
-// 필터링
 const filteredData = computed(() =>
   rowData.value.filter(item =>
     (!selectedType.value || item.appointmentType === selectedType.value) &&
@@ -168,7 +164,6 @@ const filteredData = computed(() =>
   )
 )
 
-// 그리드 준비 시 API 저장 및 selectionChanged 이벤트 등록
 function onGridReady(params) {
   gridApi = params.api
   gridApi.addEventListener('selectionChanged', () => {
@@ -176,7 +171,6 @@ function onGridReady(params) {
   })
 }
 
-// 삭제
 async function onDelete() {
   const selectedRows = gridApi.getSelectedRows()
   const idsToDelete = selectedRows.map(row => row.appointmentHistoryId)
@@ -186,7 +180,6 @@ async function onDelete() {
     return
   }
 
-  // 삭제 확인
   openConfirmModal(`${idsToDelete.length}건을 삭제하시겠습니까?`, async () => {
   try {
     for (const id of idsToDelete) {
@@ -200,7 +193,7 @@ async function onDelete() {
     }
 
     showToast(`${idsToDelete.length}건 삭제 완료`)
-    await loadData()  // 삭제 후 목록 갱신
+    await loadData()
   } catch (err) {
     console.error('삭제 오류:', err)
     showToast('삭제 중 오류가 발생했습니다.')
@@ -208,12 +201,9 @@ async function onDelete() {
   })
 }
 
-// 등록 페이지로 이동
 function goToRegister() {
   router.push('/org/appointment/register')
 }
-
-// 상세 버튼 클릭
 function onCellClick(e) {
   if (e.colDef.field === 'detail') {
     router.push(`/org/appointment/${e.data.appointmentHistoryId}`)
@@ -238,7 +228,7 @@ function onCellClick(e) {
     border-radius: 12px;
     padding: 20px 32px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-    margin: 24px;
+    margin-left: 20px;
     position: relative;
     padding-bottom: 100px;
   }
@@ -248,7 +238,6 @@ function onCellClick(e) {
     align-items: flex-end;
     gap: 12px;
     margin-bottom: 16px;
-    padding: 16px 24px;
   }
   .filters {
     display: flex;
@@ -256,13 +245,6 @@ function onCellClick(e) {
     align-items: center;
     gap: 20px;
   }
-.actions {
-  position: absolute;
-  bottom: 30px;
-  right: 32px;
-  display: flex;
-  gap: 8px;
-}
   .filters label {
     font-weight: 500;
     color: #513737;
@@ -288,7 +270,19 @@ function onCellClick(e) {
     border: 1px solid black;
   }
 
-  .action-btn.register {
+  .grid-wrapper {
+    margin-bottom: 30px;
+  }
+
+  .buttons {
+  position: absolute;
+  bottom: 50px;
+  right: 32px;
+  display: flex;
+  gap: 8px;
+}
+
+  .btn-register {
   font-size: 14px;
   font-weight: bold;
   cursor: pointer;
@@ -304,14 +298,14 @@ function onCellClick(e) {
   box-sizing: border-box;
 }
 
-  .action-btn.register:hover {
+  .btn-register:hover {
   background-color: white;
   color: #00a8e8;
   border-color: #00a8e8;
   box-shadow:
   inset 1px 1px 10px rgba(0, 0, 0, 0.25);
 }
-  .action-btn.delete {
+  .btn-delete {
     background-color: #D3D3D3;
     color: #000;
     font-size: 14px;
@@ -325,7 +319,7 @@ function onCellClick(e) {
     transition: background-color 0.2s, box-shadow 0.2s;
     box-sizing: border-box;
   }
-  .action-btn.delete:hover {
+  .btn-delete:hover {
     background-color: #000;
     color: #fff;
   }

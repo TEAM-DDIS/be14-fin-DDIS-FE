@@ -23,7 +23,6 @@
       <div class="search-item">
         <label>기안 제목</label>
         <input type="text" v-model="search.title" placeholder="기안 제목 입력" />
-
       </div>
     </div>
 
@@ -72,7 +71,7 @@ const columnDefsByTab = {
     { headerName: '번호', field: 'no', width: 100 },
     { headerName: '구분', field: 'type', width: 150 },
     { headerName: '제목', field: 'title', flex: 1 },
-    { headerName: '상신일시', field: 'submittedAt', width: 230 },
+    { headerName: '상신일시', field: 'submittedAt', width: 230, sort: 'desc' },
     { headerName: '결재상태', field: 'docStatus', width: 230 },
     { headerName: '기안자', field: 'writer', width: 150 }
   ],
@@ -80,7 +79,7 @@ const columnDefsByTab = {
     { headerName: '번호', field: 'no', width: 100 },
     { headerName: '구분', field: 'type', width: 150 },
     { headerName: '제목', field: 'title', flex: 1 },
-    { headerName: '상신일시', field: 'submittedAt', width: 230 },
+    { headerName: '상신일시', field: 'submittedAt', width: 230, sort: 'desc' },
     { headerName: '결재상태', field: 'docStatus', width: 230 },
     { headerName: '기안자', field: 'writer', width: 150 }
   ],
@@ -88,7 +87,7 @@ const columnDefsByTab = {
     { headerName: '번호', field: 'no', width: 100 },
     { headerName: '구분', field: 'type', width: 150 },
     { headerName: '제목', field: 'title', flex: 1 },
-    { headerName: '상신일시', field: 'submittedAt', width: 230 },
+    { headerName: '상신일시', field: 'submittedAt', width: 230, sort: 'desc' },
     { headerName: '결재상태', field: 'docStatus', width: 230 },
     { headerName: '기안자', field: 'writer', width: 150 }
   ],
@@ -96,7 +95,7 @@ const columnDefsByTab = {
     { headerName: '번호', field: 'no', width: 100 },
     { headerName: '구분', field: 'type', width: 150 },
     { headerName: '제목', field: 'title', flex: 1 },
-    { headerName: '완료일시', field: 'approvedAt', width: 230 },
+    { headerName: '완료일시', field: 'approvedAt', width: 230, sort: 'desc' },
     { headerName: '기안자', field: 'writer', width: 150 }
   ]
 }
@@ -157,40 +156,42 @@ watch(tab, fetchApprovals)
 
 // 검색/탭 조건에 따른 필터링
 const filteredForms = computed(() => {
-    const expected = statusMap[tab.value]
-  return docs.value
-    .filter(doc => {
-      if (!doc) return false  // ✅ null 또는 undefined 방지
-      const isRejected = doc.lineStatus === '반려' || doc.docStatus === '반려'
+  const expected = statusMap[tab.value]
 
-      // '전체' 탭이 아닌 경우 반려 문서는 표시하지 않음
-      if (tab.value !== '전체' && isRejected) return false
+  // 1. 필터링
+  const filtered = docs.value.filter(doc => {
+    if (!doc) return false
+    const isRejected = doc.lineStatus === '반려' || doc.docStatus === '반려'
 
-      // '전체' 탭인 경우 반려 문서는 항상 표시함
-      if (tab.value === '전체' && isRejected) return true
+    if (tab.value !== '전체' && isRejected) return false
+    if (tab.value === '전체' && isRejected) return true
 
-      // 현재 탭이 결재/진행/완료인 경우, 해당 상태 조건과 일치해야 표시됨
-      if (expected) {
-        const docStatusMatch = expected.docStatus.includes(doc.docStatus)
-        const lineStatusMatch = expected.lineStatus.includes(doc.lineStatus)
-        if (!docStatusMatch || !lineStatusMatch) return false
-      }
+    if (expected) {
+      const docStatusMatch = expected.docStatus.includes(doc.docStatus)
+      const lineStatusMatch = expected.lineStatus.includes(doc.lineStatus)
+      if (!docStatusMatch || !lineStatusMatch) return false
+    }
 
-      // 제목 검색 조건
-      if (search.title && !doc.title?.includes(search.title)) return false
+    if (search.title && !doc.title?.includes(search.title)) return false
+    if (search.date) {
+      const dateOnly = doc.submittedAt?.slice(0, 10)
+      if (dateOnly !== search.date) return false
+    }
 
-      if (search.date) {
-        const dateOnly = doc.submittedAt?.slice(0, 10)
-        if (dateOnly !== search.date) return false
-      }
-      return true
-    })
-    .map((doc, idx, arr) => ({
-      ...doc,
-      no: arr.length - idx,  // 번호는 뒤에서부터
-      writer: formatWriter(doc.drafter, doc.drafterRank) // 기안자 이름과 직급을 포맷하여 할당
-    }))
+    return true
+  })
+
+  // 2. 최신순 정렬
+  const sorted = filtered.sort((a, b) => new Date(b.submittedAt) - new Date(a.submittedAt))
+
+  // 3. 번호 재지정 (최신순으로 1번부터)
+  return sorted.map((doc, index) => ({
+    ...doc,
+    no: index + 1,
+    writer: formatWriter(doc.drafter, doc.drafterRank)
+  }))
 })
+
 
 // 행 클릭 핸들러
 function handleFormRowClick(params) {

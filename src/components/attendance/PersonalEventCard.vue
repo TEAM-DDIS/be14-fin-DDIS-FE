@@ -95,60 +95,75 @@
 </script>
 
 <style scoped>
-    .event-form {
-        flex: 1;
-    }
+.personal-event-card {
+  background-color: var(--bg-box);
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+  --el-color-primary: var(--primary);
+}
 
-    .btn-area {
-        display: flex;
-        justify-content: flex-end;
-        margin-top: 30px;
-    }
+.event-form {
+  flex: 1;
+}
 
-    .submit-btn {
-        width: 96px;
-        height: 40px;
-        font-size: 14px;
-        font-weight: bold;
-        background-color: #00a8e8;
-        color: white;
-        border: 1px solid transparent;
-        border-radius: 10px;
-        padding: 10px 30px;
-        cursor: pointer;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-        transition: background-color 0.2s, box-shadow 0.2s;
-        box-sizing: border-box;
-    }
+.btn-area {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 30px;
+}
 
-    .submit-btn:hover {
-        background-color: white;
-        color: #00a8e8;
-        border-color: #00a8e8;
-        box-shadow:
-        inset 1px 1px 10px rgba(0, 0, 0, 0.25);
-    }
+/* 등록 버튼 */
+.submit-btn {
+  width: 96px;
+  height: 40px;
+  font-size: 14px;
+  font-weight: bold;
+  background-color: var(--primary);
+  color: var(--text-on-primary);
+  border: 1px solid transparent;
+  border-radius: 10px;
+  padding: 10px 30px;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: background-color 0.2s, box-shadow 0.2s;
+  box-sizing: border-box;
+}
 
-    .cancle-btn {
-        width: 96px;
-        height: 40px;
-        font-size: 14px;
-        font-weight: bold;
-        background-color: #D3D3D3;
-        color: #000;
-        border: none;
-        border-radius: 10px;
-        padding: 10px 30px;
-        font-weight: bold;
-        cursor: pointer;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-        transition: background-color 0.2s, box-shadow 0.2s;
-        box-sizing: border-box;
-    }
-    .cancle-btn:hover {
-        background-color: #000;
-        color: #fff;
-    }
+.submit-btn:hover {
+  background-color: var(--bg-main);
+  color: var(--primary);
+  border-color: var(--primary);
+  box-shadow: inset 1px 1px 10px rgba(0, 0, 0, 0.25);
+}
+
+/* 취소 버튼 */
+.cancle-btn {
+  width: 96px;
+  height: 40px;
+  font-size: 14px;
+  font-weight: bold;
+  background-color: #d3d3d3;
+  color: #000;
+  border: none;
+  border-radius: 10px;
+  padding: 10px 30px;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: background-color 0.2s, box-shadow 0.2s;
+  box-sizing: border-box;
+}
+
+.cancle-btn:hover {
+  background-color: #000;
+  color: #fff;
+}
+
+/* Element Plus 라벨 스타일 */
+:deep(.el-form-item__label) {
+  color: var(--text-main);
+  font-size: 18px;
+}
 
     .personal-event-card {
         /* 기본 primary 색(파랑)을 검정으로 덮어씁니다 */
@@ -159,4 +174,5 @@
         color: #000;
         font-size: 18px;
     }
+    
 </style>

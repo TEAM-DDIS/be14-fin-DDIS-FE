@@ -190,7 +190,7 @@ onMounted(async () => {
 .team{
   font-size:15px;
   font-weight: 600;
-  color: #c1c1c1;
+  color: var(--text-disabled);
   text-align:center;
 }
 .approval-wrapper,
@@ -204,7 +204,7 @@ onMounted(async () => {
   flex-direction: column;
   gap: 7px;
   font-size: 14px;
-  color: #444;
+  color: var(--text-sub);
 }
 
 .approval-item,
@@ -222,7 +222,7 @@ onMounted(async () => {
   transition: color 0.2s;
 }
 .count:hover {
-  color: #000;
+  color: var(--text-main);
 }
 .section-title-row {
   display: flex;
@@ -234,7 +234,7 @@ onMounted(async () => {
 .section-title {
   font-size: 15px;
   font-weight: bold;
-  color: #222;
+  color: var(--text-main);
 }
 
 .shortcut {
@@ -246,7 +246,7 @@ onMounted(async () => {
   transition: color 0.2s;
 }
 .shortcut:hover {
-  color: #000;
+  color: var(--text-main);
 }
 
 .section-divider {
@@ -260,7 +260,8 @@ onMounted(async () => {
 }
 .box {
   margin-top: 30px;
-  background: #fff;
+    background: var(--bg-box);
+
   border-radius: 15px;
   padding: 20px;
   min-height: 200px;
