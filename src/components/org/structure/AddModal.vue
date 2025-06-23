@@ -98,7 +98,7 @@ const localName = ref('')
 
 const router = useRouter()
 const userStore = useUserStore()
-const token = localStorage.getItem('token')
+const token = userStore.accessToken
 
 function parseJwtPayload(token) {
   try {
@@ -117,7 +117,7 @@ function parseJwtPayload(token) {
 }
 
 // 실제 권한 검사
-const payload = parseJwtPayload(userStore.accessToken || token)
+const payload = parseJwtPayload(token)
 const isHR = payload?.role?.includes('ROLE_HR') || payload?.auth?.includes('ROLE_HR')
 
 // 접근 불가 시 리다이렉트
