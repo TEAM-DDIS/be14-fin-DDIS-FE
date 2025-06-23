@@ -222,11 +222,15 @@ const router = createRouter({
             path: '/eapproval/formA',
             component: () => import('@/pages/eapproval/DraftFormA.vue')
         },
-        // 기안양식 (외근신청서)
-        {
-            path: '/eapproval/formB',
-            component: () => import('@/pages/eapproval/DraftFormB.vue')
-        },        
+        // 기안양식 (연차신청서)
+        // {
+        //     path: '/eapproval/formB',
+        //     component: () => import('@/pages/eapproval/DraftFormB.vue')
+        // },        
+        // {
+        //     path: '/eapproval/formC',
+        //     component: () => import('@/pages/eapproval/DraftFormC.vue')
+        // },  
          // 상세페이지
         // {
         //     path: '/drafts/:docId', // ← 기안 문서 ID에 따라 상세 조회

@@ -1,65 +1,56 @@
-<!-- 기안문 상세 조회 페이지 -->
+<!-- 본문 섹션 포함 전체 테이블 구조 점검 및 수정 -->
+<!-- ✅ 수정포인트: 모든 table은 thead/tbody 구조로 감쌈 -->
+<!-- ✅ BaseToast도 항상 DOM에 존재하도록 바깥쪽에 위치 -->
 
 <template>
-    <div v-if="!isLoading">
-  <!-- ◆ 페이지 제목 및 설명 -->
-  <h1 class="page-title">{{ currentTitle }}</h1>
-  <p class="desc">{{ currentDesc }}</p>
+  <div v-if="!isLoading">
+    <h1 class="page-title">{{ currentTitle }}</h1>
+    <p class="desc">{{ currentDesc }}</p>
 
-  <div class="main-box">
-    <div class="container" v-if="draftDetail">
+    <div class="main-box">
+      <div class="container" v-if="draftDetail">
         <!-- 기본 정보 섹션 -->
-          <h2>업무 기안</h2>
-          <hr class="bold-divider" />
+        <h2>업무 기안</h2>
+        <hr class="bold-divider" />
         <table class="info-table">
-          <tr>
-            <th>기안부서</th>
-            <td>{{ draftDetail.team }}</td>
-            <th>직급</th>
-            <td>{{ draftDetail.rankName }}</td>
-          </tr>
-          <tr>
-            <th>기안자</th>
-            <td>{{ draftDetail.drafter }}</td>
-            <th>기안일자</th>
-            <td>{{ draftDetail.date }}</td>
-          </tr>
-          <tr>
-            <th>문서번호</th>
-            <td>{{ draftDetail.docId }}</td>
-            <th>보존연한</th>
-            <td>{{ draftDetail.keepYear }}년</td>
-          </tr>
-          <tr>
-            <th>수신자</th>
-            <td>{{ draftDetail.receiver?.join(', ') || '-' }}</td>
-            <th>참조자</th>
-            <td>{{ draftDetail.referer?.join(', ') || '-' }}</td>
-          </tr>
+          <tbody>
+            <tr>
+              <th>기안부서</th>
+              <td>{{ draftDetail.team }}</td>
+              <th>직급</th>
+              <td>{{ draftDetail.rankName }}</td>
+            </tr>
+            <tr>
+              <th>기안자</th>
+              <td>{{ draftDetail.drafter }}</td>
+              <th>기안일자</th>
+              <td>{{ draftDetail.date }}</td>
+            </tr>
+            <tr>
+              <th>문서번호</th>
+              <td>{{ draftDetail.docId }}</td>
+              <th>보존연한</th>
+              <td>{{ draftDetail.keepYear }}년</td>
+            </tr>
+            <tr>
+              <th>수신자</th>
+              <td>{{ draftDetail.receiver?.join(', ') || '-' }}</td>
+              <th>참조자</th>
+              <td>{{ draftDetail.referer?.join(', ') || '-' }}</td>
+            </tr>
+          </tbody>
         </table>
 
-        <!-- Conditional Button Section: 회수하기 or 결재하기 -->
+        <!-- 버튼 -->
         <div class="action-header">
-            <span class="section-title">결재선</span>
-            <!-- 회수하기 버튼 -->
-            <button
-              v-if="isDrafterViewingMyDraftBox"
-              class="action-button"
-              :disabled="!isRetractable"
-              @click="openRetrieveModal"
-            >회수하기</button>
-            <!-- 결재하기 버튼 -->
-            <button
-              v-else-if="isApproverViewingApprovalBox"
-              class="action-button"
-              :disabled="!selectedLine || selectedLine.status !== '미결'"
-              @click="openApprovalModal"
-            >결재하기</button>
+          <span class="section-title">결재선</span>
+          <button v-if="isDrafterViewingMyDraftBox" class="action-button" :disabled="!isRetractable" @click="openRetrieveModal">회수하기</button>
+          <button v-else-if="isApproverViewingApprovalBox" class="action-button" :disabled="!selectedLine || selectedLine.status !== '미결'" @click="openApprovalModal">결재하기</button>
         </div>
 
-      <hr class="section-divider" />
+        <hr class="section-divider" />
 
-        <!-- 결재라인 리스트: 클릭하여 선택 후 상단 버튼 사용 -->
+        <!-- 결재선 테이블 -->
         <table class="line-table" v-if="draftDetail.approvalLine.length">
           <thead>
             <tr>
@@ -70,7 +61,7 @@
               <th style="width: 80px">상태</th>
               <th style="width: 80px">종류</th>
               <th style="width: 180px">결재일시</th>
-              <th style="width: auto">의견</th>
+              <th>의견</th>
             </tr>
           </thead>
           <tbody>
@@ -92,98 +83,71 @@
           </tbody>
         </table>
 
-        <!-- 승인/반려 모달 -->
-          <ApprovalModal
-            v-if="showApprovalModal"
-            :line-id="Number(currentLineId)"
-            :approval-line="selectedLine"
-            :rank-name="selectedLine?.rankName"
-            @close="closeModal"
-            @submit="handleApprove"
-          />
+        <!-- 승인/반려 및 회수 모달 -->
+        <ApprovalModal v-if="showApprovalModal" :line-id="Number(currentLineId)" :approval-line="selectedLine" :rank-name="selectedLine?.rankName" @close="closeModal" @submit="handleApprove" />
+        <RetrieveModal v-if="showRetrieveModal" :doc-id="docId" @close="showRetrieveModal = false" @submit="handleWithdraw" />
 
-        <!-- 회수 모달 -->
-        <RetrieveModal
-          v-if="showRetrieveModal"
-          :doc-id="docId"
-          @close="showRetrieveModal = false"
-          @submit="handleWithdraw"
-        />
-
-        <!-- ◆ 기안 내용 작성 영역 -->
-      <div class = "draft-content">
-        <div class="section-title">기안내용</div>
+        <!-- 기안내용 섹션 -->
+        <div class="draft-content">
+          <div class="section-title">기안내용</div>
           <hr class="section-divider" />
+          <table class="section-content-table">
+            <tbody>
+              <tr>
+                <th class="label-cell">제&nbsp;&nbsp;&nbsp;목</th>
+                <td><div>{{ draftDetail.docTitle }}</div></td>
+              </tr>
+              <tr>
+                <th class="label-cell">첨부파일</th>
+                <td>
+                  <template v-if="draftDetail.attachments?.length">
+                    <div class="file-list">
+                      <div class="file-item" v-for="(file, index) in draftDetail.attachments" :key="index">
+                        <a v-if="presignedUrls[index]" :href="presignedUrls[index]" target="_blank" rel="noopener noreferrer" class="file-link">
+                          {{ file.name }} ({{ (file.size / 1024).toFixed(1) }} KB)
+                        </a>
+                        <span v-else class="file-info error">{{ file.name }} (URL 생성 실패)</span>
+                      </div>
+                    </div>
+                  </template>
+                  <template v-else>-</template>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
 
-        <!-- 제목 및 첨부파일 섹션 통합 테이블 -->
-        <table class="section-content-table">
+        <!-- 본문 섹션 -->
+        <table class="content-table">
+          <thead>
+            <tr>
+              <th colspan="4" class="content-header">본문</th>
+            </tr>
+          </thead>
           <tbody>
             <tr>
-              <th class="label-cell">제&nbsp;&nbsp;&nbsp;목</th>
-              <td>
-                <div>
-                  {{ draftDetail.docTitle }}
+              <td colspan="4">
+                <div class="content-body">
+                  <div v-html="draftDetail.content.body"></div>
                 </div>
-              </td>
-            </tr>
-            <tr>
-              <th class="label-cell">첨부파일</th>
-              <td>
-                <template v-if="draftDetail.attachments?.length">
-                  <ul>
-                    <li
-                      v-for="(file, index) in draftDetail.attachments"
-                      :key="index"
-                    >
-                      <!-- presignedUrls 대신 file.url 사용 -->
-                      <a
-                        v-if="presignedUrls[index]"
-                        :href="presignedUrls[index]"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        {{ file.name }} ({{ (file.size / 1024).toFixed(1) }} KB)                      </a>
-                      <span v-else class="file-info error">
-                        {{ file.name }} (URL 생성 실패)
-                      </span>
-                    </li>
-                  </ul>
-                </template>
-                <template v-else>-</template>
               </td>
             </tr>
           </tbody>
         </table>
       </div>
 
-        <!-- 본문 섹션 -->
-        <table class="content-table">
-          <tr>
-            <th colspan="4" class="content-header">본문</th>
-          </tr>
-          <tr>
-            <td colspan="4">
-              <div class="content-body">
-                <div v-html="draftDetail.content.body"></div>
-              </div>
-            </td>
-          </tr>
-        </table>
-    </div>
-      <!-- 하단 버튼 그룹 -->
+      <!-- 하단 버튼 -->
       <div class="button-group">
         <button class="button gray" @click="handleCancel">취소</button>
         <button class="button" @click="handleConfirm">확인</button>
+      </div>
+    </div>
   </div>
 
-        <!-- 반려 또는 회수 탭일 때 재상신 버튼 -->
-        <!-- <button v-if="isBanryeoDoc || isHoesuDoc" @click="handleResubmit">재상신</button> -->
-      </div>
-
-        </div>
-          <!-- draftDetail이 없을 때: 로딩 상태 표시 -->
-          <div v-else class="loading">로딩 중입니다...</div>
+  <!-- ✅ 항상 DOM에 존재하도록 외부에 위치 -->
+  <BaseToast ref="toastRef" />
 </template>
+
 
 <script setup>
 // Composition API 함수 import
@@ -193,6 +157,8 @@ import { useRoute, useRouter } from 'vue-router'                     // 현재 U
 import ApprovalModal from '@/components/eapproval/ApproveModal.vue'  // 결재 모달 컴포넌트
 import RetrieveModal from '@/components/eapproval/RetrieveModal.vue'  // 회수 모달 컴포넌트
 import { useUserStore } from '@/stores/user'
+import BaseToast from '@/components/toast/BaseToast.vue';
+
 
 // 📌 현재 페이지의 URL에서 docId 추출 (예: /drafts/123 → docId = 123)
 const route = useRoute()
@@ -205,12 +171,10 @@ const isLoading = ref(true)           // 로딩 상태 표시용
 const error = ref(null)               // 에러 정보 저장
 const presignedUrls = ref([])
 
-
 // 📌 모달 관련 상태 변수
 const showApprovalModal = ref(false)  // 결재 모달 열림 여부
 const showRetrieveModal = ref(false)  // 회수 모달 열림 여부
 const currentLineId = ref(null)       // 선택된 결재선의 ID
-
 
 const box = route.query.box || ''
 const boxKey = box.endsWith('Box') ? box : `${box}Box` // ← 보정
@@ -224,6 +188,10 @@ const pageTitleMap = {
 
 const currentTitle = computed(() => pageTitleMap[boxKey] || '문서함')
 
+const toastRef = ref(null);
+function showToast(msg) {
+  toastRef.value?.show(msg);
+}
 
 //  query.formName 기준
 const descMap = {
@@ -288,6 +256,11 @@ const selectedLine = computed(() => {
 // 4) S3 다운로드용 presigned URL 요청
 async function fetchPresignedUrls() {
   presignedUrls.value = []
+   // attachments가 없으면 함수 종료
+   if (!draftDetail.value?.attachments?.length) {
+    console.warn('📦 첨부파일 없음 - presigned URL 요청 생략')
+    return
+  }
   const token = localStorage.getItem('token')
   for (const file of draftDetail.value.attachments) {
     const qs = new URLSearchParams({
@@ -305,7 +278,6 @@ async function fetchPresignedUrls() {
     }
   }
 }
-
 
 // 📌 기안 상세 조회 API 호출 함수
 async function fetchDetail() {
@@ -419,50 +391,34 @@ function selectLine(id) {
   console.log('✅ 선택된 결재선:', draftDetail.value?.approvalLine.find(line => line.id === id))
 }
 
-// 📌 '결재하기' 버튼 클릭 시 모달 열기
 function openApprovalModal() {
-  console.log('🟡 모달 열기 시도')
-
-  // 아무것도 선택되지 않았으면 모달 안 열림
   if (!selectedLine.value) {
-    console.warn('❌ selectedLine 없음')
-    alert('결재할 행을 선택해주세요.')
+    showToast('결재할 결재선을 선택해주세요.')
     return
   }
 
-  // 현재 로그인한 사용자 ID (ref에서 가져옴)
-  
-  // 결재선의 결재자 ID와 현재 로그인한 사용자의 ID를 문자열로 변환하여 비교
   if (String(selectedLine.value.employeeId) !== myId.value) {
-    alert('결재 권한이 없습니다.')
+    showToast('결재 권한이 없습니다.')
     return
   }
 
-  // 결재선 상태가 '미결'이 아니면 모달 열리지 않음
   if (selectedLine.value.status !== '미결') {
-      console.warn('❌ 상태가 미결 아님:', selectedLine.value.status)
-      alert('미결 상태의 결재만 처리할 수 있습니다.') // 사용자에게 알림
-      return
+    showToast('미결 상태의 결재만 처리할 수 있습니다.')
+    return
   }
 
-  console.log('✅ 조건 통과, 모달 오픈')
   showApprovalModal.value = true
 }
 
+
 // 📌 '회수하기' 버튼 클릭 시 모달 열기
 function openRetrieveModal() {
-  console.log('🟡 회수 모달 열기 시도', {
-    isRetractable: isRetractable.value,
-    showRetrieveModal: showRetrieveModal.value
-  })
   if (!isRetractable.value) {
-    console.warn('❌ 회수할 수 없는 상태')
+    showToast('회수할 수 없는 상태입니다.')
     return
   }
   showRetrieveModal.value = true
-  console.log('✅ 모달 상태 변경:', showRetrieveModal.value)
 }
-
 // 📌 모달 닫기
 function closeModal() {
   showApprovalModal.value = false
@@ -471,7 +427,6 @@ function closeModal() {
 
 // 📌 승인 또는 반려 처리 후 다시 기안 상세정보 갱신
 async function handleApprove({ lineId, status, opinion }) {
-  console.log('📤 handleApprove 호출 –', { lineId, status, opinion })
   try {
     const token = localStorage.getItem('token') || ''
     const headers = token ? { Authorization: `Bearer ${token}` } : {}
@@ -486,11 +441,16 @@ async function handleApprove({ lineId, status, opinion }) {
       { headers }
     )
 
-    // 반영된 상태를 다시 불러옴
+    // 상태 반영 후 상세정보 재조회
     await fetchDetail()
+
+    // ✅ 결재 처리 완료 메시지
+    const actionLabel = status === '승인' ? '승인' : '반려'
+    showToast(`문서가 ${actionLabel}되었습니다.`)
+
   } catch (e) {
     console.error('❗ 결재 처리 실패', e)
-    alert('결재 처리에 실패했습니다.')
+    showToast('결재 처리에 실패했습니다.')
   } finally {
     showApprovalModal.value = false  // 모달 닫기
   }
@@ -507,7 +467,7 @@ async function handleWithdraw() {
       {},
       { headers }
     )
-    alert('문서가 성공적으로 회수되었습니다.')
+    showToast('문서가 성공적으로 회수되었습니다.')
     // 회수 탭으로 이동하도록 수정
     router.push({
       name: 'MyDraftBox',
@@ -717,11 +677,27 @@ table {
   color: #fff;
 } 
 /* 첨부파일 정보 */
-.file-info {
-  font-size: 13px;
-  color: #666;
+.file-list {
+  padding: 0;
+  margin: 0;
 }
-
+.file-item {
+  margin-bottom: 4px;
+}
+.file-link {
+  color: #00a8e8;
+  background-color: #f1f9ff;
+  padding: 4px 8px;
+  border-radius: 6px;
+  display: inline-block;
+  text-decoration: none;
+}
+.file-link:hover {
+  text-decoration: underline;
+}
+.file-info.error {
+  color: #e74c3c;
+}
 /* 본문영역 */
 .content-header {
   margin-top: 0; /* 제목 섹션과 병합되었으므로 마진 제거 */
