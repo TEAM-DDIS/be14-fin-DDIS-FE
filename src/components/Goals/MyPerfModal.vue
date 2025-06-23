@@ -5,18 +5,22 @@
         <h3 class="modal-title">나의 실적 목록</h3>
         <button class="btn-close" @click="$emit('close')">×</button>
                <!-- 연도 선택 드롭다운 -->
-        <div class="filter-row">
-          <label for="yearFilter">연도별 보기:</label>
-          <select id="yearFilter" v-model="selectedYear">
-            <option value="All">전체</option>
-            <option 
-              v-for="yr in years" 
-              :key="yr" 
-              :value="yr"
-            >
-              {{ yr }}년
-            </option>
-          </select>
+                
+        <div class="filter-row">       
+          
+            <label for="yearFilter">연도별 보기:</label>
+            <select id="yearFilter" v-model="selectedYear">
+              <option value="All">전체</option>
+              <option 
+                v-for="yr in years" 
+                :key="yr" 
+                :value="yr"
+              >
+                {{ yr }}년
+              </option>
+            </select>
+          
+        
         </div>
         <table class="my-perf-table">
           <thead>
@@ -24,11 +28,13 @@
               <th>목표명</th>
               <th>실적 수치</th>
               <th>자기 평가</th>
+              <th>평가 점수</th>
             </tr>
           </thead>
+            
           <tbody>
             <tr
-              v-for="item in performances"
+              v-for="item in filteredPerformances"
               :key="item.performanceId"
               class="clickable-row"
               @click="$emit('select', item.goalId)"
@@ -36,12 +42,17 @@
               <td>{{ item.goalTitle }}</td>
               <td>{{ item.actual }}</td>
               <td>{{ item.comment }}</td>
+              <td>{{ item.reviewScore }}</td>
             </tr>
-            <tr v-if="performances.length === 0">
+            <tr v-if="filteredPerformances.length === 0">
               <td colspan="3" class="empty-row">등록된 실적이 없습니다.</td>
             </tr>
           </tbody>
+
         </table>
+        <div class="score-summary">
+          총 평가 점수: <strong>{{ totalReviewScore }}</strong>
+        </div>
       </div>
     </div>
   </teleport>
@@ -66,6 +77,11 @@ const years = computed(() => {
   return Array.from(ys).sort((a, b) => b - a)
 })
 
+const totalReviewScore = computed(() => {
+  return filteredPerformances.value
+    .map(p => Number(p.reviewScore) || 0)
+    .reduce((sum, score) => sum + score, 0)
+})
 // 3) 선택된 연도에 따라 필터링
 const filteredPerformances = computed(() =>
   props.performances.filter(p =>
@@ -89,6 +105,28 @@ watch(() => props.performances, () => {
   align-items: center;
   z-index: 1000;
 }
+.modal-title{
+  text-align: center;
+}
+.score-summary {
+  margin-top: 8px;
+  text-align: right;
+  font-weight: bold;
+  color: #00a8e8;
+  padding-top: 10px;
+}
+.filter-row {
+  display: flex;
+  align-items: center;
+  margin: 16px 0;
+}
+
+
+
+.filter-right {
+  font-weight: bold;
+  color: #00a8e8;
+}
 .modal-content {
   background: #fff;
   border-radius: 8px;
@@ -110,6 +148,9 @@ watch(() => props.performances, () => {
   top: 12px; right: 12px;
   border: none; background: none;
   font-size: 24px; cursor: pointer;
+}
+.btn-close:hover{
+  color:#00a8e8
 }
 .my-perf-table {
   width: 100%; border-collapse: collapse;

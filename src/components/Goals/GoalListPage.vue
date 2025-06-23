@@ -140,37 +140,38 @@
                 <th>가중치</th><td>{{ selectedGoal.goalWeight }}%</td>
                 <th>목표수치</th><td>{{ selectedGoal.goalValue }}</td>
               </tr>
-              <tr><th colspan="4">목표내용</th></tr>
-              <tr><td colspan="4">{{ selectedGoal.goalContent }}</td></tr>
+              <tr class="center"><th colspan="4">목표내용</th></tr>
+              <tr class="center"><td colspan="4">{{ selectedGoal.goalContent }}</td></tr>
+              <tr class="center"><th colspan="4">첨부파일</th></tr>
+              <tr class="center"><td colspan="4"><div v-if="form.existingAttachmentKeys.length" class="existing-files">
+             <ul>
+              <li
+                v-for="(url, idx) in presignedUrls"
+                :key="idx"
+                class="existing-file-item"
+              >
+                <a :href="url" target="_blank" rel="noopener noreferrer" class="link-preview">
+                  {{ form.existingAttachmentFileNames[idx] }}
+                </a>
+            
+                <span class="file-size-text">
+                  ({{ (form.existingAttachmentFileSizes[idx] / 1024 / 1024).toFixed(1) }}MB)
+                </span>
+              </li>
+            </ul>
+          </div></td></tr>
             </tbody>
           </table>
 
           <!-- 3) 이미 등록된 첨부파일이 있으면 목록으로 보여줌 -->
-          <div v-if="form.existingAttachmentKeys.length" class="existing-files">
-            <p class="section-title">기존 첨부파일</p>
-             <ul>
-    <li
-      v-for="(url, idx) in presignedUrls"
-      :key="idx"
-      class="existing-file-item"
-    >
-      <a :href="url" target="_blank" rel="noopener noreferrer" class="link-preview">
-        🔍 {{ form.existingAttachmentFileNames[idx] }}
-      </a>
-  
-      <span class="file-size-text">
-        ({{ (form.existingAttachmentFileSizes[idx] / 1024 / 1024).toFixed(1) }}MB)
-      </span>
-    </li>
-  </ul>
-          </div>
+          
 
           <!-- 실적 입력/수정 폼 -->
           <div class="perf-form">
             <div class="attach-area">
               <label>첨부 파일</label>
               <div class="file-box">
-                <template v-if="form.fileName">
+                <template v-if="form.file">
                   <span class="file-name">{{ form.fileName }}</span>
                   <span class="file-size">{{ form.fileSize }}</span>
                 </template>
@@ -217,6 +218,7 @@ const userStore = useUserStore()
 const showMyPerfModal = ref(false)
 // presigned URL 저장
 const presignedUrls = ref([])
+const token = useUserStore().accessToken
 
 // 신규 목표 등록용 reactive 객체
 const newGoal = reactive({
@@ -271,21 +273,28 @@ const currentYearGoals = computed(() =>
   )
 )
 
-// 2) 과거 실적만 (작년 이하) & 내 실적만
 const pastPerformances = computed(() =>
   goals.value
     .filter(g =>
+      // 1) 실적이 있고
       g.performance &&
-      new Date(g.goalCreatedAt).getFullYear() < currentYear &&
+      // 2) 매니저 평가가 완료된 것만 (reviewerScore가 null이 아니어야)
+      g.performance.reviewerScore != null &&
+      // 3) 과거 연도 것만
+      new Date(g.goalCreatedAt).getFullYear() <= currentYear &&
+      // 4) 내 실적인 것만
       g.performance.employeeIdSelfreviewer === userStore.employeeId
     )
     .map(g => ({
       performanceId: g.performance.performanceId,
-      goalId: g.goalId, 
-      goalTitle: g.goalTitle,
-      actual: g.performance.performanceValue,
-      comment: g.performance.selfreviewContent,
-      year: new Date(g.goalCreatedAt).getFullYear()
+      goalId:        g.goalId,
+      goalTitle:     g.goalTitle,
+      actual:        g.performance.performanceValue,
+      comment:       g.performance.selfreviewContent,
+      year:          new Date(g.goalCreatedAt).getFullYear(),
+      // 매니저 평가 점수도 보여 주고 싶으면
+      reviewrScore:   g.performance.reviewerScore,
+      reviewScore:  g.reviewScore
     }))
 )
 
@@ -298,7 +307,7 @@ function getKoreaLocalDateTimeString() {
 
 // 목표 목록을 백엔드에서 가져오기
 function fetchGoals() {
-  const token = localStorage.getItem('token')
+
   fetch('http://localhost:5000/goals', {
     headers: { Authorization: `Bearer ${token}` }
   })
@@ -377,7 +386,6 @@ function openGoalForm() {
 //  프리사인드 URL 미리 가져오기
 // -----------------------------
 async function fetchPresignedUrls() {
-  const token = localStorage.getItem('token')
   presignedUrls.value = []
 
   for (let i = 0; i < form.existingAttachmentKeys.length; i++) {
@@ -431,7 +439,6 @@ function getDownloadUrlWithDisposition(presignedUrl, filename) {
 // -----------------------------
 async function downloadAttachment(fileKey, fileType) {
   try {
-    const token = localStorage.getItem('token');
     // 쿼리스트링 생성
     const qs = new URLSearchParams({
       filename: fileKey,
@@ -481,7 +488,6 @@ async function addGoal() {
 
   if (!newGoal.goalTitle) return
 
-  const token = localStorage.getItem('token')
   const payload = {
     goalTitle: newGoal.goalTitle,
     goalValue: newGoal.goalValue,
@@ -533,7 +539,6 @@ function confirmDelete(id) {
 // 2) 목표 삭제
 async function deleteGoals(id) {
   try {
-    const token = localStorage.getItem('token')
     const res = await fetch(`http://localhost:5000/goals/${id}`, {
       method: 'DELETE',
       headers: {
@@ -559,7 +564,6 @@ async function submitPerf() {
   const g = selectedGoal.value
   if (!g) return alert('먼저 목표를 선택해주세요.')
 
-  const token = localStorage.getItem('token')
   let attachmentUrlsToSend = [...form.existingAttachmentKeys]
   let fileNamesToSend = [...form.existingAttachmentFileNames]
   let fileTypesToSend = [...form.existingAttachmentFileTypes]
@@ -664,7 +668,6 @@ async function deletePerf() {
   if (!g || !hasPerformance.value) return
   if (!confirm('정말 실적을 삭제하시겠습니까?')) return
 
-  const token = localStorage.getItem('token')
   try {
     const res = await fetch(
       `http://localhost:5000/goalsperf/${g.goalId}/performance/${form.performanceId}`,
@@ -775,14 +778,20 @@ input#weight.input-complete {
 .perf-content {
   flex: 1;
 }
+.existing-file-item{
+  list-style: none;
+}
 .goals-panel::-webkit-scrollbar {
   display: none;
 }
 .placeholder {
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: center;       
   flex: 1;
+}
+tr{
+  text-align: left;
 }
 .placeholder-text {
   color: #00a8e8;
@@ -1093,7 +1102,6 @@ input#weight.input-complete {
 .detail-table-vertical td {
   border: 1px solid #e0e0e0;
   padding: 12px;
-  text-align: center;
   font-size: 0.9rem;
 }
 .detail-table-vertical th {
@@ -1147,6 +1155,9 @@ input#weight.input-complete {
   border-radius: 6px;
   padding: 6px 12px;
   gap: 8px;
+}
+.center{
+  text-align: center;
 }
 .btn-attach {
   font-size: 14px;
@@ -1236,9 +1247,10 @@ input#weight.input-complete {
   background: #fff;
 }
 .link-preview {
-  margin-right: 8px;
-  color: #007bff;
-  text-decoration: none;
+  color: inherit;            /* 부모 텍스트 색상 그대로 */
+  text-decoration: none;     /* 밑줄 제거 */
+  transition: color 0.2s;    /* 부드러운 색 변화 */
+  cursor: pointer;
 }
 .link-preview:hover {
   text-decoration: underline;
