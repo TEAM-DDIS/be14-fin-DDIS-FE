@@ -319,14 +319,14 @@ input[type="month"] {
 /* 테이블 상단 제목 셀 스타일 */
 .main-head th,
 .table-head th {
-  background-color: var(--bg-main) !important;
+  background-color: var(--grid-head) !important;
   font-weight: bold;
   
 }
 
 /* 서브 헤더 행 스타일 */
 .sub-head th {
-  background-color: #f8f9fa !important;
+  background-color: var(--grid-head) !important;
   font-weight: bold;
 }
 
@@ -425,8 +425,7 @@ input[type="month"] {
 /* 조회 버튼 hover 효과 */
 .search-btn:hover {
   background-color: var(--bg-main);
-    color: var(--primary);
-
+  color: var(--primary);
   border: 1px solid var(--primary);
   box-shadow: inset 1px 1px 10px rgba(0, 0, 0, 0.25);
 }
@@ -477,19 +476,15 @@ input[type="month"] {
 .table {
   width: 100%;
   border-collapse: collapse;
-  background-color: var(--bg-box);
-
 }
 .info-table th{
-  background: var(--grid-head)!important;
+  background: var(--grid-head);
   text-align: left;
   
 }
 /* 표 셀 스타일 */
 .table th,
 .table td {
-  background: var(--grid-head)!important;
-
   height: 32px;
   padding: 6px 8px;
   border: 1px solid var(--calendar-border-color);
@@ -503,7 +498,7 @@ input[type="month"] {
 
 /* 상세 박스 헤더 */
 .detail-header {
-  background-color: #f8f9fa;
+  background-color: var(--bg-box);
   border-radius: 12px 12px 0 0;
   padding: 8px 16px;
 }
@@ -513,6 +508,7 @@ input[type="month"] {
   text-align: center;
   font-weight: bold;
   margin: 0 0 12px;
+  
 }
 
 /* 강조 텍스트 */
@@ -555,9 +551,6 @@ input[type="month"] {
 /* 금액 열 우측 정렬 및 너비 고정 */
 .table th:last-child,
 .table td:last-child {
-  background: var(--grid-head)!important;
-
   width: 50%;
-  
 }
 </style>
