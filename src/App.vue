@@ -30,7 +30,7 @@
 
     <!-- 챗봇 -->
     <FloatingChat v-if="!hideLayout" @toggle="showChatbot = !showChatbot" />
-    <transition name="chat-pop" appear>
+    <transition name="chat-pop">
       <ChatModal v-if="showChatbot" @close="showChatbot = false" />
     </transition>
 
