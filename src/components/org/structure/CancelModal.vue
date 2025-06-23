@@ -33,7 +33,7 @@ function close() {
 }
 
 .modal-box {
-  background: var(--bg-main); 
+  background: white; 
   padding: 15px; 
   border-radius: 12px;
   width: 300px; 
@@ -44,13 +44,11 @@ function close() {
     font-size: 18px;
     font-weight: bold;
     margin-bottom: 30px;
-    color: var(--text-main);
 }
 
 .modal-message { 
     margin-bottom: 35px;
     font-size: 15px;
-    color: var(--text-main);
 }
 
 .modal-actions {

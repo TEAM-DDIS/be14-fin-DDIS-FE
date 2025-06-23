@@ -152,7 +152,31 @@
                     </tr>
                     <tr>
                       <td colspan="2" class="description">
-                        {{ selectedGoal.description }}
+                        {{ selectedGoal.content }}
+                      </td>
+                    </tr>
+                    <tr class="subheader">
+                      <td colspan="2">첨부파일</td>
+                    </tr>
+                    <tr>
+                      <td colspan="2" class="description">
+                        <div v-if="selectedGoal.attachmentKeys && selectedGoal.attachmentKeys.length" class="existing-files">
+                          <ul>
+                            <li v-for="(key, idx) in selectedGoal.attachmentKeys" :key="idx" class="existing-file-item">
+                              <a
+                                :href="presignedUrlMap[key]"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                class="link-preview"
+                              >
+                                {{ selectedGoal.attachmentFileNames[idx] }}
+                              </a>
+                              <span class="file-size-text">
+                                ({{ (selectedGoal.attachmentFileSizes[idx] / 1024 / 1024).toFixed(1) }}MB)
+                              </span>
+                            </li>
+                          </ul>
+                        </div>
                       </td>
                     </tr>
                     <tr>
@@ -244,14 +268,14 @@ import { useUserStore } from '@/stores/user'
 
 // 인증과 사용자 상태
 const userStore      = useUserStore()
-const accessToken    = computed(() => userStore.accessToken)
+const token    = useUserStore().accessToken
 const currentUser    = computed(() => userStore.user)
 const selectedHistory = ref(null)
 
 
 function getPayload() {
   try {
-    const raw = accessToken.value.split('.')[1].replace(/-/g,'+').replace(/_/g,'/')
+    const raw = token.split('.')[1].replace(/-/g,'+').replace(/_/g,'/')
     return JSON.parse(atob(raw))
   } catch {
     return {}
@@ -266,14 +290,15 @@ const showCurrent      = ref(true)
 const historyRecords   = ref([])
 const selectedGoal     = ref(null)
 const evalForm         = reactive({ score: '', comment: '' })
+const presignedUrlMap = ref({})
 
 // 직원 목록 매핑
 const people = computed(() =>
   employees.value.map(emp => ({
-    id:     emp.employeeId,
-    name:   emp.employeeName,
-    role:   emp.positionName,
-    dept:   emp.teamName,
+    id: emp.employeeId,
+    name: emp.employeeName,
+    role: emp.positionName,
+    dept: emp.teamName,
     avatar: emp.avatarUrl || ''
   }))
 )
@@ -300,13 +325,18 @@ const filteredGoals = computed(() => {
         score:   perf.reviewerScore ?? null,
         comment: perf.reviewerContent ?? ''
       },
-      performanceObj: perf
+      performanceObj: perf,
+      content: g.goalContent,
+      attachmentKeys: perf.attachmentKeys || [],
+      attachmentFileNames: perf.attachmentFileNames || [],
+      attachmentFileSizes: perf.attachmentFileSizes || []
     }
   })
 })
 const currentYear      = new Date().getFullYear()
 const currentYearGoals = computed(() =>
-  filteredGoals.value.filter(g => +g.date.split('-')[0] === currentYear)
+  filteredGoals.value
+    .filter(g => +g.date.split('-')[0] === currentYear)
 )
 const pastGoals        = computed(() =>
   filteredGoals.value.filter(g => +g.date.split('-')[0] < currentYear)
@@ -330,12 +360,43 @@ function selectEmployee(p) {
   evalForm.comment       = ''
   if (!showCurrent.value) loadHistory()
 }
+async function fetchPresignedDownloadUrl(key) {
+  const qs = new URLSearchParams({
+    filename: key,
+    contentType: selectedGoal.value.attachmentFileTypes[
+      selectedGoal.value.attachmentKeys.indexOf(key)
+    ]
+  }).toString()
+
+  const res = await fetch(
+    `http://localhost:5000/s3/download-url?${qs}`,
+    { headers: { Authorization: `Bearer ${token}` } }
+  )
+  if (!res.ok) throw new Error('프리사인드 URL 생성 실패')
+  return await res.text()
+}
 
 // 목표 선택
-function selectGoal(g) {
-  selectedGoal.value = g
-  evalForm.score     = g.evaluation.score || ''
-  evalForm.comment   = g.evaluation.comment
+async function selectGoal(g) {
+  selectedGoal.value = g;
+  evalForm.score     = g.evaluation.score || '';
+  evalForm.comment   = g.evaluation.comment;
+
+  // presignedUrlMap 초기화
+  presignedUrlMap.value = {};
+
+  // attachmentKeys가 있을 때만 URL 생성
+  if (Array.isArray(g.attachmentKeys) && g.attachmentKeys.length) {
+    for (const key of g.attachmentKeys) {
+      try {
+        const url = await fetchPresignedDownloadUrl(key);
+        presignedUrlMap.value[key] = url;
+      } catch (e) {
+        console.error(`Presign URL fetch failed for ${key}:`, e);
+        presignedUrlMap.value[key] = '';
+      }
+    }
+  }
 }
 
 function selectHistory(h) {
@@ -349,22 +410,40 @@ function selectHistory(h) {
 // 초기: 팀원 목록 조회
 async function fetchTeam() {
   if (!teamId.value) return
+
   const res = await fetch(`http://localhost:5000/review/${teamId.value}`, {
-    headers: { Authorization: `Bearer ${accessToken.value}` }
+    headers: { Authorization: `Bearer ${token}` }
   })
   if (!res.ok) throw new Error('팀원 불러오기 실패')
-  employees.value = await res.json()
-  if (people.value.length) selectEmployee(people.value[0])
+
+  const rawEmployees = await res.json()
+  console.log('현재 사용자:', currentUser.value)
+  const myId = String(currentUser.value?.employeeId)
+  employees.value = rawEmployees.filter(emp => String(emp.employeeId) !== myId)
+  console.log('불러온 팀원:', rawEmployees.map(e => e.employeeId))
+
+
+  // 선택할 사람이 있을 때만 초기 선택
+  if (employees.value.length > 0) {
+    selectEmployee({ id: employees.value[0].employeeId })
+  }
 }
-onMounted(fetchTeam)
+onMounted(async () => {
+  // 유저 정보 로딩 기다리기
+  while (!currentUser.value?.employeeId) {
+    await new Promise(resolve => setTimeout(resolve, 50))
+  }
+  await fetchTeam()
+})
 
 // 과거 평가 이력 API
 async function loadHistory() {
   if (!selectedEmployee.value) return
   try {
     const res = await fetch(
+
       `http://localhost:5000/review/history/${selectedEmployee.value}`,
-      { headers: { Authorization: `Bearer ${accessToken.value}` }}
+      { headers: { Authorization: `Bearer ${token}` }}
     )
     if (!res.ok) throw new Error(await res.text())
     const raw = await res.json()
@@ -401,7 +480,7 @@ async function submitManagerEval(decision) {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization:   `Bearer ${accessToken.value}`
+          Authorization:   `Bearer ${token}`
         },
         body: JSON.stringify(payload)
       }
@@ -416,7 +495,6 @@ async function submitManagerEval(decision) {
     alert('상사평가 실패')
   }
 }
-onMounted(fetchTeam)
 </script>
 
 <style scoped>
@@ -440,7 +518,7 @@ onMounted(fetchTeam)
   .header-bar {
     display: flex;
     align-items: center;
-    margin: 0 20px 10px;
+    
   }
   /* 탭 버튼 스타일 */
 .tab-bar {
@@ -522,6 +600,28 @@ onMounted(fetchTeam)
   flex-direction: column;
   
 }
+.existing-files ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.existing-files ul li {
+  /* 필요시 개별 li에도 스타일 초기화 */
+  list-style: none;
+}
+.existing-files .link-preview {
+  color: inherit;            /* 부모 텍스트 색상 그대로 */
+  text-decoration: none;     /* 밑줄 제거 */
+  transition: color 0.2s;    /* 부드러운 색 변화 */
+  cursor: pointer;
+}
+
+/* 호버 시 색깔·밑줄 표시 */
+.existing-files .link-preview:hover {
+  color: #00a8e8;            /* 원하시는 강조 색으로 변경 */
+  text-decoration: underline;/* 밑줄 표시 */
+}
 .content-panels {
   display: flex;
   flex: 1;
@@ -573,8 +673,10 @@ onMounted(fetchTeam)
   background-color: #f7f7f7;
 }
 .people-list li:hover{
-  transform: translateY(-2px);
-  opacity: 1;
+   transform: translateY(-2px);
+  box-shadow:
+    inset 0 4px 8px rgba(0, 0, 0, 0.15),
+    0 2px 8px rgba(0, 0, 0, 0.1);
 }
 .desc-tabs {
   display: flex;
@@ -625,10 +727,16 @@ onMounted(fetchTeam)
 }
 .goal-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+  box-shadow:
+    inset 0 4px 8px rgba(0, 0, 0, 0.15),
+    0 2px 8px rgba(0, 0, 0, 0.1);
 }
 .goal-card.selected {
-  background: #eef3f8;
+      box-shadow:
+    inset 0 4px 8px rgba(0, 0, 0, 0.15),
+    0 2px 8px rgba(0, 0, 0, 0.1);
+  transform: translateY(0);
+  background-color: #f7f7f7;
 }
 .card-top {
   display: flex;
@@ -758,7 +866,7 @@ onMounted(fetchTeam)
 .detail-table th,
 .detail-table td {
   padding: 10px;
-  text-align: center;
+  text-align: left;
   border-bottom: 1px solid #e0e0e0;
   border-right: 1px solid #e0e0e0;
   font-size: 0.95rem;
@@ -776,6 +884,7 @@ onMounted(fetchTeam)
 .detail-table .subheader td {
   background: #f7f7f7;
   font-weight: 600;
+  text-align: center;
   
 }
 .detail-table .description {

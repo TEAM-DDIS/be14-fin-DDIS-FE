@@ -264,7 +264,7 @@ function saveEdit(updated) {
 }
 
 .content-box {
-  background: var(--bg-box); 
+  background: #ffffff;
   border-radius: 12px;
   padding: 20px 32px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
@@ -281,7 +281,7 @@ function saveEdit(updated) {
 .team-intro {
   text-align: center;
   font-size: 16px;
-  color: var(--text-main);
+  color: #555;
   width: 600px;
   margin: 30px auto 50px auto;
 }
@@ -325,7 +325,7 @@ function saveEdit(updated) {
 }
 
 .job-card {
-  background: var(--madal-box-bg); 
+  background: #ffffff;
   max-width: 800px;
   width: 80%;
   border-radius: 12px;
@@ -352,13 +352,13 @@ function saveEdit(updated) {
   font-size: 18px;
   font-weight: 600;
   margin-bottom: 10px;
-  color: var(--text-main);
+  color: #000000;
 }
 
 .job-section ul {
   list-style-type: disc;
   padding-left: 20px;
-  color: var(--text-main);
+  color: #444;
   display: inline-block;
   text-align: left;
 }

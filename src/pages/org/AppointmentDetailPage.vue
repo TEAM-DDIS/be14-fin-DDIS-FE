@@ -111,7 +111,7 @@ const detailColumnDefs = [
   font-size: 18px;
 }
 .content-box {
-  background: var(--bg-box);
+  background: #fff;
   border-radius: 12px;
   padding: 20px 32px;
   box-shadow: 0 4px 12px rgba(0,0,0,0.05);
@@ -128,7 +128,7 @@ const detailColumnDefs = [
   padding: 8px 12px;
 }
 .header-table th {
-  background-color: var(--bg-label-cell);
+  background: #f8f9fa;
   width: 160px;
   text-align: left;
 }

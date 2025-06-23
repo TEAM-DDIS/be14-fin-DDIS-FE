@@ -197,7 +197,7 @@ function onCellClick(e) {
     font-size: 18px;
   }
   .content-box {
-    background: var(--bg-box);
+    background: #fff;
     border-radius: 12px;
     padding: 20px 32px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.05);
@@ -220,16 +220,15 @@ function onCellClick(e) {
   }
   .filters label {
     font-weight: 500;
-    color: var(--text-main);;
+    color: #513737;
   }
   .filters select,
   .filters input {
-    border: 1px solid var(--border-color);
+    border: 1px solid #c8c8c8;
     border-radius: 8px;
     padding: 6px 8px;
     font-size: 14px;
-    color: var(--text-sub);
-    background: var(--modal-box-bg);
+    color: #000000;
   }
   .filters input {
     width: 250px;
@@ -253,7 +252,7 @@ function onCellClick(e) {
   bottom: 50px;
   right: 32px;
   display: flex;
-  gap: 15px;
+  gap: 8px;
 }
 
   .btn-register {

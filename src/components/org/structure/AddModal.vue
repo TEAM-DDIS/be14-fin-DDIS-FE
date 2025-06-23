@@ -3,6 +3,7 @@
     <div class="modal-content">
       <h3 class="modal-title">신규 조직 등록</h3>
 
+      <!-- 1) 조직 종류 선택 -->
       <label class="modal-label" for="modal-org-type">조직 종류</label>
       <select
         id="modal-org-type"
@@ -15,6 +16,7 @@
         </option>
       </select>
 
+      <!-- 2) 부모 조직 선택: 부서일 때 본부, 팀일 때 부서 -->
       <div v-if="localType==='department'">
         <label class="modal-label" for="parent-head">상위 본부 선택</label>
         <select
@@ -46,6 +48,7 @@
         </select>
       </div>
 
+      <!-- 3) 신규 조직 이름 입력 -->
       <label class="modal-label" for="modal-org-name">조직 이름</label>
       <input
         id="modal-org-name"
@@ -55,6 +58,7 @@
         class="modal-input"
       />
 
+      <!-- 4) 버튼 -->
       <div class="modal-buttons">
         <button class="modal-btn-cancel" @click="$emit('close')">
           취소
@@ -76,17 +80,17 @@ import BaseToast from '@/components/toast/BaseToast.vue'
 
 const props = defineProps({
   show: Boolean,
-  orgOptions: { type: Array, required: true }, 
-  headOptions: { type: Array, default: () => [] },
-  deptOptions: { type: Array, default: () => [] }
+  orgOptions: { type: Array, required: true },     // [{id:'head'...},...]
+  headOptions: { type: Array, default: () => [] },  // HeadQueryDTO[]
+  deptOptions: { type: Array, default: () => [] }   // DepartmentQueryDTO[]
 })
 const emit = defineEmits(['close','submit'])
 
 const toastRef = ref(null)
 
-function showToast(msg) {
-  toastRef.value?.show(msg)
-}
+  function showToast(msg) {
+    toastRef.value?.show(msg)
+  }
 
 const localType = ref('')
 const parentId  = ref(null)
@@ -94,7 +98,7 @@ const localName = ref('')
 
 const router = useRouter()
 const userStore = useUserStore()
-const token = userStore.accessToken
+const token = localStorage.getItem('token')
 
 function parseJwtPayload(token) {
   try {
@@ -112,14 +116,17 @@ function parseJwtPayload(token) {
   }
 }
 
-const payload = parseJwtPayload(token)
+// 실제 권한 검사
+const payload = parseJwtPayload(userStore.accessToken || token)
 const isHR = payload?.role?.includes('ROLE_HR') || payload?.auth?.includes('ROLE_HR')
 
+// 접근 불가 시 리다이렉트
 if (!isHR) {
   showToast('접근 권한이 없습니다.')
   router.push('/error403')
 }
 
+// 모달이 열릴 때 초기화
 watch(() => props.show, val => {
   if (val) {
     localType.value = ''
@@ -132,6 +139,7 @@ function onSubmit() {
   if (!localType.value) {
     return showToast('조직 종류를 선택해 주세요.')
   }
+  // head일 땐 parentId 필요 없음
   if (localType.value==='department' && !parentId.value) {
     return showToast('상위 본부를 선택해 주세요.')
   }
@@ -143,9 +151,9 @@ function onSubmit() {
   }
 
   emit('submit', {
-    type:     localType.value,
+    type:     localType.value,        // 'head' | 'department' | 'team'
     name:     localName.value.trim(),
-    parentId: parentId.value
+    parentId: parentId.value          // headId or departmentId
   })
   emit('close')
 }
@@ -163,7 +171,7 @@ function onSubmit() {
   z-index: 1000;
 }
 .modal-content {
-  background: var(--modal-box-bg);
+  background: #fff;
   border-radius: 10px;
   padding: 24px 32px;
   width: 400px;
@@ -187,12 +195,10 @@ function onSubmit() {
   width: 100%;
   padding: 8px 12px;
   font-size: 14px;
-  border: 1px solid var(--border-color);
+  border: 1px solid #ddd;
   border-radius: 6px;
   margin-bottom: 16px;
   box-sizing: border-box;
-  background: var(--modal-bg);
-  color: var(--text-main);
 }
 
 .modal-select:focus,

@@ -21,16 +21,6 @@
               "
             />
             {{ head.headName }}
-            <button
-              v-if="!expanded['h' + head.headId]"
-              @click.stop="expandHead(head)"
-              class="sub-btn"
-            >+</button>
-            <button
-              v-else
-              @click.stop="collapseHead(head)"
-              class="sub-btn"
-            >-</button>
           </div>
   
           <!-- 본부가 펼쳐졌을 때 부서 리스트 표시 -->
@@ -49,16 +39,6 @@
                   "
                 />
                 {{ dept.departmentName }}
-                <button
-                  v-if="!expanded['d' + dept.departmentId]"
-                  @click.stop="expandDept(dept)"
-                  class="sub-btn"
-                >+</button>
-                <button
-                  v-else
-                  @click.stop="collapseDept(dept)"
-                  class="sub-btn"
-                >-</button>
               </div>
   
               <!-- 부서가 펼쳐졌을 때 부서장 및 팀 리스트 표시 -->
@@ -248,48 +228,13 @@ function collapseAll() {
   })
 }
 
-// 본부 단위 전체 펼치기/닫기
-function expandHead(head) {
-  expanded['h' + head.headId] = true
-  head.departments.forEach(dept => {
-    expanded['d' + dept.departmentId] = true
-    dept.teams.forEach(team => {
-      expanded['t' + team.teamId] = true
-    })
-  })
-}
-
-function collapseHead(head) {
-  expanded['h' + head.headId] = false
-  head.departments.forEach(dept => {
-    expanded['d' + dept.departmentId] = false
-    dept.teams.forEach(team => {
-      expanded['t' + team.teamId] = false
-    })
-  })
-}
-
-// 부서 단위 전체 펼치기/닫기
-function expandDept(dept) {
-  expanded['d' + dept.departmentId] = true
-  dept.teams.forEach(team => {
-    expanded['t' + team.teamId] = true
-  })
-}
-
-function collapseDept(dept) {
-  expanded['d' + dept.departmentId] = false
-  dept.teams.forEach(team => {
-    expanded['t' + team.teamId] = false
-  })
-}
-</script>
+  </script>
   
   <style scoped>
   /* 전체 컨테이너 스타일 */
   .org-container {
     font-size: 14px;
-    color: var(--text-main);
+    color: #333;
     padding: 0 12px;
     margin-bottom: 20px;
     position: relative;  /* 버튼 절대 위치의 기준이 될 요소 */
@@ -360,25 +305,14 @@ function collapseDept(dept) {
   .node.team { font-size: 18px; margin-bottom: 6px; }
   
   /* 사원 노드 스타일 */
-  .node.emp { 
-    font-size: 16px; 
-    margin-bottom: 5px;   
-    color: var(--text-main);
-    cursor: default; 
-  }
-  .node.emp-manager { 
-    font-size: 16px; 
-    margin-bottom: 8px; 
-    color: var(--text-main);
-    font-weight: bold; 
-    padding-left: 16px; 
-  }
+  .node.emp { font-size: 16px; margin-bottom: 5px; color: #555; cursor: default; }
+  .node.emp-manager { font-size: 16px; margin-bottom: 8px; color: #000; font-weight: bold; padding-left: 16px; }
   
   /* 호버 시 강조 효과 */
   .node.head:hover,
   .node.dept:hover,
   .node.team:hover {
-    color: #00a8e8;
+    background-color: #f0f0f0;
     border-radius: 4px;
   }
   
@@ -387,16 +321,9 @@ function collapseDept(dept) {
   
   /* 팀 및 멤버 리스트 스타일 */
   .team-list,
-  .member-list { 
-    list-style: none;
-    margin: 0; 
-    padding: 0; 
-  }
+  .member-list { list-style: none; margin: 0; padding: 0; }
   .team-list > li,
-  .member-list > li { 
-    position: relative; 
-    padding-left: 24px; 
-  }
+  .member-list > li { position: relative; padding-left: 24px; }
   
   /* 버튼 고정 영역 */
 .control-buttons {
@@ -434,19 +361,6 @@ function collapseDept(dept) {
   color: #3f3f3f;
   border-color: #3f3f3f;
   box-shadow: inset 1px 1px 10px rgba(0, 0, 0, 0.25);
-}
-.sub-btn {
-  margin-left: 8px;
-  font-size: 12px;
-  font-weight: bold;
-  padding: 2px 6px;
-  border: none;
-  border-radius: 4px;
-  background: #ddd;
-  cursor: pointer;
-}
-.sub-btn:hover {
-  background: #aaa;
 }
   </style>
   

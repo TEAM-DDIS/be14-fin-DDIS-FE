@@ -259,7 +259,7 @@ function findDeptName(deptId) {
 }
 
 .content-box {
-  background: var(--bg-box);
+  background: #ffffff;
   border-radius: 12px;
   padding: 20px 32px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
@@ -311,7 +311,7 @@ function findDeptName(deptId) {
   border-bottom: 1px solid #d1d1d1;
 }
 .member-list li.active {
-  background: var(--bg-main);
+  background: #efefef;
   transition: background-color 0.2s;
 }
 
@@ -328,7 +328,7 @@ function findDeptName(deptId) {
 }
 .member-info span {
   font-size: 14px;
-  color: var(--text-main);
+  color: #3b3b3b;
 }
 
 .profile-top {
@@ -373,7 +373,6 @@ function findDeptName(deptId) {
   background-color: #f8f9fa;
   font-weight: bold;
   width: 30%;
-  background-color: var(--bg-label-cell);
 }
 
 .value-cell {
