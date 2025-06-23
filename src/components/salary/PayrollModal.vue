@@ -219,7 +219,8 @@ function downloadPDF() {
 
 /* 모달 본체 */
 .modal {
-  background: white;
+  background: var(--bg-main);
+  color: var(--text-main);
   border-radius: 12px;
   padding: 24px;
   width: 650px;
@@ -230,6 +231,7 @@ function downloadPDF() {
 
 /* 닫기 버튼 */
 .close-btn {
+  color: var(--primary);
   position: absolute;
   top: 12px;
   right: 16px;
@@ -258,16 +260,18 @@ function downloadPDF() {
 }
 
 .bordered th, .bordered td {
-  border: 1px solid #ccc;
+  border: 1px solid var(--calendar-border-color);
 }
 
 .info-table th {
-  background: #f8f9fa;
+    background: var(--grid-head);
+  color: var(--text-main);
   padding: 6px 8px;
   text-align: left;
   width: 25%;
 }
 .info-table td {
+  color: var(--text-main);
   padding: 6px 8px;
   width: 25%;
 }
@@ -278,21 +282,24 @@ function downloadPDF() {
 }
 .section-title-table td {
   text-align: center;
-  background: #f8f9fa;
+  background: var(--grid-head);
   font-weight: bold;
-  border: 1px solid #ccc;
+  border: 1px solid var(--calendar-border-color);
   padding: 10px;
+  color: var(--text-main);
 }
 
 /* 표 내부 스타일 */
 .table th, .table td {
-  border: 1px solid #e0e0e0;
+  border: 1px solid var(--calendar-border-color);
+  background: var(--bg-main);
+  color: var(--text-main);
   padding: 8px;
 }
 .sub-head th, .sub-sub-head th {
-  background: #f8f9fa;
+  background: var(--grid-head);
   font-weight: bold;
-  border: 1px solid #ccc;
+  border: 1px solid var(--calendar-border-color);
 }
 
 /* 지급/공제 테이블 나란히 배치 */
@@ -310,11 +317,11 @@ function downloadPDF() {
 }
 .highlight {
   font-weight: bold;
-  color: #00a8e8;
+  color: var(--primary);
 }
 .gray-row {
-  background-color: #f8f9fa;
-  border: 1px solid #e0e0e0;
+  background-color: var(--grid-head);
+  border: 1px solid var(--calendar-border-color);
 }
 
 /* 실 수령액 요약 줄 */
@@ -323,7 +330,9 @@ function downloadPDF() {
   justify-content: space-between;
   padding: 10px;
   font-weight: bold;
-  background-color:#f8f9fa;
+  background: var(--grid-head);
+  border: 1px solid var(--calendar-border-color);
+  color: var(--text-main);
 }
 
 /* 하단 버튼 및 날짜 */
@@ -339,8 +348,8 @@ function downloadPDF() {
 }
 .btn {
   position: absolute;
-  background-color: #00a8e8;
-  color: white;
+  background-color: var(--primary);
+  color: var(--text-on-primary);
   font-weight: bold;
   border: 1px solid transparent;
   border-radius: 10px;
@@ -350,9 +359,9 @@ function downloadPDF() {
   transition: background-color 0.2s, box-shadow 0.2s;
 }
 .btn:hover {
-  background-color: white;
-  color: #00a8e8;
-  border-color: #00a8e8;
+  background-color: var(--bg-main);
+  color: var(--primary);
+  border: 1px solid var(--primary);
   box-shadow: inset 1px 1px 10px rgba(0, 0, 0, 0.25);
 }
 .btn.left { left: 0; }

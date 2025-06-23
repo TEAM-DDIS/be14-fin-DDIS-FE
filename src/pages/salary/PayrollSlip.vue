@@ -299,11 +299,16 @@ input[type="month"] {
   height: 20px;
   padding: 6px 8px;
   border: 1px solid #ccc;
+
+  background-color: var(--bg-main);
+  color: var(--text-main);
 }
+
+
 
 /* ag-grid 헤더 색상 커스터마이징 */
 .custom-grid :deep(.ag-header) {
-  background-color: #f0f0f0 !important;
+  background-color: var(--grid-head) !important;
 }
 
 /* select 박스 고정 폭 */
@@ -314,7 +319,7 @@ input[type="month"] {
 /* 테이블 상단 제목 셀 스타일 */
 .main-head th,
 .table-head th {
-  background-color: #f8f9fa !important;
+  background-color: var(--bg-main) !important;
   font-weight: bold;
   
 }
@@ -339,7 +344,7 @@ input[type="month"] {
 .page-title {
   margin-left: 20px;
   margin-bottom: 30px;
-  color: #00a8e8;
+  color: var(--primary);
 }
 
 /* 소제목 설명 */
@@ -353,7 +358,7 @@ input[type="month"] {
 /* 박스형 섹션 공통 스타일 */
 .section,
 .section .period {
-  background: #fff;
+  background-color: var(--bg-box);
   padding: 30px;
   margin: 0 20px 24px;
   border-radius: 8px;
@@ -403,7 +408,7 @@ input[type="month"] {
   align-items: center;
   flex-wrap: wrap;
   gap: 16px;
-  background: #fff;
+  background-color: var(--bg-box);
   box-shadow: 1px 1px 20px 1px rgba(0, 0, 0, 0.05);
 }
 
@@ -414,18 +419,22 @@ input[type="month"] {
   gap: 13px;
 }
 
+.period label {
+  color: var(--text-main);
+}
 /* 조회 버튼 hover 효과 */
 .search-btn:hover {
-  background-color: white;
-  color: #00a8e8;
-  border-color: #00a8e8;
+  background-color: var(--bg-main);
+    color: var(--primary);
+
+  border: 1px solid var(--primary);
   box-shadow: inset 1px 1px 10px rgba(0, 0, 0, 0.25);
 }
 
 /* 조회 버튼 기본 스타일 */
 .search-btn {
-  background-color: #00a8e8;
-  color: white;
+  background-color: var(--primary);
+  color: var(--text-on-primary);
   font-weight: bold;
   border: 1px solid transparent;
   border-radius: 10px;
@@ -452,7 +461,7 @@ input[type="month"] {
 .history-box,
 .detail-box {
   flex: 1;
-  background: #fff;
+  background-color: var(--bg-box);
   padding: 25px;
   border-radius: 8px;
   box-shadow: 1px 1px 20px 1px rgba(0, 0, 0, 0.05);
@@ -468,18 +477,22 @@ input[type="month"] {
 .table {
   width: 100%;
   border-collapse: collapse;
+  background-color: var(--bg-box);
+
 }
 .info-table th{
-  background: #f8f9fa !important;
+  background: var(--grid-head)!important;
   text-align: left;
   
 }
 /* 표 셀 스타일 */
 .table th,
 .table td {
+  background: var(--grid-head)!important;
+
   height: 32px;
   padding: 6px 8px;
-  border: 1px solid #e0e0e0;
+  border: 1px solid var(--calendar-border-color);
 }
 
 /* 급여 상세 상단 설명 */
@@ -505,8 +518,7 @@ input[type="month"] {
 /* 강조 텍스트 */
 .highlight {
   font-weight: bold;
-  color: #00a8e8;
-}
+  color: var(--primary);}
 
 /* 숫자 등 우측 정렬 */
 .right-align {
@@ -528,7 +540,7 @@ input[type="month"] {
 /* 안내 문구 스타일 */
 .detail-intro {
   font-size: 15px;
-  color: #00a8e8;
+  color: var(--primary);
   padding-left: 4px;
   text-align: center;
   padding-top: 200px;
@@ -543,6 +555,9 @@ input[type="month"] {
 /* 금액 열 우측 정렬 및 너비 고정 */
 .table th:last-child,
 .table td:last-child {
+  background: var(--grid-head)!important;
+
   width: 50%;
+  
 }
 </style>
