@@ -126,7 +126,7 @@ function onSave() {
   z-index: 1000;
 }
 .modal {
-  background: #fff;
+  background: var(--modal-box-bg);
   padding: 30px;
   border-radius: 12px;
   width: 420px;
@@ -140,10 +140,12 @@ h3 {
 .department-select {
     width: 99%;
   padding: 8px;
-  border: 1px solid #ccc;
+  border: 1px solid var(--border-color);
   border-radius: 8px;
   font-size: 14px;
   font-family: inherit;
+  background: var(--modal-box-bg);
+  color: var(--modal-text);
 }
 .modal-content {
   display: flex;
@@ -153,7 +155,7 @@ h3 {
 }
 .modal-content label {
   font-size: 14px;
-  color: #424242;
+  color: var(--modal-text);
   width: 100%;
   text-align: left;
 }
@@ -161,10 +163,11 @@ h3 {
 .modal-content textarea {
   width: 95%;
   padding: 8px;
-  border: 1px solid #ccc;
+  border: 1px solid var(--border-color);
   border-radius: 8px;
   font-size: 14px;
   font-family: inherit;
+  background: var(--modal-box-bg);
 }
 .modal-content select:focus,
 .modal-content textarea:focus {
@@ -176,10 +179,9 @@ h3 {
   width: 95%;
   min-height: 60px;
   padding: 8px;
-  background: #f9f9f9;
-  border: 1px solid #ddd;
+  background: var(--modal-box-bg);
+  border: 1px solid var(--border-color);
   border-radius: 8px;
-  color: #333;
   font-size: 14px;
 }
 .no-preview {
@@ -233,7 +235,7 @@ h3 {
 .modal-content select,
 .modal-content textarea {
   font-family: 'inter';
-  color: #333;
+  color: var(--modal-text);
 }
 
 .modal h3 {
