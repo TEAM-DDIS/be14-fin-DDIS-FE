@@ -20,8 +20,8 @@ import TeamStatusCard from '@/components/attendance/TeamWorkStatusCard.vue'
   background: var(--bg-box);
   border-radius: 15px;
   padding: 20px;
-  min-height: 200px;
-  box-shadow: 1px 1px 20px 1px var(--hover-shadow);
+min-height: 200px;
+    box-shadow: 1px 1px 20px 1px rgba(0, 0, 0, 0.05);
   font-size: 17px;
   font-weight: bold;
   color: var(--text-main);
