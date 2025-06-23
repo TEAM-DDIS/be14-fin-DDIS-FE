@@ -75,6 +75,33 @@ const showConfirm = ref(false)
 const confirmMessage = ref('')
 let confirmCallback = null
 
+// 인사팀에서만 등록, 삭제버튼 
+const userStore = useUserStore()
+const token = localStorage.getItem('token')
+const payload = parseJwtPayload(userStore.accessToken || token)
+const isHR = payload?.role?.includes('ROLE_HR') || payload?.auth?.includes('ROLE_HR')
+
+function parseJwtPayload(token) {
+  try {
+    const base64Url = token.split('.')[1]
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split('')
+        .map(c => `%${('00' + c.charCodeAt(0).toString(16)).slice(-2)}`)
+        .join('')
+    )
+    return JSON.parse(jsonPayload)
+  } catch (e) {
+    return null
+  }
+}
+
+if (!isHR) {
+  showToast('접근 권한이 없습니다.')
+  router.push('/error403')
+}
+
 const toastRef = ref(null)
 
 function showToast(msg) {
@@ -197,7 +224,7 @@ function onCellClick(e) {
     font-size: 18px;
   }
   .content-box {
-    background: #fff;
+    background: var(--bg-box);
     border-radius: 12px;
     padding: 20px 32px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.05);
@@ -220,15 +247,16 @@ function onCellClick(e) {
   }
   .filters label {
     font-weight: 500;
-    color: #513737;
+    color: var(--text-main);;
   }
   .filters select,
   .filters input {
-    border: 1px solid #c8c8c8;
+    border: 1px solid var(--border-color);
     border-radius: 8px;
     padding: 6px 8px;
     font-size: 14px;
-    color: #000000;
+    color: var(--text-sub);
+    background: var(--modal-box-bg);
   }
   .filters input {
     width: 250px;
@@ -252,7 +280,7 @@ function onCellClick(e) {
   bottom: 50px;
   right: 32px;
   display: flex;
-  gap: 8px;
+  gap: 15px;
 }
 
   .btn-register {

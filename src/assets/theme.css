@@ -88,6 +88,8 @@ body.dark {
   --text-muted: #999;
   --text-disabled: #666;
 
+  --bg-label-cell: #2a2a2a;
+
     /* AG Grid 다크모드용 변수 추가 */
   --ag-background-color: #1a1a1a;
   --ag-body-background-color: #2b2b2b;

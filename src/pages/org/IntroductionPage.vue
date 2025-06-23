@@ -180,7 +180,7 @@ onMounted(async () => {
 }
 
 .content-box {
-  background: #ffffff;
+  background: var(--bg-box); 
   border-radius: 12px;
   padding: 20px 32px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
@@ -225,7 +225,7 @@ onMounted(async () => {
 }
 
 .department-card {
-  background: #f2f2f2;
+  background: var(--modal-box-bg);
   border-radius: 12px;
   padding: 20px;
   width: 240px;
@@ -240,7 +240,7 @@ onMounted(async () => {
 
 .description {
   font-size: 14px;
-  color: #3c3c3c;
+  color: var(--text-main);
   margin-bottom: 30px;
   text-align: center;
   padding: 8px 0;
