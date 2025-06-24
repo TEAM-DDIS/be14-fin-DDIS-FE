@@ -30,7 +30,7 @@
 
     <!-- 챗봇 -->
     <FloatingChat v-if="!hideLayout" @toggle="showChatbot = !showChatbot" />
-    <transition name="chat-pop" appear>
+    <transition name="chat-pop">
       <ChatModal v-if="showChatbot" @close="showChatbot = false" />
     </transition>
 
@@ -217,7 +217,7 @@ html, body {
 
 .fade-enter-active,
 .fade-leave-active {
-  transition: opacity 0.3s ease;
+  transition: opacity 0.2s ease;
 }
 .fade-enter-from,
 .fade-leave-to {

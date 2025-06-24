@@ -96,10 +96,10 @@
 
 <style scoped>
 .personal-event-card {
-  background-color: var(--bg-box);
+  /* background-color: var(--bg-box); */
   border-radius: 12px;
   padding: 20px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+  /* box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05); */
   --el-color-primary: var(--primary);
 }
 
@@ -160,19 +160,39 @@
 }
 
 /* Element Plus 라벨 스타일 */
-:deep(.el-form-item__label) {
+/* :deep(.el-form-item__label) {
   color: var(--text-main);
   font-size: 18px;
+} */
+
+.personal-event-card {
+    /* 기본 primary 색(파랑)을 검정으로 덮어씁니다 */
+    --el-color-primary: #000 !important;
 }
 
-    .personal-event-card {
-        /* 기본 primary 색(파랑)을 검정으로 덮어씁니다 */
-        --el-color-primary: #000 !important;
-    }
-
-    :deep(.el-form-item__label) {
-        color: var(--text-main);
-        font-size: 18px;
-    }
-    
+/* 라벨 폰트 */
+:deep(.el-form-item__label) {
+  color: var(--text-main);
+  font-size: 16px;
+  font-weight: 500;
+}
+:deep(.el-input__wrapper.is-focus),
+:deep(.el-input__wrapper:hover) {
+  border-color: var(--border-color) !important;
+  box-shadow: none !important;
+}
+:deep(.el-input__inner) {
+  color: var(--text-main);
+  font-size: 14px;
+  padding: 5px;
+}
+:deep(.el-input__wrapper),
+:deep(.el-date-editor.el-input__wrapper),
+:deep(.el-time-editor.el-input__wrapper) {
+  background-color: var(--bg-main);       /* 입력 배경 */
+  border: 1px solid var(--border-color);  /* 테두리 */
+  border-radius: 8px;
+  color: var(--text-main);                /* 텍스트 색 */
+  transition: border 0.3s, box-shadow 0.3s;
+}
 </style>

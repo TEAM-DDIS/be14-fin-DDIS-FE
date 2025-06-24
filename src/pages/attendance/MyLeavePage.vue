@@ -43,7 +43,7 @@
   .page-title {
     margin-left: 20px;
     margin-bottom: 30px;
-    color: #00a8e8;
+    color: var(--primary);
   }
 
   .desc {
@@ -53,7 +53,8 @@
   }
 
   .my-leave-page {
-    padding: 20px;
+    /* padding: 20px; */
+     margin: 0 20px 24px;
   }
 
   .leave-count-card {
@@ -84,7 +85,7 @@
     border: none;
     border-bottom: none;
     background-color: #C8C8C8;
-    color: white;
+    color: var(--bg-main);
     cursor: pointer;
     border-top-left-radius: 12px;
     border-top-right-radius: 12px;
@@ -97,7 +98,7 @@
   /* 선택된 탭 위로 */
   .tab-menu button.active {
     background: var(--bg-box);
-    color: var(--text-main);
+    color: var(--modal-text);
     z-index: 3;
   }
 </style>
