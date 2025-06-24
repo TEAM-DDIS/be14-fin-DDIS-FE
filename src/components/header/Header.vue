@@ -148,7 +148,7 @@ function closeNotification() {
   justify-content: space-between;
   align-items: center;
   padding: 0 16px;
-  background-color: var(--bg-main);
+  background-color: var( --bg-sidebar);
   border-bottom: 1px solid var(--border-color);
   box-sizing: border-box;
   overflow: hidden;
@@ -223,7 +223,7 @@ function closeNotification() {
 
 .btn-login-header:hover,
 .btn-logout:hover {
-  background-color: white;
+  background-color: var(--bg-body);
   color: var(--primary);
   box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.15);
   border: 1px solid var(--primary);
