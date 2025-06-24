@@ -30,14 +30,14 @@
           <div class="input-area">
             <input
               v-model="input"
-              @keydown.enter="sendMessage"
+              @keydown.enter.prevent="sendMessage()"
               type="text"
               placeholder="메시지를 입력하세요"
             />
             <button
               class="send-btn"
               :class="{ active: input.trim().length > 0 }"
-              @click="sendMessage"
+              @click="sendMessage()"
             >
               전송
             </button>
@@ -49,27 +49,23 @@
 </template>
 
 <script setup>
-import { ref, nextTick } from 'vue'
+import { ref, nextTick, onMounted  } from 'vue'
 import MessageBubble from './MessageBubble.vue'
 import { useUserStore } from '@/stores/user'
 const chatBody = ref(null)
 const input = ref('')
-const messages = ref([
-  {
-    from: 'bot',
-    sender: 'ERPIZZA 비서',
-    text: '안녕하세요! 무엇을 도와드릴까요?',
-    time: new Date().toLocaleTimeString([], {
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: true
-    })
-  }
-])
+const messages = ref([])
 
 const sessionId = 'test_session_' + Date.now()
 const employeeId = 'test_employee_001'
 const token = useUserStore().accessToken
+const employeeStore = useUserStore()
+const employeeName  = employeeStore.name  // 실제 스토어에 맞게 변경
+const initPrompt = `현재 결재 대기 문서는 몇 건인가요? 오늘 모든 일정도 알려주세요. 오늘 일정이 없다면 없다고 해주세요`
+
+onMounted(() => {
+  sendMessage(initPrompt)
+})
 
 function scrollToBottom() {
   nextTick(() => {
@@ -79,8 +75,9 @@ function scrollToBottom() {
   })
 }
 
-async function sendMessage() {
-  const trimmed = input.value.trim()
+async function sendMessage(text) {
+  const msg = text ?? input.value
+  const trimmed = msg.trim()
   if (!trimmed) return
 
   const now = new Date()
