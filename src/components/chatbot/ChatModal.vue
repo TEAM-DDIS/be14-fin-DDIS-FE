@@ -92,7 +92,7 @@ async function sendMessage(text) {
   })
 
   const payload = {
-    query: trimmed,
+    question: trimmed,
     session_id: sessionId,
     employee_id: employeeId
   }
