@@ -127,7 +127,7 @@
       <!-- 2) 실적 입력/수정 패널 -->
       <section class="panel perf-panel">
         <div class="perf-header">
-          <button v-if="hasPerformance" class="btn-delete" @click="deletePerf">삭제</button>
+          <button v-if="hasPerformance" class="btn-delete" @click="confirmDeletePerf">삭제</button>
         </div>
         <div v-if="!selectedGoal" class="empty">
           <p class="empty-text">목표를 클릭해서 실적을 등록해보세요!</p>
@@ -209,6 +209,22 @@
     @close="closeMyPerfModal"
     @select="handleModalSelect" 
   />
+
+  <BaseToast ref="toastRef" />
+
+  <GoalConfirmModal
+    :show="showConfirm"
+    message="정말 삭제하시겠습니까?"
+    @confirm="onModalConfirm"
+    @cancel="onModalCancel"
+  />
+
+  <GoalConfirmModal
+  :show="showPerfConfirm"
+  message="정말 실적을 삭제하시겠습니까?"
+  @confirm="onPerfModalConfirm"
+  @cancel="onPerfModalCancel"
+  />
 </template>
 
 <script setup>
@@ -217,7 +233,11 @@ import { useUserStore } from '@/stores/user'
 import { v4 as uuidv4 } from 'uuid'
 import MyPerfModal from '@/components/Goals/MyPerfModal.vue'
 import { useRouter } from 'vue-router'
+import BaseToast from '@/components/toast/BaseToast.vue'
+import GoalConfirmModal from './GoalConfirmModal.vue'
 
+const showConfirm    = ref(false)
+const toDeleteGoalId = ref(null)
 const goals = ref([])
 const selected = ref(null)
 const showGoalForm = ref(false)
@@ -227,6 +247,8 @@ const showMyPerfModal = ref(false)
 const presignedUrls = ref([])
 const token = useUserStore().accessToken
 const router = useRouter()
+const toastRef = ref(null)
+const showPerfConfirm    = ref(false)
 
 // 신규 목표 등록용 reactive 객체
 const newGoal = reactive({
@@ -237,6 +259,31 @@ const newGoal = reactive({
   goalCreatedAt: getKoreaLocalDateTimeString(),
   employeeName: userStore.name
 })
+// 삭제 버튼 클릭 시 → 모달 오픈
+function confirmDelete(goalId) {
+  toDeleteGoalId.value = goalId
+  showConfirm.value    = true
+}
+
+// 모달 “확인” 클릭 시 실제 삭제
+async function onModalConfirm() {
+  await deleteGoals(toDeleteGoalId.value)
+  showConfirm.value = false
+}
+function confirmDeletePerf() {
+  showPerfConfirm.value = true
+}
+async function onPerfModalConfirm() {
+  await deletePerf()             // 기존 deletePerf 함수
+  showPerfConfirm.value = false
+}
+function onPerfModalCancel() {
+  showPerfConfirm.value = false
+}
+// 모달 “취소” 클릭 시 닫기
+function onModalCancel() {
+  showConfirm.value = false
+}
 function goBack() {
   router.back()
 }
@@ -472,7 +519,7 @@ async function downloadAttachment(fileKey, fileType) {
     window.open(downloadUrl, '_blank');
   } catch (err) {
     console.error(err);
-    alert('파일 다운로드 중 오류가 발생했습니다.');
+    showToast('파일 다운로드 중 오류가 발생했습니다.');
   }
 }
 function handleModalSelect(goalId) {
@@ -491,10 +538,10 @@ function onFileChange(e) {
 // 1) 목표 등록
 async function addGoal() {
   if (newGoal.goalWeight <= 0) {
-    return alert('가중치는 0보다 커야 합니다.')
+    return showToast('가중치는 0보다 커야 합니다.')
   }
   if (totalWeight.value + newGoal.goalWeight > 100) {
-    return alert(`가중치 합이 100%를 초과합니다. 현재 합: ${totalWeight.value}%`)
+    return showToast(`가중치 합이 100%를 초과합니다. 현재 합: ${totalWeight.value}%`)
   }
 
   if (!newGoal.goalTitle) return
@@ -528,7 +575,7 @@ async function addGoal() {
     cancelGoal()
   } catch (err) {
     console.error(err)
-    alert('목표 등록 중 오류가 발생했습니다.')
+    showToast('목표 등록 중 오류가 발생했습니다.')
   }
 }
 
@@ -543,9 +590,7 @@ function cancelGoal() {
 }
 
 // 목표 삭제 전 확인
-function confirmDelete(id) {
-  if (confirm('정말 삭제하시겠습니까?')) deleteGoals(id)
-}
+
 
 // 2) 목표 삭제
 async function deleteGoals(id) {
@@ -566,14 +611,14 @@ async function deleteGoals(id) {
     }
   } catch (err) {
     console.error(err)
-    alert('삭제 중 오류가 발생했습니다.')
+    showToast('삭제 중 오류가 발생했습니다.')
   }
 }
 
 // 3) 실적 등록/수정
 async function submitPerf() {
   const g = selectedGoal.value
-  if (!g) return alert('먼저 목표를 선택해주세요.')
+  if (!g) return showToast('먼저 목표를 선택해주세요.')
 
   let attachmentUrlsToSend = [...form.existingAttachmentKeys]
   let fileNamesToSend = [...form.existingAttachmentFileNames]
@@ -618,7 +663,7 @@ if (form.file) {
     fileSizesToSend      = [form.file.size];
   } catch (err) {
     console.error(err);
-    return alert('파일 업로드 중 오류가 발생했습니다.');
+    return showToast('파일 업로드 중 오류가 발생했습니다.');
   }
 }
 
@@ -662,14 +707,14 @@ if (form.file) {
     }
     if (!res.ok) {
       console.error(await res.text())
-      return alert(hasPerformance.value ? '실적 수정에 실패했습니다.' : '실적 등록에 실패했습니다.')
+      return showToast(hasPerformance.value ? '실적 수정에 실패했습니다.' : '실적 등록에 실패했습니다.')
     }
     const saved = await res.json()
     form.performanceId = saved.performanceId
-    alert(hasPerformance.value ? '실적이 수정되었습니다.' : '실적이 등록되었습니다.')
+    showToast(hasPerformance.value ? '실적이 수정되었습니다.' : '실적이 등록되었습니다.')
   } catch (err) {
     console.error(err)
-    alert('실적 저장 중 오류가 발생했습니다.')
+    showToast('실적 저장 중 오류가 발생했습니다.')
   }
 }
 
@@ -677,7 +722,6 @@ if (form.file) {
 async function deletePerf() {
   const g = selectedGoal.value
   if (!g || !hasPerformance.value) return
-  if (!confirm('정말 실적을 삭제하시겠습니까?')) return
 
   try {
     const res = await fetch(
@@ -689,11 +733,14 @@ async function deletePerf() {
     )
     if (!res.ok) throw new Error('실적 삭제 실패')
     resetForm()
-    alert('실적이 삭제되었습니다.')
+    showToast('실적이 삭제되었습니다.')
   } catch (e) {
     console.error(e)
-    alert('실적 삭제 중 오류가 발생했습니다.')
+    showToast('실적 삭제 중 오류가 발생했습니다.')
   }
+}
+function showToast(msg) {
+  toastRef.value?.show(msg)
 }
 
 </script>

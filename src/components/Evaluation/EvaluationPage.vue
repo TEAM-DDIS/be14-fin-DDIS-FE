@@ -266,14 +266,16 @@
       </div>
     </main>
   </div>
+  <BaseToast ref="toastRef" />
 </template>
 
 <script setup>
 import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { useUserStore } from '@/stores/user'
 import { useRouter } from 'vue-router'
+import BaseToast from '@/components/toast/BaseToast.vue'
 
-
+const toastRef = ref(null)
 // 인증과 사용자 상태
 const userStore      = useUserStore()
 const token    = useUserStore().accessToken
@@ -468,14 +470,14 @@ async function loadHistory() {
     }))
   } catch (e) {
     console.error(e)
-    alert('과거 평가 불러오기 실패')
+    showToast('과거 평가 불러오기 실패')
   }
 }
 
 // 상사평가 저장
 async function submitManagerEval(decision) {
   if (!selectedGoal.value || !evalForm.score) {
-    return alert('목표 선택 및 점수 입력 필요')
+    return showToast('목표 선택 및 점수 입력 필요')
   }
   const perfId = selectedGoal.value.performanceObj.performanceId
   const payload = {
@@ -500,11 +502,14 @@ async function submitManagerEval(decision) {
     const updated = await res.json()
     selectedGoal.value.evaluation.score   = updated.reviewerScore
     selectedGoal.value.evaluation.comment = updated.reviewerContent
-    alert('상사평가 저장 완료')
+    showToast('상사평가 저장 완료')
   } catch (e) {
     console.error(e)
-    alert('상사평가 실패')
+    showToast('상사평가 실패')
   }
+}
+function showToast(msg) {
+  toastRef.value?.show(msg)
 }
 </script>
 
