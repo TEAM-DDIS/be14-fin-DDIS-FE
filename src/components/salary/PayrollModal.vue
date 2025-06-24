@@ -210,7 +210,7 @@ function downloadPDF() {
 .modal-wrapper {
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.6);
   display:flex;
   justify-content: center;
   align-items: center;
@@ -218,7 +218,7 @@ function downloadPDF() {
 }
 
 .modal {
-  background: var(--modal-bg);
+  background: var(--modal-bg2);
   color: var(--modal-text);
   border-radius: 12px;
   padding: 24px;
