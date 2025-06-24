@@ -65,9 +65,11 @@
   --icon-filter: none;
 
   --btn-border: #3f3f3f;
+  --edit-bt: #b8b8b8;
 }
 
 body.dark {
+  --edit-bt: #004d6b;
   --ch-today: #ddf2ff31;
   --bg-body: #1a1a1a;
   --modal-bg: #1a1a1a;
