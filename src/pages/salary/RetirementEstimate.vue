@@ -567,14 +567,16 @@ label {
 /* 결과 설명 박스 */
 .note-box {
   background: var(--bg-body);
-  color: var(--primary);
-  border: 1px solid var(--primary);
+  color: #00A8E8;
+  border: 1px solid #00A8E8;;
   padding: 16px;
   margin-top: 20px;
   border-radius: 8px;
   font-size: 0.9rem;
 }
-
+.form-row input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: var(--icon-filter);
+    }
 /* 기타 공통 섹션 */
 .section,
 .section .period {
