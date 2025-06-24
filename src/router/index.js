@@ -1,4 +1,12 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import { useUserStore } from '@/stores/user'
+
+const publicPaths = [
+  '/org/login',
+  '/org/findpassword',
+  '/error403',
+  '/error404',
+]
 
 const router = createRouter({
     history: createWebHistory(),
@@ -7,7 +15,9 @@ const router = createRouter({
         // =============== 메인 ===============
         {
             path: '/',
-            component: () => import('@/pages/MainPage.vue')
+            component: () => import('@/pages/MainPage.vue'),
+            meta: { requiresAuth: true }
+
         },
 
 
@@ -21,7 +31,8 @@ const router = createRouter({
 
         {
             path: '/org/findpassword',
-            component: () => import('@/components/login/PasswordFindPage.vue')
+            component: () => import('@/components/login/PasswordFindPage.vue'),
+            meta: { hideLayout : true}
         },
 
 
@@ -30,49 +41,57 @@ const router = createRouter({
         // 내 인사 정보
         {
             path: '/employeeInfo/myInfo',
-            component: () => import('@/components/employeeInfo/MyEmployeePage.vue')
+            component: () => import('@/components/employeeInfo/MyEmployeePage.vue'),
+            meta: { requiresAuth: true }
         },
 
         // 사원 목록 조회
         {
             path: '/employeeInfo/employeeList',
-            component: () => import('@/components/employeeInfo/EmployeeList.vue')
+            component: () => import('@/components/employeeInfo/EmployeeList.vue'),
+            meta: { requiresAuth: true }
         },
 
         // 사원 상세 조회
         {
             path: '/employeeInfo/:id',
             name: 'EmployeeDetail',
-            component: () => import('@/components/employeeInfo/EmployeeDetailPage.vue')
+            component: () => import('@/components/employeeInfo/EmployeeDetailPage.vue'),
+            meta: { requiresAuth: true }
         },
 
         // 사원 등록 
         {
             path: '/employeeInfo/employeeEnroll',
-            component: () => import('@/components/employeeInfo/EmployeeEnroll.vue')
+            component: () => import('@/components/employeeInfo/EmployeeEnroll.vue'),
+            meta: { requiresAuth: true }
         },
 
         // 계약서/법정서류 관리
         {
             path: '/employeeInfo/Contract',
-            component: () => import('@/components/employeeInfo/ContractList.vue')
+            component: () => import('@/components/employeeInfo/ContractList.vue'),
+            meta: { requiresAuth: true }
         },
         // 계약서/법정서류 등록
         {
             path: '/employeeInfo/Contract/ContractEnroll',
-            component: () => import('@/components/employeeInfo/ContractEnroll.vue')
+            component: () => import('@/components/employeeInfo/ContractEnroll.vue'),
+            meta: { requiresAuth: true }
         },
 
         // 징계 관리
         {
             path: '/employeeInfo/disciplinary',
-            component: () => import('@/components/employeeInfo/disciplinaryList.vue')
+            component: () => import('@/components/employeeInfo/disciplinaryList.vue'),
+            meta: { requiresAuth: true }
         },
 
         // 징계 등록
         {
             path: '/employeeInfo/disciplinary/disciplinaryEnroll',
-            component: () => import('@/components/employeeInfo/disciplinaryEnroll.vue')
+            component: () => import('@/components/employeeInfo/disciplinaryEnroll.vue'),
+            meta: { requiresAuth: true }
         },
 
 
@@ -81,56 +100,65 @@ const router = createRouter({
         // 내 근태 현황
         {
             path: '/attendance/myAttendance',
-            component: () => import('@/pages/attendance/MyAttendancePage.vue')
+            component: () => import('@/pages/attendance/MyAttendancePage.vue'),
+            meta: { requiresAuth: true }
         },
 
         // 팀 근태 현황
         {
             path: '/attendance/teamAttendance',
-            component: () => import('@/pages/attendance/TeamAttendancePage.vue')
+            component: () => import('@/pages/attendance/TeamAttendancePage.vue'),
+            meta: { requiresAuth: true }
         },
 
         // 내 출근 정정 관리
         {
             path: '/attendance/myCorrection',
-            component: () => import('@/pages/attendance/MyCorrectionPage.vue')
+            component: () => import('@/pages/attendance/MyCorrectionPage.vue'),
+            meta: { requiresAuth: true }
         },
 
         // 전체 출근 정정 관리
         {
             path: '/attendance/allCorrection',
-            component: () => import('@/pages/attendance/AllCorrectionPage.vue')
+            component: () => import('@/pages/attendance/AllCorrectionPage.vue'),
+            meta: { requiresAuth: true }
         },
 
         // 내 출퇴근 관리
         {
             path: '/attendance/myCommute',
-            component: () => import('@/pages/attendance/MyCommutePage.vue')
+            component: () => import('@/pages/attendance/MyCommutePage.vue'),
+            meta: { requiresAuth: true }
         },
 
         // 전체 출퇴근 관리
         {
             path: '/attendance/allCommute',
-            component: () => import('@/pages/attendance/AllCommutePage.vue')
+            component: () => import('@/pages/attendance/AllCommutePage.vue'),
+            meta: { requiresAuth: true }
         },
 
         {
             path: '/attendance/allCommute/:employeeId',
             name: 'OtherCommutePage',
             component: () => import('@/pages/attendance/OtherCommutePage.vue'),
-            props: true
+            props: true,
+            meta: { requiresAuth: true }
         },
 
         // 내 연차 관리
         {
             path: '/attendance/myLeave',
-            component: () => import('@/pages/attendance/MyLeavePage.vue')
+            component: () => import('@/pages/attendance/MyLeavePage.vue'),
+            meta: { requiresAuth: true }
         },
 
         // 전체 연차 관리
         {
             path: '/attendance/allLeave',
-            component: () => import('@/pages/attendance/AllLeavePage.vue')
+            component: () => import('@/pages/attendance/AllLeavePage.vue'),
+            meta: { requiresAuth: true }
         },
 
 
@@ -139,36 +167,43 @@ const router = createRouter({
         // 조직 구성 조회
         {
             path: '/org/structure',
-            component: () => import('@/pages/org/StructurePage.vue')
+            component: () => import('@/pages/org/StructurePage.vue'),
+            meta: { requiresAuth: true }
         },
 
         // 조직 및 직무 소개
         {
             path: '/org/structure/edit',
-            component: () => import('@/pages/org/EditStructurePage.vue')
+            component: () => import('@/pages/org/EditStructurePage.vue'),
+            meta: { requiresAuth: true }
         },
         {
             path: '/org/introduction',
-            component: () => import('@/pages/org/IntroductionPage.vue')
+            component: () => import('@/pages/org/IntroductionPage.vue'),
+            meta: { requiresAuth: true }
         },
 
         {
             path: '/jobdetail/:teamId',
-            component: () => import('@/pages/org/JobDetailPage.vue')
+            component: () => import('@/pages/org/JobDetailPage.vue'),
+            meta: { requiresAuth: true }
         },
 
         // 인사발령
         {
             path: '/org/appointment',
-            component: () => import('@/pages/org/AppointmentPage.vue')
+            component: () => import('@/pages/org/AppointmentPage.vue'),
+            meta: { requiresAuth: true }
         },
         {
             path: '/org/appointment/register',
-            component: () => import('@/pages/org/RegisterAppointmentPage.vue')
+            component: () => import('@/pages/org/RegisterAppointmentPage.vue'),
+            meta: { requiresAuth: true }
         },
         {
             path: '/org/appointment/:appointmentHistoryId',
-            component: () => import('@/pages/org/AppointmentDetailPage.vue')
+            component: () => import('@/pages/org/AppointmentDetailPage.vue'),
+            meta: { requiresAuth: true }
         },
 
 
@@ -178,70 +213,81 @@ const router = createRouter({
         {
             path: '/eapproval/temp',
             name: 'DraftTempList',
-            component: () => import('@/pages/eapproval/DraftTempListPage.vue')
+            component: () => import('@/pages/eapproval/DraftTempListPage.vue'),
+            meta: { requiresAuth: true }
         },
         // 기안함
         {
             path: '/eapproval/mydraft',
             name: 'MyDraftBox',
-            component: () => import('@/pages/eapproval/MyDraftBoxPage.vue')
+            component: () => import('@/pages/eapproval/MyDraftBoxPage.vue'),
+            meta: { requiresAuth: true }
         },
 
         // 결재함
         {
             path: '/eapproval/approve',
             name: 'ApprovalBox',
-            component: () => import('@/pages/eapproval/ApprovalBoxPage.vue')
+            component: () => import('@/pages/eapproval/ApprovalBoxPage.vue'),
+            meta: { requiresAuth: true }
         },
         // 수신함 
         {
             path: '/eapproval/receiver',
             name: 'ReceiverBox',
-            component: () => import('@/pages/eapproval/ReceiverBoxPage.vue')
+            component: () => import('@/pages/eapproval/ReceiverBoxPage.vue'),
+            meta: { requiresAuth: true }
         },
         // 참조함
         {
             path: '/eapproval/reference',
             name: 'ReferenceBox',
-            component: () => import('@/pages/eapproval/ReferenceBoxPage.vue')
+            component: () => import('@/pages/eapproval/ReferenceBoxPage.vue'),
+            meta: { requiresAuth: true }
         },
 
         // 기안양식 (일반기안문서)
         {
             path: '/eapproval/formA',
-            component: () => import('@/pages/eapproval/DraftFormA.vue')
+            component: () => import('@/pages/eapproval/DraftFormA.vue'),
+            meta: { requiresAuth: true }
         },
         // 상세페이지
         {
             path: '/eapproval/:docId',
             name: 'DraftDetail',
             component: () => import('@/pages/eapproval/DraftDetailPage.vue'),
-            props: true   
+            props: true,
+            meta: { requiresAuth: true }   
         },
         // =============== 급여 관리 ===============
 
         // 내  급여 명세서 조회
         {
             path: '/salary/payroll/slip',
-            component: () => import('@/pages/salary/PayrollSlip.vue')
+            component: () => import('@/pages/salary/PayrollSlip.vue'),
+            meta: { requiresAuth: true }
         },
 
         // 급여명세서 발급
         {
             path: '/salary/payroll/issue',
-            component: () => import('@/pages/salary/PayrollSlipIssue.vue')
+            component: () => import('@/pages/salary/PayrollSlipIssue.vue'),
+            meta: { requiresAuth: true }
         },
 
         // 예상 퇴직금 계산
         {
             path: '/salary/retirement/estimate',
-            component: () => import('@/pages/salary/RetirementEstimate.vue')
+            component: () => import('@/pages/salary/RetirementEstimate.vue'),
+            meta: { requiresAuth: true }
         },
 
         // 퇴직금 지급 현황
         {
             path: '/salary/retirement/status',
-            component: () => import('@/pages/salary/RetirementPaymentStatus.vue')
+            component: () => import('@/pages/salary/RetirementPaymentStatus.vue'),
+            meta: { requiresAuth: true }
         },
 
         // =============== 평가 및 성과 ===============
@@ -249,26 +295,30 @@ const router = createRouter({
         // 평가
         {
             path: '/org/evaluation',
-            component: () => import('@/components/Evaluation/EvaluationPage.vue')
+            component: () => import('@/components/Evaluation/EvaluationPage.vue'),
+            meta: { requiresAuth: true }
         },
 
          // 내가 쓴 평가
         {
             path: '/org/myevaluation',
             name: 'MyEvaluations',
-            component: () => import('@/components/Evaluation/MyEvalsPage.vue')
+            component: () => import('@/components/Evaluation/MyEvalsPage.vue'),
+            meta: { requiresAuth: true }
         },
 
         // 목표 설정
         {
             path: '/org/goals',
-            component: () => import('@/components/Goals/GoalListPage.vue')
+            component: () => import('@/components/Goals/GoalListPage.vue'),
+            meta: { requiresAuth: true }
         },
 
         //성과 이력
         {
             path: '/org/achievment',
-            component: () => import('@/pages/achievment/AchievmentPage.vue')
+            component: () => import('@/pages/achievment/AchievmentPage.vue'),
+            meta: { requiresAuth: true }
         },
 
 
@@ -280,28 +330,32 @@ const router = createRouter({
         // 공지사항 목록 조회
         {
             path: '/post',
-            component: () => import('@/components/post/PostListPage.vue')
+            component: () => import('@/components/post/PostListPage.vue'),
+            meta: { requiresAuth: true }
         },
 
 
         // 공지사항 등록 
         {
             path: '/post/postEnroll',
-            component: () => import('@/components/post/PostEnroll.vue')
+            component: () => import('@/components/post/PostEnroll.vue'),
+            meta: { requiresAuth: true }
         },
         
         // 공지사항 상세 조회
         {
             path: '/post/postDetail/:id',
             name : 'PostDetail',
-            component: () => import('@/components/post/PostDetailPage.vue')
+            component: () => import('@/components/post/PostDetailPage.vue'),
+            meta: { requiresAuth: true }
         },
 
         // =============== 용어사전 ===============
 
         {
             path: '/dictionary',
-            component: () => import('@/pages/dictionary/DictionaryPage.vue')
+            component: () => import('@/pages/dictionary/DictionaryPage.vue'),
+            meta: { requiresAuth: true }
         },
 
         // =============== 에러 페이지 ===============
@@ -311,7 +365,8 @@ const router = createRouter({
             path: '/error403',
             component: () => import('@/pages/error/Error403.vue'),
             meta: {
-            hideLayout: true
+            hideLayout: true,
+            
             }
         },
     
@@ -323,7 +378,28 @@ const router = createRouter({
             hideLayout: true
             }
         },
+        { path: '/:pathMatch(.*)*', redirect: '/error404', meta: {
+            hideLayout: true
+            } }
     ]
 })
+router.beforeEach((to, from, next) => {
+
+  const { accessToken: token } = useUserStore()
+
+  // 1) publicPaths는 무조건 통과
+  if (publicPaths.includes(to.path)) {
+    return next()
+  }
+
+  // 2) 토큰 없으면 로그인 페이지로
+  if (to.meta.requiresAuth && !token) {
+    return next({ path: '/org/login' })
+  }
+
+  // 4) 그 외는 정상 접근
+  next()
+})
+
 
 export default router
