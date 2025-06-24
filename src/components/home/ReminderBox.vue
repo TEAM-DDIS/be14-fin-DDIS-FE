@@ -5,7 +5,7 @@
       <!-- 내 일정 -->
       <div class="reminder-box my-schedule">
         <div class="reminder-title">내 일정</div>
-          <ul v-if="!loading && schedules.length" class="reminder-list custom-bullet">
+          <ul v-if="!loading && schedules.length" class="reminder-list custom-bullet scrollable" >
             <li v-for="item in sortedSchedules" :key="item.personalScheduleId" class="my">
               <span class="bullet"></span>
               <div class="content-wrapper">
@@ -19,7 +19,7 @@
       <!-- 팀 일정 -->
       <div class="reminder-box team-schedule">
         <div class="reminder-title">팀 일정</div>
-        <ul class="reminder-list custom-bullet">
+        <ul class="reminder-list custom-bullet scrollable">
           <li
             v-for="meeting in sortedMeetings"
             :key="`${meeting.teamId}-${meeting.meetingTime}`"
@@ -35,12 +35,12 @@
       </div>
 
       <!-- 이벤트 -->
-      <div class="reminder-box event-schedule">
+      <div class="reminder-box event-schedule ">
         <div class="reminder-title">
           이벤트
           <span class="date-range">({{ birthdayRangeText }})</span>
         </div>
-          <ul class="reminder-list custom-bullet">
+          <ul class="reminder-list custom-bullet scrollable">
             <li v-for="user in birthdayUsers" :key="user.employeeId" class="event">
               <span class="bullet"></span>
               <span class="time">[{{ formatBirthDate(user.employeeBirth) }}]</span>
@@ -145,6 +145,21 @@ const birthdayRangeText = computed(() => {
 </script>
 
 <style scoped>
+.scrollable {
+  max-height: 90px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+.reminder-list::-webkit-scrollbar {
+  width: 4px;
+}
+.reminder-list::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
+}
+.reminder-list::-webkit-scrollbar-track {
+  background: transparent;
+}
 .reminder {
   grid-area: reminder;
   display: flex;
