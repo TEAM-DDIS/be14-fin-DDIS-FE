@@ -28,7 +28,7 @@
   .page-title {
     margin-left: 20px;
     margin-bottom: 30px;
-    color: #00a8e8;
+    color: var(--primary);
   }
 
   .desc {
@@ -40,7 +40,8 @@
   .my-attendance-page {
     display: flex;
     gap: 40px;
-    padding: 20px;
+    /* padding: 20px; */
+     margin: 0 20px 24px;
   }
 
   .left-panel {
