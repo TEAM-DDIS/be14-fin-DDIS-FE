@@ -34,7 +34,7 @@
           <div v-else-if="search.trim() && filteredAndSortedNodes.length === 0" class="no-result">
             검색 결과가 없습니다.
           </div>
-          <EHierarchy
+          <Hierarchy
             @loaded-hierarchy="onHierarchyLoaded"
             @employees-selected="onEmployeesSelected"
           />
@@ -48,6 +48,12 @@
 
         <div class="approver-table-area">
           <table class="approver-table">
+            <colgroup>
+              <col style="width: 45px;" />
+              <col style="width: 50px;" />
+              <col style="width: 120px;" />
+              <col style="width: 90px;" />
+            </colgroup>
             <thead>
               <tr>
                 <th><input type="checkbox" @change="toggleAllEmployees" :checked="allSelected"/></th>
@@ -58,7 +64,14 @@
             </thead>
             <tbody>
               <tr v-for="(item, idx) in employeeList" :key="item.employeeId">
-                <td><input type="checkbox" :value="item.employeeId" v-model="selectedEmployees"/></td>
+                <td>
+                  <input
+                    type="checkbox"
+                    :checked="selectedEmployees.includes(item.employeeId)"
+                    :disabled="disabledEmployees.includes(item.employeeId)"
+                    @change="onCheckboxChange(item.employeeId)"
+                  />
+                </td>
                 <td>{{ idx + 1 }}</td>
                 <td>{{ item.employeeId }}</td>
                 <td>{{ item.employeeName }}</td>
@@ -69,8 +82,10 @@
       </div>
 
       <div class="modal-footer">
-        <button class="footer-btn cancel btn-delete" @click="$emit('close')">취소</button>
-        <button class="footer-btn submit btn-save" @click="submitSelection">확인</button>
+        <div class="footer-btn">
+          <button class="btn-delete" @click="$emit('close')">취소</button>
+          <button class="btn-save" @click="submitSelection">확인</button>
+        </div>
       </div>
     </div>
   </div>
@@ -78,7 +93,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import EHierarchy from '@/components/eapproval/EHierarchy.vue'
+import Hierarchy from '@/components/org/appointment/GetHierarchy.vue'
 
 const props = defineProps({
   hierarchy: { type: Array, default: () => [] },
@@ -91,6 +106,7 @@ const search = ref('')
 
 const employeeList = ref([])
 const selectedEmployees = ref([])
+const disabledEmployees = ref([])
 const hierarchy = ref([])
 const selectedNodes = ref([])
 const selectedNode = ref(null)
@@ -217,19 +233,24 @@ function addEmployee() {
    emit('update', employeeList.value)
 }
 
-const allSelected = computed(() =>
-  employeeList.value.length && selectedEmployees.value.length === employeeList.value.length
-)
-function toggleAllEmployees(e) { 
-  selectedEmployees.value = e.target.checked ? employeeList.value.map(a => a.employeeId) : [] }
+function onCheckboxChange(id) {
+  if (disabledEmployees.value.includes(id)) return
+  selectedEmployees.value = [id]
+}
 
-function submitSelection() {   
-  const employees = employeeList.value.map(item => ({
+function submitSelection() {
+  disabledEmployees.value.push(...selectedEmployees.value)
+
+  selectedEmployees.value = []
+  const payload = employeeList.value.map(item => ({
     ...item,
     employeeId: Number(item.employeeId)
   }))
-  emit('submit', employees)
- }
+  emit('submit', payload)
+}
+
+  disabledEmployees.value.push(...selectedEmployees.value)
+  selectedEmployees.value = []
 
   function deleteSelectedEmployees() {
   employeeList.value = employeeList.value.filter(
@@ -272,7 +293,7 @@ function submitSelection() {
   justify-content: center;
 }
 .modal-content {
-  background: var(--modal-box-bg);
+  background: var(--modal-bg);
   border-radius: 12px;
   width: 900px;
   min-width: 700px;
@@ -305,27 +326,7 @@ function submitSelection() {
   position: relative;
   flex-wrap: nowrap;
 }
-.tab-group {
-  display: flex;
-  gap: 4px;
-}
-.tab-group button {
-  background: #f8f9fa;
-  border: 1px solid #e0e0e0;
-  border-bottom: none;
-  border-radius: 8px 8px 0 0;
-  padding: 6px 18px;
-  font-weight: 500;
-  font-size: 15px;
-  color: #333;
-  cursor: pointer;
-}
-.tab-group .active {
-  background: #fff;
-  color: #00a8e8;
-  border-bottom: 2px solid #fff;
-  font-weight: bold;
-}
+
 .sort-search-group {
   display: flex;
   align-items: center;
@@ -384,7 +385,7 @@ function submitSelection() {
   flex-direction: column;
   align-items: flex-start;
   justify-content: flex-start;
-  background: var(--modal-bg);
+  background: var(--modal-box-bg);
 }
 
 .search-bar {
@@ -397,31 +398,25 @@ function submitSelection() {
 }
 
 .search-bar select {
-  border: 1px solid var(--border-color);
+  border: 1px solid #ddd;
   border-radius: 6px;
   padding: 6px 10px;
   font-size: 14px;
   min-width: 90px;
   background: var(--modal-box-bg);
   box-shadow: 0 1px 4px rgba(0,0,0,0.05);
-  color: var(--text-sub);
+  color: var(--text-main);
 }
 
 .search-bar input {
-  border: 1px solid var(--border-color);
+  border: 1px solid #ddd;
   border-radius: 6px;
   padding: 6px 12px;
   font-size: 14px;
   width: 180px;
   background: var(--modal-box-bg);
+  color: var(--text-main);
   box-shadow: 0 1px 4px rgba(0,0,0,0.05);
-}
-
-.search-bar input:focus,
-.search-bar select:focus {
-  border: 1px solid black;
-  outline: none;
-  box-shadow: none;
 }
 
 .employee-search-result {
@@ -432,8 +427,8 @@ function submitSelection() {
   font-size: 14px;
   max-height: 180px;
   overflow-y: auto;
-  background: var(--modal-box-bg);
-  border: 1px solid var(--border-color);
+  background: var(--modal-bg);
+  border: 1px solid #ddd;
   border-radius: 8px;
   box-shadow: 0 1px 6px rgba(0,0,0,0.1);
 }
@@ -441,7 +436,7 @@ function submitSelection() {
 .employee-search-result li {
   padding: 8px 12px;
   cursor: pointer;
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid #ddd;
   transition: background 0.2s;
   overflow-y: auto;
 }
@@ -455,11 +450,11 @@ function submitSelection() {
 }
 
 .employee-search-result li:hover {
-  background-color: var(--modal-bg);
+  background-color: var(--ag-primary-hover);
 }
 
 .employee-search-result li.selected {
-  background-color: var(--modal-bg);;
+  background-color: var(--ag-primary);;
   font-weight: bold;
 }
 
@@ -482,18 +477,29 @@ function submitSelection() {
 }
 .approver-table {
   width: 100%;
+  table-layout: fixed;
   border-collapse: collapse;
 }
+
+
+
 .approver-table th, .approver-table td {
   border: 1px solid var(--border-color);
-  padding: 8px 10px;
+  padding: 4px 6px;
   font-size: 15px;
-  text-align: center;
+  text-align: left; 
+  overflow: hidden;
 }
 .approver-table th {
   background-color: var(--bg-label-cell);
   color: var(--text-main);
   font-weight: 600;
+}
+.approver-table td {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 14px;
 }
 
 .modal-footer {
@@ -502,24 +508,20 @@ function submitSelection() {
   gap: 12px;
   padding: 24px 32px 24px 0;
   border-top: 1.5px solid var(--border-color);
-  background: var(--modal-box-bg);
+  background: var(--modal-bg);
   border-radius: 0 0 12px 12px;
 }
 .footer-btn {
-  font-size: 15px;
-  font-weight: 500;
-  border: none;
-  border-radius: 6px;
-  padding: 8px 32px;
-  cursor: pointer;
+  right: 20px;
+  gap: 15px;
+  margin-bottom: 12px;
 }
-
 
 .btn-save {
   font-size: 14px;
   font-weight: bold;
-  background-color: #00a8e8;
-  color: white;
+  background-color: var(--primary);
+  color: var(--text-on-primary);
   border: 1px solid transparent;
   border-radius: 10px;
   padding: 10px 30px;
@@ -529,16 +531,16 @@ function submitSelection() {
   box-sizing: border-box;
 }
 .btn-save:hover {
-  background-color: white;
-  color: #00a8e8;
-  border-color: #00a8e8;
+  background-color: var(--bg-main);
+  color: var(--primary);
+  border-color: var(--primary);
   box-shadow: inset 1px 1px 10px rgba(0, 0, 0, 0.25);
 }
 .btn-save:disabled {
-  background: #b3e3f7;
-  color: #fff;
+  background: var(--bg-body);
+  color: #727272b8;
   cursor: not-allowed;
-  border-color: #b3e3f7;
+  border-color: #ddd;
 }
 .btn-delete {
   font-size: 14px;

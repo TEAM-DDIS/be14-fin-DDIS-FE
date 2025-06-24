@@ -226,11 +226,11 @@ function onCellClick(e) {
   }
   .filters select,
   .filters input {
-    border: 1px solid var(--border-color);
+    border: 1px solid #ddd;
     border-radius: 8px;
     padding: 6px 8px;
     font-size: 14px;
-    color: var(--text-sub);
+    color: var(--text-main);
     background: var(--modal-box-bg);
   }
   .filters input {
@@ -238,12 +238,6 @@ function onCellClick(e) {
   }
   .filters select {
     width: 160px;
-  }
-
-  .filters select:focus,
-  .filters input:focus {
-    outline: none;
-    border: 1px solid black;
   }
 
   .grid-wrapper {
@@ -263,8 +257,8 @@ function onCellClick(e) {
   font-weight: bold;
   cursor: pointer;
   font-family: inherit;
-  background-color: #00a8e8;
-  color: white;
+  background-color: var(--primary);
+  color: var(--text-on-primary);
   border: 1px solid transparent;
   border-radius: 10px;
   padding: 10px 30px;
@@ -274,12 +268,11 @@ function onCellClick(e) {
   box-sizing: border-box;
 }
 
-  .btn-register:hover {
-  background-color: white;
-  color: #00a8e8;
-  border-color: #00a8e8;
-  box-shadow:
-  inset 1px 1px 10px rgba(0, 0, 0, 0.25);
+.btn-register:hover {
+  background-color: var(--bg-main);
+  color: var(--primary);
+  border-color: var(--primary);
+  box-shadow: inset 1px 1px 10px rgba(0, 0, 0, 0.25);
 }
   .btn-delete {
     background-color: #D3D3D3;

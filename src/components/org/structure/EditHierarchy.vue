@@ -109,11 +109,11 @@
     </ul>
     
     <div class="move-buttons">
+      <p v-if="pendingMoves.length" class="pending-moves">(총 {{ pendingMoves.length }}건 대기 중)</p>
       <button class="btn-cancel" @click="cancelChanges">취소</button>
       <button class="btn-confirm" :disabled="pendingMoves.length === 0" @click="saveChanges">
         저장
       </button>
-      <span v-if="pendingMoves.length">(총 {{ pendingMoves.length }}건 대기 중)</span>
     </div>
 
     <BaseToast ref="toastRef" />
@@ -459,7 +459,7 @@ function collapseDept(dept) {
 .control-btn {
   background-color: #3f3f3f;
   border-radius: 8px;
-  border: 1px solid transparent;
+  border: 1px solid var(--btn-border);
   padding: 6px 10px;
   font-size: 12px;
   font-weight: bold;
@@ -470,8 +470,8 @@ function collapseDept(dept) {
   box-sizing: border-box;
 }
 .control-btn:hover {
-  background-color: white;
-  color: #3f3f3f;
+  background: var(--bg-main);
+  color: var(--modal-text);
   border-color: #3f3f3f;
   box-shadow: inset 1px 1px 10px rgba(0, 0, 0, 0.25);
 }
@@ -601,8 +601,8 @@ function collapseDept(dept) {
   font-weight: bold;
   cursor: pointer;
   font-family: inherit;
-  background-color: #00a8e8;
-  color: white;
+  background-color: var(--primary);
+  color: var(--text-on-primary);
   border: 1px solid transparent;
   border-radius: 10px;
   padding: 10px 30px;
@@ -611,9 +611,9 @@ function collapseDept(dept) {
 }
 
 .btn-confirm:hover {
-  background-color: #fff;
-  color: #00a8e8;
-  border: 1px solid #00a8e8;
+  background-color: var(--bg-main);
+  color: var(--primary);
+  border-color: var(--primary);
 }
 
 .btn-cancel {
@@ -633,5 +633,9 @@ function collapseDept(dept) {
 .btn-cancel:hover {
   background-color: #000;
   color: #fff;
+}
+
+.pending-moves {
+  color: var(--text-main);
 }
 </style>
