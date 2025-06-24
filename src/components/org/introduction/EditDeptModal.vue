@@ -140,7 +140,7 @@ h3 {
 .department-select {
     width: 99%;
   padding: 8px;
-  border: 1px solid var(--border-color);
+  border: 1px solid #ddd;
   border-radius: 8px;
   font-size: 14px;
   font-family: inherit;
@@ -163,24 +163,24 @@ h3 {
 .modal-content textarea {
   width: 95%;
   padding: 8px;
-  border: 1px solid var(--border-color);
+  border: 1px solid #ddd;
   border-radius: 8px;
   font-size: 14px;
   font-family: inherit;
   background: var(--modal-box-bg);
 }
-.modal-content select:focus,
+/* .modal-content select:focus,
 .modal-content textarea:focus {
   outline: none;
   border: 1px solid #000;
-}
+} */
 
 .preview-box {
   width: 95%;
   min-height: 60px;
   padding: 8px;
   background: var(--modal-box-bg);
-  border: 1px solid var(--border-color);
+  border: 1px solid #ddd;
   border-radius: 8px;
   font-size: 14px;
 }
@@ -201,7 +201,7 @@ h3 {
   font-weight: bold;
   cursor: pointer;
   font-family: inherit;
-  border: none;
+  border: 1px solid transparent;
   border-radius: 10px;
   padding: 10px 30px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
@@ -216,17 +216,17 @@ h3 {
   color: #fff;
 }
 .btn-save {
-  background-color: #00a8e8;
-  color: #fff;
+  background-color: var(--primary);
+  color: var(--text-on-primary);
 }
 .btn-save:disabled {
   background-color: #aaa;
   cursor: not-allowed;
 }
 .btn-save:hover:enabled {
-  background-color: white;
-  color: #00a8e8;
-  border: 1px solid #00a8e8;
+  background-color: var(--bg-main);
+  color: var(--primary);
+  border-color: var(--primary);
 }
 
 .modal,

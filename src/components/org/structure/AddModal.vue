@@ -187,18 +187,12 @@ function onSubmit() {
   width: 100%;
   padding: 8px 12px;
   font-size: 14px;
-  border: 1px solid var(--border-color);
+  border: 1px solid #ddd;
   border-radius: 6px;
   margin-bottom: 16px;
   box-sizing: border-box;
   background: var(--modal-bg);
   color: var(--text-main);
-}
-
-.modal-select:focus,
-.modal-input:focus {
-    outline: none;
-    border: 1px solid black;
 }
 
 .modal-buttons {
@@ -213,8 +207,8 @@ function onSubmit() {
   font-weight: bold;
   cursor: pointer;
   font-family: inherit;
-  background-color: #00a8e8;
-  color: white;
+  background-color: var(--primary);
+  color: var(--text-on-primary);
   border: 1px solid transparent;
   border-radius: 10px;
   padding: 10px 30px;
@@ -223,9 +217,9 @@ function onSubmit() {
 }
 
 .modal-btn-submit:hover {
-  background-color: #fff;
-  color: #00a8e8;
-  border: 1px solid #00a8e8;
+  background-color: var(--bg-main);
+  color: var(--primary);
+  border-color: var(--primary);
 }
 
 .modal-btn-cancel {

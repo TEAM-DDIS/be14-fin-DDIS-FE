@@ -135,18 +135,18 @@ h3 {
 .modal-content textarea {
   width: 80%;
   padding: 8px;
-  border: 1px solid var(--border-color);
+  border: 1px solid #ddd;
   border-radius: 8px;
   font-size: 14px;
   font-family: inherit;
   background: var(--modal-box-bg);
   color: var(--modal-text);
 }
-.modal-content input:focus,
+/* .modal-content input:focus,
 .modal-content textarea:focus {
   outline: none;
   border: 1px solid black;
-}
+} */
 
 .modal-actions {
   display: flex;
@@ -160,8 +160,8 @@ h3 {
   font-weight: bold;
   cursor: pointer;
   font-family: inherit;
-  background-color: #00a8e8;
-  color: white;
+  background-color: var(--primary);
+  color: var(--text-on-primary);
   border: 1px solid transparent;
   border-radius: 10px;
   padding: 10px 30px;
@@ -170,9 +170,9 @@ h3 {
   box-sizing: border-box;
 }
 .btn-save:hover {
-  background-color: white;
-  color: #00a8e8;
-  border-color: #00a8e8;
+  background-color: var(--bg-main);
+  color: var(--primary);
+  border-color: var(--primary);
   box-shadow: inset 1px 1px 10px rgba(0, 0, 0, 0.25);
 }
 

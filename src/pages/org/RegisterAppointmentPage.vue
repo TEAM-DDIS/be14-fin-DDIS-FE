@@ -58,6 +58,7 @@
                 <input
                   v-model="form.effectiveDate"
                   type="date"
+                  :min="today"
                   :disabled="!form.title"
                 />
               </td>
@@ -66,14 +67,16 @@
         </div>
 
         <div class="org-section">
-          <AgGridVue
+          <BaseGrid
             class="ag-theme-alpine custom-theme"
             :gridOptions="{ theme: 'legacy' }"
-            :rowData="rowData"
+            :width="'100%'"
+            :height="'285px'"
             :columnDefs="columnDefs"
+            :rowData="rowData"
             :defaultColDef="{ sortable: true, resizable: true }"
-            @grid-ready="onGridReady"
-            style="width: 100%; height: 285px;"
+            :pagination="false" 
+            @ready="onGridReady"
           />
         </div>
       </div>
@@ -105,18 +108,19 @@
   @close="showOrgSelectorModal = false"
   @rank-selected="handleOrgSelected"
   @job-selected="handleOrgSelected"
+  class="org-select"
 />
 
 <BaseToast ref="toastRef" />
 </template>
 
 <script setup>
-import { reactive, ref, watch, onMounted, nextTick } from 'vue'
+import { reactive, ref, watch, onMounted, computed, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
 import 'core-js/features/array/flat-map'
 import { useUserStore } from '@/stores/user'
-import { AgGridVue } from 'ag-grid-vue3'
+import BaseGrid from '@/components/grid/BaseGrid.vue'
 import { ModuleRegistry, AllCommunityModule } from 'ag-grid-community'
 ModuleRegistry.registerModules([AllCommunityModule])
 
@@ -228,7 +232,6 @@ const ranksNew     = ref([])
 
 const employeeCache = reactive(new Map())
 
-
 onMounted(async () => {
   try {
     const resp = await axios.get('http://localhost:5000/structure/hierarchy')
@@ -289,7 +292,7 @@ async function loadEmployeeInfo() {
     try {
       const res = await axios.get(`http://localhost:5000/introduction/employee/${id}`)
       emp = res.data
-      employeeCache.set(id, emp)     // 캐시에 저장
+      employeeCache.set(id, emp)
     } catch {
       showToast('사원정보를 불러오는 중 오류가 발생했습니다.')
       return
@@ -450,7 +453,7 @@ const columnDefs = [
           .btn-plus {
             background-color: #3f3f3f;
             border-radius: 8px;
-            border: 1px solid transparent;
+            border: 1px solid var(--btn-border);
             padding: 6px 10px;
             font-size: 12px;
             font-weight: bold;
@@ -461,8 +464,8 @@ const columnDefs = [
             box-sizing: border-box;
           }
           .btn-plus:hover {
-            background-color: white;
-            color: #3f3f3f;
+            background: var(--bg-main);
+            color: var(--modal-text);
             border-color: #3f3f3f;
             box-shadow: inset 1px 1px 10px rgba(0, 0, 0, 0.25);
           }
@@ -523,7 +526,6 @@ function syncOrgToGrid() {
         break
       case 'job': {
         const match = jobsNew.value.find(j => String(j.jobId) === String(pureOrg.jobId))
-        console.log('🧪 match for job:', match)
         r.new = match?.jobName || ''
         break
       }
@@ -577,9 +579,10 @@ function makeSelect(params, context) {
     inp.value = params.data.new || ''
     inp.style.width = '95%'
     inp.style.height = '70%'
+    inp.style.color = 'var(--text-main)'
     inp.style.border = '2px solid #eee'
     inp.style.borderRadius = '8px'
-    inp.style.background = '#f9f9f9'
+    inp.style.background = 'var(--modal-box-bg)'
     return inp
   }
 
@@ -591,6 +594,7 @@ function makeSelect(params, context) {
       input.readOnly = true
       input.style.width = '95%'
       input.style.height = '70%'
+      input.style.color = 'var(--text-main)'
       input.style.border = '2px solid #c8c8c8'
       input.style.borderRadius = '8px'
       input.style.background = 'transparent'
@@ -683,7 +687,11 @@ async function submit() {
     await axios.post(
       'http://localhost:5000/appointment/create',
       payload,
-      { headers: { 'Content-Type': 'application/json' } }
+      { headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${userStore.accessToken}`
+       }
+      }
     );
     showToast('등록 성공!');
     router.push('/org/appointment');
@@ -696,6 +704,14 @@ async function submit() {
   }
 }
 
+// 오늘 날짜 계산
+const today = computed(() => {
+  const d = new Date()
+  const yyyy = d.getFullYear()
+  const mm = String(d.getMonth() + 1).padStart(2, '0')
+  const dd = String(d.getDate()).padStart(2, '0')
+  return `${yyyy}-${mm}-${dd}`
+})
 
 function cancel() {
   router.back()
@@ -782,32 +798,34 @@ function cancel() {
   box-sizing: border-box;
   padding: 8px 12px;
   font-size: 14px;
-  border: 2px solid var(--border-color);
+  border: 2px solid #ddd;
+  color: var(--text-main);
   border-radius: 8px;
   outline: none;
   font-family: 'inter';
+  background-color: var(--modal-box-bg);
 }
-.info-section input[type="text"]:focus,
-.info-section input[type="date"]:focus,
-.info-section select:focus {
-  border: 1px solid black;
-}
+
 .info-section input[type="text"]::placeholder {
   color: var(--text-main);
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: var(--icon-filter, brightness(0))
 }
 
 .button-group {
   position: absolute;
   bottom: 50px;
-  right: 240px;
+  right: 210px;
   display: flex;
   gap: 15px;
 }
 .btn-save {
   font-size: 14px;
   font-weight: bold;
-  background-color: #00a8e8;
-  color: white;
+  background-color: var(--primary);
+  color: var(--text-on-primary);
   border: 1px solid transparent;
   border-radius: 10px;
   padding: 10px 30px;
@@ -816,9 +834,9 @@ function cancel() {
   transition: background-color 0.2s, box-shadow 0.2s;
 }
 .btn-save:hover {
-  background-color: white;
-  color: #00a8e8;
-  border-color: #00a8e8;
+  background-color: var(--bg-main);
+  color: var(--primary);
+  border-color: var(--primary);
   box-shadow: inset 1px 1px 10px rgba(0, 0, 0, 0.25);
 }
 
@@ -852,8 +870,8 @@ function cancel() {
 .btn-select {
   font-size: 14px;
   font-weight: bold;
-  background-color: #00a8e8;
-  color: white;
+  background-color: var(--primary);
+  color: var(--text-on-primary);
   border: 1px solid transparent;
   border-radius: 10px;
   padding: 10px 16px;
@@ -863,9 +881,13 @@ function cancel() {
 }
 
 .btn-select:hover {
-  background-color: white;
-  color: #00a8e8;
-  border-color: #00a8e8;
+  background-color: var(--bg-main);
+  color: var(--primary);
+  border-color: var(--primary);
   box-shadow: inset 1px 1px 10px rgba(0, 0, 0, 0.25);
+}
+
+.org-select {
+  z-index: 10;
 }
 </style>

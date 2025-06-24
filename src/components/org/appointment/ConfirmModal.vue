@@ -68,8 +68,8 @@ defineProps({
 .btn.confirm {
   font-size: 14px;
   font-weight: bold;
-  background-color: #00a8e8;
-  color: white;
+  background-color: var(--primary);
+  color: var(--text-on-primary);
   border: 1px solid transparent;
   border-radius: 10px;
   padding: 10px 30px;
@@ -78,9 +78,9 @@ defineProps({
   transition: background-color 0.2s, box-shadow 0.2s;
 }
 .btn.confirm:hover {
-  background-color: white;
-  color: #00a8e8;
-  border-color: #00a8e8;
+  background-color: var(--bg-main);
+  color: var(--primary);
+  border-color: var(--primary);
   box-shadow: inset 1px 1px 10px rgba(0, 0, 0, 0.25);
 }
 

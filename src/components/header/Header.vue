@@ -12,7 +12,9 @@
       <!-- 알림 -->
       <div class="notice" @click="toggleNotification()">
         <img src="@/assets/icons/bell.svg" alt="notice" class="notice-img" />
-        <span v-if="unreadCount > 0" class="badge">{{ unreadCount }}</span>
+        <span v-if="store.unreadCount > 0" class="badge">
+          {{ store.unreadCount }}
+        </span>
       </div>
 
       <!-- 다크모드 텍스트 + 파란 토글 스위치 -->
@@ -38,7 +40,6 @@
 
     <NoticeModal
       v-if="showNotification"
-      :notifications="notifications"
       @close="closeNotification"
       @notificationClick="handleNotificationClick"
     />
@@ -51,6 +52,8 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import NoticeModal from '@/components/notice/NoticeModal.vue'
+import { useNotificationStore } from '@/stores/notice'
+const store = useNotificationStore()
 
 defineProps({
   isDarkMode: Boolean
@@ -60,19 +63,21 @@ const router = useRouter()
 const userStore = useUserStore()
 
 const showNotification = ref(false)
-const notifications = ref([])
 
-onMounted(async () => {
-  try {
-    await fetchNotifications()
-  } catch (e) {
-    console.error('초기 알림 불러오기 실패:', e)
-  }
+// onMounted(async () => {
+//   try {
+//     await fetchNotifications()
+//   } catch (e) {
+//     console.error('초기 알림 불러오기 실패:', e)
+//   }
+// })
+onMounted(() => {
+  store.fetch()
 })
 
-const unreadCount = computed(() =>
-  notifications.value.filter(n => n.unread).length
-)
+// const unreadCount = computed(() =>
+//   notifications.value.filter(n => n.unread).length
+// )
 
 const user = computed(() => userStore.user)
 
@@ -86,27 +91,27 @@ async function toggleNotification() {
   showNotification.value = !showNotification.value
 }
 
-async function fetchNotifications() {
-  const token = localStorage.getItem('token')
-  const res = await fetch('http://localhost:5000/notice/me', {
-    headers: {
-      Authorization: `Bearer ${token}`
-    }
-  })
-  if (!res.ok) throw new Error(`알림 불러오기 실패: ${res.status}`)
-  const data = await res.json()
-  notifications.value = data.map(item => ({
-    id: item.noticeId,
-    type: item.noticeType,
-    content: item.noticeContent,
-    createdAt: item.createdAt,
-    unread: !item.isRead,
-    relatedId: item.relatedId
-  }))
-}
+// async function fetchNotifications() {
+//   const token = userStore.accessToken
+//   const res = await fetch('http://localhost:5000/notice/me', {
+//     headers: {
+//       Authorization: `Bearer ${token}`
+//     }
+//   })
+//   if (!res.ok) throw new Error(`알림 불러오기 실패: ${res.status}`)
+//   const data = await res.json()
+//   notifications.value = data.map(item => ({
+//     id: item.noticeId,
+//     type: item.noticeType,
+//     content: item.noticeContent,
+//     createdAt: item.createdAt,
+//     unread: !item.isRead,
+//     relatedId: item.relatedId
+//   }))
+// }
 
 async function handleNotificationClick(item) {
-  const token = localStorage.getItem('token')
+  const token = userStore.accessToken
   try {
     const res = await fetch(`http://localhost:5000/notice/${item.id}/read`, {
       method: 'PATCH',
@@ -125,7 +130,7 @@ async function handleNotificationClick(item) {
       router.push({ path: '/attendance/myLeave' })
       break
     case '결재':
-      router.push({ path: '/draftdoc/approve' })
+      router.push({ path: '/eapproval/approve' })
       break
     case '인사발령':
       router.push({ path: '/org/appointment' })

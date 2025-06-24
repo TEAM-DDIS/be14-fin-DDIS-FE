@@ -6,7 +6,7 @@
       alt="back"
       class="back-btn"
       @click="goBack" />
-      조직 구성
+      조직 구성 편집
     </h1>
 
     <div class="section">
@@ -528,9 +528,10 @@ async function handleAddOrg({ type, name, parentId }) {
         }
       }
     }
+    // showToast("등록 성공!")
     showAddModal.value = false
+    window.location.reload()
   } catch (e) {
-    console.error('추가 실패', e)
     showToast('조직 추가 중 오류가 발생했습니다.')
   }
 }
@@ -560,8 +561,9 @@ async function handleDeleteOrg({ type, ids }) {
        )
       )
     )
-    showToast('삭제 성공!')
     showDeleteModal.value = false
+    window.location.reload()
+    // showToast('삭제 성공!')
     await loadHierarchy()
   } catch (err) {
     console.error('삭제 실패', err)
@@ -680,17 +682,17 @@ function handleReload() {
   font-weight: bold;
   cursor: pointer;
   font-family: inherit;
-  background-color: #00a8e8;
-  color: white;
+  background-color: var(--primary);
+  color: var(--text-on-primary);
   border: 1px solid transparent;
   border-radius: 10px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   transition: background-color 0.2s, box-shadow 0.2s;
 }
 .toolbar-btn-register:hover {
-  background-color: #fff;
-  color: #00a8e8;
-  border: 1px solid #00a8e8;
+  background-color: var(--bg-main);
+  color: var(--primary);
+  border-color: var(--primary);
 }
 
 .toolbar-btn-delete {
@@ -729,16 +731,13 @@ function handleReload() {
 }
 .toolbar-search {
   padding: 6px 12px;
-  border: 1px solid #dddddd;
+  border: 1px solid #ddd;
+  color: var(--text-main);
   border-radius: 8px;
   font-size: 16px;
   width: 200px;
   height: 40%;
   background: var(--modal-box-bg);
-}
-.toolbar-search:focus {
-  outline: none;
-  border: 1px solid black;
 }
 
 .content-grid {

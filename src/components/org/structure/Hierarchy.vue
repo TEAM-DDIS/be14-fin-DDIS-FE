@@ -210,7 +210,7 @@ function collapseDept(dept) {
 .control-btn {
   background-color: #3f3f3f;
   border-radius: 8px;
-  border: 1px solid transparent;
+  border: 1px solid var(--btn-border);
   padding: 6px 10px;
   font-size: 12px;
   font-weight: bold;
@@ -221,8 +221,8 @@ function collapseDept(dept) {
   box-sizing: border-box;
 }
 .control-btn:hover {
-  background-color: white;
-  color: #3f3f3f;
+  background: var(--bg-main);
+  color: var(--modal-text);
   border-color: #3f3f3f;
   box-shadow: inset 1px 1px 10px rgba(0, 0, 0, 0.25);
 }
@@ -343,6 +343,7 @@ function collapseDept(dept) {
 .node.dept:hover,
 .node.team:hover {
   color: #00a8e8;
+  cursor: pointer;
 }
 
 .dept-children {
