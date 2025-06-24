@@ -541,7 +541,11 @@ input[type="month"] {
     background-color: var(--bg-main);
   color: var(--text-main);
 }
-
+/* AgGrid 헤더 커스터마이징 */
+.custom-theme :deep(.ag-header) {
+  background-color: var(--bg-label-cell);
+  color: var(--text-main);
+}
 /* 기간 섹션 배치 스타일 */
 .period {
   display: flex;

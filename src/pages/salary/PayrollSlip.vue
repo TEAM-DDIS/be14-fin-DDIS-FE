@@ -502,7 +502,11 @@ input[type="month"] {
   border-radius: 12px 12px 0 0;
   padding: 8px 16px;
 }
-
+/* AgGrid 헤더 커스터마이징 */
+.custom-theme :deep(.ag-header) {
+  background-color: var(--bg-label-cell);
+  color: var(--text-main);
+}
 /* 상세 타이틀 중앙 정렬 */
 .detail-title {
   text-align: center;

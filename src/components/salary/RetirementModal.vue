@@ -218,9 +218,6 @@ function downloadPDF() {
   }
 
   const clone = pdfContent.value.cloneNode(true)
-
-  clone.classList.add('light-mode-export')
-
   clone.querySelectorAll('.no-print').forEach(el => el.remove())
 
   html2pdf().from(clone).set({
@@ -260,8 +257,8 @@ function downloadPDF() {
 
 /* 모달 본체 */
 .modal {
-  background: var( --border-color);
-  color: var(--text-main);
+  background: var(--modal-bg);
+  color: var(--modal-text);
   border-radius: 12px;
   padding: 24px;
   padding-bottom: 80px; /* 하단 버튼 공간 확보 */
@@ -274,7 +271,6 @@ function downloadPDF() {
 
 /* 닫기 버튼 */
 .close-btn {
-  color: var(--primary);
   position: absolute;
   top: 12px;
   right: 16px;
@@ -282,9 +278,10 @@ function downloadPDF() {
   border: none;
   background: transparent;
   cursor: pointer;
+  color: var(--modal-text);
 }
 .close-btn:hover {
-  color: #00a8e8;
+  color: var(--primary);
 }
 
 /* 모달 제목 */
@@ -302,23 +299,28 @@ function downloadPDF() {
   width: 100%;
   border-collapse: collapse;
   table-layout: fixed;
+    color: var(--modal-text);
 }
 
 /* 테이블 내부 셀 기본 패딩 + 테두리 */
+/* 셀 스타일 */
 .bordered th,
-.bordered td {
-  border: 1px solid var(--calendar-border-color);
+.bordered td,
+.details-table th,
+.details-table td,
+.deduction-table th,
+.deduction-table td {
+  border: 1px solid var(--border-color);
   padding: 6px 8px;
 }
-
 /* 배경색 유틸 */
 .gray {
-  background: var(--grid-head);
+  background: var(--bg-label-cell);
   text-align: left;
 }
 .gray-row {
-  background: var(--grid-head);
-  border: 1px solid #e0e0e0;
+  background: var(--bg-label-cell);
+  border: 1px solid var(--border-color);
 }
 .white-bg {
   background: var(--bg-main);
@@ -330,11 +332,12 @@ function downloadPDF() {
 }
 .section-title-table td {
   text-align: center;
-  background: var(--grid-head);
+  background: var(--bg-label-cell);
   font-weight: bold;
-  border: 1px solid var(--calendar-border-color);
+  border: 1px solid var(--border-color);
   padding: 10px;
-  color: var(--text-main);
+  font-size: 16px;
+    color: var(--modal-text);
 }
 
 /* 상세/공제 테이블 셀 */
@@ -342,10 +345,9 @@ function downloadPDF() {
 .details-table td,
 .deduction-table th,
 .deduction-table td {
-  border: 1px solid var(--calendar-border-color);
-  background: var(--bg-main);
-  color: var(--text-main);
+  border: 1px solid var(--border-color);
   padding: 8px;
+  text-align: left;
 }
 
 /* 강조 스타일 */
@@ -357,10 +359,7 @@ function downloadPDF() {
   color: var(--primary);
 }
 .highlight-row {
-  background-color: var(--grid-head);
-  border: 1px solid var(--calendar-border-color);
-    color: var(--text-main);
-
+  background-color: var(--bg-label-cell);
 }
 
 /* 하단 버튼 영역 */
@@ -376,6 +375,7 @@ function downloadPDF() {
   font-size: 18px;
   font-weight: bold;
   margin-bottom: 20px;
+  color: var(--modal-text);
 }
 
 /* 버튼 공통 스타일 */
@@ -394,7 +394,7 @@ function downloadPDF() {
 .btn:hover {
   background-color: var(--bg-main);
   color: var(--primary);
-  border: 1px solid var(--primary);
+  border-color: var(--primary);
   box-shadow: inset 1px 1px 10px rgba(0, 0, 0, 0.25);
 }
 .btn.left {
@@ -414,13 +414,3 @@ function downloadPDF() {
   }
 }
 </style>
-:global(.light-mode-export) {
-  --bg-main: #ffffff;
-  --text-main: #000000;
-  --bg-box: #ffffff;
-  --grid-head: #f1f1f1;
-  --calendar-border-color: #cccccc;
-  --primary: #007bff;
-  --text-on-primary: #ffffff;
-  --border-color: #ffffff;
-}
