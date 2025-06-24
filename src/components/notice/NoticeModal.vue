@@ -1,18 +1,18 @@
 <template>
-  <div class="modal-overlay" @click.self="$emit('close')">
+  <div class="modal-overlay">
     <div class="modal-container scrollbar">
       <header class="modal-header">
         <h3 class="modal-title">알림함</h3>
         <button class="modal-close" @click="$emit('close')">×</button>
       </header>
       <section class="modal-body">
-        <ul class="notification-list">
+        <!-- 알림이 있으면 리스트, 없으면 안내문구 -->
+        <ul v-if="notificationsComputed.length" class="notification-list">
           <li
-            v-for="item in notifications"
+            v-for="item in notificationsComputed"
             :key="item.id"
             class="notification-item"
           >
-            <!-- 미확인(unread) 알림: 파란색 링크 -->
             <a
               v-if="item.unread"
               href="#"
@@ -20,99 +20,95 @@
               @click.prevent="onClick(item)"
             >
               <span class="notification-time">
-                {{ formatDate(item.createdAt) }}    
-                </span>
+                {{ formatDate(item.createdAt) }}
+              </span>
               [{{ item.type }}] {{ item.content }}
             </a>
-            <!-- 이미 확인한 알림: 일반 텍스트 -->
             <p v-else class="notification-text">
-                <span class="notification-time">
-                  {{ formatDate(item.createdAt) }}    
-                  </span>
+              <span class="notification-time">
+                {{ formatDate(item.createdAt) }}
+              </span>
               [{{ item.type }}] {{ item.content }}
             </p>
           </li>
         </ul>
+        <p v-else class="no-notice">표시할 알림이 없습니다.</p>
       </section>
     </div>
   </div>
 </template>
 
 <script setup>
-// import { defineProps, defineEmits, onMounted } from 'vue'
-import { onMounted, computed  } from 'vue'
+import { onMounted, computed } from 'vue'
 import { useUserStore } from '@/stores/user'
-// import SockJS from 'sockjs-client'
-// import Stomp from 'stompjs'
 import { Client } from '@stomp/stompjs'
+import { useNotificationStore } from '@/stores/notice'  // <-- path 수정
 
-const props = defineProps({
-  notifications: {
-    type: Array,
-    required: true,
-  }
-})
-const emit = defineEmits(['close', 'notificationClick'])
+// Pinia 스토어 인스턴스
+const store = useNotificationStore()
+// 부모에게 전달할 이벤트
+const emit  = defineEmits(['close', 'notificationClick'])
 
-// 날짜 문자열에서 YYYY-MM-DD 부분만 추출
+// 스토어의 list를 computed 로 바인딩
+const notificationsComputed = computed(() => store.list)
+
+// 날짜 포맷 (YYYY-MM-DD)
 function formatDate(dateTime) {
   return dateTime ? dateTime.split('T')[0] : ''
 }
 
-onMounted(() => {
-  const token = localStorage.getItem('token')
-  const employeeId = localStorage.getItem('employeeId')
+onMounted(async () => {
+  // 1) 초기 알림 불러오기
+  await store.fetch()
+  console.log('🔔 초기 로드된 알림:', store.list)
 
-  const stompClient = new Client({
-    brokerURL: `ws://localhost:5000/ws-notice`,
-    connectHeaders: {
-      Authorization: `Bearer ${token}`
-    },
-    onConnect: () => {
-      stompClient.subscribe(`/topic/notice/${employeeId}`, ({ body }) => {
-        const notice = JSON.parse(body)
-        const newItem = {
-          id: notice.noticeId,
-          type: notice.noticeType,
-          content: notice.noticeContent,
-          createdAt: item.createdAt,
-          unread: !notice.isRead,
-          relatedId: notice.relatedId
-        }
-        localNotifications.value.unshift(newItem)
-        emit('newNotification', newItem)
-      })
-    },
-    debug: (str) => console.log('[STOMP]', str),
-    reconnectDelay: 5000
-  })
-
-  stompClient.activate()
-})
-
-async function onClick(item) {
+  // 2) WebSocket 구독
   const userStore = useUserStore()
   const token = userStore.accessToken
+  const employeeId = localStorage.getItem('employeeId')
+  const stomp      = new Client({
+    brokerURL:      `ws://localhost:5000/ws-notice`,
+    connectHeaders: { Authorization: `Bearer ${token}` },
+    onConnect: () => {
+      stomp.subscribe(`/topic/notice/${employeeId}`, ({ body }) => {
+        const nt = JSON.parse(body)
+        store.add({
+          id:        nt.noticeId,
+          type:      nt.noticeType,
+          content:   nt.noticeContent,
+          createdAt: nt.createdAt,
+          unread:    !nt.isRead,
+          relatedId: nt.relatedId
+        })
+      })
+    },
+    reconnectDelay: 5000,
+    debug:          (msg) => console.log('[STOMP]', msg)
+  })
+  stomp.activate()
+})
+
+// 알림 클릭 시 읽음 처리 & 이벤트 방출
+async function onClick(item) {
+  const userStore = useUserStore()
   try {
-    const res = await fetch(`http://localhost:5000/notice/${item.id}/read`, {
-      method: 'PATCH',
-      headers: {
-        'Authorization': `Bearer ${token}`
+    const res = await fetch(
+      `http://localhost:5000/notice/${item.id}/read`,
+      {
+        method:  'PATCH',
+        headers: { Authorization: `Bearer ${userStore.accessToken}` }
       }
-    })
-    if (!res.ok) {
-      console.error('읽음 처리 실패:', res.status)
+    )
+    if (res.ok) {
+      store.markRead(item.id)
     } else {
-      // UI 즉시 반영
-      item.unread = false
+      console.error('읽음 처리 실패:', res.status)
     }
   } catch (err) {
     console.error('읽음 처리 중 예외 발생:', err)
   }
-  // 부모 컴포넌트로도 클릭 이벤트 전달 (내비게이션 등)
   emit('notificationClick', item)
 }
-
 </script>
 
 <style scoped>
@@ -125,100 +121,30 @@ async function onClick(item) {
   justify-content: flex-end;
   z-index: 1000;
 }
-
 .modal-container {
   width: 550px;
   height: 250px;
-  background: #fff;
+  background: var(--bg-box);
   border-radius: 8px;
-  margin-top: 60px;
-  margin-bottom: auto;
-  margin-right: 120px;
+  margin: 60px 120px auto auto;
   overflow: hidden;
   overflow-y: auto;
-  overflow-x: auto;
   box-shadow: 0 4px 12px rgba(0,0,0,0.15);
 }
-
-.modal-container.scrollbar {
-    scrollbar-width: none;
-}
-
 .modal-header {
   display: flex;
-  align-items: center;
   justify-content: space-between;
   padding: 10px 16px;
   border-bottom: 1px solid #e5e5e5;
 }
-
-.modal-title {
-  margin: 0;
-  padding: 6px 12px;
-  font-weight: bold;
-}
-
-.modal-close {
-  background: none;
-  border: none;
-  font-size: 1.25rem;
-  line-height: 1;
-  cursor: pointer;
-}
-
-.modal-body {
-  display: flex;
-  align-items: center;
-  max-height: 300px;
-  overflow-y: auto;
-  margin-left: 12px;
-  margin-bottom: 16px;
-  padding: 12px 16px;
-}
-
-.notification-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-
-.notification-item + .notification-item {
-  margin-top: 10px;
-}
-
-.notification-link {
-  color: #00aeef;
-  font-size: 15px;
-  font-weight: bold;
-  text-decoration: none;
-  cursor: pointer;
-}
-
-.notification-link:hover {
-  text-decoration: underline;
-}
-
-.notification-text {
-  color: #000000;
-  font-size: 15px;
-  /* font-weight: 500; */
-  margin: 0;
-}
-
-.notification-time {
-    color: #333;
-    font-weight: bold;
-    font-size: 14px;
-    text-align: end;    
-}
-
-/* 간단한 뱃지 스타일 예시 */
-.badge {
-  background: #e00;
-  color: #fff;
-  border-radius: 12px;
-  padding: 2px 8px;
-  font-size: 0.8rem;
-  margin-left: 8px;
-}
+.modal-title { font-weight: bold; color: var(--text-main); }
+.modal-close { background: none; border: none; font-size: 1.25rem; cursor: pointer; }
+.modal-body { padding: 12px 16px; }
+.notification-list { list-style: none; padding: 0; margin: 0; }
+.notification-item + .notification-item { margin-top: 10px; }
+.notification-link { color: #00aeef; font-weight: bold; text-decoration: none; }
+.notification-link:hover { text-decoration: underline; }
+.notification-text { color: #000; }
+.notification-time { font-weight: bold; font-size: 0.85rem; margin-right: 8px; }
+.no-notice { text-align: center; color: #666; margin-top: 40px; }
 </style>

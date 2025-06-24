@@ -64,6 +64,7 @@ import ConfirmModal from '@/components/org/appointment/ConfirmModal.vue'
 
 ModuleRegistry.registerModules([AllCommunityModule])
 
+const userStore = useUserStore()
 const API_BASE        = 'http://localhost:5000/appointment-history'
 const selectedType    = ref('')
 const filterEmployee  = ref('')
@@ -74,33 +75,6 @@ const router          = useRouter()
 const showConfirm = ref(false)
 const confirmMessage = ref('')
 let confirmCallback = null
-
-// 인사팀에서만 등록, 삭제버튼 
-const userStore = useUserStore()
-const token = localStorage.getItem('token')
-const payload = parseJwtPayload(userStore.accessToken || token)
-const isHR = payload?.role?.includes('ROLE_HR') || payload?.auth?.includes('ROLE_HR')
-
-function parseJwtPayload(token) {
-  try {
-    const base64Url = token.split('.')[1]
-    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
-    const jsonPayload = decodeURIComponent(
-      atob(base64)
-        .split('')
-        .map(c => `%${('00' + c.charCodeAt(0).toString(16)).slice(-2)}`)
-        .join('')
-    )
-    return JSON.parse(jsonPayload)
-  } catch (e) {
-    return null
-  }
-}
-
-if (!isHR) {
-  showToast('접근 권한이 없습니다.')
-  router.push('/error403')
-}
 
 const toastRef = ref(null)
 
@@ -181,23 +155,24 @@ async function onDelete() {
   }
 
   openConfirmModal(`${idsToDelete.length}건을 삭제하시겠습니까?`, async () => {
-  try {
-    for (const id of idsToDelete) {
-      const res = await fetch(`http://localhost:5000/appointment/delete/${id}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      })
-      if (!res.ok) throw new Error(`ID ${id} 삭제 실패`)
-    }
+    const token = userStore.accessToken
+    try {
+      for (const id of idsToDelete) {
+        const res = await fetch(`http://localhost:5000/appointment/delete/${id}`, {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        })
+        if (!res.ok) throw new Error(`ID ${id} 삭제 실패`)
+      }
 
-    showToast(`${idsToDelete.length}건 삭제 완료`)
-    await loadData()
-  } catch (err) {
-    console.error('삭제 오류:', err)
-    showToast('삭제 중 오류가 발생했습니다.')
-  }
+      showToast(`${idsToDelete.length}건 삭제 완료`)
+      await loadData()
+    } catch (err) {
+      console.error('삭제 오류:', err)
+      showToast('삭제 중 오류가 발생했습니다.')
+    }
   })
 }
 

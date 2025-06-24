@@ -12,7 +12,7 @@
       <!-- 알림 -->
       <div class="notice" @click="toggleNotification()">
         <img src="@/assets/icons/bell.svg" alt="notice" class="notice-img" />
-        <span v-if="unreadCount > 0" class="badge">{{ unreadCount }}</span>
+        <span class="badge">{{ store.unreadCount }}</span>
       </div>
 
       <!-- 다크모드 텍스트 + 파란 토글 스위치 -->
@@ -51,6 +51,8 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import NoticeModal from '@/components/notice/NoticeModal.vue'
+import { useNotificationStore } from '@/stores/notice'
+const store = useNotificationStore()
 
 defineProps({
   isDarkMode: Boolean
@@ -87,7 +89,7 @@ async function toggleNotification() {
 }
 
 async function fetchNotifications() {
-  const token = localStorage.getItem('token')
+  const token = userStore.accessToken
   const res = await fetch('http://localhost:5000/notice/me', {
     headers: {
       Authorization: `Bearer ${token}`
