@@ -66,7 +66,7 @@
 
     .btn-area {
         display: flex;
-        justify-content: flex-end;
+        justify-content: center;
         margin-top: 30px;
     }
 
@@ -75,8 +75,8 @@
         height: 40px;
         font-size: 14px;
         font-weight: bold;
-        background-color: #00a8e8;
-        color: white;
+        background-color: var(--primary);
+        color: var(--text-on-primary);
         border: 1px solid transparent;
         border-radius: 10px;
         padding: 10px 30px;
@@ -87,9 +87,9 @@
     }
 
     .submit-btn:hover {
-        background-color: white;
-        color: #00a8e8;
-        border-color: #00a8e8;
+        background-color: var(--bg-main);
+        color: var(--primary);
+        border-color: var(--primary);
         box-shadow:
         inset 1px 1px 10px rgba(0, 0, 0, 0.25);
     }

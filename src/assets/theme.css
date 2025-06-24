@@ -11,7 +11,7 @@
   --primary: #00A8E8;
   --primary-hover: #007db3;
   --text-on-primary: #ffffff;
-
+  --bg-body: #f5f5f5;
   --text-main: #222222;
   --bg-app: #f9f9f9;
   --bg-main: #ffffff;
@@ -30,6 +30,8 @@
   /* table 사용 시 */
   --bg-label-cell: #f8f9fa; 
 
+  --ag-primary: #c1c1c1; 
+  --ag-primary-hover: #f0f0f0c0; 
 
   /* AG Grid*/
   --ag-header-background-color: #f5f5f5;
@@ -57,9 +59,13 @@
   --ag-row-height-line: 48px;
   --ag-font-size:    14px;
   --ag-font-family:  'Pretendard', sans-serif;
+  --grid-head: #f8f9fa;
+
+    --icon-filter: none;
 }
 
 body.dark {
+  --bg-body: #1a1a1a;
   --modal-bg: #1a1a1a;
   --modal-box-bg: #2a2a2a;
   --modal-text: #f0f0f0;
@@ -89,7 +95,8 @@ body.dark {
   --text-disabled: #666;
 
   --bg-label-cell: #2a2a2a;
-
+  --ag-primary: #006a91;
+  --ag-primary-hover: #004d6b;
     /* AG Grid 다크모드용 변수 추가 */
   --ag-background-color: #1a1a1a;
   --ag-body-background-color: #2b2b2b;
@@ -105,4 +112,8 @@ body.dark {
   --ag-selected-row-background-color: #757575;
   --ag-foreground-color: #fff;
   --ag-font-family: 'Pretendard', sans-serif;
+
+  --grid-head: #2b2b2b;
+
+  --icon-filter: invert(1);
 }

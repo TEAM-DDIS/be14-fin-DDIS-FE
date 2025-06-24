@@ -210,7 +210,7 @@ html, body {
 
 .main-content {
   padding: 20px;
-  background-color: var(--bg-main);
+  /* background-color: var(--bg-main); */
   box-sizing: border-box;
   overflow: hidden;
 }

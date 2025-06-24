@@ -216,20 +216,6 @@ const router = createRouter({
             component: () => import('@/pages/eapproval/DraftTempListPage.vue'),
             meta: { requiresAuth: true }
         },
-        // 상세페이지
-        {
-            path: '/eapproval/:docId',
-            name: 'DraftDetail',
-            component: () => import('@/pages/eapproval/DraftDetailPage.vue'),
-            props: true,
-            meta: { requiresAuth: true }   
-        },
-        // 임시저장함
-        {
-            path: '/eapproval/temporarydoc',
-            component: () => import('@/pages/eapproval/TemporaryDoc.vue'),
-            meta: { requiresAuth: true }
-        },
         // 기안함
         {
             path: '/eapproval/mydraft',
@@ -266,21 +252,14 @@ const router = createRouter({
             component: () => import('@/pages/eapproval/DraftFormA.vue'),
             meta: { requiresAuth: true }
         },
-        // 기안양식 (연차신청서)
-        // {
-        //     path: '/eapproval/formB',
-        //     component: () => import('@/pages/eapproval/DraftFormB.vue')
-        // },        
-        // {
-        //     path: '/eapproval/formC',
-        //     component: () => import('@/pages/eapproval/DraftFormC.vue')
-        // },  
-         // 상세페이지
-        // {
-        //     path: '/drafts/:docId', // ← 기안 문서 ID에 따라 상세 조회
-        //     name: 'DraftDetail',
-        //     component: () => import('@/pages/eapproval/DetailTest.vue')        
-        // },
+        // 상세페이지
+        {
+            path: '/eapproval/:docId',
+            name: 'DraftDetail',
+            component: () => import('@/pages/eapproval/DraftDetailPage.vue'),
+            props: true,
+            meta: { requiresAuth: true }   
+        },
         // =============== 급여 관리 ===============
 
         // 내  급여 명세서 조회
