@@ -61,7 +61,7 @@ const employeeId = 'test_employee_001'
 const token = useUserStore().accessToken
 const employeeStore = useUserStore()
 const employeeName  = employeeStore.name  // 실제 스토어에 맞게 변경
-const initPrompt = `현재 결재 대기 문서는 몇 건인가요? 오늘 모든 일정도 알려주세요.`
+const initPrompt = `현재 결재 대기 문서는 몇 건인가요? 오늘 모든 일정도 알려주세요. 오늘 일정이 없다면 없다고 해주세요`
 
 onMounted(() => {
   sendMessage(initPrompt)

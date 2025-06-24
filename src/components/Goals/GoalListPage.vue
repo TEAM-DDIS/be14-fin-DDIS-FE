@@ -1,6 +1,12 @@
 <template>
   <div class="goal-page">
-    <h1 class="page-title">성과 관리</h1>
+    <h1 class="page-title">
+      <img src="@/assets/icons/back_btn.svg"
+      alt="back"
+      class="back-btn"
+      @click="goBack" />
+      성과 관리
+    </h1>
     <div class="labels-row">
       <p class="section-title">목표 관리</p>
       <div class="label-spacer"></div>
@@ -210,6 +216,7 @@ import { ref, reactive, computed, watch, onMounted } from 'vue'
 import { useUserStore } from '@/stores/user'
 import { v4 as uuidv4 } from 'uuid'
 import MyPerfModal from '@/components/Goals/MyPerfModal.vue'
+import { useRouter } from 'vue-router'
 
 const goals = ref([])
 const selected = ref(null)
@@ -219,6 +226,7 @@ const showMyPerfModal = ref(false)
 // presigned URL 저장
 const presignedUrls = ref([])
 const token = useUserStore().accessToken
+const router = useRouter()
 
 // 신규 목표 등록용 reactive 객체
 const newGoal = reactive({
@@ -229,6 +237,9 @@ const newGoal = reactive({
   goalCreatedAt: getKoreaLocalDateTimeString(),
   employeeName: userStore.name
 })
+function goBack() {
+  router.back()
+}
 
 const totalWeight = computed(() =>
   goals.value.reduce((sum, g) => sum + (g.goalWeight || 0), 0)
@@ -739,6 +750,12 @@ input#weight.input-complete {
   margin-bottom: 10px;
   font-size: 18px;
   display: block;
+}
+.back-btn {
+  width: 20px;
+  height: 20px;
+  margin-right: -10px;
+  cursor: pointer;
 }
 .label-spacer {
   width: 20px;
