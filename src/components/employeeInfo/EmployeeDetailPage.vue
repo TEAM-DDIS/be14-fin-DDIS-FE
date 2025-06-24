@@ -129,7 +129,7 @@
             </label>
             <input
               class="same-size-input"
-              :value="headOptions.find(o => o.id === form.headId)?.name || '-'"
+              :value="headOptions.find(o => o.id === Number(form.headId))?.name || '-'"
               readonly
             />
           </div>
@@ -1227,13 +1227,14 @@ onMounted(async () => {
       employeeSchool:   emp.employeeSchool,
       employeeDept:     emp.employeeDept,
       graduationYear:   emp.graduationYear,
-      positionId:       emp.positionId,
-      rankId:           emp.rankId,
-      jobId:            emp.jobId,
-      headId:           emp.headId,
-      departmentId:     emp.departmentId,
-      teamId:           emp.teamId
-    });
+
+      positionId:       positionOptions.find(o => o.name === emp.positionName)?.id   || '',
+      rankId:           rankOptions.find(o => o.name === emp.rankName)?.id           || '',
+      jobId:            jobOptions.find(o => o.name === emp.jobName)?.id             || '',
+      headId:           headOptions.find(o => o.name === emp.headName)?.id           || '',
+      departmentId:     departmentOptions.find(o => o.name === emp.departmentName)?.id || '',
+      teamId:           teamOptions.find(o => o.name === emp.teamName)?.id           || ''
+    })
 
     // ▼ form 에는 **key** 만 저장
     form.employeePhotoUrl = emp.employeePhotoUrl;
