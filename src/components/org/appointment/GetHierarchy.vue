@@ -123,6 +123,8 @@
   
   <script setup>
   import { ref, reactive, onMounted, watch } from 'vue'
+  import { useUserStore } from '@/stores/user'
+  const accessToken = useUserStore().accessToken
   
   // 부모 컴포넌트에게 방출할 이벤트 정의
   const emit = defineEmits(['dept-selected','team-selected','employees-selected'])
@@ -137,7 +139,9 @@
   // 컴포넌트가 마운트되면 조직도 API 호출
   onMounted(async () => {
     try {
-      const res = await fetch('http://localhost:5000/structure/hierarchy')
+      const res = await fetch('http://localhost:5000/structure/hierarchy', {
+      headers: { 'Authorization': `Bearer ${accessToken}` }
+    })
       hierarchy.value = await res.json()
           hierarchy.value.forEach(head => {
       head.headManager = findManager(head.departments, '본부장')

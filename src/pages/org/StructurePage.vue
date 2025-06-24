@@ -143,18 +143,27 @@ function parseJwtPayload(token) {
     return null
   }
 }
+// const token = useUserStore().accessToken
 
-onMounted(async () => {
+async function loadHierarchy() {
+  const url = 'http://localhost:5000/structure/hierarchy'
   try {
-    const url = 'http://localhost:5000/structure/hierarchy'
-    console.log('📥 조직 계층 호출 URL:', url)
-    const res = await fetch(url)
+    const res = await fetch(url, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    })
     if (!res.ok) throw new Error(`HTTP ${res.status}`)
     hierarchy.value = await res.json()
   } catch (e) {
     console.error('❌ 조직 계층 로드 실패:', e)
     hierarchy.value = []
   }
+}
+
+onMounted(() => {
+  loadHierarchy()
 })
 
 // 팀 클릭 시 팀원 목록 표시
@@ -173,31 +182,36 @@ function onTeamSelected(team) {
 
 // 팀원 클릭 시 사원 상세 조회
 async function onEmployeeSelected(emp) {
-  try {
-    const url = `http://localhost:5000/structure/employee/${emp.employeeId}`
-    console.log('📥 사원 상세 호출 URL:', url)
-    const res = await fetch(url)
-    if (!res.ok) throw new Error(`HTTP ${res.status}`)
-    const data = await res.json()
+  const url = `http://localhost:5000/structure/employee/${emp.employeeId}`
+    try {
+      console.log('📥 사원 상세 호출 URL:', url)
+      const res = await fetch(url, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      })
+      if (!res.ok) throw new Error(`HTTP ${res.status}`)
+      const data = await res.json()
 
-    selectedEmployee.value = {
-      employeeId: data.employeeId,
-      employeeName: data.employeeName,
-      positionName: data.positionName,
-      rankName: data.rankName,
-      jobName: data.jobName,
-      headId: data.headId,
-      departmentId: data.departmentId,
-      teamId: data.teamId,
-      birthdate: data.birthdate,
-      email: data.email,
-      jobCode: data.jobCode || '',
-      profileImgPath: data.employeePhotoUrl
+      selectedEmployee.value = {
+        employeeId: data.employeeId,
+        employeeName: data.employeeName,
+        positionName: data.positionName,
+        rankName: data.rankName,
+        jobName: data.jobName,
+        headId: data.headId,
+        departmentId: data.departmentId,
+        teamId: data.teamId,
+        birthdate: data.birthdate,
+        email: data.email,
+        jobCode: data.jobCode || '',
+        profileImgPath: data.employeePhotoUrl
+      }
+    } catch (e) {
+      console.error('❌ 사원 상세 조회 실패:', e)
+      selectedEmployee.value = null
     }
-  } catch (e) {
-    console.error('❌ 사원 상세 조회 실패:', e)
-    selectedEmployee.value = null
-  }
 }
 
 function onEdit() {

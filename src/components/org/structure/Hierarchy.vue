@@ -72,7 +72,11 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, computed } from 'vue'
+import { useUserStore } from '@/stores/user'
+const userStore = useUserStore()
+// const token = userStore.accessToken
+const accessToken = useUserStore().accessToken
 
 // 상위로 이벤트 발송
 const emit = defineEmits(['dept-selected', 'team-selected'])
@@ -85,7 +89,9 @@ const expanded = reactive({})
 
 onMounted(async () => {
   try {
-    const res = await fetch('http://localhost:5000/structure/hierarchy')
+    const res = await fetch('http://localhost:5000/structure/hierarchy', {
+      headers: { 'Authorization': `Bearer ${accessToken}` }
+    })
     if (!res.ok) throw new Error(`HTTP ${res.status}`)
     hierarchy.value = await res.json()
   } catch (err) {

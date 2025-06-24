@@ -51,12 +51,14 @@ import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ModuleRegistry, AllCommunityModule } from 'ag-grid-community'
 import BaseGrid from '@/components/grid/BaseGrid.vue'
+import { useUserStore } from '@/stores/user'
 
 ModuleRegistry.registerModules([AllCommunityModule])
 
 const route  = useRoute()
 const router = useRouter()
 const appointmentHistoryId = Number(route.params.appointmentHistoryId)
+const token = useUserStore().accessToken
 
 const appointmentDetail = ref(null)
 const rowDataDetail    = ref([])
@@ -65,11 +67,16 @@ function goBack() {
   router.back()
 }
 
-const HISTORY_API = 'http://localhost:5000/appointment-history'
 
 async function loadDetail() {
+  const url = `http://localhost:5000/appointment-history/history/${appointmentHistoryId}`
   try {
-    const res = await fetch(`${HISTORY_API}/history/${appointmentHistoryId}`)
+    const res = await fetch(url, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    })
     if (!res.ok) throw new Error(res.statusText)
 
     const dto = await res.json()
