@@ -210,18 +210,10 @@ if (!isHR) {
 
 onMounted(async () => {
   try {
-<<<<<<< HEAD
-    // 1) 본부→부서→팀→사원 계층 전체 조회
-    const res = await fetch('https://api.isddishr.site/structure/hierarchy')
-    if (!res.ok) throw new Error(`HTTP ${res.status}`)
-    const data = await res.json()
-=======
     const { data } = await axios.get(
-      'http://localhost:5000/structure/hierarchy',
+      'https://api.isddishr/structure/hierarchy',
       { headers: { Authorization: `Bearer ${token}` } }
     )
->>>>>>> dev
-
     headquarters.value = data.map(h => ({
       headId: h.headId,
       headName: h.headName,
@@ -366,17 +358,12 @@ function getCompanyRep() {
 async function saveChanges() {
   try {
     for (const mv of pendingMoves.value) {
-<<<<<<< HEAD
       const url = `https://api.isddishr.site/org/update/${mv.type}/${mv.itemId}`
-      await axios.put(url, mv.payload)
-=======
-      const url = `http://localhost:5000/org/update/${mv.type}/${mv.itemId}`
       await axios.put(
         url,
         mv.payload,
         { headers: { Authorization: `Bearer ${token}` } }
       )
->>>>>>> dev
     }
     showToast('변경 사항이 저장되었습니다.')
     pendingMoves.value = []

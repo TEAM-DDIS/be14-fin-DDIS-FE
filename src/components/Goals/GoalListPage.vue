@@ -365,13 +365,7 @@ function getKoreaLocalDateTimeString() {
 
 // 목표 목록을 백엔드에서 가져오기
 function fetchGoals() {
-<<<<<<< HEAD
-  const token = localStorage.getItem('token')
   fetch('https://api.isddishr.site/goals', {
-=======
-
-  fetch('http://localhost:5000/goals', {
->>>>>>> dev
     headers: { Authorization: `Bearer ${token}` }
   })
     .then(res => res.json())
@@ -600,12 +594,7 @@ function cancelGoal() {
 // 2) 목표 삭제
 async function deleteGoals(id) {
   try {
-<<<<<<< HEAD
-    const token = localStorage.getItem('token')
     const res = await fetch(`https://api.isddishr.site/goals/${id}`, {
-=======
-    const res = await fetch(`http://localhost:5000/goals/${id}`, {
->>>>>>> dev
       method: 'DELETE',
       headers: {
         Authorization: `Bearer ${token}`,

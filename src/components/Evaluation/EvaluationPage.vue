@@ -382,7 +382,7 @@ async function fetchPresignedDownloadUrl(key) {
   }).toString()
 
   const res = await fetch(
-    `http://localhost:5000/s3/download-url?${qs}`,
+    `https://api.isddishr.site/s3/download-url?${qs}`,
     { headers: { Authorization: `Bearer ${token}` } }
   )
   if (!res.ok) throw new Error('프리사인드 URL 생성 실패')

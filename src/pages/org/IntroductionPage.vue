@@ -148,16 +148,6 @@ function saveEdit(updated) {
   if (idx !== -1) {
     orgData.value.introduction[idx].introductionContext =
       updated.introductionContext
-<<<<<<< HEAD
-    // (선택) 실제 서버에 PUT 요청을 보내 저장하고 싶다면 여기서 fetch 호출
-    // 예:
-    // await fetch(`https://api.isddishr.site/org/update/department/${updated.departmentId}`, {
-    //   method: 'PUT',
-    //   headers: { 'Content-Type': 'application/json' },
-    //   body: JSON.stringify({ introductionContext: updated.introductionContext })
-    // })
-=======
->>>>>>> dev
   }
 
   closeEditModal()
@@ -165,12 +155,7 @@ function saveEdit(updated) {
 
 onMounted(async () => {
   try {
-<<<<<<< HEAD
-    // 실제 백엔드 주소에 맞춰 수정하세요 (예: https://api.isddishr.site)
     const BASE = 'https://api.isddishr.site/introduction'
-=======
-    const BASE = 'http://localhost:5000/introduction'
->>>>>>> dev
     const res = await fetch(`${BASE}/department`)
     if (!res.ok) throw new Error(`HTTP ${res.status}`)
     const data = await res.json()

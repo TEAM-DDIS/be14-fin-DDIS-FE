@@ -339,16 +339,9 @@ const deleteListAll = computed(() => {
 
 onMounted(async () => {
   try {
-<<<<<<< HEAD
-    // 1) 조직 계층 조회 (GET /structure/hierarchy)
-    const res = await axios.get('https://api.isddishr.site/structure/hierarchy')
-    dataStore.headquarters = res.data
-=======
-    const res = await axios.get('http://localhost:5000/structure/hierarchy', {
+    const res = await axios.get('https://api.isddishr.site/structure/hierarchy', {
       headers: { Authorization: `Bearer ${token}` }
     })
->>>>>>> dev
-
     dataStore.headquarters = res.data
     const deptList = []
     const teamList = []
@@ -498,25 +491,12 @@ function openAddModal() {
 
 async function handleAddOrg({ type, name, parentId }) {
   try {
-<<<<<<< HEAD
-    let res
-    if (type === 'head') {
-      res = await axios.post('https://api.isddishr.site/org/create/head', { headName: name })
-      dataStore.headquarters.push(res.data)
-    }
-    else if (type === 'department') {
-      res = await axios.post('https://api.isddishr.site/org/create/department', {
-        departmentName: name,
-        headId: parentId
-      })
-      // 리스트에 추가
-=======
     const headers = { 
       Authorization: `Bearer ${localStorage.getItem('token')}` 
     }
    if (type === 'head') {
      const res = await axios.post(
-       'http://localhost:5000/org/create/head',
+       'https://api.isddishr.site/org/create/head',
        { headName: name },
        { headers }
      )
@@ -524,29 +504,20 @@ async function handleAddOrg({ type, name, parentId }) {
     }
    else if (type === 'department') {
      const res = await axios.post(
-       'http://localhost:5000/org/create/department',
+       'https://api.isddishr.site/org/create/department',
        { departmentName: name, headId: parentId },
        { headers }
      )
->>>>>>> dev
       dataStore.departments.push(res.data)
       const head = dataStore.headquarters.find(h => h.headId === parentId)
       head && head.departments.push({ ...res.data, teams: [] })
     }
-<<<<<<< HEAD
-    else if (type === 'team') {
-      res = await axios.post('https://api.isddishr.site/org/create/team', {
-        teamName: name,
-        departmentId: parentId
-      })
-=======
    else if (type === 'team') {
      const res = await axios.post(
-       'http://localhost:5000/org/create/team',
+       'https://api.isddishr.site/org/create/team',
        { teamName: name, departmentId: parentId },
        { headers }
      )
->>>>>>> dev
       dataStore.teams.push(res.data)
       for (const h of dataStore.headquarters) {
         const dept = h.departments.find(d => d.departmentId === parentId)
@@ -582,14 +553,10 @@ async function handleDeleteOrg({ type, ids }) {
 
     await Promise.all(
       ids.map(id =>
-<<<<<<< HEAD
-        axios.delete(`https://api.isddishr.site/org/delete/${endpoint}/${id}`)
-=======
        axios.delete(
-         `http://localhost:5000/org/delete/${endpoint}/${id}`,
+         `https://api.isddishr.site/org/delete/${endpoint}/${id}`,
          { headers }
        )
->>>>>>> dev
       )
     )
     showToast('삭제 성공!')
