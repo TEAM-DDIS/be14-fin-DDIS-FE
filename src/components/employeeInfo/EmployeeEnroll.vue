@@ -40,7 +40,7 @@
               accept="image/*"
               style="display: none"
               @change="onFileChange" />
-            </div>
+          </div>
         </div>
 
         <!-- 위쪽 카드 전용 그리드 (3열 × 5행) -->
@@ -53,7 +53,7 @@
             <input class="same-size-input" 
             v-model="form.employeeName" />
           </div>
-                  <!-- 직무 선택 -->
+          <!-- 직무 선택 -->
           <div class="info-item">
             <label class="label-bold">직무
               <span class="required-star">*</span> 
@@ -74,15 +74,15 @@
             <label class="label-bold">근무형태
               <span class="required-star">*</span> 
             </label>
-              <select class="same-size-input" v-model="form.workType">
-                <option value="">선택</option>
-                <option 
-                  v-for="opt in workTypeOptions" 
-                  :key="opt" 
-                  :value="opt">
-                  {{ opt }}
-                </option>
-              </select>
+            <select class="same-size-input" v-model="form.workType">
+              <option value="">선택</option>
+              <option 
+                v-for="opt in workTypeOptions" 
+                :key="opt" 
+                :value="opt">
+                {{ opt }}
+              </option>
+            </select>
           </div>
 
           <!-- 2행 -->
@@ -102,7 +102,7 @@
               </option>
             </select>
           </div>
-                  <!-- 직책 선택 -->
+          <!-- 직책 선택 -->
           <div class="info-item">
             <label class="label-bold">직책
               <span class="required-star">*</span> 
@@ -125,7 +125,7 @@
             <input type="date" class="same-size-input" v-model="form.employmentDate" />
           </div>
 
-                  <!-- 부서 선택 -->
+          <!-- 부서 선택 -->
           <div class="info-item">
             <label class="label-bold">부서
               <span class="required-star">*</span> 
@@ -141,7 +141,7 @@
               </option>
             </select>
           </div>
-                  <!-- 직급 선택 -->
+          <!-- 직급 선택 -->
           <div class="info-item">
             <label class="label-bold">직급
               <span class="required-star">*</span> 
@@ -162,7 +162,7 @@
             <input type="date" class="same-size-input" v-model="form.retirementDate" />
           </div>
 
-                    <!-- 팀 선택 -->
+          <!-- 팀 선택 -->
           <div class="info-item">
             <label class="label-bold">팀
               <span class="required-star">*</span> 
@@ -191,12 +191,12 @@
           <!-- 5행 -->
           <div class="info-item">
             <label class="label-bold">사번</label>
-                <input
-                      class="same-size-input"
-                      v-model="form.employeeId"
-                      disabled
-                      placeholder="등록 시 자동 생성됩니다"
-                />
+            <input
+              class="same-size-input"
+              v-model="form.employeeId"
+              disabled
+              placeholder="등록 시 자동 생성됩니다"
+            />
           </div>
           <div class="info-item">
             <label class="label-bold">이메일
@@ -211,17 +211,19 @@
     </div>
 
     <!-- ──────────────────────────────────────────────────────────────────────────
-         ② 탭 메뉴
+         ② 탭 메뉴 - 겹쳐지는 디자인으로 변경
     ────────────────────────────────────────────────────────────────────────── -->
-    <div class="tabs">
-      <button
-        v-for="tab in tabs"
-        :key="tab"
-        :class="['tab', { active: currentTab === tab }]"
-        @click="currentTab = tab"
-      >
-        {{ tab }}
-      </button>
+    <div class="tab-wrapper">
+      <div class="tab-menu">
+        <button
+          v-for="tab in tabs"
+          :key="tab"
+          :class="['tab-button', { active: currentTab === tab }]"
+          @click="currentTab = tab"
+        >
+          {{ tab }}
+        </button>
+      </div>
     </div>
 
     <!-- ──────────────────────────────────────────────────────────────────────────
@@ -263,13 +265,13 @@
                 <span class="required-star">*</span> 
               </label>
               <select class="same-size-input" v-model="form.isFourInsurances">
-                    <option value="">선택</option>
-                    <option 
-                      v-for="opt in insuranceOptions" 
-                      :key="opt" 
-                      :value="opt">
-                      {{ opt }}
-                    </option>
+                <option value="">선택</option>
+                <option 
+                  v-for="opt in insuranceOptions" 
+                  :key="opt" 
+                  :value="opt">
+                  {{ opt }}
+                </option>
               </select>
             </div>
             <div class="info-item">
@@ -336,15 +338,15 @@
               <label class="label-bold">병역 여부
                 <span class="required-star">*</span> 
               </label>
-                <select class="same-size-input" v-model="form.militaryType">
-                  <option value="">선택</option>
-                  <option 
-                    v-for="m in militaryOptions" 
-                    :key="m" 
-                    :value="m">
-                    {{ m }}
-                  </option>
-                </select>
+              <select class="same-size-input" v-model="form.militaryType">
+                <option value="">선택</option>
+                <option 
+                  v-for="m in militaryOptions" 
+                  :key="m" 
+                  :value="m">
+                  {{ m }}
+                </option>
+              </select>
             </div>
             <div class="info-item">
               <label class="label-bold">부양 가족 수
@@ -404,7 +406,7 @@
           </div>
         </div>
       </div>
-    <div class="button-group-inline top-buttons">
+      <div class="button-group-inline top-buttons">
       <button type="button" class="btn-back" @click="onBackClick">취소</button>
       <button class="btn-save" @click="onSave">저장</button>
     </div>
@@ -412,9 +414,6 @@
   </div>
   <BaseToast ref="toastRef" />
 </template>
-
-
-
 
 <script setup>
 import { ref, reactive, watch, onMounted, computed } from 'vue'
@@ -427,16 +426,15 @@ import axios from 'axios'
 // Axios 기본 URL 설정
 axios.defaults.baseURL = 'https://api.isddishr.site'
 
-
 const userStore = useUserStore()
 
 const tabs = ['인사정보','개인정보']
 const currentTab = ref('인사정보')
 const toastRef = ref(null)
 
-  function showToast(msg) {
-    toastRef.value?.show(msg)
-  }
+function showToast(msg) {
+  toastRef.value?.show(msg)
+}
 
 const router = useRouter()
 
@@ -451,19 +449,12 @@ const profileSrc = ref('/images/profile-placeholder.png')
 // 숨겨진 file input 레퍼런스
 const fileInput  = ref(null)
 
-
 // 드롭다운 옵션 리스트
-
 const workTypeOptions = ['정규직', '계약직']
-
 const militaryOptions = ['군필', '미필', '보충역', '면제', '해당 없음']
-
 const genderOptions = ['남', '여']
-
 const insuranceOptions   = ['가입','미가입']
-
 const disorderOptions    = ['장애','비장애']
-
 const marriageOptions    = ['미혼','기혼']
 
 const headOptions = [
@@ -555,9 +546,6 @@ const positionOptions = [
   { id: 5, name: '대표이사' },
 ]
 
-
-
-
 // ① 폼 데이터
 const form = reactive({
   employeeId:        null,   // 보낼 필요는 없지만 DTO에 있으므로
@@ -623,6 +611,7 @@ const teamMap = {
   '영업부서': ['B2B영업팀', 'B2C영업팀']
 }
 
+// ✅ 수정된 computed 함수들 - form.value 제거
 const filteredDepartmentOptions = computed(() => {
   if (!form.headId) return []
   
@@ -643,10 +632,9 @@ const filteredTeamOptions = computed(() => {
   return teamOptions.filter(team => allowedTeams.includes(team.name))
 })
 
-  function onUploadClick() {
-    fileInput.value?.click()
-  }
-
+function onUploadClick() {
+  fileInput.value?.click()
+}
 
 async function onFileChange(e) {
   const file = e.target.files?.[0]
@@ -672,9 +660,6 @@ async function onFileChange(e) {
   })
   profileSrc.value = previewUrl
 }
-
-
-
 
 function authHeaders() {
   return { 
@@ -731,10 +716,9 @@ watch(() => form.employeeEmail,   v => validate('email',   v))
 watch(() => form.employeeResident, v => validate('resident', v))
 watch(() => form.bankAccount,     v => validate('bankAccount', v))
 
-
 async function onSave() {
-    // 1) 필수 입력 항목과 누락 시 보여줄 메시지를 배열로 정의
-    const requiredChecks = [
+  // 1) 필수 입력 항목과 누락 시 보여줄 메시지를 배열로 정의
+  const requiredChecks = [
     { key: 'employeePhotoUrl',   msg: '사진을 업로드해주세요.' },
     { key: 'employeeName',       msg: '사원명을 입력해주세요.' },
     { key: 'employmentDate',     msg: '입사일을 선택해주세요.' },
@@ -758,52 +742,49 @@ async function onSave() {
     { key: 'isFourInsurances',   msg: '4대 보험 여부를 선택해주세요.' },
   ];
 
-    for (const { key, msg } of requiredChecks) {
-      const val = form[key];
-      if (val === '' || val === null || val === undefined) {
-        return showToast(msg);
-      }
+  for (const { key, msg } of requiredChecks) {
+    const val = form[key];
+    if (val === '' || val === null || val === undefined) {
+      return showToast(msg);
     }
+  }
 
-    // 2) 유효성 검사 에러 확인
-    const hasValidationErrors = Object.values(errors).some(error => error !== '')
-    if (hasValidationErrors) {
-      return showToast('입력 형식을 확인해주세요.')
-    }
+  // 2) 유효성 검사 에러 확인
+  const hasValidationErrors = Object.values(errors).some(error => error !== '')
+  if (hasValidationErrors) {
+    return showToast('입력 형식을 확인해주세요.')
+  }
 
-    console.log('▶ 서버로 보내는 form.employeePhotoUrl:', form.employeePhotoUrl)
-    console.log('▶ preview 용 profileSrc:', profileSrc.value)
+  console.log('▶ 서버로 보내는 form.employeePhotoUrl:', form.employeePhotoUrl)
+  console.log('▶ preview 용 profileSrc:', profileSrc.value)
 
-    // 3) 모두 통과했으면 서버에 요청
-    try {
-      console.log('onSave 직전 form.employeePhotoUrl:', form.employeePhotoUrl)
-      const res = await axios.post(
-        '/employees/enroll',
-        form,
-        { headers: authHeaders() }
-      );
-      console.log('등록 응답:', res.data)
-      showToast(`등록되었습니다 (ID: ${res.data})`);
-      router.push('/employeeInfo/employeeList');
-    } catch (err) {
-      if (err.response) {
-        console.error('HTTP', err.response.status)
-        console.error('Response data:', err.response.data)
-        showToast(err.response.data.message || JSON.stringify(err.response.data))
-      } else {
-        console.error(err)
-        showToast('알 수 없는 오류가 발생했습니다.')
+  // 3) 모두 통과했으면 서버에 요청
+  try {
+    console.log('onSave 직전 form.employeePhotoUrl:', form.employeePhotoUrl)
+    const res = await axios.post(
+      '/employees/enroll',
+      form,
+      { headers: authHeaders() }
+    );
+    console.log('등록 응답:', res.data)
+    showToast(`등록되었습니다 (ID: ${res.data})`);
+    router.push('/employeeInfo/employeeList');
+  } catch (err) {
+    if (err.response) {
+      console.error('HTTP', err.response.status)
+      console.error('Response data:', err.response.data)
+      showToast(err.response.data.message || JSON.stringify(err.response.data))
+    } else {
+      console.error(err)
+      showToast('알 수 없는 오류가 발생했습니다.')
     }
   }
 }
 
-
 function onBackClick() {
   router.push('/employeeInfo/employeeList')
 }
-
 </script>
-
 
 <style scoped>
 /* 페이지 타이틀과 설명 */
@@ -815,7 +796,7 @@ function onBackClick() {
 
 .required-star { color: red; }
 
-/* “사원 상세 조회” 텍스트와 버튼을 같은 행에 배치 */
+/* "사원 상세 조회" 텍스트와 버튼을 같은 행에 배치 */
 .desc-row {
   display: flex;
   align-items: center;   /* 텍스트와 버튼을 수직 가운데 정렬 */
@@ -827,11 +808,12 @@ function onBackClick() {
 
 /* 위쪽 카드 내부로 이동한 버튼 그룹 */
 .button-group-inline.top-buttons {
+position: absolute;
+  bottom: 20px;
+  right: 40px;
   display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-  margin-left: auto;   /* “사원 상세 조회”와 버튼 사이 빈 공간 채우기 */
-  margin-right: 0px;  /* 전체 오른쪽 여백 맞추기 */
+  gap: 8px;
+  z-index: 10;
 }
 
 .btn-save {
@@ -866,7 +848,7 @@ function onBackClick() {
   box-sizing: border-box;
 }
 .btn-back:hover {
-    background-color: #000;
+  background-color: #000;
   color: #fff;
 }
 
@@ -898,6 +880,14 @@ function onBackClick() {
   gap: 2rem;
   align-items: flex-start;
   min-width: 1024px;
+}
+
+/* 하단 카드에 상대 위치 설정 */
+.bottom-card {
+  position: relative;
+  min-height: 400px;
+  padding-bottom: 80px;
+  border-radius: 0px 12px 12px 12px; /* 새로운 탭 디자인에 맞춰 조정 */
 }
 
 /* 프로필 */
@@ -1002,25 +992,42 @@ function onBackClick() {
   box-sizing: border-box;
 }
 
-/* 탭 메뉴 */
-.tabs {
-  display: flex;
-  gap: 1px;
+/* 🔷 새로운 겹쳐지는 탭 스타일 */
+.tab-wrapper {
+  position: relative;
+  z-index: 2;
   margin-top: 15px;
-  border-bottom: 1px solid #ccc;
 }
-.tab {
-  padding: 0.5rem 1.2rem;
-  cursor: pointer;
-  background: #e0e0e0;
-  border: 1px solid #ccc;
+
+.tab-menu {
+  display: flex;
+  align-items: flex-end;
+  gap: 0;
+  position: relative;
+}
+
+/* 기본 탭 버튼 */
+.tab-button {
+  font-size: 16px;
+  padding: 10px 30px;
+  border: none;
   border-bottom: none;
-  border-radius: 4px 4px 0 0;
+  background-color: #C8C8C8;
+  color: white;
+  cursor: pointer;
+  border-top-left-radius: 12px;
+  border-top-right-radius: 12px;
+  position: relative;
+  z-index: 1;
+  margin-right: -20px; /* ✅ 가로 겹치기 */
+  transition: all 0.2s ease;
 }
-.tab.active {
-  background: #fff;
-  font-weight: bold;
-  border-bottom: 1px solid #fff;
+
+/* 선택된 탭 위로 */
+.tab-button.active {
+  background-color: #fff;
+  color: #000;
+  z-index: 3;
 }
 
 /* 셀 중앙 정렬 */

@@ -63,7 +63,7 @@
     background-color: var(--bg-box);
     border-radius: 20px;
     box-shadow: 1px 1px 20px 1px rgba(0, 0, 0, 0.05);
-    padding: 20px;
+    padding: 1px 20px 20px 20px;
     min-height: 300px;
   }
 

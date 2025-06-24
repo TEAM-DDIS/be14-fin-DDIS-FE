@@ -1,4 +1,4 @@
-<!-- src/views/JobDetailPage.vue -->
+<!-- 조직 및 직무 > 조직 소개 > 부서 소개 > 팀 및 직무 소개 -->
 <template>
   <div class="job-detail-page">
     <h1 class="page-title">
@@ -19,7 +19,6 @@
         {{ teamIntro.introductionContext }}
       </p>
 
-      <!-- 직무 선택 탭 -->
       <div class="job-tabs">
         <button
           v-for="job in filteredJobs"
@@ -31,12 +30,10 @@
         </button>
       </div>
 
-      <!-- 직무가 없으면 메시지 -->
       <div v-if="filteredJobs.length === 0" class="no-jobs">
         해당 팀의 직무 정보가 없습니다.
       </div>
 
-      <!-- 선택된 직무만 보여주기 -->
       <div v-else class="job-cards-container">
         <div
           v-for="job in selectedJobs"
@@ -93,10 +90,6 @@
       </button>
     </div>
 
-    <!-- 편집 버튼 -->
-
-
-    <!-- EditJobModal -->
     <EditJobModal
       v-if="showEditModal"
       :initial="currentJob"
@@ -115,10 +108,15 @@ import EditJobModal from '@/components/org/introduction/EditJobModal.vue'
 const route = useRoute()
 const router = useRouter()
 
-// 인사팀에서만 편집버튼 
+const teamName = ref('알 수 없는 팀')
+const teamIntro = ref(null)
+const jobs = ref([])
+const selectedJobId = ref(null)
+const showEditModal = ref(false)
+
 const userStore = useUserStore()
-const token = localStorage.getItem('token')
-const payload = parseJwtPayload(userStore.accessToken || token)
+const token = userStore.accessToken
+const payload = parseJwtPayload(token)
 const isHR = payload?.role?.includes('ROLE_HR') || payload?.auth?.includes('ROLE_HR')
 
 function parseJwtPayload(token) {
@@ -137,21 +135,13 @@ function parseJwtPayload(token) {
   }
 }
 
-// 선택한 팀의 teamId 가져오기
+// 전 페이지에서 선택된 팀 ID
 const teamId = Number(route.params.teamId)
 
 function goBack() {
   router.back()
 }
 
-// 리액티브 상태 선언
-const teamName = ref('알 수 없는 팀')
-const teamIntro = ref(null)    // { teamId, teamName, introductionContext }
-const jobs = ref([])           // JobIntroductionQueryDTO[]
-const selectedJobId = ref(null)
-
-// 모달 제어용
-const showEditModal = ref(false)
 const currentJob = reactive({
   jobId: null,
   teamName: '',
@@ -162,7 +152,7 @@ const currentJob = reactive({
   jobPreference: []
 })
 
-// 계산 속성: 필터된 직무, 선택된 직무
+// 팀의 직무
 const filteredJobs = computed(() => jobs.value)
 
 const selectedJobs = computed(() => {
@@ -170,19 +160,18 @@ const selectedJobs = computed(() => {
   return filteredJobs.value.filter(j => j.jobId === selectedJobId.value)
 })
 
-// 컴포넌트 마운트 시 데이터 로드
 onMounted(async () => {
   try {
     const BASE = 'https://api.isddishr.site/introduction'
 
-    // 1) 팀 상세 정보 조회
+    // 팀 상세 정보
     const teamRes = await fetch(`${BASE}/team/${teamId}`)
     if (!teamRes.ok) throw new Error(`HTTP ${teamRes.status}`)
     const teamData = await teamRes.json()
     teamName.value = teamData.teamName
     teamIntro.value = teamData
 
-    // 2) 해당 팀의 직무 목록 조회
+    // 해당 팀의 직무 목록 조회
     const jobsRes = await fetch(`${BASE}/team/${teamId}/job`)
     if (!jobsRes.ok) throw new Error(`HTTP ${jobsRes.status}`)
     let jobsData = await jobsRes.json()
@@ -215,7 +204,6 @@ onMounted(async () => {
 
     jobs.value = jobsData
 
-    // 기본으로 첫 번째 직무 선택
     if (jobsData.length > 0) {
       selectedJobId.value = jobsData[0].jobId
     }
@@ -224,7 +212,6 @@ onMounted(async () => {
   }
 })
 
-// 모달 열기 / 닫기 / 저장 로직
 function openEditModal() {
   const job = selectedJobs.value[0]
   if (!job) return
@@ -245,7 +232,6 @@ function closeEditModal() {
 }
 
 function saveEdit(updated) {
-  // 로컬 상태 jobs에서 해당 jobId를 찾아 덮어쓰기
   const idx = jobs.value.findIndex(j => j.jobId === updated.jobId)
   if (idx !== -1) {
     jobs.value[idx].jobName = updated.jobName
@@ -254,8 +240,6 @@ function saveEdit(updated) {
     jobs.value[idx].jobNecessary = [...updated.jobNecessary]
     jobs.value[idx].jobPreference = [...updated.jobPreference]
   }
-  // (선택) 서버에 PUT/POST 요청으로 저장할 수 있음
-
   closeEditModal()
 }
 </script>
@@ -268,6 +252,7 @@ function saveEdit(updated) {
 }
 .back-btn {
   width: 24px;
+  height: 24px;
   margin-right: -10px;
   cursor: pointer;
 }
@@ -279,11 +264,11 @@ function saveEdit(updated) {
 }
 
 .content-box {
-  background: #ffffff;
+  background: var(--bg-box); 
   border-radius: 12px;
   padding: 20px 32px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-  margin: 24px;
+  margin-left: 20px;
 }
 
 .title {
@@ -296,7 +281,7 @@ function saveEdit(updated) {
 .team-intro {
   text-align: center;
   font-size: 16px;
-  color: #555;
+  color: var(--text-main);
   width: 600px;
   margin: 30px auto 50px auto;
 }
@@ -340,7 +325,7 @@ function saveEdit(updated) {
 }
 
 .job-card {
-  background: #ffffff;
+  background: var(--madal-box-bg); 
   max-width: 800px;
   width: 80%;
   border-radius: 12px;
@@ -367,13 +352,13 @@ function saveEdit(updated) {
   font-size: 18px;
   font-weight: 600;
   margin-bottom: 10px;
-  color: #000000;
+  color: var(--text-main);
 }
 
 .job-section ul {
   list-style-type: disc;
   padding-left: 20px;
-  color: #444;
+  color: var(--text-main);
   display: inline-block;
   text-align: left;
 }

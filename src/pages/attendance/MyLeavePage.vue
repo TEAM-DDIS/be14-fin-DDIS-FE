@@ -96,8 +96,8 @@
 
   /* 선택된 탭 위로 */
   .tab-menu button.active {
-    background-color: #fff;
-    color: #000;
+    background: var(--bg-box);
+    color: var(--text-main);
     z-index: 3;
   }
 </style>

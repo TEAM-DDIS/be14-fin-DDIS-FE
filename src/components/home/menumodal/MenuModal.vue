@@ -48,7 +48,7 @@ import axios from 'axios'
 import Sidebar from './MenuSidebar.vue'
 import SubSidebar from './MenuSubSidebar.vue'
 import FavoriteMenu from './FavoriteMenu.vue'
-import { HR_ONLY_PATHS } from '@/constants/hronlypaths.js'
+import { HR_ONLY_PATHS, TEAMLEADER_ONLY_PATHS } from '@/constants/hronlypaths.js'
 import BaseToast from '@/components/toast/BaseToast.vue'
 const userStore = useUserStore()
 const token = useUserStore().accessToken
@@ -80,6 +80,19 @@ const isHrTeam = computed(() => {
     return false
   }
 })
+  const isTeamLeader   = computed(() => {
+    // 액세스 토큰이 'deptName' 혹은 'roles'에 HR이 있으면 true
+    try {
+        const payload = JSON.parse(
+        atob(userStore.accessToken.split('.')[1].replace(/-/g,'+').replace(/_/g,'/'))
+        )
+        return (
+        payload.auth?.includes('ROLE_TEAMLEADER')                // 롤로 체크
+        
+        )
+    } catch { return false }
+    })
+
 
 onMounted(async () => {
   try {
@@ -89,9 +102,11 @@ onMounted(async () => {
       }
     })
 
-    const filtered = !isHrTeam.value
-      ? data.filter(m => !HR_ONLY_PATHS.includes(m.menuPath))
-      : data
+  const filtered = data.filter(m => {
+  if (!isHrTeam.value && HR_ONLY_PATHS.includes(m.menuPath)) return false
+  if (!isTeamLeader.value && TEAMLEADER_ONLY_PATHS.includes(m.menuPath)) return false
+  return true
+})
 
     allMenus.value = filtered
 

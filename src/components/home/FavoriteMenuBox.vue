@@ -153,7 +153,7 @@ onMounted(fetchFavorites)
 }
 
 .edit-button {
-  background-color: var(--text-muted);
+  background-color: var(--bg-menu-btn-hover);
   font-weight: 600;
   border: none;
   cursor: pointer;
@@ -162,7 +162,7 @@ onMounted(fetchFavorites)
   color: var(--text-main);
 }
 .edit-button:hover {
-  background-color: var(--primary-dark);
+  background-color: var(--primary);
   color: var(--text-main);
 }
 .box {

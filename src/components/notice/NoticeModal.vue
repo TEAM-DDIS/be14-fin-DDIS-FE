@@ -41,6 +41,7 @@
 <script setup>
 // import { defineProps, defineEmits, onMounted } from 'vue'
 import { onMounted, computed  } from 'vue'
+import { useUserStore } from '@/stores/user'
 // import SockJS from 'sockjs-client'
 // import Stomp from 'stompjs'
 import { Client } from '@stomp/stompjs'
@@ -90,7 +91,8 @@ onMounted(() => {
 })
 
 async function onClick(item) {
-  const token = localStorage.getItem('token')
+  const userStore = useUserStore()
+  const token = userStore.accessToken
   try {
     const res = await fetch(`https://api.isddishr.site/notice/${item.id}/read`, {
       method: 'PATCH',

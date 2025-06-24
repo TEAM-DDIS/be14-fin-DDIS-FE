@@ -1,6 +1,12 @@
 <template>
   <div class="performance-page">
-    <h1 class="page-title">전체 성과 이력</h1>
+    <h1 class="page-title">
+      <img src="@/assets/icons/back_btn.svg"
+      alt="back"
+      class="back-btn"
+      @click="goBack" />
+      전체 성과 이력
+    </h1>
 
 
     <div class="ag-grid-wrapper">
@@ -59,6 +65,8 @@
 <script setup>
 import { ref, onMounted,reactive, computed  } from 'vue'
 import AgGrid from '@/components/grid/BaseGrid.vue'
+import { useUserStore } from '@/stores/user'
+import { useRouter } from 'vue-router'
 
 // 컬럼 정의
 
@@ -68,8 +76,8 @@ const filters = reactive({
   departmentName: '',
   teamName: ''
 })
-
-
+const token = useUserStore().accessToken
+const router = useRouter()
 // 행 데이터
 const rowData = ref([])
 
@@ -79,7 +87,7 @@ async function loadData() {
   try {
     const res = await fetch(url, {
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json'
       }
     })
@@ -88,6 +96,9 @@ async function loadData() {
     console.error('로드 오류:', e)
     rowData.value = []
   }
+}
+function goBack() {
+  router.back()
 }
 
 onMounted(loadData)
@@ -198,5 +209,11 @@ const filteredData = computed(() =>
   border-radius: 4px;
   font-size: 14px;
   min-width: 100px;
+}
+.back-btn {
+  width: 20px;
+  height: 20px;
+  margin-right: -10px;
+  cursor: pointer;
 }
 </style>

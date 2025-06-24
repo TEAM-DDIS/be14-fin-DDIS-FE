@@ -257,7 +257,8 @@ function downloadPDF() {
 
 /* 모달 본체 */
 .modal {
-  background: white;
+  background: var(--modal-bg);
+  color: var(--modal-text);
   border-radius: 12px;
   padding: 24px;
   padding-bottom: 80px; /* 하단 버튼 공간 확보 */
@@ -277,9 +278,10 @@ function downloadPDF() {
   border: none;
   background: transparent;
   cursor: pointer;
+  color: var(--modal-text);
 }
 .close-btn:hover {
-  color: #00a8e8;
+  color: var(--primary);
 }
 
 /* 모달 제목 */
@@ -297,26 +299,31 @@ function downloadPDF() {
   width: 100%;
   border-collapse: collapse;
   table-layout: fixed;
+    color: var(--modal-text);
 }
 
 /* 테이블 내부 셀 기본 패딩 + 테두리 */
+/* 셀 스타일 */
 .bordered th,
-.bordered td {
-  border: 1px solid #ccc;
+.bordered td,
+.details-table th,
+.details-table td,
+.deduction-table th,
+.deduction-table td {
+  border: 1px solid var(--border-color);
   padding: 6px 8px;
 }
-
 /* 배경색 유틸 */
 .gray {
-  background: #f8f9fa;
+  background: var(--bg-label-cell);
   text-align: left;
 }
 .gray-row {
-  background-color: #f8f9fa;
-  border: 1px solid #e0e0e0;
+  background: var(--bg-label-cell);
+  border: 1px solid var(--border-color);
 }
 .white-bg {
-  background: white;
+  background: var(--bg-main);
 }
 
 /* 섹션 제목 테이블 */
@@ -325,11 +332,12 @@ function downloadPDF() {
 }
 .section-title-table td {
   text-align: center;
-  background: #f8f9fa;
+  background: var(--bg-label-cell);
   font-weight: bold;
-  border: 1px solid #ccc;
+  border: 1px solid var(--border-color);
   padding: 10px;
   font-size: 16px;
+    color: var(--modal-text);
 }
 
 /* 상세/공제 테이블 셀 */
@@ -337,7 +345,7 @@ function downloadPDF() {
 .details-table td,
 .deduction-table th,
 .deduction-table td {
-  border: 1px solid #ccc;
+  border: 1px solid var(--border-color);
   padding: 8px;
   text-align: left;
 }
@@ -348,10 +356,10 @@ function downloadPDF() {
 }
 .highlight {
   font-weight: bold;
-  color: #00a8e8;
+  color: var(--primary);
 }
 .highlight-row {
-  background-color: #f8f9fa;
+  background-color: var(--bg-label-cell);
 }
 
 /* 하단 버튼 영역 */
@@ -367,13 +375,14 @@ function downloadPDF() {
   font-size: 18px;
   font-weight: bold;
   margin-bottom: 20px;
+  color: var(--modal-text);
 }
 
 /* 버튼 공통 스타일 */
 .btn {
   position: absolute;
-  background-color: #00a8e8;
-  color: white;
+  background-color: var(--primary);
+  color: var(--text-on-primary);
   font-weight: bold;
   border: 1px solid transparent;
   border-radius: 10px;
@@ -383,9 +392,9 @@ function downloadPDF() {
   transition: background-color 0.2s, box-shadow 0.2s;
 }
 .btn:hover {
-  background-color: white;
-  color: #00a8e8;
-  border-color: #00a8e8;
+  background-color: var(--bg-main);
+  color: var(--primary);
+  border-color: var(--primary);
   box-shadow: inset 1px 1px 10px rgba(0, 0, 0, 0.25);
 }
 .btn.left {

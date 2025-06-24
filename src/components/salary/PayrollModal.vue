@@ -210,16 +210,16 @@ function downloadPDF() {
 .modal-wrapper {
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(0,0,0,0.5);
+  background: rgba(0, 0, 0, 0.5);
   display:flex;
   justify-content: center;
   align-items: center;
   z-index: 1000;
 }
 
-/* 모달 본체 */
 .modal {
-  background: white;
+  background: var(--modal-bg);
+  color: var(--modal-text);
   border-radius: 12px;
   padding: 24px;
   width: 650px;
@@ -228,7 +228,6 @@ function downloadPDF() {
   position: relative;
 }
 
-/* 닫기 버튼 */
 .close-btn {
   position: absolute;
   top: 12px;
@@ -237,32 +236,33 @@ function downloadPDF() {
   border: none;
   background: transparent;
   cursor: pointer;
+  color: var(--modal-text);
 }
 .close-btn:hover {
-  color: #00a8e8;
+  color: var(--primary);
 }
 
-/* 제목 */
 .modal-title {
   text-align: center;
   font-weight: bold;
   font-size: 20px;
   margin-bottom: 20px;
+  color: var(--modal-text);
 }
 
-/* 사원 정보, 지급/공제 테이블 스타일 */
 .info-table, .table {
   width: 100%;
   border-collapse: collapse;
-  border: 1px solid #ccc;
+  border: 1px solid var(--border-color);
+  color: var(--modal-text);
 }
 
 .bordered th, .bordered td {
-  border: 1px solid #ccc;
+  border: 1px solid var(--border-color);
 }
 
 .info-table th {
-  background: #f8f9fa;
+  background: var(--bg-label-cell);
   padding: 6px 8px;
   text-align: left;
   width: 25%;
@@ -272,36 +272,33 @@ function downloadPDF() {
   width: 25%;
 }
 
-/* '세부 내역' 구분선 */
 .section-title-table {
   width: 100%;
 }
 .section-title-table td {
   text-align: center;
-  background: #f8f9fa;
+  background: var(--bg-label-cell);
   font-weight: bold;
-  border: 1px solid #ccc;
+  border: 1px solid var(--border-color);
   padding: 10px;
 }
 
-/* 표 내부 스타일 */
 .table th, .table td {
-  border: 1px solid #e0e0e0;
+  border: 1px solid var(--border-color);
   padding: 8px;
 }
+
 .sub-head th, .sub-sub-head th {
-  background: #f8f9fa;
+  background: var(--bg-label-cell);
   font-weight: bold;
-  border: 1px solid #ccc;
+  border: 1px solid var(--border-color);
 }
 
-/* 지급/공제 테이블 나란히 배치 */
 .slip-tables {
   display: flex;
   gap: 0;
 }
 
-/* 정렬 및 강조 */
 .right-align {
   text-align: right;
 }
@@ -310,37 +307,39 @@ function downloadPDF() {
 }
 .highlight {
   font-weight: bold;
-  color: #00a8e8;
+  color: var(--primary);
 }
 .gray-row {
-  background-color: #f8f9fa;
-  border: 1px solid #e0e0e0;
+  background-color: var(--bg-label-cell);
+  border: 1px solid var(--border-color);
 }
 
-/* 실 수령액 요약 줄 */
 .summary-row {
   display: flex;
   justify-content: space-between;
   padding: 10px;
   font-weight: bold;
-  background-color:#f8f9fa;
+  background-color: var(--bg-label-cell);
+  color: var(--modal-text);
 }
 
-/* 하단 버튼 및 날짜 */
 .footer {
   position: relative;
   margin-top: 30px;
 }
+
 .today {
   text-align: center;
   font-size: 18px;
   margin-bottom: 30px;
   font-weight: bold;
+  color: var(--modal-text);
 }
+
 .btn {
   position: absolute;
-  background-color: #00a8e8;
-  color: white;
+  background-color: var(--primary);
+  color: var(--text-on-primary);
   font-weight: bold;
   border: 1px solid transparent;
   border-radius: 10px;
@@ -350,29 +349,28 @@ function downloadPDF() {
   transition: background-color 0.2s, box-shadow 0.2s;
 }
 .btn:hover {
-  background-color: white;
-  color: #00a8e8;
-  border-color: #00a8e8;
+    background-color: var(--bg-main);
+  color: var(--primary);
+
+  border-color: var(--primary);
   box-shadow: inset 1px 1px 10px rgba(0, 0, 0, 0.25);
 }
 .btn.left { left: 0; }
 .btn.right { right: 0; }
 
-/* 인쇄 시 버튼 등 숨기기 */
 .no-print { display:block; }
 @media print {
   .no-print { display: none !important; }
 }
 
-/* 항목 열 너비 고정 */
 .table th:first-child,
 .table td:first-child {
   width: 50%;
 }
 
-/* 금액 열 우측 정렬 및 너비 고정 */
 .table th:last-child,
 .table td:last-child {
   width: 50%;
 }
+
 </style>

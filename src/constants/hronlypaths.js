@@ -7,3 +7,8 @@ export const HR_ONLY_PATHS = [
   '/salary/payroll/issue',
   '/salary/retirement/status',
 ]
+
+export const TEAMLEADER_ONLY_PATHS = [
+  '/org/evaluation',
+  '/org/myevaluation',
+]

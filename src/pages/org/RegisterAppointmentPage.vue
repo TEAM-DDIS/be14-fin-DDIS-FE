@@ -1,11 +1,18 @@
+<!-- 조직 및 직무 > 인사발령 > 인사발령 등록 -->
+
 <template>
-  <h1 class="page-title">인사발령</h1>
+  <h1 class="page-title">
+    <img src="@/assets/icons/back_btn.svg"
+      alt="back"
+      class="back-btn"
+      @click="goBack" />
+      인사발령
+  </h1>
   <p class="desc">인사발령 등록</p>
 
   <div class="content-box">
     <div class="register-container">
       <div class="form-grid-container">
-        <!-- 1. 기본 정보 -->
         <div class="info-section">
           <div class="select-container">
             <button class="btn-select" @click="showApprovalModal = true">
@@ -58,7 +65,6 @@
           </table>
         </div>
 
-        <!-- 2. 조직 변경: ag-Grid 사용 -->
         <div class="org-section">
           <AgGridVue
             class="ag-theme-alpine custom-theme"
@@ -67,12 +73,11 @@
             :columnDefs="columnDefs"
             :defaultColDef="{ sortable: true, resizable: true }"
             @grid-ready="onGridReady"
-            style="width: 100%; height: 340px;"
+            style="width: 100%; height: 285px;"
           />
         </div>
       </div>
 
-      <!-- 3. 버튼 그룹 -->
       <div class="button-group">
         <button class="btn-cancel" @click="cancel">취소</button>
         <button class="btn-save" @click="submit">저장</button>
@@ -106,7 +111,7 @@
 </template>
 
 <script setup>
-import { reactive, ref, watch, onMounted, computed, nextTick } from 'vue'
+import { reactive, ref, watch, onMounted, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
 import 'core-js/features/array/flat-map'
@@ -127,16 +132,13 @@ const fullHierarchy = ref([])
 const router = useRouter()
 const gridApi = ref(null)
 
-const userStore = useUserStore()
-const token = localStorage.getItem('token')
-
 const toastRef = ref(null)
 
-  function showToast(msg) {
-    toastRef.value?.show(msg)
-  }
+function showToast(msg) {
+  toastRef.value?.show(msg)
+}
 
-// JWT payload 파싱 함수
+
 function parseJwtPayload(token) {
   try {
     const base64Url = token.split('.')[1]
@@ -152,15 +154,18 @@ function parseJwtPayload(token) {
     return null
   }
 }
-
-// 실제 권한 검사
-const payload = parseJwtPayload(userStore.accessToken || token)
+const userStore = useUserStore()
+const token = userStore.accessToken
+const payload = parseJwtPayload(token)
 const isHR = payload?.role?.includes('ROLE_HR') || payload?.auth?.includes('ROLE_HR')
 
-// 접근 불가 시 리다이렉트
 if (!isHR) {
   showToast('접근 권한이 없습니다.')
   router.push('/error403')
+}
+
+function goBack() {
+  router.back()
 }
 
 // 폼 상태
@@ -191,7 +196,6 @@ const form = reactive({
   }
 })
 
-// 데이터 저장소
 const dataStore = reactive({
   headquarters: [],
   department: [],
@@ -199,7 +203,6 @@ const dataStore = reactive({
   job: []
 })
 
-// form.org를 대체할 전역변수
 const pureOrg = {
   headId: null,
   departmentId: null,
@@ -217,7 +220,6 @@ const teamsCurrent       = ref([])
 const jobsCurrent = ref([])
 const positionsCurrent = ref([])
 const ranksCurrent = ref([])
-const orgHeads = ref([])
 const departmentsNew = ref([])
 const teamsNew = ref([])
 const jobsNew = ref([])
@@ -227,17 +229,13 @@ const ranksNew     = ref([])
 const employeeCache = reactive(new Map())
 
 
-// 초기 전체 계층 로드
 onMounted(async () => {
   try {
     const resp = await axios.get('https://api.isddishr.site/structure/hierarchy')
     const full = Array.isArray(resp.data) ? resp.data : []
 
    fullHierarchy.value = full
-  //  fullHierarchy.value = resp.data
 
-
-    // 기존 dataStore 세팅
     dataStore.headquarters = full.map(h => ({ headId: h.headId, headName: h.headName, headCode: h.headCode }))
     dataStore.department = full.flatMap(head =>
       (head.departments || []).map(dept => ({
@@ -247,6 +245,7 @@ onMounted(async () => {
         headId:         head.headId
       }))
     )
+ 
     // 각 department 아래의 teams 를 평탄화
     dataStore.team = full.flatMap(head =>
       (head.departments || []).flatMap(dept =>
@@ -297,7 +296,6 @@ async function loadEmployeeInfo() {
     }
   }
 
-  // emp 가 확보됐으면, 기존 로직 수행
   form.currentOrg.headId       = emp.headId
   form.currentOrg.departmentId = emp.departmentId
   form.currentOrg.teamId       = emp.teamId
@@ -323,17 +321,13 @@ async function loadEmployeeInfo() {
   gridApi.value.refreshCells({ columns: ['current'], force: true })
 }
 
-
-// 모달에서 확인 버튼 눌렀을 때 호출되는 핸들러
 async function onApprovalSubmit(selectedList) {
   const stub = selectedList[0]
   if (!stub) return
 
-  // 1) 번호·이름
   form.currentOrg.employeeId   = stub.employeeId
   form.currentOrg.employeeName = stub.employeeName
 
-  // 2) 조직 정보 로드
   await loadEmployeeInfo()
   form.org.headId       = form.currentOrg.headId
   form.org.departmentId = form.currentOrg.departmentId
@@ -342,8 +336,6 @@ async function onApprovalSubmit(selectedList) {
   form.org.positionCode = form.currentOrg.positionCode
   form.org.rankCode     = form.currentOrg.rankCode
 
-
-  // 3) 모달 닫기
   showApprovalModal.value = false
 }
 
@@ -373,12 +365,9 @@ function fillCurrentOrgCells() {
     }
   })
 
-  // 그리드에 반영
   gridApi.value.refreshCells({ columns: ['current'], force: true })
 }
 
-
-// 삭제나 추가될 때마다 approverList 를 업데이트 합니다
 function onApprovalUpdate(newList) {
   employeeList.value = newList
 }
@@ -435,8 +424,6 @@ watch(() => form.org.jobId, async jobId => {
   gridApi.value?.refreshCells({ columns: ['new'], force: true })
 })
 
-
-// ag-Grid 설정: position, rank 칼럼 추가
 const orgFields = {
   head: '소속 본부',
   department: '소속 부서',
@@ -486,25 +473,15 @@ const columnDefs = [
   }
 ]
 
-// 타입별로 보여줄 조직 단계 키(key) 목록
 const typeToKeys = {
-  승진:   ['head', 'department', 'team'],               // 승진 시: 본부, 부서
-  전보:   ['department', 'team'],               // 전보 시: 부서, 팀
-  전직:   ['department', 'team', 'job'],        // 전직 시: 부서, 팀, 직무
-  직급조정: ['department', 'team', 'position', 'rank'], // 직급조정: 부서, 팀, 직책
-  직무:   ['department', 'team', 'job']         // 직무 변경: 부서, 팀, 직무
+  승진:   ['head', 'department', 'team'],
+  전보:   ['department', 'team'],
+  전직:   ['department', 'team', 'job'],  
+  직급조정: ['department', 'team', 'position', 'rank'],
+  직무:   ['department', 'team', 'job']
 }
 
-const showRanks = computed(() => {
-  const keys = typeToKeys[form.type] || []
-  return keys.includes('rank')
-})
-const showJobs = computed(() => {
-  const keys = typeToKeys[form.type] || []
-  return keys.includes('job')
-})
 
-// form.type이 바뀔 때마다 rowData 초기화
 watch(() => form.type, newType => {
   rowData.length = 0
   const keys = typeToKeys[newType] || []
@@ -583,8 +560,6 @@ function handleOrgSelected(selected) {
     positionName: selected.positionName
   }] : []
 
-
-  // 선택한 조직명 grid 반영
   syncOrgToGrid()
 
   console.log('[form.org 저장된 값]', JSON.stringify(form.org, null, 2))
@@ -592,20 +567,9 @@ function handleOrgSelected(selected) {
   showOrgSelectorModal.value = false
 }
 
-
-function handleRankSelected(rank) {
-  // rank = { rankId, rankName }
-  form.org.rankCode = rank.rankId
-  // 그리드 “new” 쪽에 반영
-  syncOrgToGrid()
-}
-
-
-
 function makeSelect(params, context) {
   const key = params.data.key
 
-  // 👉 발령 조직: readOnlyInput만
   if (context === 'org') {
     const inp = document.createElement('input')
     inp.type = 'text'
@@ -619,7 +583,6 @@ function makeSelect(params, context) {
     return inp
   }
 
-  // 👉 현재 소속 조직: 그대로 유지
   if (context === 'currentOrg') {
     const readOnlyInput = value => {
       const input = document.createElement('input')
@@ -654,8 +617,6 @@ function makeSelect(params, context) {
   return document.createTextNode('-')
 }
 
-
-
 function onGridReady(params) {
   gridApi.value = params.api
   rowData.length = 0
@@ -667,14 +628,12 @@ function onGridReady(params) {
 
   fillCurrentOrgCells()
 
-  // 헤더의 + 버튼에 클릭 이벤트 연결
   nextTick(() => {
     const btn = document.querySelector('#openOrgModal')
     if (btn) btn.addEventListener('click', () => openOrgModalForKey('org'))
   })
 }
 
-// 인사발령 등록
 async function submit() {
 
     await nextTick()
@@ -684,8 +643,6 @@ async function submit() {
     console.log('✅ dataStore.department:', dataStore.department)
     console.log('✅ dataStore.team:', dataStore.team)
 
-
-    // form.org의 Proxy 문제를 회피하기 위해 얕은 복사
     const org = { ...form.org };
     const current = { ...form.currentOrg };
 
@@ -759,18 +716,23 @@ function cancel() {
   margin-bottom: 10px;
   font-size: 18px;
 }
+.back-btn {
+  width: 24px;
+  height: 24px;
+  margin-right: -10px;
+  cursor: pointer;
+}
 
-/* 전체 컨테이너 */
 .content-box {
-  background: #fff;
+  background: var(--bg-box);
   border-radius: 12px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-  margin: 24px;
+  margin-left: 20px;
   position: relative;
   padding: 20px 32px 80px; 
 }
 .register-container {
-  /* width: 60%; */
+  width: 80%;
   margin: 0 auto;
   margin-top: 20px;
   margin-bottom: 20px;
@@ -780,24 +742,22 @@ function cancel() {
   display: flex;
   gap: 60px;
   align-items: flex-start;
-  margin-bottom: 20px;
+  margin-bottom: 60px;
   padding: 0 20px;
 }
 
-/* 왼쪽 테이블 영역 너비 */
 .info-section {
   flex: 1;
   min-width: 300px;
 }
 
-/* 오른쪽 ag-Grid 영역 너비 */
 .org-section {
-  flex: 1.5;               /* 왼쪽의 두 배 너비 */
+  flex: 1;
   min-width: 400px;
-  height: 350px;         /* 필요에 따라 조절 */
+  
+  margin-top: 65px;
 }
 
-/* 정보 입력 섹션 */
 .info-section {
   width: 100%;
 }
@@ -808,12 +768,12 @@ function cancel() {
 }
 .info-table th,
 .info-table td {
-  border: 1px solid #c8c8c8;
+  border: 1px solid var(--border-color);
   padding: 12px 12px;
 }
 .info-table th {
   width: 120px;
-  background: #f8f9fa;
+  background-color: var(--bg-label-cell);
 }
 .info-section input[type="text"],
 .info-section input[type="date"],
@@ -822,7 +782,7 @@ function cancel() {
   box-sizing: border-box;
   padding: 8px 12px;
   font-size: 14px;
-  border: 2px solid #c8c8c8;
+  border: 2px solid var(--border-color);
   border-radius: 8px;
   outline: none;
   font-family: 'inter';
@@ -833,22 +793,13 @@ function cancel() {
   border: 1px solid black;
 }
 .info-section input[type="text"]::placeholder {
-  color: #555;
+  color: var(--text-main);
 }
 
-/* 조직 그리드 섹션 */
-.org-section {
-  width: 100%;
-  margin: 0 auto;
-  margin-top: 20px;
-  margin-bottom: 20px;
-}
-
-/* 버튼 그룹 */
 .button-group {
-   position: absolute;
-  bottom: 30px;
-  right: 50px;
+  position: absolute;
+  bottom: 50px;
+  right: 240px;
   display: flex;
   gap: 15px;
 }
@@ -894,10 +845,9 @@ function cancel() {
 .select-container {
   display: flex;
   justify-content: flex-start;
-  margin-bottom: 15px; /* 테이블과 버튼 사이 간격 */
+  margin-bottom: 15px; 
   margin-top: 15px;
 }
-
 
 .btn-select {
   font-size: 14px;

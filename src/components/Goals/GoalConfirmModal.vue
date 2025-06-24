@@ -1,7 +1,7 @@
 <template>
-  <div class="modal-overlay">
+  <div v-if="show" class="modal-overlay">
     <div class="modal-content">
-      <p class="modal-title">인사발령 이력 삭제</p>
+      <p class="modal-title">목표 삭제</p>
       <p class="modal-message">{{ message }}</p>
       <div class="modal-actions">
           <button class="btn cancel" @click="$emit('cancel')">취소</button>
@@ -13,6 +13,7 @@
 
 <script setup>
 defineProps({
+    show: { type: Boolean, required: true },
   message: {
     type: String,
     required: true

@@ -221,12 +221,13 @@ watch(filterMode, () => {
 .page-title {
   margin-left: 20px;
   margin-bottom: 30px;
-  color: #00a8e8;
+  color: var(--primary);
 }
 
 /* 공통 섹션 박스 스타일 */
 .section {
-  background: #fff;
+  background: var(--bg-main);
+  color: var(--text-main);
   padding: 20px;
   margin: 0 20px 24px;
   border-radius: 8px;
@@ -246,6 +247,7 @@ watch(filterMode, () => {
 /* 라디오 버튼 라벨 간격 */
 .date-type-toggle label {
   margin-right: 15px;
+    color: var(--text-main);
 }
 
 /* 기간 입력 필드 정렬 */
@@ -260,6 +262,7 @@ watch(filterMode, () => {
 .inputs label {
   font-weight: bold;
   margin-right: 5px;
+    color: var(--text-main);
 }
 
 /* 공통 input/select 기본 스타일 */
@@ -267,22 +270,25 @@ input[type="month"],
 input,
 select {
   padding: 6px 8px;
-  border: 1px solid #ccc;
+  border: 1px solid #e0e0e0;
   border-radius: 6px;
+  background: var(--bg-main);
+  color: var(--text-main);
 }
 
 /* 조회 버튼 hover 시 스타일 */
 .search-btn:hover {
-  background-color: white;
-  color: #00a8e8;
-  border-color: #00a8e8;
-  box-shadow: inset 1px 1px 10px rgba(0, 0, 0, 0.25);
+    background-color: var(--bg-main);
+  color: var(--primary);
+
+  border-color: var(--primary);
+   box-shadow: inset 1px 1px 10px rgba(0, 0, 0, 0.25);
 }
 
 /* 조회 버튼 기본 스타일 */
 .search-btn {
-  background-color: #00a8e8;
-  color: white;
+  background-color: var(--primary);
+  color: var(--text-on-primary);
   font-weight: bold;
   border: 1px solid transparent;
   border-radius: 10px;
@@ -295,7 +301,8 @@ select {
 
 /* AgGrid 헤더 커스터마이징 */
 .custom-theme :deep(.ag-header) {
-  background-color: #f8f9fa;
+  background-color: var(--bg-label-cell);
+  color: var(--text-main);
 }
 
 /* 소제목 설명 (예: "조회 필터") */
@@ -304,6 +311,8 @@ select {
   margin-left: 20px;
   margin-bottom: 10px;
   font-size: 18px;
+    color: var(--text-sub);
+
 }
 
 /* 검색바 영역 */
@@ -317,9 +326,11 @@ select {
 .search-bar input {
   width: 200px;
   padding: 6px 8px;
-  border: 1px solid #ccc;
+  border: 1px solid #e0e0e0;
   border-radius: 6px;
   height: 18px;
+  background: var(--bg-main);
+  color: var(--text-main);
 }
 
 /* (참고용) 검색 아이콘 스타일 — 사용 안 하면 삭제 가능 */
@@ -327,6 +338,8 @@ select {
   width: 20px;
   height: 20px;
   padding-bottom: 1px;
+  filter: var(--arrow-filter); /* 다크모드 시 반전 */
+
 }
 
 /* 드롭다운 필터 select 박스 */
@@ -339,7 +352,7 @@ select {
 /* 박스형 섹션 및 기간 선택 박스 공통 스타일 */
 .section,
 .section .period {
-  background: #fff;
+  background: var(--bg-box);
   padding: 30px;
   margin: 0 20px 24px;
   border-radius: 8px;

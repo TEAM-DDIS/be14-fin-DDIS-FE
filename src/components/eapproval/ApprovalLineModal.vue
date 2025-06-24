@@ -1,6 +1,6 @@
 <template>
   <!-- ① 모달 외곽: 배경 클릭하면 모달 닫기 -->
-  <div class="modal-overlay" @click.self="$emit('close')">
+  <div class="modal-overlay" >
     <div class="modal-content">
       <!-- ② 모달 제목 -->
       <div class="model-text">

@@ -88,8 +88,8 @@ function handleClick() {
 function handleResize() {
   const width = button.value.offsetWidth
   const height = button.value.offsetHeight
-  pos.value.x = Math.min(pos.value.x, window.innerWidth - width)
-  pos.value.y = Math.min(pos.value.y, window.innerHeight - height)
+  pos.value.x = window.innerWidth - width - 20; // 20은 오른쪽 여백 조정 가능
+  pos.value.y = Math.min(pos.value.y, window.innerHeight - height - 20);
 }
 
 onMounted(() => {

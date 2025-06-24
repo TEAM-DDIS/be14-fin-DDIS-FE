@@ -1,6 +1,12 @@
 <template>
   <div class="goal-page">
-    <h1 class="page-title">내가 쓴 평가</h1>
+    <h1 class="page-title">
+      <img src="@/assets/icons/back_btn.svg"
+      alt="back"
+      class="back-btn"
+      @click="goBack" />
+      내가 쓴 평가
+    </h1>
     <p class="desc">실적 목록</p>
 
     <div class="panels">
@@ -107,12 +113,16 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
 import { useUserStore } from '@/stores/user'
+import { useRouter } from 'vue-router'
 
 const goals = ref([])
 const selected = ref(null)
 const editMode = ref(false)
 const reviewForm = ref({ performanceId: null, score: '', content: '' })
 const userStore = useUserStore()
+const router = useRouter()
+const token = useUserStore().accessToken
+
 
 // performance.reviewerScore 가 있는 목표만
 const evaluatedGoals = computed(() =>
@@ -153,7 +163,6 @@ function formatDateTime(iso) {
 
 async function fetchGoals() {
   const reviewerId = userStore.user.employeeId
-  const token = localStorage.getItem('token')
   try {
     const res = await fetch(
       `https://api.isddishr.site/review/${reviewerId}/performance`,
@@ -191,6 +200,9 @@ goals.value = data.map(dto => {
 
 function selectGoal(goal) {
   selected.value = goal.goalId
+}
+function goBack() {
+  router.back()
 }
 
 async function submitReview() {
@@ -318,6 +330,12 @@ onMounted(fetchGoals)
   transform: translateY(-2px);
   opacity: 1;
 }
+.back-btn {
+  width: 25px;
+  height: 25px;
+  margin-right: -10px;
+  cursor: pointer;
+}
 .card-top {
   display: flex;
   justify-content: space-between;
@@ -422,7 +440,7 @@ onMounted(fetchGoals)
 .detail-table-vertical td {
   border: 1px solid #e0e0e0;
   padding: 12px;
-  text-align: center;
+  text-align: left;
   background: #fff;
 }
 .detail-table-vertical th {

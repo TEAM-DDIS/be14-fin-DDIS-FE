@@ -159,7 +159,7 @@
 
     async function handleSubmit(data) {
     if (!selectedRow.value?.attendanceId) {
-        showToast('귿무 기록이 없습니다.')
+        showToast('근무 기록이 없습니다.')
         return
     }
 
@@ -206,10 +206,10 @@
     })
 
     const columnDefs = [
-        { headerName: '번호', valueGetter: params => params.api.getDisplayedRowCount() - params.node.rowIndex, sortable: false },
+        { headerName: '번호', valueGetter: params => params.api.getDisplayedRowCount() - params.node.rowIndex, sortable: false, width: 100 },
         { headerName: '사번', field: 'employeeId' },
-        { headerName: '성명', field: 'employeeName' },
-        { headerName: '처리상태', field: 'approvalStatus' },
+        { headerName: '성명', field: 'employeeName', width: 150 },
+        { headerName: '처리상태', field: 'approvalStatus', width: 150 },
         { headerName: '신청일', field: 'requestTime' },
         { headerName: '정정요청일', field: 'workDate'},
         { headerName: '출근시각', field: 'beforeCheckInTime', valueFormatter: ({ value }) => value ? value.split('.')[0] : '' },
@@ -330,7 +330,7 @@
 
 <style scoped>
     .all-leave-regist-card {
-        background: #fff;
+        background: var(--bg-box);
         padding: 30px;
         border-radius: 0px 12px 12px 12px;
         box-shadow: 1px 1px 20px 1px rgba(0, 0, 0, 0.05);
@@ -354,7 +354,9 @@
     .search-bar input {
         width: 150px;
         padding: 6px 8px;
-        border: 1px solid #ccc;
+        border: 1px solid var(--border-color);
+        background: var(--modal-bg);
+        color: var(--text-main);
         border-radius: 4px;
     }
 
@@ -368,13 +370,11 @@
         flex-wrap: wrap;
     }
 
-    .filters-row {
-        margin-bottom: 15px;
-    }
-
     .filters select {
         padding: 6px 8px;
-        border: 1px solid #ccc;
+        border: 1px solid var(--border-color);
+        background: var(--modal-bg);
+        color: var(--text-main);
         border-radius: 4px;
     }
 
@@ -403,31 +403,32 @@
     }
 
     .download-btn {
-        font-size: 14px;
-        font-weight: bold;
-        background-color: #00a8e8;
-        color: white;
-        border: 1px solid transparent;
-        border-radius: 10px;
-        padding: 10px 30px;
-        cursor: pointer;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-        transition: background-color 0.2s, box-shadow 0.2s;
-        box-sizing: border-box;
-        white-space: nowrap;
-    }
+    font-size: 14px;
+    font-weight: bold;
+    background-color: var(--primary);
+    color: var(--text-on-primary);
+    border: 1px solid transparent;
+    border-radius: 10px;
+    padding: 10px 30px;
+    margin-top: 20px;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    transition: background-color 0.2s, box-shadow 0.2s;
+    box-sizing: border-box;
+    white-space: nowrap;
+  }
 
-    .download-btn:hover {
-        background-color: white;
-        color: #00a8e8;
-        border-color: #00a8e8;
-        box-shadow:
-        inset 1px 1px 10px rgba(0, 0, 0, 0.25);
-    }
+  .download-btn:hover {
+    background-color: var(--text-on-primary);
+    color:  var(--primary);
+    border-color: var(--primary);
+    box-shadow:
+    inset 1px 1px 10px rgba(0, 0, 0, 0.25);
+  }
 
     .reject-btn {
-        background-color: #00a8e8;
-        color: white;
+        background-color: var(--primary);
+        color: var(--text-on-primary);
         font-weight: bold;
         border: 1px solid transparent;
         border-radius: 10px;
@@ -439,16 +440,16 @@
     }
 
     .reject-btn:hover {
-        background-color: white;
-        color: #00a8e8;
-        border-color: #00a8e8;
+        background-color: var(--text-on-primary);
+        color: var(--primary);
+        border-color: var(--primary);
         box-shadow:
         inset 1px 1px 10px rgba(0, 0, 0, 0.25);
     }
 
     .apply-btn {
-        background-color: #00a8e8;
-        color: white;
+        background-color: var(--primary);
+        color: var(--text-on-primary);
         font-weight: bold;
         border: 1px solid transparent;
         border-radius: 10px;
@@ -460,9 +461,9 @@
     }
 
     .apply-btn:hover {
-        background-color: white;
-        color: #00a8e8;
-        border-color: #00a8e8;
+        background-color: var(--text-on-primary);
+        color: var(--primary);
+        border-color: var(--primary);
         box-shadow:
         inset 1px 1px 10px rgba(0, 0, 0, 0.25);
     }
@@ -475,7 +476,7 @@
     }
 
     .modal {
-        background: white;
+        background: var(--bg-box);
         padding: 20px;
         border-radius: 12px;
         width: 420px;

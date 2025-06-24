@@ -2,37 +2,55 @@
  
 <template>
   <h1 class="page-title">기안함</h1>
-  <div class="tabs">
-    <span :class="{active: tab==='전체'}" @click="tab='전체'">전체</span>
-    <span :class="{active: tab==='상신'}" @click="tab='상신'">상신</span>
-    <span :class="{active: tab==='완료'}" @click="tab='완료'">완료</span>
-    <span :class="{active: tab==='반려'}" @click="tab='반려'">반려</span>
-    <span :class="{active: tab==='회수'}" @click="tab='회수'">회수</span>
+  <div class="tab-wrapper">
+    <div class="tabs">
+      <span :class="{active: tab==='전체'}" @click="tab='전체'">전체</span>
+      <span :class="{active: tab==='상신'}" @click="tab='상신'">상신</span>
+      <span :class="{active: tab==='완료'}" @click="tab='완료'">완료</span>
+      <span :class="{active: tab==='반려'}" @click="tab='반려'">반려</span>
+      <span :class="{active: tab==='회수'}" @click="tab='회수'">회수</span>
+    </div>
   </div>
-
   <div class="main-box">
     <div class="search-row">
-      <div class="search-item">
+      <!-- <div class="search-item">
         <label>기안상신일</label>
         <input type="date" v-model="search.date" />
-      </div>
+      </div> -->
+        <div class="section period">
+          <div class="inputs">
+            <label><strong>조회기간</strong></label>
+            <input
+                type="month"
+                v-model="dateRange.start"
+              />            
+              <span>~</span>
+            <input
+                type="month"
+                v-model="dateRange.end"
+              />
+            </div>
+          </div>
+          <div class="btn-area">
+          </div>
       <div class="search-item">
-        <label>기안 제목</label>
+        <label><strong>기안 제목</strong></label>
         <input type="text" v-model="search.title" placeholder="기안 제목 입력" />
       </div>
     </div>
 
-    <div class="table-box">
-      <AgGridVue
-        class="ag-theme-alpine custom-theme"
-        :gridOptions="{ theme: 'legacy' }"
-        :columnDefs="currentColumnDefs"
-        :rowData="filteredForms"
-        :pagination="true"
-        rowSelection="single"
-        @rowClicked="handleFormRowClick"
-        style="width:100%; height:100%;"
-      />
+      <div class="table-box">
+        <AgGridVue
+          v-if="docs.length > 0"
+          class="ag-theme-alpine custom-theme"
+          :gridOptions="{ theme: 'legacy' }"
+          :columnDefs="currentColumnDefs"
+          :rowData="filteredForms"
+          :pagination="true"
+          rowSelection="single"
+          @rowClicked="handleFormRowClick"
+          style="width:100%; height:100%;"
+        />
     </div>
   </div>
 </template>
@@ -43,45 +61,53 @@ import { AgGridVue } from 'ag-grid-vue3'
 import { ModuleRegistry, AllCommunityModule } from 'ag-grid-community'
 import axios from 'axios'
 import { useRoute, useRouter } from 'vue-router'
+import { useUserStore } from '@/stores/user' // ✅ 먼저 import
+
 ModuleRegistry.registerModules([AllCommunityModule])
 
 // 1) 상태
 const tab    = ref('상신')
-const search = reactive({ date: '', title: '' })
+const search = reactive({ start: '', end: '' , title: '' })
 const docs   = ref([])
 const route = useRoute()
 const router = useRouter()
+const dateRange = reactive({ start: '', end: '' })
+const userStore = useUserStore() 
+
+
 // 2) 컬럼 정의 (결재함이랑 동일)
 const columnDefsByTab = {
   '전체': [ 
     { headerName:"번호", field:"no", width:100 },
     { headerName:"구분", field:"type", width:150 },
     { headerName:"제목", field:"title", flex:1 },
-    { headerName:"상신일시", field:"date", width:230 },
+    { headerName:"상신일시", field:"date", width:230, sort: 'desc' },
     { headerName:"문서상태", field:"docStatus", width:150 },
   ],
   '상신': [ 
     { headerName:"번호", field:"no", width:100 },
     { headerName:"구분", field:"type", width:150 },
     { headerName:"제목", field:"title", flex:1 },
-    { headerName:"상신일시", field:"date", width:230 },
+    { headerName:"상신일시", field:"date", width:230, sort: 'desc' },
     { headerName:"현재 결재자", field:"approver", width:150 },
   ],
   '완료': [
     { headerName:"번호", field:"no", width:100 },
     { headerName:"구분", field:"type", width:150 },
     { headerName:"제목", field:"title", flex:1 },
-    { headerName:"완료일시", field:"completeDate", width:230 },
+    { headerName:"완료일시", field:"completeDate", width:230, sort: 'desc' },
   ],
   '반려': [
     { headerName:"번호", field:"no", width:100 },
     { headerName:"구분", field:"type", width:150 },
     { headerName:"제목", field:"title", flex:1 },
+    // 반려일시 추가
   ],
   '회수': [
     { headerName:"번호", field:"no", width:100 },
     { headerName:"구분", field:"type", width:150 },
     { headerName:"제목", field:"title", flex:1 },
+    // 회수일시 추가
   ]
 }
 const currentColumnDefs = computed(() => columnDefsByTab[tab.value])
@@ -96,28 +122,51 @@ const statusMap = {
 // 3) 필터 & 번호붙이기
 
 const filteredForms = computed(() => {
+  const currentTab = tab.value
+  const expectedStatuses = statusMap[currentTab]
 
-const expectedStatuses = statusMap[tab.value]  // 예: ['심사중', '대기중']
-return docs.value
-    .filter(doc => {
-      if (!doc || !doc.docStatus) return false
-      // 탭 조건에 맞는 docStatus만 통과
-      if (!expectedStatuses.includes(doc.docStatus)) return false
+  // ✅ 필터링
+  const filtered = docs.value.filter(doc => {
+    if (!doc || !doc.docStatus) return false
 
-      // 추가 검색 조건 처리
-      if (search.title && !doc.title?.includes(search.title)) return false
-    // 3) 날짜 검색 (YYYY-MM-DD)
-      if (search.date) {
-        const dateOnly = doc.submittedAt?.slice(0, 10)
-        if (dateOnly !== search.date) return false
-      }
-      return true
-    })
-        .map((doc, idx, arr) => ({
-      ...doc,
-      no: arr.length - idx,  // 번호는 뒤에서부터
-      approver: formatApprover(doc.approverName, doc.approverRank) // ✅ 현재 결재자
-    }))
+    if (!expectedStatuses.includes(doc.docStatus)) return false
+
+    // 조회기간 필터링
+    if (dateRange.start) {
+    const docMonth = (currentTab === '완료'
+        ? doc.completeDate 
+        : doc.date
+      )?.slice(0, 7)  // "YYYY-MM"
+      if (!docMonth || docMonth < dateRange.start) return false
+    }
+    if (dateRange.end) {
+      const docMonth = (currentTab === '완료'
+        ? doc.completeDate 
+        : doc.date
+      )?.slice(0, 7)
+      if (!docMonth || docMonth > dateRange.end) return false
+    } 
+    if (search.title && !doc.title?.includes(search.title)) return false
+
+    if (search.date) {
+      const dateField = currentTab === '완료' ? doc.approvedAt : doc.submittedAt
+      const dateOnly = dateField?.slice(0, 10)
+      if (dateOnly !== search.date) return false
+    }
+    return true
+  })
+  // ✅ 정렬: 완료탭은 approvedAt, 나머지는 submittedAt 기준
+  const sorted = filtered.sort((a, b) => {
+    const dateA = new Date(currentTab === '완료' ? a.approvedAt : a.submittedAt)
+    const dateB = new Date(currentTab === '완료' ? b.approvedAt : b.submittedAt)
+    return dateB - dateA // 최신순 정렬
+  })
+  // ✅ 정렬된 후 번호 부여
+  return sorted.map((doc, idx) => ({
+    ...doc,
+    no: idx + 1,  // 최신순 1번부터
+    approver: formatApprover(doc.approverName, doc.approverRank)
+  }))
 })
 
 // 4) API 호출
@@ -169,7 +218,6 @@ onMounted(() => {
 
 
 // 6) 행 클릭 핸들러
-
 function handleFormRowClick(params) {
   console.log('선택된 행:', params.data)
   const docId = params.data.docId
@@ -183,6 +231,48 @@ function handleFormRowClick(params) {
 </script>
 
 <style>
+/* 공통 입력 요소 테두리 둥글게 */
+input[type="month"],
+.search-bar input,
+.filters select {
+  border-radius: 8px !important;
+  background-color: transparent !important;
+  box-shadow: none !important;
+}
+
+/* 월 선택 input 스타일 */
+input[type="month"] {
+  height: 20px;
+  padding: 6px 8px;
+  border: 1px solid #ccc;
+  background-color: transparent !important;
+  box-shadow: none !important;
+    background: #fff;
+
+
+}
+
+/* 기간 선택 inpust 그룹 정렬 */
+.period .inputs {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  background: #fff;
+
+}
+
+/* 기간 섹션 배치 스타일 */
+.period {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  box-shadow: 1px 1px 20px 1px rgba(0, 0, 0, 0.05);
+  background: transparent;
+
+}
+
 /* 흰색 메인 컨텐츠 박스 */
 .main-box {
   background: #fff;
@@ -192,7 +282,7 @@ function handleFormRowClick(params) {
   height: 700px;
   min-width: 0;
   max-width: 100%;
-  margin: 20px 0 0 0;     /* 상단 32px, 좌우하단 0 */
+  margin: 0px 24px 24px 24px;  
   padding: 40px 40px 32px 40px; /* 상 우 하 좌 */
   box-sizing: border-box;
 }
@@ -204,24 +294,50 @@ function handleFormRowClick(params) {
   color: #00a8e8;
 }
 
+/* 🔷 겹쳐지는 탭 스타일 */
+.tab-wrapper {
+    position: relative;
+    z-index: 2;
+}
+
 /* 탭 영역 */
 .tabs {
   display: flex;
-  gap: 36px;           /* 탭 사이 간격 */
-  font-size: 1.2em;
-  font-weight: 500;
-  margin-left: 4px;
+  align-items: flex-end;
+  gap: 0;
+  position: relative;
+  margin: 50px 24px 0px 24px;
 }
+
 .tabs span {
-  color: #8b95a1;
-  padding-bottom: 8px;
+  font-size: 18px;
+  padding: 10px 30px;
+  border: none;
+  border-bottom: none;
+  background-color: #C8C8C8;
+  color: white;
+  text-decoration: none; /* ✅ 밑줄 제거 */
   cursor: pointer;
-  transition: color 0.2s;
+  border-top-left-radius: 12px;
+  border-top-right-radius: 12px;
+  position: relative;
+  z-index: 1;
+  margin-right: -20px; /* ✅ 가로 겹치기 */
+  transition: all 0.2s ease;
 }
-.tabs .active {
-  color: #1f2937;
-  border-bottom: 3px solid #00a8e8;  /* 클릭시 검은색 강조 */
-  font-weight: bold
+
+.tabs span.active {
+  background-color: #fff;
+  color: #000;
+  z-index: 3;
+  border-bottom: none;
+}
+
+.tabs span:focus,
+.tabs span:active {
+  outline: none;             /* 포커스 테두리 제거 */
+  text-decoration: none;     /* 포커스 시 밑줄 제거 */
+  border-bottom: none;
 }
 
 /* ------- 검색 영역 ------ */
@@ -240,15 +356,14 @@ function handleFormRowClick(params) {
   display: flex;                /* label, input을 한 줄에 배치 */
   flex-direction: row;          /* 가로 정렬(한 줄) */
   align-items: center;          /* 세로 중앙 정렬 */
-  gap: 8px;                     /* label과 input 사이 간격 */
+  gap: 5px;                     /* label과 input 사이 간격 */
   min-width: 150px;             /* 최소 너비(인풋이 깨지지 않게) */
 }
 
 .search-item label {
   font-size: 16.5px;            /* label 폰트 크기 (1.04rem 기준) */
-  color: #343434;               /* label 텍스트 색상 */
+  color: #000000;               /* label 텍스트 색상 */
   margin-bottom: 2px;           /* (행 아닌 열 정렬일 땐 의미 없음, row일 땐 영향 없음) */
-  font-weight: 500;             /* label 굵기 */
   letter-spacing: -0.5px;       /* 자간 조정 */
 }
 
@@ -257,7 +372,6 @@ function handleFormRowClick(params) {
   padding: 8px 12px;            /* 인풋 내부 여백 */
   border: 1.2px solid #e1e7ee;  /* 연한 회색 테두리 */
   border-radius: 8px;           /* 둥근 테두리 */
-  background: #fff;
   font-size: 16px;              /* 입력값, placeholder 모두 16px로 통일 */
   width: 180px;                 /* 입력 란의 고정 폭 */
   min-width: 180px;

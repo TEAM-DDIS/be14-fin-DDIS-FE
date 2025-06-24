@@ -1,7 +1,5 @@
-<!-- src/components/org/structure/Hierarchy.vue -->
 <template>
   <div class="org-container">
-    <!-- 1) 최상위 회사 노드 -->
     <div
       class="node head-root"
       @click="toggleRoot"
@@ -15,10 +13,8 @@
       <button @click="collapseAll" class="control-btn">전체 닫기</button>
     </div>
 
-    <!-- 2) DDIS가 펼쳐져 있을 때 본부 목록 표시 -->
     <ul v-show="expandedRoot" class="org-list">
       <li v-for="hq in headquarters" :key="hq.headCode">
-        <!-- 본부 노드 -->
         <div
           class="node head"
           @click="toggleHead(hq.headCode)"
@@ -28,16 +24,24 @@
         >
           <i :class="expanded[hq.headCode] ? 'fa fa-chevron-down' : 'fa fa-chevron-right'" />
           {{ hq.headName }}
-          
+          <button
+              v-if="!expanded[hq.headCode]"
+              @click.stop="expandHead(hq)"
+              class="sub-btn"
+            >+</button>
+            <button
+              v-else
+              @click.stop="collapseHead(hq)"
+              class="sub-btn"
+            >-</button>
         </div>
 
-        <!-- 본부가 펼쳐져 있을 때 하위 부서 목록 표시 -->
         <ul v-show="expanded[hq.headCode]">
           <li
             v-for="dept in getDepartments(hq.headId)"
             :key="dept.departmentCode"
           >
-            <!-- 부서 노드: 클릭 시 토글, 드래그 가능 -->
+
             <div
               class="node dept"
               @click.stop="selectDepartment(dept)"
@@ -53,16 +57,23 @@
                   : 'fa fa-chevron-right'"
               />
               {{ dept.departmentName }}
-              
+              <button
+                  v-if="!expanded[dept.departmentCode]"
+                  @click.stop="expandDept(dept)"
+                  class="sub-btn"
+                >+</button>
+                <button
+                  v-else
+                  @click.stop="collapseDept(dept)"
+                  class="sub-btn"
+                >-</button>
             </div>
 
-            <!-- 부서가 펼쳐졌을 때 하위 팀 표시 -->
             <ul v-show="expanded[dept.departmentCode]">
               <li
                 v-for="team in getTeams(dept.departmentId)"
                 :key="team.teamCode"
               >
-                <!-- 팀 노드: 클릭 시 토글, 드래그 가능 -->
                 <div
                   class="node team"
                   @click.stop="selectTeam(team)"
@@ -80,8 +91,6 @@
                   {{ team.teamName }}
                   
                 </div>
-
-                <!-- 팀이 펼쳐졌을 때 직원 표시 -->
                 <ul v-show="expanded[team.teamCode]">
                   <li
                     v-for="emp in getEmployeesByTeam(team.teamCode)"
@@ -98,7 +107,7 @@
         </ul>
       </li>
     </ul>
-    <!-- 저장/취소 버튼 -->
+    
     <div class="move-buttons">
       <button class="btn-cancel" @click="cancelChanges">취소</button>
       <button class="btn-confirm" :disabled="pendingMoves.length === 0" @click="saveChanges">
@@ -106,51 +115,113 @@
       </button>
       <span v-if="pendingMoves.length">(총 {{ pendingMoves.length }}건 대기 중)</span>
     </div>
+
+    <BaseToast ref="toastRef" />
+
+    <CancelModal
+      v-if="showCancelModal"
+      message="모든 변경을 취소하시겠습니까?"
+      @confirm="onCancelConfirmed"
+      @close="showCancelModal = false"
+    />
   </div>
-  <BaseToast ref="toastRef" />
 </template>
 
 <script setup>
-import { reactive, ref, onMounted } from 'vue'
+const emit = defineEmits(['dept-selected', 'team-selected', 'reload'])
+const props = defineProps({
+  headquarters: Array,
+  departments:  Array,
+  teams:        Array,
+  employees:    Array,
+})
+
+import { reactive, ref, onMounted, watch } from 'vue'
+import { useUserStore } from '@/stores/user'
+import { useRouter } from 'vue-router'
 import axios from 'axios'
 import BaseToast from '@/components/toast/BaseToast.vue'
+import CancelModal from '@/components/org/structure/CancelModal.vue'
 
+const router    = useRouter()
+const userStore = useUserStore()
+const toastRef  = ref(null)
 const dragData = ref({ type: null, item: null }) 
-const pendingMoves = ref([])  
+const pendingMoves = ref([])
+const showCancelModal = ref(false)
 
-// --- 2) 컴포넌트 내부 상태 ---
+const expandedRoot = ref(true)
+const expanded = reactive({}) 
+
 const headquarters = ref([]) 
 const departments = ref([]) 
 const teams = ref([]) 
 const employees = ref([]) 
 
+const localHQ   = ref([])
+const localDepts= ref([])
+const localTeams= ref([])
+const localEmps = ref([])
 
-// 최상위 “DDIS” 노드 펼침 상태
-const expandedRoot = ref(true)
+function showToast(msg) {
+  toastRef.value?.show(msg)
+}
 
-// 본부/부서/팀 각각 펼침 상태 저장용
-const expanded = reactive({}) 
+function initialize() {
+  localHQ.value    = [...props.headquarters]
+  localDepts.value = [...props.departments]
+  localTeams.value = [...props.teams]
+  localEmps.value  = [...props.employees]
 
+  expandedRoot.value = true
+  Object.keys(expanded).forEach(k => expanded[k] = false)
 
-// 부모 컴포넌트로 이벤트 전달
-const emit = defineEmits(['dept-selected', 'team-selected'])
+  pendingMoves.value = []
+}
 
-const toastRef = ref(null)
+onMounted(initialize)
+watch(() => props.headquarters, initialize, { deep: true })
 
-  function showToast(msg) {
-    toastRef.value?.show(msg)
+function parseJwtPayload(token) {
+  try {
+    const base64Url = token.split('.')[1]
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split('')
+        .map(c => `%${('00' + c.charCodeAt(0).toString(16)).slice(-2)}`)
+        .join('')
+    )
+    return JSON.parse(jsonPayload)
+  } catch (e) {
+    return null
   }
+}
+
+const token = userStore.accessToken
+const payload = parseJwtPayload(userStore.accessToken || token)
+const isHR = payload?.role?.includes('ROLE_HR') || payload?.auth?.includes('ROLE_HR')
+
+if (!isHR) {
+  showToast('접근 권한이 없습니다.')
+  router.push('/error403')
+}
 
 
-// --- 3) Mounted 시점에 백엔드에서 조직 계층과 사원 정보 가져오기 ---
 onMounted(async () => {
   try {
+<<<<<<< HEAD
     // 1) 본부→부서→팀→사원 계층 전체 조회
     const res = await fetch('https://api.isddishr.site/structure/hierarchy')
     if (!res.ok) throw new Error(`HTTP ${res.status}`)
     const data = await res.json()
+=======
+    const { data } = await axios.get(
+      'http://localhost:5000/structure/hierarchy',
+      { headers: { Authorization: `Bearer ${token}` } }
+    )
+>>>>>>> dev
 
-    // 3-1) 본부 목록만 저장
     headquarters.value = data.map(h => ({
       headId: h.headId,
       headName: h.headName,
@@ -158,7 +229,6 @@ onMounted(async () => {
       departments: h.departments 
     }))
 
-    // 3-2) departments, teams, employees 배열을 분리하여 보관
     const deptList = []
     const teamList = []
     const empList = []
@@ -201,16 +271,11 @@ onMounted(async () => {
     teams.value       = teamList
     employees.value   = empList
 
-    // 2) position / rank 데이터가 별도 API가 있으면 여기서 fetch하여 저장
-    // positions.value = [...]
-    // ranks.value     = [...]
-
   } catch (err) {
-    console.error('❌ 조직 계층 로드 실패:', err)
+    showToast('초기 데이터 로드에 실패했습니다.')
   }
 })
 
-// --- 4) 트리 토글 함수들 ---
 function toggleRoot() {
   expandedRoot.value = !expandedRoot.value
 }
@@ -224,35 +289,31 @@ function toggleTeam(teamCode) {
   expanded[teamCode] = !expanded[teamCode]
 }
 
-// 부서 선택 시 (DeptQueryDTO 전체 객체)
 function selectDepartment(dept) {
   toggleDept(dept.departmentCode)
   emit('dept-selected', dept)
 }
 
-// 팀 선택 시 (TeamQueryDTO 전체 객체)
 function selectTeam(team) {
   toggleTeam(team.teamCode)
   emit('team-selected', team)
 }
 
-// --- 5) 드래그 & 드롭 이벤트 처리 ---
-// 드래그 시작 → 어떤 객체를 드래그했는지 저장
+
 function onDragStart(type, item) {
   dragData.value = { type, item }
 }
-// 드래그 오버 시 시각 강조
+
 function onDragOver(event) {
   const node = event.currentTarget.querySelector('.node')
   if (node) node.classList.add('drag-over')
 }
-// 드래그 떠날 때 강조 제거
+
 function onDragLeave(event) {
   const node = event.currentTarget.querySelector('.node')
   if (node) node.classList.remove('drag-over')
 }
 
-// 드롭 처리: 부서→본부, 팀→부서 이동
 async function onDrop(targetType, targetItem, event) {
   const node = event.currentTarget.querySelector('.node')
   if (node) node.classList.remove('drag-over')
@@ -261,7 +322,6 @@ async function onDrop(targetType, targetItem, event) {
   console.log('onDrop', type, '→', targetType, item, 'to', targetItem)
   if (type === 'department' && targetType === 'head') {
     item.headId = targetItem.headId
-    // 변경 이력을 남겨둡니다.
     pendingMoves.value.push({
       type: 'department',
       itemId: item.departmentId,
@@ -287,96 +347,108 @@ async function onDrop(targetType, targetItem, event) {
     dragData.value = { type: null, item: null }
   }
 
-
-// --- 6) 트리에서 필요한 데이터 조회 헬퍼 함수들 ---
-// headId → 본부 소속 부서 목록 반환
 function getDepartments(headId) {
-  return departments.value.filter(d => d.headId === headId)
+  return localDepts.value.filter(d => d.headId === headId)
 }
-// departmentId → 부서 소속 팀 목록 반환
-function getTeams(departmentId) {
-  return teams.value.filter(t => t.departmentId === departmentId)
+function getTeams(deptId) {
+  return localTeams.value.filter(t => t.departmentId === deptId)
 }
-// teamCode → 해당 팀 소속 직원 목록 반환
 function getEmployeesByTeam(teamCode) {
-  return employees.value.filter(e => e.teamCode === teamCode)
+  return localEmps.value.filter(e => e.teamCode === teamCode)
 }
 
-// --- 7) 사원 정보 조회 헬퍼 함수들 ---
-// “회사 대표” (positionCode = 'P005')
 function getCompanyRep() {
   const ceo = employees.value.find(e => e.positionCode === 'P005')
   return ceo ? ceo.employeeName : ''
 }
-// 해당 본부의 “본부장” (positionCode = 'P004')
-function getHeadRep(headCode) {
-  const h = employees.value.find(
-    e => e.headCode === headCode && e.positionCode === 'P004'
-  )
-  return h ? h.employeeName : ''
-}
-// 해당 부서의 “부서장” (positionCode = 'P003')
-function getDeptRep(deptCode) {
-  const d = employees.value.find(
-    e => e.departmentCode === deptCode && e.positionCode === 'P003'
-  )
-  return d ? d.employeeName : ''
-}
-// 해당 팀의 “팀장” (positionCode = 'P002')
-function getTeamRep(teamCode) {
-  const t = employees.value.find(
-    e => e.teamCode === teamCode && e.positionCode === 'P002'
-  )
-  return t ? t.employeeName : ''
-}
 
-/** 변경 내역 서버에 한꺼번에 반영 */
+// 변경 이력 저장
 async function saveChanges() {
   try {
     for (const mv of pendingMoves.value) {
+<<<<<<< HEAD
       const url = `https://api.isddishr.site/org/update/${mv.type}/${mv.itemId}`
       await axios.put(url, mv.payload)
+=======
+      const url = `http://localhost:5000/org/update/${mv.type}/${mv.itemId}`
+      await axios.put(
+        url,
+        mv.payload,
+        { headers: { Authorization: `Bearer ${token}` } }
+      )
+>>>>>>> dev
     }
     showToast('변경 사항이 저장되었습니다.')
     pendingMoves.value = []
+    initialize()
+    emit('reload')
   } catch (err) {
     console.error(err)
     showToast('저장 중 오류가 발생했습니다.')
   }
 }
 async function cancelChanges() {
-  if (!confirm('모든 변경을 취소하시겠습니까?')) return
-  await loadHierarchy()
-  pendingMoves.value = []
+  showCancelModal.value = true
 }
 
-/** 전체 보기 */
-function expandAll() {
-  // 최상위 노드도 열기
-  expandedRoot.value = true
+function onCancelConfirmed() {
+  initialize()
+  emit('reload')
+  showCancelModal.value = false
+}
 
-  // 모든 본부 열기
+// 하이라키 열기, 닫기
+function expandAll() {
+  expandedRoot.value = true
   headquarters.value.forEach(hq => {
     expanded[hq.headCode] = true
   })
-  // 모든 부서 열기
   departments.value.forEach(dept => {
     expanded[dept.departmentCode] = true
   })
-  // 모든 팀 열기
   teams.value.forEach(team => {
     expanded[team.teamCode] = true
   })
 }
 
-/** 전체 닫기 */
 function collapseAll() {
-  // 최상위 노드도 닫기
   expandedRoot.value = false
-
-  // expanded 객체의 값들을 모두 false 로
   Object.keys(expanded).forEach(key => {
     expanded[key] = false
+  })
+}
+
+function expandHead(head) {
+  expanded[head.headCode] = true
+  head.departments.forEach(dept => {
+    expanded[dept.departmentCode] = true
+    dept.teams.forEach(team => {
+      expanded[team.teamCode] = true
+    })
+  })
+}
+
+function collapseHead(head) {
+  expanded[head.headCode] = false
+  head.departments.forEach(dept => {
+    expanded[dept.departmentCode] = false
+    dept.teams.forEach(team => {
+      expanded[team.teamCode] = false
+    })
+  })
+}
+
+function expandDept(dept) {
+  expanded[dept.departmentCode] = true
+  dept.teams.forEach(team => {
+    expanded[team.teamCode] = true
+  })
+}
+
+function collapseDept(dept) {
+  expanded[dept.departmentCode] = false
+  dept.teams.forEach(team => {
+    expanded[team.teamCode] = false
   })
 }
 </script>
@@ -384,7 +456,7 @@ function collapseAll() {
 <style scoped>
 .org-container {
   font-size: 14px;
-  color: #333;
+  color: var(--text-main);
   padding: 0 12px;
 }
 
@@ -416,7 +488,20 @@ function collapseAll() {
   box-shadow: inset 1px 1px 10px rgba(0, 0, 0, 0.25);
 }
 
-/* 최상위 DDIS 노드 스타일 */
+.sub-btn {
+  margin-left: 8px;
+  font-size: 12px;
+  font-weight: bold;
+  padding: 2px 6px;
+  border: none;
+  border-radius: 4px;
+  background: #ddd;
+  cursor: pointer;
+}
+.sub-btn:hover {
+  background: #aaa;
+}
+
 .node.head-root {
   font-size: 20px;
   font-weight: bold;
@@ -430,14 +515,7 @@ function collapseAll() {
   font-size: 12px;
   color: #00a8e8;
 }
-/* “EXPANDED” 상태 강조 */
-/* .expanded-root {
-  background-color: #f3f3f3;
-  border-radius: 4px;
-  padding: 2px 4px;
-} */
 
-/* 계층별 리스트 */
 .org-list,
 .org-list ul {
   list-style: none;
@@ -448,7 +526,7 @@ function collapseAll() {
   position: relative;
   padding-left: 30px;
 }
-/* 세로 라인 */
+
 .org-list li::before {
   content: '';
   position: absolute;
@@ -458,7 +536,7 @@ function collapseAll() {
   height: 100%;
   background: #ccc;
 }
-/* 가로 라인 */
+
 .org-list li::after {
   content: '';
   position: absolute;
@@ -482,7 +560,6 @@ function collapseAll() {
   color: #00a8e8;
 }
 
-/* 본부/부서/팀/직원 폰트 크기 차등 적용 */
 .node.head,
 .node.dept,
 .node.team {
@@ -512,14 +589,12 @@ function collapseAll() {
   color: #00a8e8;
 }
 
-/* Hover 시 강조 효과 */
 .node.head:hover,
 .node.dept:hover,
 .node.team:hover {
-  background-color: #f0f0f0;
+  color: #00a8e8;
 }
 
-/* 드래그 오버 시 강조 스타일 */
 .drag-over {
   border: 1px solid #2f80ed !important;
   background-color: #eaf4ff !important;

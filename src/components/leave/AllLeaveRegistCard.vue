@@ -86,15 +86,15 @@
   })
 
   const columnDefs = [
-    { headerName: '번호', valueGetter: params => params.api.getDisplayedRowCount() - params.node.rowIndex, sortable: false },
+    { headerName: '번호', valueGetter: params => params.api.getDisplayedRowCount() - params.node.rowIndex, sortable: false, width: 100 },
     { headerName: '사번', field: 'employeeCode' },
-    { headerName: '성명', field: 'employeeName' },
-    { headerName: '구분', field: 'leaveType' },
-    { headerName: '처리상태', field: 'approvalStatus' },
+    { headerName: '성명', field: 'employeeName', width: 150 },
+    { headerName: '구분', field: 'leaveType', width: 150 },
+    { headerName: '처리상태', field: 'approvalStatus', width: 150 },
     { headerName: '신청일', field: 'requestDate' },
     { headerName: '시작일', field: 'startDate' },
     { headerName: '종료일', field: 'endDate' },
-    { headerName: '사용일수', field: 'leaveDays' },
+    { headerName: '사용일수', field: 'leaveDays', width: 150 },
     { headerName: '사유', field: 'reason' },
     { headerName: '반려사유', field: 'rejectReason' }
   ]
@@ -203,7 +203,7 @@
 
 <style scoped>
   .all-leave-regist-card {
-    background: #fff;
+    background: var(--bg-box);
     padding: 30px;
     border-radius: 0px 12px 12px 12px;
     box-shadow: 1px 1px 20px 1px rgba(0, 0, 0, 0.05);
@@ -227,8 +227,10 @@
   .search-bar input {
     width: 150px;
     padding: 6px 8px;
-    border: 1px solid #ccc;
+    border: 1px solid var(--border-color);
     border-radius: 4px;
+    background: var(--modal-bg);
+    color: var(--text-main);
   }
 
   .search {
@@ -243,8 +245,10 @@
 
   .filters select {
     padding: 6px 8px;
-    border: 1px solid #ccc;
+    border: 1px solid var(--border-color);
     border-radius: 4px;
+    background: var(--modal-bg);
+    color: var(--text-main);
   }
 
   .fixed-select {
@@ -254,8 +258,8 @@
   .download-btn {
     font-size: 14px;
     font-weight: bold;
-    background-color: #00a8e8;
-    color: white;
+    background-color: var(--primary);
+    color: var(--text-on-primary);
     border: 1px solid transparent;
     border-radius: 10px;
     padding: 10px 30px;
@@ -268,9 +272,9 @@
   }
 
   .download-btn:hover {
-    background-color: white;
-    color: #00a8e8;
-    border-color: #00a8e8;
+    background-color: var(--text-on-primary);
+    color:  var(--primary);
+    border-color: var(--primary);
     box-shadow:
     inset 1px 1px 10px rgba(0, 0, 0, 0.25);
   }

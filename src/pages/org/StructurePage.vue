@@ -1,3 +1,4 @@
+<!-- 조직 및 직무 > 조직 구성 > 조직 구성 조회-->
 <template>
   <h1 class="page-title">조직 구성</h1>
   <p class="desc">조직도 조회</p>
@@ -23,9 +24,10 @@
               :class="{ active: emp.employeeId === selectedEmployee?.employeeId }"
             >
               <img
-                src="@/assets/icons/profile_img.svg"
-                alt="profile"
+                :src="getProfileUrl(emp.profileImgPath)"
+                alt="프로필"
                 class="profile"
+                @error="onImageError"
               />
               <div class="member-info">
                 <strong>{{ emp.employeeName }}</strong>
@@ -47,9 +49,10 @@
           <div class="profile-top">
             <div class="profile-card">
               <img
-                src="@/assets/icons/profile_img.svg"
-                alt="profile"
+                :src="getProfileUrl(selectedEmployee.profileImgPath)"
+                alt="프로필"
                 class="profile2"
+                @error="onImageError"
               />
               <h4>
                 {{ selectedEmployee.rankName }}
@@ -103,10 +106,26 @@ const selectedEmployee = ref(null)
 
 const router = useRouter()
 
-// 인사팀에서만 등록, 삭제버튼 
+const props = defineProps({
+  profileImg: String,
+  name: String,
+  role: String
+})
+
+// S3 프로필 이미지 가져오기
+const S3_BASE_URL = 'https://ddisbucket-fin.s3.ap-northeast-2.amazonaws.com'
+
+const getProfileUrl = path =>
+  path ? `${S3_BASE_URL}/${path}` : '/images/erpizza_profile.svg'
+
+function onImageError(e) {
+  e.target.src = '/images/erpizza_profile.svg'
+}
+
+// 권한 설정: 인사팀에서만 등록, 삭제버튼 
 const userStore = useUserStore()
-const token = localStorage.getItem('token')
-const payload = parseJwtPayload(userStore.accessToken || token)
+const token = userStore.accessToken
+const payload = parseJwtPayload(token)
 const isHR = payload?.role?.includes('ROLE_HR') || payload?.auth?.includes('ROLE_HR')
 
 function parseJwtPayload(token) {
@@ -125,7 +144,6 @@ function parseJwtPayload(token) {
   }
 }
 
-// 1) 초기 로딩: 조직 계층 가져오기 
 onMounted(async () => {
   try {
     const url = 'https://api.isddishr.site/structure/hierarchy'
@@ -139,22 +157,21 @@ onMounted(async () => {
   }
 })
 
-// 2) 팀(node) 클릭 시: selectedTeam 세팅 & teamMembers에 팀원 목록 채우기
+// 팀 클릭 시 팀원 목록 표시
 function onTeamSelected(team) {
   selectedTeam.value = team
   selectedEmployee.value = null
 
-  // 이미 받아온 hierarchy에서 해당 팀의 members를 꺼내서 팀원 목록에 할당
-  // team.members에는 { employeeId, employeeName, positionName, rankName } 형태의 배열
   teamMembers.value = (team.members || []).map(e => ({
     employeeId: e.employeeId,
     employeeName: e.employeeName,
+    profileImgPath: e.employeePhotoUrl,
     positionName: e.positionName,
     rankName: e.rankName,
   }))
 }
 
-// 3) 팀원 클릭 시: 사원 상세 조회
+// 팀원 클릭 시 사원 상세 조회
 async function onEmployeeSelected(emp) {
   try {
     const url = `https://api.isddishr.site/structure/employee/${emp.employeeId}`
@@ -162,7 +179,7 @@ async function onEmployeeSelected(emp) {
     const res = await fetch(url)
     if (!res.ok) throw new Error(`HTTP ${res.status}`)
     const data = await res.json()
-    // data: EmployeeQueryDTO 형태
+
     selectedEmployee.value = {
       employeeId: data.employeeId,
       employeeName: data.employeeName,
@@ -174,7 +191,8 @@ async function onEmployeeSelected(emp) {
       teamId: data.teamId,
       birthdate: data.birthdate,
       email: data.email,
-      jobCode: data.jobCode || ''
+      jobCode: data.jobCode || '',
+      profileImgPath: data.employeePhotoUrl
     }
   } catch (e) {
     console.error('❌ 사원 상세 조회 실패:', e)
@@ -182,12 +200,10 @@ async function onEmployeeSelected(emp) {
   }
 }
 
-// 4) 편집 버튼 클릭 시: route 변경
 function onEdit() {
   router.push('/org/structure/edit')
 }
 
-// 프로필 테이블 데이터 (이름, 생년월일, 직급, 사번)
 const profileRowData = computed(() => {
   if (!selectedEmployee.value) return []
   const e = selectedEmployee.value
@@ -199,7 +215,6 @@ const profileRowData = computed(() => {
   ]
 })
 
-// 상세 정보 테이블 데이터 (본부, 부서, 팀, 직책, 직급, 직무코드, 이메일)
 const detailsRowData = computed(() => {
   if (!selectedEmployee.value) return []
   const e = selectedEmployee.value
@@ -214,13 +229,12 @@ const detailsRowData = computed(() => {
   ]
 })
 
-// helper: headId → headName 찾기
+// 헬퍼 함수 (Id -> Name 변환)
 function findHeadName(headId) {
   const head = hierarchy.value.find(h => h.headId === headId)
   return head ? head.headName : ''
 }
 
-// helper: departmentId → departmentName 찾기
 function findDeptName(deptId) {
   for (const head of hierarchy.value) {
     const dept = head.departments.find(d => d.departmentId === deptId)
@@ -236,51 +250,54 @@ function findDeptName(deptId) {
   margin-bottom: 30px;
   color: #00a8e8;
 }
+
 .desc {
   display: block;
   margin-left: 20px;
   margin-bottom: 10px;
   font-size: 18px;
 }
+
 .content-box {
-  background: #ffffff;
+  background: var(--bg-box);
   border-radius: 12px;
   padding: 20px 32px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-  margin: 24px;
+  margin-left: 20px;
   max-width: 100%;
   overflow-x: auto;
 }
+
 .org-dashboard {
   display: grid;
   grid-template-columns: 0.7fr 0.6fr 1fr;
   gap: 16px;
 }
+
 .left,
 .team-panel,
 .profile-panel {
   overflow-y: auto;
   scrollbar-gutter: stable;
 }
+
 .left,
 .team-panel {
   padding: 16px;
   border-right: 1px solid #ddd;
 }
+
 .profile-panel {
   padding: 16px;
 }
 
-/* placeholder */
 .placeholder {
   color: #00a8e8;
   font-size: 15px;
-  /* font-weight: bold; */
   padding: 32px;
   text-align: center;
 }
 
-/* member list */
 .member-list {
   list-style: none;
   margin: 0;
@@ -294,29 +311,33 @@ function findDeptName(deptId) {
   border-bottom: 1px solid #d1d1d1;
 }
 .member-list li.active {
-  background: #efefef;
+  background: var(--bg-main);
   transition: background-color 0.2s;
 }
+
 .profile {
   width: 40px;
   height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
   margin-right: 20px;
 }
+
 .member-info strong {
   display: block;
 }
 .member-info span {
   font-size: 14px;
-  color: #3b3b3b;
+  color: var(--text-main);
 }
 
-/* right profile */
 .profile-top {
   display: flex;
   align-items: flex-start;
   gap: 30px;
   margin-bottom: 16px;
 }
+
 .profile-card {
   margin-bottom: 20px;
   display: flex;
@@ -326,29 +347,35 @@ function findDeptName(deptId) {
   border-radius: 10px;
   padding: 10px 30px;
 }
+
 .profile2 {
   width: 120px;
   height: 120px;
+  border-radius: 50%;
+  object-fit: cover;
   margin: 20px auto 10px auto;
 }
 
-/* Profile & Details Table */
 .profile-table,
 .details-table {
   width: 100%;
   border-collapse: collapse;
   margin-bottom: 16px;
 }
+
 .profile-table td,
 .details-table td {
   border: 1px solid #c8c8c8;
   padding: 8px 12px;
 }
+
 .label-cell {
   background-color: #f8f9fa;
   font-weight: bold;
   width: 30%;
+  background-color: var(--bg-label-cell);
 }
+
 .value-cell {
   padding-left: 12px;
 }
@@ -358,7 +385,6 @@ function findDeptName(deptId) {
   margin-bottom: 8px;
 }
 
-/* Edit 버튼 */
 .edit-button {
   align-self: flex-end;
   font-size: 14px;
