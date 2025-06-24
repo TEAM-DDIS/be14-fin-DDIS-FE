@@ -387,6 +387,7 @@
   .status-main {
     font-size: 18px;
     font-weight: 600;
+    color: var(--primary);
   }
 
   /* “입니다.” */
@@ -399,7 +400,7 @@
   .time-info {
     font-size: 12px;
     margin-bottom: 16px;
-    color: #666;
+    /* color: #666; */
     text-align: right;
   }
 
@@ -448,12 +449,12 @@
   .percent-text strong {
     font-size: 22px;
     font-weight: bold;
-    color: #000;
+    color: var(--text-main);
   }
 
   .percent-text .label {
     font-size: 12px;
-    color: #666;
+    /* color: #666; */
     margin: 4px 0 2px;
   }
 
@@ -482,7 +483,7 @@
   }
 
   .check-btn:hover {
-    background-color: var(--text-on-primary);
+    background-color: var(--bg-main);
     color: var(--primary);
     border: 1px solid var(--primary);
     box-shadow: inset 1px 1px 10px rgba(0, 0, 0, 0.25);

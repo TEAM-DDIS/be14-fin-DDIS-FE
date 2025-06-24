@@ -68,7 +68,7 @@
     }
 
     input[type="month"] {
-        border: 1px solid var(--border-color);
+        border: 1px solid #ccc;
         border-radius: 8px;
         padding: 6px 8px;
         height: 22px;
@@ -81,7 +81,9 @@
         content: attr(placeholder);
         color: #aaa;
     }
-
+    .date-filter-box input[type="month"]::-webkit-calendar-picker-indicator {
+    filter: var(--icon-filter);
+    }
     input[type="month"]:not(:valid) {
         color: transparent;
     }
@@ -93,7 +95,7 @@
 
     .search-btn {
         background-color: var(--primary);
-        color: white;
+        color: var(--text-on-primary);  
         font-weight: bold;
         border: 1px solid transparent;
         border-radius: 10px;
@@ -104,7 +106,7 @@
     }
 
     .search-btn:hover {
-        background-color: var(--text-on-primary);
+        background-color: var(--bg-main);
         color: var(--primary);
         border-color: var(--primary);
         box-shadow: inset 1px 1px 10px rgba(0, 0, 0, 0.25);

@@ -162,7 +162,7 @@
   }
 
   .apply-btn:hover {
-    background-color: var(--text-on-primary);
+    background-color: var(--bg-main);
     color: var(--primary);
     border-color: var(--primary);
     box-shadow:
@@ -177,7 +177,7 @@
   }
 
   .modal {
-    background: var(--bg-box);
+    background: var(--modal-bg2);
     padding: 30px;
     border-radius: 20px;
     width: 420px;
