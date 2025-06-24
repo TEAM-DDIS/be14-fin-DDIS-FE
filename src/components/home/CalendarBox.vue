@@ -394,21 +394,20 @@ onActivated(() => {
 .tab-menu button {
   font-size: 15px;
   padding: 6px 14px;
-  background-color: var(--bg-menu-btn-hover); 
+  background-color: #C8C8C8; 
   border: none;
   border-radius: 10px 10px 0 0;
   margin-right: -8px;
   box-shadow: 1px 1px 20px rgba(0, 0, 0, 0.05);
   transition: all 0.2s ease;
-  color: var(--text-main);   
+  color: var(--bg-main); 
   cursor: pointer;
 }
 .tab-menu button.active {
-  background-color: var(--bg-box);
-  color: var(--text-main);       
+  background: var(--bg-box);
+  color: var(--modal-text);      
   font-weight: bold;
 }
-
 /* 캘린더 카드 */
 .calendar-card {
   background-color: var(--bg-box); 
