@@ -207,10 +207,6 @@
                         name: '기안양식함', 
                         path: '/eapproval/temp'
                     },
-                    {
-                        name: '임시저장함', 
-                        path: '/eapproval/temporarydoc'
-                    },
                 ]
             },
             '문서함': {

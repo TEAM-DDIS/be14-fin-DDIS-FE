@@ -616,9 +616,11 @@ table {
 /* 하단 버튼 그룹 */
 .button-group {
   display: flex;
-  justify-content: flex-end; /* 🔧 오른쪽 정렬 */
-  margin-top: 24px;
-  margin-bottom: 70px;
+  gap: 12px;
+  margin-bottom: 40px;
+  margin-left: auto;
+  margin-top: 30px;
+  margin-right: 100px;
 }
 
 /* 버튼 기본 */

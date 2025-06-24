@@ -75,7 +75,7 @@
 
 <style scoped>
   .employee-info-card {
-    background: #ffffff;
+    background: var(--bg-box);;
     border-radius: 12px;
     padding: 20px;
     box-shadow: 0 1px 6px rgba(0, 0, 0, 0.05);
@@ -87,7 +87,7 @@
     width: 100%;
     border-collapse: collapse;
     table-layout: fixed; /* ✅ 각 열 너비 균등 */
-    text-align: center;
+    text-align: left;
     font-size: 14px;
   }
 

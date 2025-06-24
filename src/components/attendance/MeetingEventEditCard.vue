@@ -88,10 +88,12 @@
                 title: form.title,
                 time: form.time
         })
+        window.location.reload()
     }
 
     function handleDelete() {
         emit('delete', props.initialData.id)
+        window.location.reload()
     }
 </script>
 
@@ -102,7 +104,7 @@
 
 .btn-area {
   display: flex;
-  justify-content: flex-end;
+  justify-content: center;
   gap: 8px;
   margin-top: 30px;
 }

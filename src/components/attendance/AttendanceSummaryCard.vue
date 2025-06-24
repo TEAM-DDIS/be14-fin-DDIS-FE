@@ -139,7 +139,7 @@
     if (!token) return
 
     try {
-      const res = await fetch('http://localhost:5000/attendance/status/me', {
+      const res = await fetch('https://api.isddishr.site/attendance/status/me', {
         headers: { Authorization: `Bearer ${token}` }
       })
       const data = await res.json()
@@ -216,7 +216,7 @@
   const postCheckIn = async () => {
     const token = useUserStore().accessToken
     try {
-      const res = await fetch('http://localhost:5000/attendance/check-in', {
+      const res = await fetch('https://api.isddishr.site/attendance/check-in', {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`,
@@ -239,7 +239,7 @@
   const postCheckOut = async () => {
     const token = useUserStore().accessToken
     try {
-      const res = await fetch('http://localhost:5000/attendance/check-out', {
+      const res = await fetch('https://api.isddishr.site/attendance/check-out', {
         method: 'PUT',
         headers: {
           Authorization: `Bearer ${token}`,
@@ -357,7 +357,6 @@
     border-radius: 12px;
     box-shadow: 1px 1px 20px 1px rgba(0, 0, 0, 0.05);
     font-family: 'Pretendard', sans-serif;
-    color: var(--text-main);
   }
 
   .greeting {
@@ -371,13 +370,11 @@
   .greeting-main {
     font-size: 18px;
     font-weight: 600;
-    color: var(--text-main);
   }
   /* “님 안녕하세요.” */
   .greeting-sub {
     font-size: 16px;
     font-weight: 400;
-    color: var(--text-sub);
   }
 
   /* status 부분 래핑 */
@@ -390,7 +387,6 @@
   .status-main {
     font-size: 18px;
     font-weight: 600;
-    color: var(--text-main);
   }
 
   /* “입니다.” */
@@ -398,13 +394,12 @@
     font-size: 16px;
     font-weight: 400;
     margin-left: 4px;
-    color: var(--text-sub);
   }
 
   .time-info {
     font-size: 12px;
     margin-bottom: 16px;
-    color: var(--text-sub);
+    color: #666;
     text-align: right;
   }
 
@@ -429,7 +424,7 @@
 
   .circle-bg {
     fill: none;
-    stroke: var(--border-color);
+    stroke: #eee;
     stroke-width: 3;
   }
 
@@ -453,12 +448,12 @@
   .percent-text strong {
     font-size: 22px;
     font-weight: bold;
-    color: var(--text-main);
+    color: #000;
   }
 
   .percent-text .label {
     font-size: 12px;
-    color: var(--text-sub);
+    color: #666;
     margin: 4px 0 2px;
   }
 
@@ -466,7 +461,6 @@
     font-size: 18px;
     font-weight: bold;
     margin: 0;
-    color: var(--text-main);
   }
 
   .check-btn {
@@ -476,28 +470,44 @@
     border-radius: 10px;
     font-weight: bold;
     font-size: 18px;
-    color: var(--text-on-primary);
+    color: white;
     padding-bottom: 4px;
     margin: 0 auto;
     margin-top: 50px;
+    margin-bottom: 10px;
     display: block;
     cursor: pointer;
-    box-shadow: 1px 1px 20px 1px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
     transition: background-color 0.2s, box-shadow 0.2s;
   }
 
   .check-btn:hover {
-    background-color: white;
+    background-color: var(--text-on-primary);
     color: var(--primary);
     border: 1px solid var(--primary);
     box-shadow: inset 1px 1px 10px rgba(0, 0, 0, 0.25);
   }
 
   .btn-blue {
-  background-color: var(--primary);
+    background-color: var(--primary);
   }
 
   .btn-gray {
-  background-color: var(--primary);
+    background-color: var(--primary);
+  }
+
+  .check-btn:disabled {
+    background-color: #ccc !important;
+    color: #666 !important;
+    cursor: not-allowed !important;
+    border: 1px solid #ccc !important;
+    box-shadow: none !important;
+  }
+
+  .check-btn:disabled:hover {
+    background-color: #ccc !important;
+    color: #666 !important;
+    border: 1px solid #ccc !important;
+    box-shadow: none !important;
   }
 </style>
