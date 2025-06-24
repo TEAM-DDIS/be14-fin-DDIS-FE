@@ -485,6 +485,11 @@ function collapseDept(dept) {
 .node.team:hover {
   color: #00a8e8;
   border-radius: 4px;
+  cursor: pointer;
+}
+.node.emp.job-option:hover {
+  color: #00a8e8;
+  cursor: pointer;
 }
 
 .dept-children {

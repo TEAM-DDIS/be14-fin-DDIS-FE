@@ -42,8 +42,7 @@
 import { onMounted, computed } from 'vue'
 import { useUserStore } from '@/stores/user'
 import { Client } from '@stomp/stompjs'
-import { useNotificationStore } from '@/stores/notice'  // <-- path 수정
-
+import { useNotificationStore } from '@/stores/notice'
 // Pinia 스토어 인스턴스
 const store = useNotificationStore()
 // 부모에게 전달할 이벤트
@@ -122,29 +121,87 @@ async function onClick(item) {
   z-index: 1000;
 }
 .modal-container {
-  width: 550px;
+  width: 480px;
   height: 250px;
   background: var(--bg-box);
   border-radius: 8px;
   margin: 60px 120px auto auto;
-  overflow: hidden;
-  overflow-y: auto;
   box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  padding: 5px 10px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
+
 .modal-header {
+  flex: 0 0 auto;
   display: flex;
   justify-content: space-between;
-  padding: 10px 16px;
+  padding: 0 16px;
   border-bottom: 1px solid #e5e5e5;
 }
-.modal-title { font-weight: bold; color: var(--text-main); }
-.modal-close { background: none; border: none; font-size: 1.25rem; cursor: pointer; }
-.modal-body { padding: 12px 16px; }
-.notification-list { list-style: none; padding: 0; margin: 0; }
-.notification-item + .notification-item { margin-top: 10px; }
-.notification-link { color: #00aeef; font-weight: bold; text-decoration: none; }
-.notification-link:hover { text-decoration: underline; }
-.notification-text { color: #000; }
-.notification-time { font-weight: bold; font-size: 0.85rem; margin-right: 8px; }
-.no-notice { text-align: center; color: #666; margin-top: 40px; }
+.modal-title { 
+  font-weight: bold; 
+  color: var(--text-main); 
+}
+.modal-close { 
+  background: none; 
+  border: none; 
+  font-size: 1.25rem; 
+  cursor: pointer; 
+  color: var(--text-main);
+}
+.modal-body {
+  flex: 1 1 auto;
+  padding: 6px 16px;
+  overflow-y: auto;
+}
+
+.modal-body::-webkit-scrollbar {
+  display: none;
+}
+.modal-body {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.notification-list { 
+  list-style: none; 
+  padding: 0; 
+  margin: 0;
+}
+
+.notification-item + .notification-item { 
+  margin-top: 10px; 
+}
+.notification-link { 
+  color: #00aeef; 
+  font-weight: bold; 
+  text-decoration: none; 
+}
+.notification-link:hover { 
+  text-decoration: underline; 
+}
+.notification-text { 
+  color: var(--text-main); 
+}
+.notification-link,
+.notification-text {
+  display: block;              /* 전체 너비를 차지하도록 변경 */
+  white-space: normal;         /* 줄바꿈 허용 */
+  word-wrap: break-word;       /* 단어 단위로 줄바꿈 */
+  overflow-wrap: break-word;   /* 긴 단어도 줄바꿈 */
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.notification-time { 
+  font-weight: bold; 
+  font-size: 15px;
+  margin-right: 8px; 
+}
+.no-notice { 
+  text-align: center; 
+  color: var(--text-sub); 
+  margin-top: 40px; 
+}
 </style>

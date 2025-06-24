@@ -581,6 +581,7 @@ function collapseDept(dept) {
 .node.dept:hover,
 .node.team:hover {
   color: #00a8e8;
+  cursor: pointer;
 }
 
 .drag-over {

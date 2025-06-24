@@ -32,7 +32,7 @@ export const useNotificationStore = defineStore('notifications', {
 
         // 전체 알림 목록 조회 (GET /notice)
         const res = await axios.get(
-          `http://localhost:5000/notice`,
+          `http://localhost:5000/notice/me`,
           {
             headers: { Authorization: `Bearer ${token}` }
           }

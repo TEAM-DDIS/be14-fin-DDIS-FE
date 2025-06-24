@@ -528,9 +528,10 @@ async function handleAddOrg({ type, name, parentId }) {
         }
       }
     }
+    // showToast("등록 성공!")
     showAddModal.value = false
+    window.location.reload()
   } catch (e) {
-    console.error('추가 실패', e)
     showToast('조직 추가 중 오류가 발생했습니다.')
   }
 }
@@ -560,8 +561,9 @@ async function handleDeleteOrg({ type, ids }) {
        )
       )
     )
-    showToast('삭제 성공!')
     showDeleteModal.value = false
+    window.location.reload()
+    // showToast('삭제 성공!')
     await loadHierarchy()
   } catch (err) {
     console.error('삭제 실패', err)
@@ -729,7 +731,8 @@ function handleReload() {
 }
 .toolbar-search {
   padding: 6px 12px;
-  border: 1px solid #dddddd;
+  border: 1px solid var(--border-color);
+  color: var(--text-main);
   border-radius: 8px;
   font-size: 16px;
   width: 200px;

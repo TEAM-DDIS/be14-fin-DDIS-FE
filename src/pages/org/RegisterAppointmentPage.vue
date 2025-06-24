@@ -58,6 +58,7 @@
                 <input
                   v-model="form.effectiveDate"
                   type="date"
+                  :min="today"
                   :disabled="!form.title"
                 />
               </td>
@@ -66,14 +67,16 @@
         </div>
 
         <div class="org-section">
-          <AgGridVue
+          <BaseGrid
             class="ag-theme-alpine custom-theme"
             :gridOptions="{ theme: 'legacy' }"
-            :rowData="rowData"
+            :width="'100%'"
+            :height="'285px'"
             :columnDefs="columnDefs"
+            :rowData="rowData"
             :defaultColDef="{ sortable: true, resizable: true }"
-            @grid-ready="onGridReady"
-            style="width: 100%; height: 285px;"
+            :pagination="false" 
+            @ready="onGridReady"
           />
         </div>
       </div>
@@ -105,18 +108,19 @@
   @close="showOrgSelectorModal = false"
   @rank-selected="handleOrgSelected"
   @job-selected="handleOrgSelected"
+  class="org-select"
 />
 
 <BaseToast ref="toastRef" />
 </template>
 
 <script setup>
-import { reactive, ref, watch, onMounted, nextTick } from 'vue'
+import { reactive, ref, watch, onMounted, computed, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
 import 'core-js/features/array/flat-map'
 import { useUserStore } from '@/stores/user'
-import { AgGridVue } from 'ag-grid-vue3'
+import BaseGrid from '@/components/grid/BaseGrid.vue'
 import { ModuleRegistry, AllCommunityModule } from 'ag-grid-community'
 ModuleRegistry.registerModules([AllCommunityModule])
 
@@ -227,7 +231,6 @@ const positionsNew = ref([])
 const ranksNew     = ref([])
 
 const employeeCache = reactive(new Map())
-
 
 onMounted(async () => {
   try {
@@ -683,7 +686,11 @@ async function submit() {
     await axios.post(
       'http://localhost:5000/appointment/create',
       payload,
-      { headers: { 'Content-Type': 'application/json' } }
+      { headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${userStore.accessToken}`
+       }
+      }
     );
     showToast('등록 성공!');
     router.push('/org/appointment');
@@ -696,6 +703,14 @@ async function submit() {
   }
 }
 
+// 오늘 날짜 계산
+const today = computed(() => {
+  const d = new Date()
+  const yyyy = d.getFullYear()
+  const mm = String(d.getMonth() + 1).padStart(2, '0')
+  const dd = String(d.getDate()).padStart(2, '0')
+  return `${yyyy}-${mm}-${dd}`
+})
 
 function cancel() {
   router.back()
@@ -868,4 +883,13 @@ function cancel() {
   border-color: #00a8e8;
   box-shadow: inset 1px 1px 10px rgba(0, 0, 0, 0.25);
 }
+
+.org-select {
+  z-index: 10;
+}
+
+/* :deep(.ag-row) {
+  height: 50px !important;
+  min-height: 50px !important;
+} */
 </style>
