@@ -16,8 +16,8 @@
     </div>
 
     <!-- 2) AG Grid -->
-    <div class="ag-theme-alpine ag-grid-box">
-      <AgGridVue
+    <div class="ag-theme-alpine ag-grid-box custom-theme">
+      <BaseGrid
         class="ag-theme-alpine custom-theme"
         :gridOptions="{ theme: 'legacy' }"
         :style="`width: 100%; height: 500px;`"
@@ -28,8 +28,8 @@
         :pagination="true"
         :paginationPageSize="pageSize"
         :paginationPageSizeSelector="[5,10,20,50]"
-        @grid-ready="onGridReady"
-        @cell-clicked="onCellClick"
+        @ready="onGridReady"
+        @cell-click="onCellClick"
       />
     </div>
 
@@ -45,6 +45,7 @@
   <!-- 4) 삭제 확인 모달 -->
   <div v-if="showDeleteModal" class="modal-overlay">
     <div class="modal-content">
+      <h2> 징계 항목 삭제</h2>
       <p>정말로 선택된 항목을 삭제하시겠습니까?</p>
       <div class="modal-buttons">
         <button class="btn-delete cancel" @click="cancelDelete">취소</button>
@@ -70,7 +71,6 @@ import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
-import { AgGridVue } from 'ag-grid-vue3'
 import BaseToast from '@/components/toast/BaseToast.vue'
 import {
   ModuleRegistry,
@@ -82,6 +82,7 @@ import {
   CellStyleModule,
   ValidationModule
 } from 'ag-grid-community'
+import BaseGrid from '@/components/grid/BaseGrid.vue'
 
 // — Axios 기본 URL 설정
 axios.defaults.baseURL = 'http://localhost:5000'
@@ -328,23 +329,23 @@ async function onCellClick(e) {
 .page-title {
   margin-left: 20px;
   margin-bottom: 30px;
-  color: #00a8e8;
+  color: var(--primary);
 }
 .desc {
   display: block;
   margin-left: 20px;
   margin-bottom: 10px;
+  font-size: 18px;
 }
 /* 카드 영역 */
 .card {
-  background: #fff;
+  background: var(--bg-box);
   border-radius: 12px;
   box-shadow: 1px 1px 20px 1px rgba(0, 0, 0, 0.05);
-  width: 100%;
-  margin: 20px 0 0 10px;
+  width: 98%;
+  margin: 0 0 30px 20px;
   padding: 20px 40px 32px 40px;
   box-sizing: border-box;
-  margin-bottom: 30px;
 }
 /* 검색창 */
 .search-bar-in-card {
@@ -365,11 +366,12 @@ async function onCellClick(e) {
 }
 .search-bar-in-card .search-input {
   width: 100%;
-  border: 1px solid #D1D5DB;
-  border-radius: 4px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
   padding: 6px 8px;
   font-size: 14px;
-  color: #1F2937;
+  color: var(--text-main);
+  background: var(--modal-box-bg);
 }
 .search-bar-in-card .search-input:focus {
   outline: none;
@@ -393,8 +395,8 @@ async function onCellClick(e) {
   gap: 10px;
 }
 .btn-save {
-  background-color: #00a8e8;
-  color: white;
+  background-color: var(--primary);
+  color: var(--text-on-primary);
   font-weight: bold;
   border: 1px solid transparent;
   border-radius: 10px;
@@ -405,9 +407,9 @@ async function onCellClick(e) {
   box-sizing: border-box;
 }
 .btn-save:hover {
-  background-color: white;
-  color: #00a8e8;
-  border-color: #00a8e8;
+  background-color: var(--bg-main);
+  color: var(--primary);
+  border-color: var(--primary);
   box-shadow: inset 1px 1px 10px rgba(0, 0, 0, 0.25);
 }
 .btn-delete {
@@ -440,27 +442,36 @@ async function onCellClick(e) {
   z-index: 1000;
 }
 .modal-content {
-  background: #ffffff;
-  border-radius: 8px;
-  padding: 20px 24px;
-  width: 320px;
+  background: var(--modal-box-bg);
+  border-radius: 12px;
+  padding: 16px 24px;
+  width: 340px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
   text-align: center;
 }
+.modal-content h2 {
+  margin-bottom: 30px;
+}
 .modal-content p {
-  margin-bottom: 20px;
-  font-size: 16px;
+  margin-bottom: 40px;
+  font-size: 18px;
 }
 .modal-buttons {
   display: flex;
-  justify-content: space-between;
-}
-.modal-buttons .btn-delete {
-  width: 48%;
+  justify-content: center;
+  gap: 16px;
 }
 .modal-buttons .btn-save {
-  width: 48%;
+  width: 35%;
+  padding: 12px 0;
+  margin-bottom: 10px;
 }
+.modal-buttons .btn-delete {
+  width: 35%;
+  padding: 12px 0;
+  margin-bottom: 12px;
+}
+
 /* 셀 중앙 정렬 */
 .center-align {
   display: flex;
@@ -486,31 +497,6 @@ async function onCellClick(e) {
 .clickable-contract:hover {
   color: #1D4ED8;
   text-decoration: underline;
-}
-/* AG Grid 커스텀 테마 */
-.custom-theme {
-  --ag-background-color: #ffffff;
-  --ag-foreground-color: #1F2937;
-  --ag-header-background-color: #F9FAFB;
-  --ag-header-foreground-color: #374151;
-  --ag-row-hover-color: #F3F4F6;
-  --ag-row-border-color: #E5E7EB;
-}
-.custom-theme .ag-header-cell-label {
-  justify-content: center;
-}
-.custom-theme .ag-row-hover .ag-cell {
-  background-color: var(--ag-row-hover-color) !important;
-}
-.custom-theme .ag-body-viewport::-webkit-scrollbar {
-  height: 6px;
-}
-.custom-theme .ag-body-viewport::-webkit-scrollbar-thumb {
-  background-color: #CBD5E1;
-  border-radius: 3px;
-}
-.custom-theme .ag-body-viewport::-webkit-scrollbar-track {
-  background: transparent;
 }
 
 :deep(.file-list-cell) {

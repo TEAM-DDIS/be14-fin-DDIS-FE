@@ -791,7 +791,7 @@ function onBackClick() {
 .page-title {
   margin-left: 20px;
   margin-bottom: 30px;
-  color: #00a8e8;
+  color: var(--primary);
 }
 
 .required-star { color: red; }
@@ -804,6 +804,7 @@ function onBackClick() {
 }
 .desc {
   margin: 0; /* 텍스트 자체의 여백 제거 */
+  font-size: 18px;
 }
 
 /* 위쪽 카드 내부로 이동한 버튼 그룹 */
@@ -817,8 +818,8 @@ position: absolute;
 }
 
 .btn-save {
-  background-color: #00a8e8;
-  color: white;
+  background-color: var(--primary);
+  color: var(--text-on-primary);
   font-weight: bold;
   border: 1px solid transparent;
   border-radius: 10px;
@@ -829,9 +830,9 @@ position: absolute;
   box-sizing: border-box;
 }
 .btn-save:hover {
-  background-color: white;
-  color: #00a8e8;
-  border-color: #00a8e8;
+  background-color: var(--bg-main);
+  color: var(--primary);
+  border-color: var(--primary);
   box-shadow: inset 1px 1px 10px rgba(0, 0, 0, 0.25);
 }
 
@@ -854,16 +855,15 @@ position: absolute;
 
 /* EmployeeDetail 전체 컨테이너 */
 .employee-detail {
-  padding: 1rem;
+  margin: 10px 20px 0;
   font-size: 14px;
   max-width: 100%;
   overflow-x: hidden;
-  margin: 0 auto;
 }
 
 /* 공통 Card 스타일 (상단/하단 모두 동일) */
 .card {
-  background: #fff;
+  background: var(--bg-box);
   border-radius: 12px;
   box-shadow: 1px 1px 20px 1px rgba(0, 0, 0, 0.05);
   width: 100%;
@@ -880,6 +880,7 @@ position: absolute;
   gap: 2rem;
   align-items: flex-start;
   min-width: 1024px;
+  padding: 16px 6px;
 }
 
 /* 하단 카드에 상대 위치 설정 */
@@ -897,12 +898,13 @@ position: absolute;
 .profile-wrapper {
   position: relative;
   display: inline-block;
+  margin-top: 6px;
 }
 .profile-img {
   width: 200px;
   height: 260px;
   object-fit: cover;
-  border-radius: 8px;
+  border-radius: 12px;
 }
 
 /* 사진이 없을 때 표시되는 박스 및 텍스트 */
@@ -914,10 +916,11 @@ position: absolute;
   display: flex;
   justify-content: center;
   align-items: center;
-  background-color: #fafafa;
+  background-color: var(--modal-box-bg);
+  color: var(--text-sub);
 }
 .no-photo-text {
-  color: #999;
+  color: var(--text-sub);
   font-size: 14px;
 }
 
@@ -987,9 +990,15 @@ position: absolute;
   height: 36px;
   padding: 0.6rem;
   font-size: 0.9rem;
-  border: 1px solid #ccc;
-  border-radius: 4px;
+  font-family: 'inherit';
+  border: 1px solid #ddd;
+  border-radius: 8px;
   box-sizing: border-box;
+  background-color: var(--modal-box-bg);
+  color: var(--text-main) !important;
+}
+.same-size-input::-webkit-calendar-picker-indicator {
+  filter: var(--icon-filter, brightness(0))
 }
 
 /* 🔷 새로운 겹쳐지는 탭 스타일 */
@@ -1025,8 +1034,8 @@ position: absolute;
 
 /* 선택된 탭 위로 */
 .tab-button.active {
-  background-color: #fff;
-  color: #000;
+  background: var(--bg-box);
+  color: var(--modal-text);
   z-index: 3;
 }
 
@@ -1084,14 +1093,14 @@ position: absolute;
   color: #fff;
 }
 .btn-confirm {
-  background-color: #00a8e8;
-  color: white;
+  background-color: var(--primary);
+  color: var(--text-on-primary);
   flex: 1;
 }
 .btn-confirm:hover {
-  background-color: white;
-  color: #00a8e8;
-  border: 1px solid #00a8e8;
+  background-color: var(--bg-main);
+  color: var(--primary);
+  border-color: var(--primary);
 }
 .error-text {
   position: absolute;
