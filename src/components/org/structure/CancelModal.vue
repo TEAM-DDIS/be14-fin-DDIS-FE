@@ -34,30 +34,29 @@ function close() {
 
 .modal-box {
   background: var(--bg-main); 
-  padding: 15px; 
+  padding: 20px; 
   border-radius: 12px;
   width: 300px; 
   text-align: center;
 }
 .modal-title {
-    margin-top: 20px;
-    font-size: 18px;
-    font-weight: bold;
-    margin-bottom: 30px;
-    color: var(--text-main);
+  font-size: 20px;
+  font-weight: bold;
+  margin-bottom: 30px;
+  color: var(--text-main);
 }
 
 .modal-message { 
-    margin-bottom: 35px;
-    font-size: 15px;
-    color: var(--text-main);
+  margin-bottom: 35px;
+  font-size: 18px;
+  color: var(--text-main);
 }
 
 .modal-actions {
   display: flex;
   justify-content: center;
-  gap: 16px;
-  margin: 20px 0px;
+  gap: 20px;
+  margin: 15px 0px;
 }
 
 .btn-confirm {

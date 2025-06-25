@@ -548,8 +548,6 @@ function syncOrgToGrid() {
   gridApi.value.refreshCells({ columns:['new'], force:true })
 }
 
-
-
 // 발령 조직 컬럼에 데이터 불러오기 위한 변수 설정
 function handleOrgSelected(selected) {
   pureOrg.headId        = selected.headId || null
@@ -655,11 +653,6 @@ function onGridReady(params) {
 async function submit() {
 
     await nextTick()
-
-    console.log('✅ departmentId in form.org:', form.org.departmentId)
-    console.log('✅ teamId in form.org:', form.org.teamId)
-    console.log('✅ dataStore.department:', dataStore.department)
-    console.log('✅ dataStore.team:', dataStore.team)
 
     const org = { ...form.org };
     const current = { ...form.currentOrg };

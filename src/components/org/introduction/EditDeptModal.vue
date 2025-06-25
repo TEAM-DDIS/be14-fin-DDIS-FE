@@ -50,7 +50,8 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, watch } from 'vue'
+import { ref, reactive, onMounted, computed, watch } from 'vue'
+import { useUserStore } from '@/stores/user'
 
 const props = defineProps({
   initial: {
@@ -59,8 +60,10 @@ const props = defineProps({
   }
 })
 const emit = defineEmits(['close', 'save'])
-
 const departments = ref([])
+
+const userStore = useUserStore()
+const accessToken = userStore.accessToken
 
 // 원래 내용 저장
 const local = reactive({
@@ -78,7 +81,9 @@ watch(
 
 onMounted(async () => {
   try {
-    const res = await fetch('http://localhost:5000/introduction/department')
+    const res = await fetch('http://localhost:5000/introduction/department', {
+      headers: { 'Authorization': `Bearer ${accessToken}` }
+    })
     if (!res.ok) throw new Error(res.statusText)
     const data = await res.json()
     departments.value = data
