@@ -14,8 +14,8 @@
       />
     </div>
 
-    <div class="ag-theme-alpine ag-grid-box">
-      <AgGridVue
+    <div class="ag-theme-alpine ag-grid-box custom-theme">
+      <BaseGrid
         class="ag-theme-alpine custom-theme"
         :gridOptions="{ theme: 'legacy' }"
         style="width: 100%; height: 500px;"
@@ -25,8 +25,8 @@
         :pagination="true"
         :paginationPageSize="pageSize"
         :paginationPageSizeSelector="[5,10,20,50]"
-        @grid-ready="onGridReady"
-        @cell-clicked="onCellClick"
+        @ready="onGridReady"
+        @cell-click="onCellClick"
       />
     </div>
 
@@ -53,7 +53,6 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import axios from 'axios'
-import { AgGridVue } from 'ag-grid-vue3'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import {
@@ -66,6 +65,7 @@ import {
   CellStyleModule,
   ValidationModule
 } from 'ag-grid-community'
+import BaseGrid from '@/components/grid/BaseGrid.vue'
 
 // — register modules once
 ModuleRegistry.registerModules([
@@ -227,21 +227,19 @@ function onCellClick(e) {
   display: block;
   margin-left: 20px;
   margin-bottom: 10px;
+  font-size: 18px;
 }
 
 /* 카드 스타일 */
 .card {
   background: #fff;
+  background: #fff;
   border-radius: 12px;
-  box-shadow: 1px 1px 20px 1px rgba(0, 0, 0, 0.05);
-  width: 100%;
-  height: 100%;
-  min-width: 0;
+  padding: 20px 32px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  margin-left: 20px;
   max-width: 100%;
-  margin: 20px 0 0 10px;
-  padding: 20px 40px 32px 40px;
-  box-sizing: border-box;
-  margin-bottom: 30px;
+  overflow-x: auto;
 }
 
 /* 카드 내부 검색창 */
