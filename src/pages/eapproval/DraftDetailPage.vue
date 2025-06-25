@@ -212,6 +212,10 @@ const pageTitleMap = {
   ReferenceBox: '참조함'
 }
 
+function goBack() {
+  router.back()
+}
+
 const currentTitle = computed(() => pageTitleMap[boxKey] || '문서함')
 
 // Toast 사용을 위한 ref 등록
@@ -573,12 +577,18 @@ async function handleWithdraw() {
   padding: 20px 32px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
   margin: 24px;
-  max-width: 1560px;
+  max-width: 100%;
+  width: 100%;
   display: flex;
   flex-direction: column;
   min-height: fit-content; /* or: min-height: 800px; */
   overflow: visible;
-  
+}
+
+.back-btn {
+  width: 24px;
+  height: 24px;
+  cursor: pointer;
 }
 
 /* ✅ 내부 컨텐츠 컨테이너 */
@@ -670,12 +680,6 @@ table {
   margin-bottom: 32px; /* 제목 테이블과 본문 테이블 간 간격 */
 }
 
-/* 결재선, 본문용 구조 */
-/* .approval-header { */ /* Replaced by .action-header */
-/*   align-items:baseline; */
-/*   justify-content: space-between; */   /* ← 양쪽 끝 정렬 */
-/* } */
-
 /* ✅ 섹션 제목 스타일 */
 .section-title {
   font-weight: bold;
@@ -703,7 +707,7 @@ table {
   font-size: 14px;
   font-weight: bold;
   background-color: var(--primary);
-  color: var(--text-on-primary, #fff);
+  color: var(--text-on-primary);
   border: 1px solid transparent;
   border-radius: 10px;
   padding: 10px 30px;
@@ -717,8 +721,8 @@ table {
 
 .button:hover {
   background-color: white;
-  color: #00a8e8;
-  border-color: #00a8e8;
+  color: var(--primary);
+  border-color: var(--primary);
   box-shadow: inset 1px 1px 10px rgba(0, 0, 0, 0.25);
 }
 
@@ -729,8 +733,8 @@ table {
 
 .action-button:hover {
   background-color: white;
-  color: #00a8e8;
-  border-color: #00a8e8;
+  color: var(--primary);
+  border-color: var(--primary);
   box-shadow:
   inset 1px 1px 10px rgba(0, 0, 0, 0.25);
 }
@@ -747,7 +751,7 @@ table {
   cursor: pointer;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   transition: background-color 0.2s, box-shadow 0.2s;
-  box-sizing: border-box;
+  box-sizing: border-box; 
 }
 
 .button.gray:hover {
@@ -763,8 +767,8 @@ table {
   margin-bottom: 4px;
 }
 .file-link {
-  color: #00a8e8;
-  background-color: #f1f9ff;
+  color: var(--primary);
+  background-color: var(--bg-box);
   padding: 4px 8px;
   border-radius: 6px;
   display: inline-block;
