@@ -386,7 +386,9 @@ input[type="month"] {
   border-radius: 4px;
   height: 18px;
 }
-
+.period input[type="month"]::-webkit-calendar-picker-indicator {
+    filter: var(--icon-filter);
+    }
 /* 필터 select 영역 배치 */
 .filters {
   display: flex;
@@ -487,7 +489,7 @@ input[type="month"] {
 .table td {
   height: 32px;
   padding: 6px 8px;
-  border: 1px solid var(--calendar-border-color);
+  border: 1px solid var(--ag-row-border-color);
 }
 
 /* 급여 상세 상단 설명 */

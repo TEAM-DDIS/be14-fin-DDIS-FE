@@ -122,7 +122,7 @@
   }
 
   .apply-btn:hover {
-    background-color: var(--text-on-primary);
+    background-color: var(--bg-main);
     color: var(--primary);
     border-color: var(--primary);
     box-shadow:

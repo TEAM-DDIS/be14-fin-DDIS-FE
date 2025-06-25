@@ -190,7 +190,7 @@ onMounted(async () => {
 .team{
   font-size:15px;
   font-weight: 600;
-  color: var(--text-disabled);
+  color: var(--text-muted);
   text-align:center;
 }
 .approval-wrapper,

@@ -32,7 +32,7 @@
 
       <div class="modal-buttons">
         <button class="modal-btn-cancel" @click="$emit('close')">취소</button>
-        <button class="modal-btn-delete" @click="onConfirm" :disabled="!localSelectedIds.length">
+        <button class="modal-btn-confirm" @click="onConfirm" :disabled="!localSelectedIds.length">
           확인
         </button>
       </div>
@@ -141,16 +141,12 @@ function onConfirm() {
   width: 100%;
   padding: 8px 12px;
   font-size: 14px;
-  border: 1px solid var(--border-color);
+  border: 1px solid #ddd;
   border-radius: 6px;
   margin-bottom: 16px;
   box-sizing: border-box;
   background: var(--modal-bg);
   color: var(--text-main);
-}
-.modal-select:focus {
-    outline: none;
-    border: 1px solid black;
 }
 
 .delete-list {
@@ -182,13 +178,13 @@ function onConfirm() {
   margin-top: 20px;
 }
 
-.modal-btn-delete {
+.modal-btn-confirm {
   font-size: 14px;
   font-weight: bold;
   cursor: pointer;
   font-family: inherit;
-  background-color: #00a8e8;
-  color: white;
+  background-color: var(--primary);
+  color: var(--text-on-primary);
   border: 1px solid transparent;
   border-radius: 10px;
   padding: 10px 30px;
@@ -196,10 +192,10 @@ function onConfirm() {
   transition: background-color 0.2s, box-shadow 0.2s;
 }
 
-.modal-btn-delete:hover {
-  background-color: #fff;
-  color: #00a8e8;
-  border: 1px solid #00a8e8;
+.modal-btn-confirm:hover {
+  background-color: var(--bg-main);
+  color: var(--primary);
+  border-color: var(--primary);
 }
 
 .modal-btn-cancel {

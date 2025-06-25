@@ -1002,10 +1002,9 @@ textarea {
 
 .button-group {
   display: flex;
-  justify-content: flex-end; /* 🔧 오른쪽 정렬 */
   gap: 12px;
-  margin-top: 24px;
   margin-bottom: 70px;
+  margin-left: 985px;
 }
 
 .approval-header {

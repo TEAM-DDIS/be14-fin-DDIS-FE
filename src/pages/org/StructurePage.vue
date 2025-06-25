@@ -143,18 +143,27 @@ function parseJwtPayload(token) {
     return null
   }
 }
+// const token = useUserStore().accessToken
 
-onMounted(async () => {
+async function loadHierarchy() {
+  const url = 'https://api.isddishr.site/structure/hierarchy'
   try {
-    const url = 'https://api.isddishr.site/structure/hierarchy'
-    console.log('📥 조직 계층 호출 URL:', url)
-    const res = await fetch(url)
+    const res = await fetch(url, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    })
     if (!res.ok) throw new Error(`HTTP ${res.status}`)
     hierarchy.value = await res.json()
   } catch (e) {
     console.error('❌ 조직 계층 로드 실패:', e)
     hierarchy.value = []
   }
+}
+
+onMounted(() => {
+  loadHierarchy()
 })
 
 // 팀 클릭 시 팀원 목록 표시
@@ -173,31 +182,36 @@ function onTeamSelected(team) {
 
 // 팀원 클릭 시 사원 상세 조회
 async function onEmployeeSelected(emp) {
-  try {
-    const url = `https://api.isddishr.site/structure/employee/${emp.employeeId}`
-    console.log('📥 사원 상세 호출 URL:', url)
-    const res = await fetch(url)
-    if (!res.ok) throw new Error(`HTTP ${res.status}`)
-    const data = await res.json()
+  const url = `https://api.isddishr.site/structure/employee/${emp.employeeId}`
+    try {
+      console.log('📥 사원 상세 호출 URL:', url)
+      const res = await fetch(url, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      })
+      if (!res.ok) throw new Error(`HTTP ${res.status}`)
+      const data = await res.json()
 
-    selectedEmployee.value = {
-      employeeId: data.employeeId,
-      employeeName: data.employeeName,
-      positionName: data.positionName,
-      rankName: data.rankName,
-      jobName: data.jobName,
-      headId: data.headId,
-      departmentId: data.departmentId,
-      teamId: data.teamId,
-      birthdate: data.birthdate,
-      email: data.email,
-      jobCode: data.jobCode || '',
-      profileImgPath: data.employeePhotoUrl
+      selectedEmployee.value = {
+        employeeId: data.employeeId,
+        employeeName: data.employeeName,
+        positionName: data.positionName,
+        rankName: data.rankName,
+        jobName: data.jobName,
+        headId: data.headId,
+        departmentId: data.departmentId,
+        teamId: data.teamId,
+        birthdate: data.birthdate,
+        email: data.email,
+        jobCode: data.jobCode || '',
+        profileImgPath: data.employeePhotoUrl
+      }
+    } catch (e) {
+      console.error('❌ 사원 상세 조회 실패:', e)
+      selectedEmployee.value = null
     }
-  } catch (e) {
-    console.error('❌ 사원 상세 조회 실패:', e)
-    selectedEmployee.value = null
-  }
 }
 
 function onEdit() {
@@ -391,8 +405,8 @@ function findDeptName(deptId) {
   font-weight: bold;
   cursor: pointer;
   font-family: inherit;
-  background-color: #00a8e8;
-  color: white;
+  background-color: var(--primary);
+  color: var(--text-on-primary);
   border: 1px solid transparent;
   border-radius: 10px;
   padding: 12px 30px;
@@ -406,9 +420,9 @@ function findDeptName(deptId) {
   margin-bottom: 20px;
 }
 .edit-button:hover {
-  background-color: white;
-  color: #00a8e8;
-  border-color: #00a8e8;
+  background-color: var(--bg-main);
+  color: var(--primary);
+  border-color: var(--primary);
   box-shadow: inset 1px 1px 10px rgba(0, 0, 0, 0.25);
 }
 </style>

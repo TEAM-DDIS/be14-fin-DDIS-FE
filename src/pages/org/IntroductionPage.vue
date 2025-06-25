@@ -154,9 +154,14 @@ function saveEdit(updated) {
 }
 
 onMounted(async () => {
+  const BASE = 'https://api.isddishr.site/introduction'
   try {
-    const BASE = 'https://api.isddishr.site/introduction'
-    const res = await fetch(`${BASE}/department`)
+    const res = await fetch(`${BASE}/department`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    })
     if (!res.ok) throw new Error(`HTTP ${res.status}`)
     const data = await res.json()
     orgData.value.introduction = data
@@ -281,8 +286,8 @@ onMounted(async () => {
   font-weight: bold;
   cursor: pointer;
   font-family: inherit;
-  background-color: #00a8e8;
-  color: white;
+  background-color: var(--primary);
+  color: var(--text-on-primary);
   border: 1px solid transparent;
   border-radius: 10px;
   padding: 12px 30px;
@@ -298,9 +303,9 @@ onMounted(async () => {
 }
 
 .edit-button:hover {
-  background-color: white;
-  color: #00a8e8;
-  border-color: #00a8e8;
+  background-color: var(--bg-main);
+  color: var(--primary);
+  border-color: var(--primary);
   box-shadow: inset 1px 1px 10px rgba(0, 0, 0, 0.25);
 }
 

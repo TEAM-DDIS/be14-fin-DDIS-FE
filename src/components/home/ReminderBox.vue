@@ -270,7 +270,7 @@ const birthdayRangeText = computed(() => {
 .date-range {
   font-size: 12px;
   font-weight: 400;
-  color: #666;
+  color: var(--text-muted);
   margin-left: 6px;
 }
 

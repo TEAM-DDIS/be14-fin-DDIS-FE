@@ -50,11 +50,10 @@
                     {{ team.teamName }}
                   </div>
 
-                  <!-- API로 받아온 ranks만 보여주기 -->
                   <ul v-if="props.showRanks && expanded['t' + team.teamId]" class="rank-list">
                     <li v-for="rank in teamRanks[team.teamId] || []" :key="rank.rankCode">
                           <div class="node emp rank-option" @click.stop="onRankClick(rank)">
-                            {{ rank.rankName }}  <!-- 👈 positionName은 안 보이게 -->
+                            {{ rank.rankName }}
                           </div>
                     </li>
                   </ul>
@@ -79,7 +78,8 @@
 <script setup>
 import { ref, reactive, onMounted, computed } from 'vue'
 import axios from 'axios'
-
+import { useUserStore } from '@/stores/user'
+const accessToken = useUserStore().accessToken
 
 // 상위로 이벤트 발송
 const emit = defineEmits(['dept-selected', 'team-selected', 'rank-selected'])
@@ -107,9 +107,17 @@ const props = defineProps({
 
 onMounted(async () => {
   try {
-    const res = await fetch('https://api.isddishr.site/structure/hierarchy')
+    const res = await fetch('https://api.isddishr.site/structure/hierarchy', {
+      headers: { 'Authorization': `Bearer ${accessToken}` }
+    })
     if (!res.ok) throw new Error(`HTTP ${res.status}`)
-    hierarchy.value = await res.json()
+    const data = await res.json()
+    // headId === 4인 항목을 최상단으로, 나머지는 headId 오름차순으로 정렬
+    hierarchy.value = data.sort((a, b) => {
+      if (a.headId === 4) return -1   // a가 4면 맨 앞으로
+      if (b.headId === 4) return 1    // b가 4면 뒤로
+      return a.headId - b.headId      // 그 외에는 오름차순
+    })
   } catch (err) {
     console.error('❌ 조직 계층 로드 실패:', err)
     hierarchy.value = []
@@ -118,11 +126,6 @@ onMounted(async () => {
 
 function toggle(key) {
   expanded[key] = !expanded[key]
-}
-
-function onDepartmentClick(dept) {
-  toggle('d' + dept.departmentId)
-  emit('dept-selected', dept)
 }
 
 function onRankClick(rank) {
@@ -215,7 +218,6 @@ async function fetchTeamRanks(team) {
         })
       )
 
-      // 3) 중복 제거 및 병합
       const map = new Map()
       ranksList.flat().forEach(rk => {
         if (rk.rankCode != null && !map.has(rk.rankCode)) {
@@ -230,35 +232,15 @@ async function fetchTeamRanks(team) {
     }
   }
 
-  // 직무 목록은 별도 조건
   if (props.showJobs) {
-    console.log('🧪 showJobs가 true이므로 fetchTeamJobs 호출됨')
     await fetchTeamJobs(team)
   }
 }
 
-
-// 회사 대표 찾기 (positionCode === 'P005')
-function getCompanyRep() {
-  for (const head of hierarchy.value) {
-    if (head.headManager?.positionCode === 'P005') {
-      return head.headManager.employeeName
-    }
-  }
-  return ''
-}
-
-// 부서장 필터링 헬퍼
 function isDeptManager(emp) {
   return emp.rankName === '부장' && emp.positionName === '부서장'
 }
 
-// 팀원 리스트에서 부서장만 제외
-function filteredTeamMembers(team) {
-  return team.members.filter(emp => !isDeptManager(emp))
-}
-
-// 전체 열기
 function expandAll() {
   hierarchy.value.forEach(head => {
     expanded['h' + head.headId] = true
@@ -271,7 +253,6 @@ function expandAll() {
   })
 }
 
-// 전체 닫기
 function collapseAll() {
   hierarchy.value.forEach(head => {
     expanded['h' + head.headId] = false
@@ -284,7 +265,6 @@ function collapseAll() {
   })
 }
 
-// 본부 단위 전체 펼치기/닫기
 function expandHead(head) {
   expanded['h' + head.headId] = true
   head.departments.forEach(dept => {
@@ -305,7 +285,6 @@ function collapseHead(head) {
   })
 }
 
-// 부서 단위 전체 펼치기/닫기
 function expandDept(dept) {
   expanded['d' + dept.departmentId] = true
   dept.teams.forEach(team => {
@@ -348,7 +327,7 @@ function collapseDept(dept) {
 .control-btn {
   background-color: #3f3f3f;
   border-radius: 8px;
-  border: 1px solid transparent;
+  border: 1px solid var(--btn-border);
   padding: 6px 10px;
   font-size: 12px;
   font-weight: bold;
@@ -359,8 +338,8 @@ function collapseDept(dept) {
   box-sizing: border-box;
 }
 .control-btn:hover {
-  background-color: white;
-  color: #3f3f3f;
+  background: var(--bg-main);
+  color: var(--modal-text);
   border-color: #3f3f3f;
   box-shadow: inset 1px 1px 10px rgba(0, 0, 0, 0.25);
 }
@@ -485,6 +464,11 @@ function collapseDept(dept) {
 .node.team:hover {
   color: #00a8e8;
   border-radius: 4px;
+  cursor: pointer;
+}
+.node.emp.job-option:hover {
+  color: #00a8e8;
+  cursor: pointer;
 }
 
 .dept-children {

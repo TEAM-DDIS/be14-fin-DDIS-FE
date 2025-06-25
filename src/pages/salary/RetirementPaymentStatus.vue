@@ -243,7 +243,9 @@ watch(filterMode, () => {
   gap: 20px;
   /* margin-bottom: 30px; */
 }
-
+.filters-row input[type="month"]::-webkit-calendar-picker-indicator {
+    filter: var(--icon-filter);
+    }
 /* 라디오 버튼 라벨 간격 */
 .date-type-toggle label {
   margin-right: 15px;
@@ -278,11 +280,11 @@ select {
 
 /* 조회 버튼 hover 시 스타일 */
 .search-btn:hover {
-    background-color: var(--bg-main);
+  background-color: var(--bg-main);
   color: var(--primary);
 
   border-color: var(--primary);
-   box-shadow: inset 1px 1px 10px rgba(0, 0, 0, 0.25);
+  box-shadow: inset 1px 1px 10px rgba(0, 0, 0, 0.25);
 }
 
 /* 조회 버튼 기본 스타일 */
@@ -311,8 +313,6 @@ select {
   margin-left: 20px;
   margin-bottom: 10px;
   font-size: 18px;
-    color: var(--text-sub);
-
 }
 
 /* 검색바 영역 */

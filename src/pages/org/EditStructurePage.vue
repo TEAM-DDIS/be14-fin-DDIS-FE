@@ -6,7 +6,7 @@
       alt="back"
       class="back-btn"
       @click="goBack" />
-      조직 구성
+      조직 구성 편집
     </h1>
 
     <div class="section">
@@ -380,7 +380,9 @@ async function onDeptSelected(dept) {
 
   try {
     const res = await axios.get(
-      `https://api.isddishr.site/structure/departments/${dept.departmentId}/members`
+      `https://api.isddishr.site/structure/departments/${dept.departmentId}/members`, {
+      headers: { Authorization: `Bearer ${token}` }
+    }
     )
     deptMembers.value = res.data
   } catch (e) {
@@ -397,7 +399,9 @@ async function onTeamSelected(team) {
 
   try {
     const res = await axios.get(
-      `https://api.isddishr.site/structure/teams/${team.teamId}/members`
+      `https://api.isddishr.site/structure/teams/${team.teamId}/members`, {
+      headers: { Authorization: `Bearer ${token}` }
+    }
     )
     teamMembers.value = res.data
   } catch (e) {
@@ -527,9 +531,10 @@ async function handleAddOrg({ type, name, parentId }) {
         }
       }
     }
+    // showToast("등록 성공!")
     showAddModal.value = false
+    window.location.reload()
   } catch (e) {
-    console.error('추가 실패', e)
     showToast('조직 추가 중 오류가 발생했습니다.')
   }
 }
@@ -559,8 +564,9 @@ async function handleDeleteOrg({ type, ids }) {
        )
       )
     )
-    showToast('삭제 성공!')
     showDeleteModal.value = false
+    window.location.reload()
+    // showToast('삭제 성공!')
     await loadHierarchy()
   } catch (err) {
     console.error('삭제 실패', err)
@@ -635,6 +641,7 @@ function handleReload() {
   display: block;
   margin-left: 20px;
   margin-bottom: 10px;
+  margin-top: 0;
   font-size: 18px;
 }
 
@@ -650,10 +657,10 @@ function handleReload() {
   align-items: center;
   background: var(--bg-box);
   border-radius: 12px;
-  padding: 10px 24px;
+  padding: 8px 16px;
   height: 70px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-  margin-bottom: 50px;
+  margin-bottom: 30px;
   gap: 20px;
   margin-left: 20px;
 }
@@ -679,17 +686,17 @@ function handleReload() {
   font-weight: bold;
   cursor: pointer;
   font-family: inherit;
-  background-color: #00a8e8;
-  color: white;
+  background-color: var(--primary);
+  color: var(--text-on-primary);
   border: 1px solid transparent;
   border-radius: 10px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   transition: background-color 0.2s, box-shadow 0.2s;
 }
 .toolbar-btn-register:hover {
-  background-color: #fff;
-  color: #00a8e8;
-  border: 1px solid #00a8e8;
+  background-color: var(--bg-main);
+  color: var(--primary);
+  border-color: var(--primary);
 }
 
 .toolbar-btn-delete {
@@ -728,16 +735,13 @@ function handleReload() {
 }
 .toolbar-search {
   padding: 6px 12px;
-  border: 1px solid #dddddd;
+  border: 1px solid #ddd;
+  color: var(--text-main);
   border-radius: 8px;
   font-size: 16px;
   width: 200px;
   height: 40%;
   background: var(--modal-box-bg);
-}
-.toolbar-search:focus {
-  outline: none;
-  border: 1px solid black;
 }
 
 .content-grid {

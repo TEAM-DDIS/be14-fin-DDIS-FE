@@ -327,7 +327,7 @@
   /* 버튼 */
   :deep(.calendar--team .fc-button) {
     background-color: var(--primary) !important;
-    color: white !important;
+    color: var(--text-on-primary) !important;
     border: 1px solid transparent !important;
     border-radius: 6px !important;
     padding: 4px 10px !important;
@@ -347,9 +347,9 @@
   }
 
   :deep(.calendar--team .fc-button:hover) {
-    background-color: var(--text-on-primary) !important;
-    color: #00A8E8 !important;
-    border: 1px solid #00A8E8 !important;
+    background-color: var(--bg-main) !important;
+    color: var(--primary) !important;
+    border: 1px solid var(--primary) !important;
     box-shadow: inset 1px 1px 6px rgba(0, 0, 0, 0.2) !important;
   }
 
@@ -365,8 +365,8 @@
   :deep(.calendar--team .fc-prev-button),
   :deep(.calendar--team .fc-next-button),
   :deep(.calendar--team .fc-today-button) {
-    background-color: var(--primary) !important;
-    color: white !important;
+    background-color: var(--primary);
+    color: var(--text-on-primary);  
     border: 1px solid transparent !important;
     border-radius: 6px !important;
     font-size: 12px !important;
@@ -382,9 +382,9 @@
   }
 
   :deep(.calendar--team .fc-button:hover) {
-    background-color: white !important;
-    color: #00A8E8 !important;
-    border: 1px solid #00A8E8 !important;
+    background-color: var(--bg-main) !important;
+    color: var(--primary) !important;
+    border: 1px solid var(--primary) !important;
     box-shadow: inset 1px 1px 10px rgba(0, 0, 0, 0.25) !important;
   }
 
@@ -452,7 +452,7 @@
   }
 
   .register1-btn:hover {
-    background-color: var(--text-on-primary);
+    background-color: var(--bg-main);
     color: var(--primary);
     border: 1px solid var(--primary);
     box-shadow: inset 1px 1px 6px rgba(0,0,0,0.1);
@@ -460,13 +460,13 @@
 
   .overlay {
     position: fixed; top:0; left:0; right:0; bottom:0;
-    background: rgba(0,0,0,0.4);
+    background: rgba(0,0,0,0.6);
     display: flex; align-items: center; justify-content: center;
     z-index: 2000;
   }
 
   .modal {
-    background-color: var(--modal-bg);
+    background: var(--modal-bg2);
     color: var(--modal-text);
     padding: 30px;
     border-radius: 12px;

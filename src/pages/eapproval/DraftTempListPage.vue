@@ -24,7 +24,7 @@
           :rowData="filteredForms"
           :pagination="true"
           rowSelection="single"
-          @rowClicked="handleFormRowClick"
+          @row-click="handleFormRowClick"
         />
       </div>
     </div>     
@@ -33,7 +33,7 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { AgGridVue } from 'ag-grid-vue3'
+import AgGridVue from '@/components/grid/BaseGrid.vue'
 import { ModuleRegistry, AllCommunityModule } from 'ag-grid-community'
 ModuleRegistry.registerModules([AllCommunityModule])
 
@@ -106,10 +106,11 @@ function onAddForm() {
   align-items: center;
   gap: 12px;           /* 두 요소 간격, 너무 붙으면 더 늘리세요 */
   margin-bottom: 20px;
-  padding-left: 4px;
+  padding-left: 20px;
 }
 .form-list-status {
   margin: 5px 0 0 4px;
+  
 }
 .item-count {
   color: #666;
@@ -119,14 +120,16 @@ function onAddForm() {
 .storage-box {
   width: 100%;
   min-width: 0;
-  background: #fff;
+  background-color: var(--bg-box);
   border-radius: 12px;
   padding: 32px 32px 40px 32px;
   box-shadow: 1px 1px 20px 1px rgba(0,0,0,0.05);
   margin: 24px 0;
+  margin-left: 20px;
   /* overflow: hidden; */
   transition: background 0.2s;
   box-sizing: border-box; /* 추가 */
+  padding-left: 20px;
 }
 .storage-box.fixed-height {
   height: 700px;

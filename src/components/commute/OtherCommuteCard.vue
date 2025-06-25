@@ -137,8 +137,8 @@
   }
 
   .download-btn:hover {
-    background-color: var(--text-on-primary);
-    color:  var(--primary);
+    background-color: var(--bg-main);
+    color: var(--primary);
     border-color: var(--primary);
     box-shadow:
     inset 1px 1px 10px rgba(0, 0, 0, 0.25);

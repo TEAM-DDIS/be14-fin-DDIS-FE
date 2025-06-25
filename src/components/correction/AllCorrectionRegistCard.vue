@@ -354,7 +354,7 @@
     .search-bar input {
         width: 150px;
         padding: 6px 8px;
-        border: 1px solid var(--border-color);
+        border: 1px solid #ccc;
         background: var(--modal-bg);
         color: var(--text-main);
         border-radius: 4px;
@@ -372,7 +372,7 @@
 
     .filters select {
         padding: 6px 8px;
-        border: 1px solid var(--border-color);
+        border: 1px solid #ccc;
         background: var(--modal-bg);
         color: var(--text-main);
         border-radius: 4px;
@@ -419,7 +419,7 @@
   }
 
   .download-btn:hover {
-    background-color: var(--text-on-primary);
+    background-color: var(--bg-main);
     color:  var(--primary);
     border-color: var(--primary);
     box-shadow:
@@ -440,7 +440,7 @@
     }
 
     .reject-btn:hover {
-        background-color: var(--text-on-primary);
+        background-color: var(--bg-main);
         color: var(--primary);
         border-color: var(--primary);
         box-shadow:
@@ -461,7 +461,7 @@
     }
 
     .apply-btn:hover {
-        background-color: var(--text-on-primary);
+        background-color: var(--bg-main);
         color: var(--primary);
         border-color: var(--primary);
         box-shadow:
@@ -470,7 +470,7 @@
 
     .overlay {
         position: fixed; top:0; left:0; right:0; bottom:0;
-        background: rgba(0,0,0,0.4);
+        background: rgba(0,0,0,0.6);
         display: flex; align-items: center; justify-content: center;
         z-index: 2000;
     }

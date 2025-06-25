@@ -100,11 +100,11 @@
 <style scoped>
 .overtime-request-card {
   --el-color-primary: var(--primary);
-  background-color: var(--bg-box);
+  /* background-color: var(--bg-box); */
   color: var(--text-main);
   padding: 20px;
   border-radius: 12px;
-  box-shadow: 0 1px 10px rgba(0, 0, 0, 0.05);
+  /* box-shadow: 0 1px 10px rgba(0, 0, 0, 0.05); */
 }
 
 /* 버튼 영역 */
@@ -136,7 +136,7 @@
   border: 1px solid transparent;
 }
 .submit-btn:hover {
-  background-color: var(--text-on-primary);
+background-color: var(--bg-main);
   color: var(--primary);
   border-color: var(--primary);
   box-shadow: inset 1px 1px 10px rgba(0, 0, 0, 0.25);
@@ -144,13 +144,13 @@
 
 /* 취소 버튼 (gray) */
 .cancle-btn {
-  background-color: var(--bg-menu-btn-hover);
-  color: var(--text-main);
+  background-color: #d3d3d3;
+  color: #000;
   border: none;
 }
 .cancle-btn:hover {
-  background-color: var(--text-main);
-  color: var(--text-on-primary);
+  background-color: #000;
+  color: #fff;
 }
 
 /* 시간 입력 래퍼 */
@@ -196,6 +196,20 @@
 :deep(.el-radio__input.is-checked + .el-radio__label) {
   font-weight: bold;
   color: var(--primary);
+}
+:deep(.el-input__inner) {
+  color: var(--text-main);
+  font-size: 14px;
+  padding: 5px;
+}
+:deep(.el-input__wrapper),
+:deep(.el-date-editor.el-input__wrapper),
+:deep(.el-time-editor.el-input__wrapper) {
+  background-color: var(--bg-main);       /* 입력 배경 */
+  border: 1px solid var(--border-color);  /* 테두리 */
+  border-radius: 8px;
+  color: var(--text-main);                /* 텍스트 색 */
+  transition: border 0.3s, box-shadow 0.3s;
 }
 </style>
 

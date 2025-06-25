@@ -72,7 +72,7 @@
     font-weight: bold;
     padding-bottom: 10px;
     margin-bottom: 16px;
-    color: var(--primary);
+    color: #00A8E8;
     border-bottom: 0.5px solid #C6C6C6;
   }
 

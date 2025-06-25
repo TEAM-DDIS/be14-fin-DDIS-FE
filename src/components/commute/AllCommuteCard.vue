@@ -223,7 +223,7 @@
     .filters select {
     background-color: var(--bg-main);
     color: var(--text-main);
-    border: 1px solid var(--border-color);
+    border: 1px solid #ccc;
     }
     .search {
         width: 20px;
@@ -238,7 +238,7 @@
 
     .filters select {
         padding: 6px 8px;
-        border: 1px solid var(--border-color);
+        border: 1px solid #ccc;
         border-radius: 4px;
     }
 
@@ -263,8 +263,8 @@
   }
 
   .download-btn:hover {
-    background-color: var(--text-on-primary);
-    color:  var(--primary);
+    background-color: var(--bg-main);
+color: var(--primary);
     border-color: var(--primary);
     box-shadow:
     inset 1px 1px 10px rgba(0, 0, 0, 0.25);

@@ -14,15 +14,15 @@
       <table>
         <tbody>
           <tr>
-            <td>기안부서</td>
+            <th scope="row">기안부서</th>
             <td><input v-model="form.departmentName" type="text" readonly /></td>
-            <td>직급</td>
+            <th scope="row">직급</th>
             <td><input v-model="form.rankName" type="text" readonly /></td>
           </tr>
           <tr>
-            <td>기안자</td>
+            <th scope="row">기안자</th>
             <td><input v-model="form.drafter" type="text" readonly /></td>
-            <td>기안일자</td>
+            <th scope="row">기안일자</th>
             <!-- 화면에는 날짜만 표시 -->
             <td>
               <input
@@ -41,9 +41,9 @@
             </td>
           </tr>
           <tr>
-            <td>문서번호</td>
+            <th scope="row">문서번호</th>
             <td>-</td>
-            <td>보존연한</td>
+            <th scope="row">보존연한</th>
             <td>
               <select v-model.number="form.retentionPeriod">
                 <option :value="1">1년</option>
@@ -54,7 +54,7 @@
           </tr>
           <!-- 🔷 수신자 및 참조자 설정 -->
           <tr>
-            <td>수신자</td>
+            <th scope="row">수신자</th>
             <td class="flex-row">
               <input v-model="form.receiver" type="text" />
               <button class="button icon-button" @click="openReceiverModal">
@@ -69,7 +69,7 @@
                 @close="showReceiverModal = false"
               />
             </td>
-            <td>참조자</td>
+            <th scope="row">참조자</th>
             <td class="flex-row">
               <input v-model="form.reference" type="text" />
               <button class="button icon-button" @click="openReferenceModal">
@@ -139,13 +139,13 @@
       <table class="file-table">
         <tbody>
           <tr>
-            <td class="label-cell"><strong>제&nbsp;&nbsp;&nbsp;목</strong></td>
+          <th scope="row">제목</th>
             <td colspan="2">
               <input type="text" v-model="form.title" class="full-width-input" />
             </td>
           </tr>
           <tr>
-            <td class="label-cell"><strong>첨부파일</strong></td>
+          <th scope="row">첨부파일</th>
             <td colspan="2">
               <!-- 🔷 첨부파일 등록 영역 -->
               <div class="file-input-row">
@@ -217,14 +217,16 @@
 <script setup>
 import { QuillEditor } from '@vueup/vue-quill';
 import { ref, reactive, onMounted } from 'vue';
-import debounce from 'lodash-es/debounce';
 import axios from "axios";
 import SelectionModal from '@/components/eapproval/ApprovalLineModal.vue';
 import SubmitModal from '@/components/eapproval/SubmitModal.vue';
 import DraftSaveModal from '@/components/eapproval/DraftSaveModal.vue';
 import BaseToast from '@/components/toast/BaseToast.vue';
 import { useUserStore } from '@/stores/user';
+import { useRouter } from 'vue-router'  // 상단에 추가
 
+
+const router = useRouter()              // setup() 안에서 선언
 const userStore = useUserStore();
 const toastRef = ref(null);
 const showSubmitModal = ref(false);
@@ -269,7 +271,7 @@ function updateDraftDate(val) {
 async function loadDrafterInfo() {
   try {
     const res = await fetch("https://api.isddishr.site/drafter/me", {
-      headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
+    headers: { Authorization: `Bearer ${userStore.accessToken}` }
     });
     if (!res.ok) throw new Error("기안자 정보 조회 실패");
     const data = await res.json();
@@ -287,7 +289,7 @@ async function fetchAutoApprovalLine(empId) {
   try {
     const { data } = await axios.get("https://api.isddishr.site/approval-line", {
       params: { employeeId: empId },
-      headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
+      headers: { Authorization: `Bearer ${userStore.accessToken}` }
     });
     approvalLines.value = data.map((item, index) => ({
       step: index + 1,
@@ -341,7 +343,7 @@ async function getUploadInfo(file) {
   const token = localStorage.getItem('token');
   const qs = new URLSearchParams({ filename: file.name, contentType: file.type }).toString();
   const res = await fetch(`https://api.isddishr.site/s3/upload-url?${qs}`, {
-    headers: { Authorization: `Bearer ${token}` }
+    headers: { Authorization: `Bearer ${userStore.accessToken}` }
   });
   if (!res.ok) throw new Error('Presign URL 요청 실패');
   return res.json();
@@ -407,11 +409,16 @@ async function confirmSubmit() {
 
   try {
     const res = await axios.post("https://api.isddishr.site/drafts/creation", submitData, {
-      headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
+      headers: { Authorization: `Bearer ${userStore.accessToken}` }
     });
     showToast('기안문이 상신되었습니다.');
     showSubmitModal.value = false;
-  } catch (e) {
+
+    setTimeout(() => {
+      router.push({ name: 'MyDraftBox' });
+    }, 1000); // 1초 후 이동
+
+} catch (e) {
     console.error("상신 실패", e);
     showToast("상신 실패: " + (e.response?.data?.message || e.message));
   }
@@ -433,7 +440,7 @@ onMounted(() => {
 .page-title {
   margin-left: 20px;
   margin-bottom: 30px;
-  color: #00a8e8;
+  color: var(--primary);
 }
 
 .desc {
@@ -454,6 +461,20 @@ body, html {
   padding: 0;
 }
 
+/* 🔷 헤더(th)는 회색 배경 */
+table thead th {
+  background-color: var(--grid-head) !important;
+  font-weight: bold;
+  color: var(--text-main);
+}
+
+/* 🔷 본문(td)는 흰 배경 */
+table tbody td {
+  background-color: var(--bg-box) !important;
+  font-weight: normal;
+  color: var(--text-main);
+}
+
 /* ✅전체 화면 스크롤 영역 (사용하지 않음) */
 .full-scroll {
   height: 100vh;
@@ -463,30 +484,45 @@ body, html {
 
 /* ✅ 메인 박스: 전체 레이아웃 래퍼 */
 .main-box {
-  background: #ffffff;
+  background: var(--bg-main);
   border-radius: 12px;
   padding: 20px 32px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
   margin: 24px;
-  max-width: 100%;
+  max-width: 1570px;
   display: flex;
   flex-direction: column;
   min-height: fit-content;
+  overflow: visible;
+  color: var(--text-main);
 }
 
 /* ✅ 내부 컨텐츠 컨테이너 */
 .container {
-  font-family: Arial, sans-serif;
   min-width: 850px;
-  max-width: 1600px;
-  max-height: 1500px;
+  max-width: 1200px;
   margin: 20px auto;
+  table-layout: fixed;
 }
+
+.container th[scope="row"] {
+  background-color: var(--grid-head);
+  font-weight: 600;
+  text-align: left;
+  padding: 10px;
+  width: 120px;
+  white-space: nowrap;
+  color: var(--text-main);
+}
+
 
 /* ✅ 에디터 전체 영역 정렬 */
 .editor-wrapper {
-  display: flex;
-  flex-direction: column;
+  background: #f8f9fa;
+  border: 1px solid #e3e6ea;
+  padding: 0;
+  margin-top: 12px;
+  min-height: 400px;
 }
 
 /* ✅ 에디터 상단 툴바 정렬 (라벨 + 툴바) */
@@ -505,6 +541,9 @@ body, html {
   font-size: 14px;
   font-weight: bold;
   white-space: nowrap;
+  background-color: var(--bg-box);
+  border: 1px solid #ccc;
+  color: var(--text-main);
 }
 
 /* ✅ 툴바 영역 (커스텀 툴바 오른쪽 정렬) */
@@ -512,6 +551,7 @@ body, html {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+  
 }
 
  /* ✅ Quill 에디터 입력창 스타일 */
@@ -520,7 +560,7 @@ body, html {
   border: 1px solid #ccc;
   border-radius: 8px;
   padding: 8px;
-  background: #0070e0;
+  background: #fff;
   font-size: 14px;
   line-height: 1.6;
   text-align: left;
@@ -615,8 +655,8 @@ body, html {
 .approval-button {
   font-size: 14px;
   font-weight: bold;
-  background-color: #00a8e8;
-  color: white;
+  background-color: var(--primary);
+  color: var(--text-on-primary, #fff);
   border: 1px solid transparent;
   border-radius: 10px;
   padding: 10px 15px;
@@ -629,9 +669,9 @@ body, html {
 }
 
 .approval-button:hover {
-  background-color: white;
-  color: #00a8e8;
-  border-color: #00a8e8;
+  background-color: var(--bg-main);
+  color: var(--primary);
+  border-color: var(--primary);
   box-shadow:
   inset 1px 1px 10px rgba(0, 0, 0, 0.25);
 }
@@ -655,9 +695,9 @@ th {
 }
 
 table {
-  width: 100%;
+  table-layout: fixed;
   border-collapse: collapse;
-  margin-bottom: 24px;
+  margin-bottom: 16px;
 }
 
 th,
@@ -705,13 +745,15 @@ textarea {
   height: 36px; /* ✅ 추가된 높이 조정 */
   font-size: 14px; /* ✅ 추가된 글자 크기 조정 */
   line-height: 1.5; /* ✅ 라인 정렬 */
+  background: var(--bg-box);
+  color: var(--text-main);
 }
 
 input:focus,
 select:focus,
 textarea:focus {
   outline: none;
-  border: 1px solid #000;
+  border: 1px solid var(--primary);
 }
 
 textarea {
@@ -722,8 +764,8 @@ textarea {
   font-size: 14px;
   white-space: nowrap;
   font-weight: bold;
-  background-color: #00a8e8;
-  color: white;
+  background-color: var(--primary);
+  color: var(--text-on-primary, #fff);
   border: 1px solid transparent;
   border-radius: 10px;
   padding: 10px 30px;
@@ -749,9 +791,9 @@ textarea {
 }
 
 .button:hover {
-  background-color: white;
-  color: #00a8e8;
-  border-color: #00a8e8;
+  background-color: var(--bg-main);
+  color: var(--primary);
+  border-color: var(--primary);
   box-shadow: inset 1px 1px 10px rgba(0, 0, 0, 0.25);
 }
 
@@ -761,7 +803,7 @@ textarea {
 }
 
 .icon-button {
-  background-color: #00a8e8;
+  background-color: var(--primary);
   padding: 6px 10px;
   border-radius: 4px;
   cursor: pointer;
@@ -778,7 +820,7 @@ textarea {
 }
 
 .icon-button:hover {
-  background-color: #ffffff;
+  background-color: var(--bg-main);
 }
 
 .icon-button:hover .icon-img {
@@ -811,15 +853,16 @@ textarea {
 
 .file-info-text li {
   margin-bottom: 2px;
-
 }
 
 .button-group {
   display: flex;
-  justify-content: flex-end; /* 🔧 오른쪽 정렬 */
+  justify-content: center;
   gap: 12px;
-  margin-top: 24px;
-  margin-bottom: 70px;
+  margin-bottom: 40px;
+  margin-top: 30px;
+  margin-left: auto;
+  margin-right: 155px;
 }
 
 .approval-header {
@@ -841,8 +884,8 @@ textarea {
 
 /* 에디터 전체 박스 */
 .editor-wrapper {
-  border: 1px solid #ccc;
-  background: #ffffff;
+  border: 1px solid var(--ag-row-border-color);
+  background: var(--bg-box);
   padding: 0;
   margin-top: 12px;
   min-height: 400px;
@@ -852,10 +895,11 @@ textarea {
 ::v-deep(.quill-editor-area .ql-container.ql-snow) {
   border: none;
   min-height: 350px;
-  background: #ffffff;
+  background: var(--bg-box);
   font-size: 15px;
   line-height: 1.7;
   padding: 0 8px 8px 8px;
+  color: var(--text-main);
 }
 
 /* 에디터 내부 텍스트 여백 */
@@ -865,13 +909,15 @@ textarea {
   font-family: 'Arial', sans-serif;
   font-size: 15px;
   line-height: 1.7;
+  color: var(--text-main);
+  background: var(--bg-box);
 }
 
 .editor-label {
   font-size: 15px;               /* 글자 크기 */
   font-weight: bold;             /* 글자 굵게 */
   white-space: nowrap;           /* 줄바꿈 없이 한 줄로 표시 */
-  background-color: #f8f9fa;     /* 파란 배경 색 */
+  background-color: var(--bg-box);     /* 파란 배경 색 */
   text-align: center;            /* 텍스트 가운데 정렬 */
   display: flex;                 /* Flexbox 사용 */
   align-items: center;           /* 수직 가운데 정렬 */
@@ -894,36 +940,47 @@ textarea {
   height: 55px; /* 고정 높이 설정 */
   vertical-align: middle; /* 내용 수직 가운데 정렬 */
   padding: 8px; /* 기존 패딩 유지 */
+  border-radius: 0;              /* 둥근 모서리 제거 */
+
 }
 
 .info-table .flex-row {
   height: 100%;
   display: flex;
   align-items: center; /* 내부 요소 수직 가운데 정렬 */
+  border-radius: 0;              /* 둥근 모서리 제거 */
+
 }
 
 .info-table input[type="text"],
 .info-table select {
   height: 38px; /* input과 select의 높이를 td 높이에 맞게 조정 */
   box-sizing: border-box;
+  border-radius: 0;              /* 둥근 모서리 제거 */
+
 }
 
 /* 기존 테이블 스타일 */
 th {
   font-weight: 600;
-  background: #f8f9fa;
-  border: 1px solid #e3e6ea;
+  background: var(--grid-head);
+  border: 1px solid var(--ag-row-border-color);
   padding: 8px;
   text-align: left;
+  color: var(--text-main);
 }
 
 td {
   font-weight: normal;
-  border: 1px solid #e3e6ea;
+  border: 1px solid var(--ag-row-border-color);
   padding: 8px;
   text-align: left;
   white-space: normal;    /* ✅ 줄바꿈 허용 */
   word-break: break-word; /* ✅ 단어 중간이라도 줄바꿈 */
+  color: var(--text-main);
+  background: var(--bg-box);
+  border-radius: 0;              /* 둥근 모서리 제거 */
+
 }
 
 /* 테이블 공통 */
@@ -962,4 +1019,203 @@ table {
   border-bottom: none; /* 툴바 하단 테두리는 컨테이너와 겹치지 않도록 제거 */
 }
 
+body[data-theme='dark'] ::v-deep(td),
+body[data-theme='dark'] ::v-deep(th) {
+  border-radius: 0 !important;
+}
+
+/* ===================== 공통 테이블 스타일 ===================== */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 16px;
+  table-layout: fixed;
+}
+th, td {
+  border: 1px solid var(--ag-row-border-color, #e3e6ea);
+  padding: 8px;
+  font-size: 14px;
+  text-align: left;
+  word-break: break-word;
+}
+th {
+  font-weight: 600;
+  background: var(--grid-head, #f8f9fa);
+  color: var(--text-main, #222);
+}
+td {
+  font-weight: normal;
+  color: var(--text-main, #222);
+  background: var(--bg-box, #fff);
+  white-space: normal;
+}
+.container th[scope="row"] {
+  width: 120px;
+  white-space: nowrap;
+  padding: 10px;
+}
+
+body[data-theme='dark'] ::v-deep(td),
+body[data-theme='dark'] ::v-deep(th) {
+  border-radius: 0 !important;
+}
+
+/* ===================== 버튼 스타일 ===================== */
+.button, .approval-button {
+  font-size: 14px;
+  font-weight: bold;
+  white-space: nowrap;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: background-color 0.2s, box-shadow 0.2s, color 0.2s, border-color 0.2s;
+  cursor: pointer;
+  padding: 10px 30px;
+  background-color: var(--primary, #00a8e8);
+  color: var(--text-on-primary, #fff);
+}
+.button.gray {
+  background-color: #D3D3D3;
+  color: #000;
+  border: none;
+}
+.button:hover, .approval-button:hover {
+  background-color: var(--bg-main, #fff);
+  color: var(--primary, #00a8e8);
+  border-color: var(--primary, #00a8e8);
+  box-shadow: inset 1px 1px 10px rgba(0, 0, 0, 0.25);
+}
+.button.gray:hover {
+  background-color: #000;
+  color: #fff;
+}
+
+.icon-button {
+  background-color: var(--primary, #00a8e8);
+  padding: 6px 10px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.3s ease;
+}
+.icon-button:hover {
+  background-color: var(--bg-main, #fff);
+}
+.icon-button .icon-img {
+  width: 30px;
+  height: 15px;
+  transition: filter 0.3s ease;
+}
+.icon-button:hover .icon-img {
+  filter: invert(39%) sepia(99%) saturate(746%) hue-rotate(165deg) brightness(91%) contrast(101%);
+}
+
+/* ===================== 입력란 스타일 ===================== */
+input[type="text"],
+input[type="date"],
+input[type="file"],
+select,
+textarea {
+  width: 100%;
+  padding: 6px;
+  box-sizing: border-box;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  height: 36px;
+  font-size: 14px;
+  line-height: 1.5;
+  background: var(--bg-box, #fff);
+  color: var(--text-main, #222);
+  transition: border 0.2s ease;
+}
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  border: 1px solid var(--primary, #00a8e8);
+}
+
+/* ===================== 에디터/본문 ===================== */
+.editor-wrapper {
+  background: #f8f9fa;
+  border: 1px solid #e3e6ea;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  margin-top: 12px;
+  min-height: 400px;
+}
+body[data-theme='dark'] ::v-deep(.editor-wrapper) {
+  border: 2px solid #fff !important;
+}
+
+::v-deep(.quill-editor-area .ql-container.ql-snow) {
+  min-height: 300px;
+  border: none;
+  border-radius: 0;
+  padding: 8px;
+  background: var(--bg-box, #fff);
+  font-size: 14px;
+  line-height: 1.6;
+  text-align: left;
+  color: var(--text-main, #222);
+}
+::v-deep(.quill-editor-area .ql-editor) {
+  margin-bottom: 0 !important;
+  padding-bottom: 0 !important;
+  padding: 12px 8px;
+  min-height: 320px;
+  font-family: 'Arial', sans-serif;
+  font-size: 15px;
+  line-height: 1.7;
+  color: var(--text-main, #222);
+  background: var(--bg-box, #fff);
+}
+
+body[data-theme='dark'] ::v-deep(.quill-editor-area .ql-toolbar.ql-snow button),
+body[data-theme='dark'] ::v-deep(.quill-editor-area .ql-toolbar.ql-snow .ql-picker-label),
+body[data-theme='dark'] ::v-deep(.quill-editor-area .ql-toolbar.ql-snow .ql-picker-item),
+body[data-theme='dark'] ::v-deep(.quill-editor-area .ql-toolbar.ql-snow .ql-stroke),
+body[data-theme='dark'] ::v-deep(.quill-editor-area .ql-toolbar.ql-snow .ql-fill),
+body[data-theme='dark'] ::v-deep(.quill-editor-area .ql-toolbar.ql-snow .ql-picker),
+body[data-theme='dark'] ::v-deep(.quill-editor-area .ql-toolbar.ql-snow .ql-picker-options) {
+  color: #fff !important;
+  stroke: #fff !important;
+  fill: #fff !important;
+  border-color: #fff !important;
+}
+
+/* ===================== 기타/섹션 구분 ===================== */
+.section-header {
+  margin-top: 50px;
+}
+.bold-divider {
+  height: 2px;
+  background-color: #dddddd;
+  border: none;
+  margin: 16px 0;
+}
+.section-divider {
+  width: 100%;
+  margin: 12px 0 24px 0;
+  box-sizing: border-box;
+  border: none;
+  border-top: 2px solid #ccc;
+}
+
+/* ... 나머지 스타일(레이아웃, 파일, flex 등)은 기존대로 유지 ... */
+/* 에디터 툴바/본문 배경 반전 */
+::v-deep(.quill-editor-area .ql-toolbar.ql-snow) {
+  background: #f8f9fa;
+}
+::v-deep(.quill-editor-area .ql-container.ql-snow) {
+  background: #fff;
+}
+body[data-theme='dark'] ::v-deep(.quill-editor-area .ql-toolbar.ql-snow) {
+  background: var(--bg-main);
+}
+body[data-theme='dark'] ::v-deep(.quill-editor-area .ql-container.ql-snow) {
+  background: var(--bg-box);
+}
 </style>

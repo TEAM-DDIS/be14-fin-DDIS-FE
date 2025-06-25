@@ -72,7 +72,11 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, computed } from 'vue'
+import { useUserStore } from '@/stores/user'
+const userStore = useUserStore()
+// const token = userStore.accessToken
+const accessToken = useUserStore().accessToken
 
 // 상위로 이벤트 발송
 const emit = defineEmits(['dept-selected', 'team-selected'])
@@ -83,11 +87,32 @@ const hierarchy = ref([])
 // 펼침/접힘 상태
 const expanded = reactive({})
 
+// onMounted(async () => {
+//   try {
+//     const res = await fetch('http://localhost:5000/structure/hierarchy', {
+//       headers: { 'Authorization': `Bearer ${accessToken}` }
+//     })
+//     if (!res.ok) throw new Error(`HTTP ${res.status}`)
+//     hierarchy.value = await res.json()
+//   } catch (err) {
+//     console.error('❌ 조직 계층 로드 실패:', err)
+//     hierarchy.value = []
+//   }
+// })
+
 onMounted(async () => {
   try {
-    const res = await fetch('https://api.isddishr.site/structure/hierarchy')
+    const res = await fetch('https://api.isddishr.site/structure/hierarchy', {
+      headers: { 'Authorization': `Bearer ${accessToken}` }
+    })
     if (!res.ok) throw new Error(`HTTP ${res.status}`)
-    hierarchy.value = await res.json()
+    const data = await res.json()
+    // headId === 4인 항목을 최상단으로, 나머지는 headId 오름차순으로 정렬
+    hierarchy.value = data.sort((a, b) => {
+      if (a.headId === 4) return -1   // a가 4면 맨 앞으로
+      if (b.headId === 4) return 1    // b가 4면 뒤로
+      return a.headId - b.headId      // 그 외에는 오름차순
+    })
   } catch (err) {
     console.error('❌ 조직 계층 로드 실패:', err)
     hierarchy.value = []
@@ -210,7 +235,7 @@ function collapseDept(dept) {
 .control-btn {
   background-color: #3f3f3f;
   border-radius: 8px;
-  border: 1px solid transparent;
+  border: 1px solid var(--btn-border);
   padding: 6px 10px;
   font-size: 12px;
   font-weight: bold;
@@ -221,8 +246,8 @@ function collapseDept(dept) {
   box-sizing: border-box;
 }
 .control-btn:hover {
-  background-color: white;
-  color: #3f3f3f;
+  background: var(--bg-main);
+  color: var(--modal-text);
   border-color: #3f3f3f;
   box-shadow: inset 1px 1px 10px rgba(0, 0, 0, 0.25);
 }
@@ -343,6 +368,7 @@ function collapseDept(dept) {
 .node.dept:hover,
 .node.team:hover {
   color: #00a8e8;
+  cursor: pointer;
 }
 
 .dept-children {

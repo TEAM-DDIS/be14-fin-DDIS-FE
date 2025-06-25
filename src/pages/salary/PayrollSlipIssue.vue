@@ -625,7 +625,7 @@ input[type="month"] {
 .table td {
   height: 32px;
   padding: 6px 8px;
-  border: 1px solid var(--calendar-border-color);
+  border: 1px solid var(--ag-row-border-color);
 }
 
 /* 급여 상세 상단 설명 */
@@ -633,7 +633,9 @@ input[type="month"] {
   display: flex;
   justify-content: space-between;
 }
-
+.period input[type="month"]::-webkit-calendar-picker-indicator {
+    filter: var(--icon-filter);
+    }
 /* 상세 박스 헤더 */
 .detail-header {
   background-color: var(--bg-box);

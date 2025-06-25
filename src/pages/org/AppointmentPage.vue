@@ -64,7 +64,7 @@ import ConfirmModal from '@/components/org/appointment/ConfirmModal.vue'
 
 ModuleRegistry.registerModules([AllCommunityModule])
 
-const API_BASE        = 'https://api.isddishr.site/appointment-history'
+const userStore = useUserStore()
 const selectedType    = ref('')
 const filterEmployee  = ref('')
 const rowData         = ref([])
@@ -74,33 +74,7 @@ const router          = useRouter()
 const showConfirm = ref(false)
 const confirmMessage = ref('')
 let confirmCallback = null
-
-// 인사팀에서만 등록, 삭제버튼 
-const userStore = useUserStore()
-const token = localStorage.getItem('token')
-const payload = parseJwtPayload(userStore.accessToken || token)
-const isHR = payload?.role?.includes('ROLE_HR') || payload?.auth?.includes('ROLE_HR')
-
-function parseJwtPayload(token) {
-  try {
-    const base64Url = token.split('.')[1]
-    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
-    const jsonPayload = decodeURIComponent(
-      atob(base64)
-        .split('')
-        .map(c => `%${('00' + c.charCodeAt(0).toString(16)).slice(-2)}`)
-        .join('')
-    )
-    return JSON.parse(jsonPayload)
-  } catch (e) {
-    return null
-  }
-}
-
-if (!isHR) {
-  showToast('접근 권한이 없습니다.')
-  router.push('/error403')
-}
+const token = useUserStore().accessToken
 
 const toastRef = ref(null)
 
@@ -145,9 +119,15 @@ const columnDefs = [
   }
 ]
 
-async function loadData(endpoint = 'approved') {
+async function loadData() {
+  const url = 'https://api.isddishr.site/appointment-history/approved'
   try {
-    const res = await fetch(`${API_BASE}/${endpoint}`)
+    const res = await fetch(url, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    })
     if (!res.ok) throw new Error(res.statusText)
     rowData.value = await res.json()
   } catch (err) {
@@ -181,23 +161,24 @@ async function onDelete() {
   }
 
   openConfirmModal(`${idsToDelete.length}건을 삭제하시겠습니까?`, async () => {
-  try {
-    for (const id of idsToDelete) {
-      const res = await fetch(`https://api.isddishr.site/appointment/delete/${id}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      })
-      if (!res.ok) throw new Error(`ID ${id} 삭제 실패`)
-    }
+    const token = userStore.accessToken
+    try {
+      for (const id of idsToDelete) {
+        const res = await fetch(`https://api.isddishr.site/appointment/delete/${id}`, {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        })
+        if (!res.ok) throw new Error(`ID ${id} 삭제 실패`)
+      }
 
-    showToast(`${idsToDelete.length}건 삭제 완료`)
-    await loadData()
-  } catch (err) {
-    console.error('삭제 오류:', err)
-    showToast('삭제 중 오류가 발생했습니다.')
-  }
+      showToast(`${idsToDelete.length}건 삭제 완료`)
+      await loadData()
+    } catch (err) {
+      console.error('삭제 오류:', err)
+      showToast('삭제 중 오류가 발생했습니다.')
+    }
   })
 }
 
@@ -251,11 +232,11 @@ function onCellClick(e) {
   }
   .filters select,
   .filters input {
-    border: 1px solid var(--border-color);
+    border: 1px solid #ddd;
     border-radius: 8px;
     padding: 6px 8px;
     font-size: 14px;
-    color: var(--text-sub);
+    color: var(--text-main);
     background: var(--modal-box-bg);
   }
   .filters input {
@@ -263,12 +244,6 @@ function onCellClick(e) {
   }
   .filters select {
     width: 160px;
-  }
-
-  .filters select:focus,
-  .filters input:focus {
-    outline: none;
-    border: 1px solid black;
   }
 
   .grid-wrapper {
@@ -288,8 +263,8 @@ function onCellClick(e) {
   font-weight: bold;
   cursor: pointer;
   font-family: inherit;
-  background-color: #00a8e8;
-  color: white;
+  background-color: var(--primary);
+  color: var(--text-on-primary);
   border: 1px solid transparent;
   border-radius: 10px;
   padding: 10px 30px;
@@ -299,12 +274,11 @@ function onCellClick(e) {
   box-sizing: border-box;
 }
 
-  .btn-register:hover {
-  background-color: white;
-  color: #00a8e8;
-  border-color: #00a8e8;
-  box-shadow:
-  inset 1px 1px 10px rgba(0, 0, 0, 0.25);
+.btn-register:hover {
+  background-color: var(--bg-main);
+  color: var(--primary);
+  border-color: var(--primary);
+  box-shadow: inset 1px 1px 10px rgba(0, 0, 0, 0.25);
 }
   .btn-delete {
     background-color: #D3D3D3;

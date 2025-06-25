@@ -11,55 +11,44 @@
       <span :class="{active: tab==='회수'}" @click="tab='회수'">회수</span>
     </div>
   </div>
-  <div class="main-box">
-    <div class="search-row">
-      <!-- <div class="search-item">
-        <label>기안상신일</label>
-        <input type="date" v-model="search.date" />
-      </div> -->
-        <div class="section period">
-          <div class="inputs">
-            <label><strong>조회기간</strong></label>
-            <input
-                type="month"
-                v-model="dateRange.start"
-              />            
-              <span>~</span>
-            <input
-                type="month"
-                v-model="dateRange.end"
-              />
-            </div>
-          </div>
-          <div class="btn-area">
-          </div>
-      <div class="search-item">
-        <label><strong>기안 제목</strong></label>
-        <input type="text" v-model="search.title" placeholder="기안 제목 입력" />
+    <!-- 3. 메인 컨텐츠 박스 (검색 + 테이블) -->
+    <div class="main-box">
+      <!-- 3-1. 검색 영역 -->
+      <div class="search-row">
+        <div class="search-item">
+          <label>기안 제목</label>
+          <input type="text" v-model="search.title" placeholder="기안 제목 입력" />
+        </div>
+        <div class="search-item">
+          <label>기안상신일</label>
+          <input type="date" v-model="search.startDate" /> ~
+          <input type="date" v-model="search.endDate" />
+        </div>
       </div>
-    </div>
 
+      <!-- 3-2. 목록 테이블 영역 -->
       <div class="table-box">
         <AgGridVue
-          v-if="docs.length > 0"
-          class="ag-theme-alpine custom-theme"
-          :gridOptions="{ theme: 'legacy' }"
-          :columnDefs="currentColumnDefs"
-          :rowData="filteredForms"
-          :pagination="true"
-          rowSelection="single"
-          @rowClicked="handleFormRowClick"
-          style="width:100%; height:100%;"
-        />
+        class="ag-theme-alpine custom-theme"
+        :gridOptions="{ theme: 'legacy' , rowSelection: 'single' }"
+        :columnDefs="currentColumnDefs"
+        :rowData="filteredForms"
+        :pagination="true"
+        :paginationPageSize="10"
+        :paginationPageSizeSelector="[10, 20, 50, 100]"
+        rowSelection="single"  
+        @row-click="handleFormRowClick"
+        style="width: 100%; height: 100%;"
+      />
     </div>
   </div>
 </template>
 
 <script setup>
 import { ref, reactive, computed, onMounted, watch } from 'vue'
-import { AgGridVue } from 'ag-grid-vue3'
 import { ModuleRegistry, AllCommunityModule } from 'ag-grid-community'
 import axios from 'axios'
+import AgGridVue from '@/components/grid/BaseGrid.vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user' // ✅ 먼저 import
 
@@ -67,11 +56,10 @@ ModuleRegistry.registerModules([AllCommunityModule])
 
 // 1) 상태
 const tab    = ref('상신')
-const search = reactive({ start: '', end: '' , title: '' })
+const search = reactive({startDate: '', endDate: '',  title: ''})
 const docs   = ref([])
 const route = useRoute()
 const router = useRouter()
-const dateRange = reactive({ start: '', end: '' })
 const userStore = useUserStore() 
 
 
@@ -132,27 +120,13 @@ const filteredForms = computed(() => {
     if (!expectedStatuses.includes(doc.docStatus)) return false
 
     // 조회기간 필터링
-    if (dateRange.start) {
-    const docMonth = (currentTab === '완료'
-        ? doc.completeDate 
-        : doc.date
-      )?.slice(0, 7)  // "YYYY-MM"
-      if (!docMonth || docMonth < dateRange.start) return false
-    }
-    if (dateRange.end) {
-      const docMonth = (currentTab === '완료'
-        ? doc.completeDate 
-        : doc.date
-      )?.slice(0, 7)
-      if (!docMonth || docMonth > dateRange.end) return false
-    } 
-    if (search.title && !doc.title?.includes(search.title)) return false
+    if (search.startDate || search.endDate) {
+    const submitted = doc.submittedAt?.slice(0, 10) // yyyy-MM-dd
+    if (!submitted) return false
 
-    if (search.date) {
-      const dateField = currentTab === '완료' ? doc.approvedAt : doc.submittedAt
-      const dateOnly = dateField?.slice(0, 10)
-      if (dateOnly !== search.date) return false
-    }
+    if (search.startDate && submitted < search.startDate) return false
+    if (search.endDate && submitted > search.endDate) return false
+  }
     return true
   })
   // ✅ 정렬: 완료탭은 approvedAt, 나머지는 submittedAt 기준
@@ -275,15 +249,15 @@ input[type="month"] {
 
 /* 흰색 메인 컨텐츠 박스 */
 .main-box {
-  background: #fff;
-  border-radius: 12px;
+  background-color: var(--bg-box);
+  border-radius: 0px 12px 12px 12px;
   box-shadow: 1px 1px 20px 1px rgba(0,0,0,0.05);
   width: 100%;
   height: 700px;
   min-width: 0;
   max-width: 100%;
-  margin: 0px 24px 24px 24px;  
-  padding: 40px 40px 32px 40px; /* 상 우 하 좌 */
+  margin: 0 20px 30px; 
+  padding: 20px 40px 32px 40px;
   box-sizing: border-box;
 }
 
@@ -326,10 +300,11 @@ input[type="month"] {
   transition: all 0.2s ease;
 }
 
-.tabs span.active {
+.tabs .active {
   background-color: #fff;
   color: #000;
   z-index: 3;
+  background: var(--bg-box);
   border-bottom: none;
 }
 
@@ -354,6 +329,7 @@ input[type="month"] {
 
 .search-item {
   display: flex;                /* label, input을 한 줄에 배치 */
+  background-color: transparent;
   flex-direction: row;          /* 가로 정렬(한 줄) */
   align-items: center;          /* 세로 중앙 정렬 */
   gap: 5px;                     /* label과 input 사이 간격 */
@@ -402,7 +378,6 @@ input[type="month"] {
   margin: 0;
   border: 1px solid #e3e5e8;     /* 연한 회색 테두리 */
   border-radius: 8px;            /* 둥근 모서리 */
-  background: #fff;
   overflow: auto;             
   box-sizing: border-box;
   /* → 이 상태에서 내부 AgGridVue가 100% 채움 */

@@ -161,18 +161,26 @@ const selectedJobs = computed(() => {
 })
 
 onMounted(async () => {
+  const BASE = 'https://api.isddishr.site/introduction'
   try {
-    const BASE = 'https://api.isddishr.site/introduction'
-
-    // 팀 상세 정보
-    const teamRes = await fetch(`${BASE}/team/${teamId}`)
+    const teamRes = await fetch(`${BASE}/team/${teamId}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    })
     if (!teamRes.ok) throw new Error(`HTTP ${teamRes.status}`)
     const teamData = await teamRes.json()
     teamName.value = teamData.teamName
     teamIntro.value = teamData
 
     // 해당 팀의 직무 목록 조회
-    const jobsRes = await fetch(`${BASE}/team/${teamId}/job`)
+    const jobsRes = await fetch(`${BASE}/team/${teamId}/job`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    })
     if (!jobsRes.ok) throw new Error(`HTTP ${jobsRes.status}`)
     let jobsData = await jobsRes.json()
 
@@ -325,7 +333,7 @@ function saveEdit(updated) {
 }
 
 .job-card {
-  background: var(--madal-box-bg); 
+  background: var(--modal-bg); 
   max-width: 800px;
   width: 80%;
   border-radius: 12px;
@@ -371,8 +379,8 @@ function saveEdit(updated) {
   font-weight: bold;
   cursor: pointer;
   font-family: inherit;
-  background-color: #00a8e8;
-  color: white;
+  background-color: var(--primary);
+  color: var(--text-on-primary);
   border: 1px solid transparent;
   border-radius: 10px;
   padding: 10px 30px;
@@ -391,9 +399,9 @@ function saveEdit(updated) {
 }
 
 .edit-button:hover:not(:disabled) {
-  background-color: white;
-  color: #00a8e8;
-  border-color: #00a8e8;
+  background-color: var(--bg-main);
+  color: var(--primary);
+  border-color: var(--primary);
   box-shadow: inset 1px 1px 10px rgba(0, 0, 0, 0.25);
 }
 

@@ -590,39 +590,44 @@ async function onCellClick(e) {
 // 페이지 진입 시 데이터 로드
 onMounted(async () => {
   try {
-    // 기본 사원 정보
+    // 1) 기본 사원 정보 (이미 헤더 있음)
     const { data } = await axios.get(
       '/employees/myinfo',
       { headers: { Authorization: `Bearer ${userStore.accessToken}` } }
     )
     Object.assign(form, data)
+
+    // 2) 프로필 미리보기 URL 요청에도 헤더 추가
     if (data.employeePhotoUrl) {
-      const { data: url } = await axios.get('/s3/download-url', {
-        params: { filename: data.employeePhotoUrl, contentType: 'image/png' }
-      })
+      const { data: url } = await axios.get(
+        '/s3/download-url',
+        {
+          params: { filename: data.employeePhotoUrl, contentType: 'image/png' },
+          headers: { Authorization: `Bearer ${userStore.accessToken}` }
+        }
+      )
       previewSrc.value = url
     }
 
-    // 인사발령 목록
+    // 3) 인사발령 목록
     const res  = await axios.get(
       `/appointment-history/employee/${data.employeeId}`,
       { headers: { Authorization: `Bearer ${userStore.accessToken}` } }
     )
-    // 응답 wrapper 안에 list 프로퍼티에 실제 배열이 들어 있다면
-    appointmentData.value = Array.isArray(res.data)
-      ? res.data
-      : res.data.list
+    appointmentData.value = Array.isArray(res.data) ? res.data : res.data.list
 
-    // 징계 목록
-    const discs = await axios.get(`/disciplinary/employee/${data.employeeId}`, {
-      headers: { Authorization: `Bearer ${userStore.accessToken}` }
-    })
+    // 4) 징계 목록
+    const discs = await axios.get(
+      `/disciplinary/employee/${data.employeeId}`,
+      { headers: { Authorization: `Bearer ${userStore.accessToken}` } }
+    )
     disciplineData.value = discs.data
 
-    // 계약 목록
-    const contracts = await axios.get(`/contract/employee/${data.employeeId}`, {
-      headers: { Authorization: `Bearer ${userStore.accessToken}` }
-    })
+    // 5) 계약 목록
+    const contracts = await axios.get(
+      `/contract/employee/${data.employeeId}`,
+      { headers: { Authorization: `Bearer ${userStore.accessToken}` } }
+    )
     contractData.value = contracts.data
 
   } catch (err) {
@@ -752,17 +757,30 @@ async function onPhotoSelected(e) {
   if (!file) return
 
   try {
-    const { data: { url, key } } = await axios.get('/s3/upload-url', {
-      params: { filename: file.name, contentType: file.type },
-      headers: { Authorization: `Bearer ${userStore.accessToken}` }
-    })
+    // presign URL
+    const { data: { url, key } } = await axios.get(
+      '/s3/upload-url',
+      {
+        params: { filename: file.name, contentType: file.type },
+        headers: { Authorization: `Bearer ${userStore.accessToken}` }
+      }
+    )
+    // S3 PUT
     await axios.put(url, file, { headers: { 'Content-Type': file.type } })
+
     form.employeePhotoUrl  = key
     form.employeePhotoName = file.name
-    const { data: previewUrl } = await axios.get('/s3/download-url', {
-      params: { filename: key, contentType: file.type }
-    })
+
+    // preview URL (헤더 추가)
+    const { data: previewUrl } = await axios.get(
+      '/s3/download-url',
+      {
+        params: { filename: key, contentType: file.type },
+        headers: { Authorization: `Bearer ${userStore.accessToken}` }
+      }
+    )
     previewSrc.value = previewUrl
+
   } catch (err) {
     console.error(err)
     showToast('사진 업로드에 실패했습니다.')
