@@ -3,47 +3,49 @@
 <template>
   <!-- 1. 상단: 페이지 제목 -->
   <h1 class="page-title">결재함</h1>
+  <div class="approval-box-page">
 
-  <!-- 2. 탭 -->
-  <div class="tab-wrapper">
-    <div class="tabs">
-      <span :class="{ active: tab.value === '전체' }" @click="tab.value = '전체'">전체</span>
-      <span :class="{ active: tab.value === '결재' }" @click="tab.value = '결재'">결재</span>
-      <span :class="{ active: tab.value === '진행' }" @click="tab.value = '진행'">진행</span>
-      <span :class="{ active: tab.value === '완료' }" @click="tab.value = '완료'">완료</span>
-    </div>
-  </div>
-
-  <!-- 3. 메인 컨텐츠 박스 (검색 + 테이블) -->
-  <div class="main-box">
-    <!-- 3-1. 검색 영역 -->
-    <div class="search-row">
-      <div class="search-item">
-        <label>기안 제목</label>
-        <input type="text" v-model="search.title" placeholder="기안 제목 입력" />
-      </div>
-      <div class="search-item">
-        <label>기안상신일</label>
-        <input type="date" v-model="search.startDate" /> ~
-        <input type="date" v-model="search.endDate" />
+    <!-- 2. 탭 -->
+    <div class="tab-wrapper">
+      <div class="tabs">
+        <span :class="{ active: tab.value === '전체' }" @click="tab.value = '전체'">전체</span>
+        <span :class="{ active: tab.value === '결재' }" @click="tab.value = '결재'">결재</span>
+        <span :class="{ active: tab.value === '진행' }" @click="tab.value = '진행'">진행</span>
+        <span :class="{ active: tab.value === '완료' }" @click="tab.value = '완료'">완료</span>
       </div>
     </div>
 
-    <!-- 3-2. 목록 테이블 영역 -->
-    <div class="table-box">
-      <AgGridVue
-        class="ag-theme-alpine custom-theme"
-        :gridOptions="{ theme: 'legacy' }"
-        :columnDefs="currentColumnDefs"
-        :rowData="filteredForms"
-        :pagination="true"
-        :paginationPageSize="10"
-        :paginationPageSizeSelector="[10, 20, 50, 100]"
-        rowSelection="single"  
-        @row-click="handleFormRowClick"
-        :overlayNoRowsTemplate="'<span class=\'ag-empty\'>데이터가 없습니다.</span>'"
-        style="width: 100%; height: 100%;"
-      />
+    <!-- 3. 메인 컨텐츠 박스 (검색 + 테이블) -->
+    <div class="main-box">
+      <!-- 3-1. 검색 영역 -->
+      <div class="search-row">
+        <div class="search-item">
+          <label>기안 제목</label>
+          <input type="text" v-model="search.title" placeholder="기안 제목 입력" />
+        </div>
+        <div class="search-item">
+          <label>기안상신일</label>
+          <input type="date" v-model="search.startDate" /> ~
+          <input type="date" v-model="search.endDate" />
+        </div>
+      </div>
+
+      <!-- 3-2. 목록 테이블 영역 -->
+      <div class="table-box">
+        <AgGridVue
+          class="ag-theme-alpine custom-theme"
+          :gridOptions="{ theme: 'legacy' }"
+          :columnDefs="currentColumnDefs"
+          :rowData="filteredForms"
+          :pagination="true"
+          :paginationPageSize="10"
+          :paginationPageSizeSelector="[10, 20, 50, 100]"
+          rowSelection="single"  
+          @row-click="handleFormRowClick"
+          :overlayNoRowsTemplate="'<span class=\'ag-empty\'>데이터가 없습니다.</span>'"
+          style="width: 100%; height: 100%;"
+        />
+      </div>
     </div>
   </div>
 </template>
@@ -177,11 +179,22 @@ const filteredForms = computed(() => {
     const isRejected = doc.lineStatus === '반려' || doc.docStatus === '반려'
     if (tab.value !== '전체' && isRejected) return false
     if (tab.value === '전체' && isRejected) return true
+
     if (expected) {
       const docStatusMatch = expected.docStatus.includes(doc.docStatus)
       const lineStatusMatch = expected.lineStatus.includes(doc.lineStatus)
       if (!docStatusMatch || !lineStatusMatch) return false
     }
+
+    if (
+      search.title &&
+      !doc.title?.replace(/\s/g, '').toLowerCase().includes(
+        search.title.replace(/\s/g, '').toLowerCase()
+      )
+    ) {
+      return false
+    }
+
     if (search.startDate || search.endDate) {
     const submitted = doc.submittedAt?.slice(0, 10) // yyyy-MM-dd
     if (!submitted) return false
@@ -226,8 +239,8 @@ function handleFormRowClick(params) {
   height: 700px;
   min-width: 0;
   max-width: 100%;
-  margin: 0px 24px 24px 24px;  
-  padding: 40px 40px 32px 40px; /* 상 우 하 좌 */
+  margin-bottom: 50px;
+  padding: 20px;
   box-sizing: border-box;
 }
 
@@ -236,6 +249,10 @@ function handleFormRowClick(params) {
     margin-left: 20px;
     margin-bottom: 30px;
     color: #00a8e8;
+}
+
+.approval-box-page {
+  padding: 20px 20px 20px;
 }
 
 /* 🔷 겹쳐지는 탭 스타일 */
@@ -250,7 +267,7 @@ function handleFormRowClick(params) {
   align-items: flex-end;
   gap: 0;
   position: relative;
-  margin: 50px 24px 0px 24px;
+  margin-right: -20px; 
 }
 
 .tabs span {
@@ -301,7 +318,7 @@ function handleFormRowClick(params) {
 
 .search-item label {
     font-size: 16.5px;            /* label 폰트 크기 (1.04rem 기준) */
-    color: #343434;               /* label 텍스트 색상 */
+    color: var(--text-main);      /* label 텍스트 색상 */
     margin-bottom: 2px;           /* (행 아닌 열 정렬일 땐 의미 없음, row일 땐 영향 없음) */
     font-weight: 500;             /* label 굵기 */
     letter-spacing: -0.5px;       /* 자간 조정 */
@@ -309,16 +326,17 @@ function handleFormRowClick(params) {
 
 .search-item input[type="date"],
 .search-item input[type="text"] {
-    padding: 8px 12px;            /* 인풋 내부 여백 */
-    border: 1.2px solid #e1e7ee;  /* 연한 회색 테두리 */
-    border-radius: 8px;           /* 둥근 테두리 */
-    background: #fff;
-    font-size: 16px;              /* 입력값, placeholder 모두 16px로 통일 */
-    width: 180px;                 /* 입력 란의 고정 폭 */
+    padding: 8px 12px;            
+    border: 1px solid var(--border-color); 
+    border-radius: 8px;          
+    font-size: 16px;             
+    width: 180px;                 
     min-width: 180px;
-    max-width: 180px;             /* 고정 폭: 포커스 등으로 절대 안 커짐 */
-    box-sizing: border-box;       /* 패딩·테두리 포함한 크기 */
+    max-width: 180px;            
+    box-sizing: border-box;      
     transition: border 0.2s, box-shadow 0.2s;
+    background-color: var(--modal-box-bg);
+    color: var(--text-main);
 }
 
 /* 인풋 placeholder 색상 등 스타일 */

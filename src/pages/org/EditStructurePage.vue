@@ -575,7 +575,11 @@ async function handleDeleteOrg({ type, ids }) {
 }
 
 async function loadHierarchy() {
-  const res = await fetch('https://api.isddishr.site/structure/hierarchy')
+  const res = await fetch('https://api.isddishr.site/structure/hierarchy',
+    {
+      headers: { 'Authorization': `Bearer ${token}` }
+    }
+  )
   const hierarchyData = await res.json()
   dataStore.headquarters = hierarchyData
 

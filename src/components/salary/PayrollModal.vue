@@ -4,9 +4,11 @@
     <div class="modal" ref="pdfContent">
       <button class="close-btn no-print" @click="emit('close')">×</button>
       <h2 class="modal-title">
-        {{ isMySlip ? '급여명세서' : `${slip.employeeName} 님의 급여명세서` }}
+        {{ workMonthLabel }} 급여명세서
       </h2>
-
+      <p class="pay-date">
+        지급일 [ {{ payDateLabel }} ]
+      </p>
       <table class="info-table bordered">
         <tbody>
           <tr>
@@ -125,7 +127,16 @@ const today = computed(() => {
   const date = new Date(props.slip.salaryDate)
   return useDateFormat(date, 'YYYY년 MM월 DD일').value
 })
+const workMonthLabel = computed(() => {
+  const date = new Date(props.slip.salaryDate)
+  date.setMonth(date.getMonth() - 1) // 지급월에서 한 달 빼기 → 근무월
+  return `${date.getFullYear()}년 ${String(date.getMonth() + 1).padStart(2, '0')}월`
+})
 
+const payDateLabel = computed(() => {
+  const date = new Date(props.slip.salaryDate)
+  return useDateFormat(date, 'YYYY년 MM월 DD일').value
+})
 const paddedDeductions = computed(() => {
   const max = props.slip.pays.length
   const current = props.slip.deductions.length
@@ -193,7 +204,7 @@ function downloadPDF() {
   const clone = pdfContent.value.cloneNode(true)
   clone.querySelectorAll('.no-print').forEach(el => el.remove())
 
-  const fileName = `${props.slip.employeeName}_${props.slip.yearMonth.replace('-', '년 ')}월_급여명세서.pdf`
+  const fileName = `${props.slip.employeeName}_${workMonthLabel.value.replace(' ', '')}_급여명세서.pdf`
 
   html2pdf().from(clone).set({
     margin: 0.5,
@@ -270,6 +281,11 @@ function downloadPDF() {
 .info-table td {
   padding: 6px 8px;
   width: 25%;
+}
+.pay-date {
+  text-align: left;
+  margin-bottom: 8px;
+  font-weight: 500;
 }
 
 .section-title-table {

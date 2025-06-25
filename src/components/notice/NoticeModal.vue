@@ -153,7 +153,7 @@ async function onClick(item) {
 }
 .modal-body {
   flex: 1 1 auto;
-  padding: 6px 16px;
+  padding: 6px 20px;
   overflow-y: auto;
 }
 

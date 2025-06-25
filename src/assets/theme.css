@@ -67,6 +67,10 @@
   --btn-border: #3f3f3f;
   --edit-bt: #b8b8b8;
   --border-input: #dddddd;
+
+  /* grid - 양식 링크 */
+  --ag-link-color: #5b2cb3;
+  --ag-link-hover-color: #7e57c2;
 }
 
 body.dark {
@@ -128,4 +132,7 @@ body.dark {
   --icon-filter: invert(1);
 
   --btn-border: #fff;
+
+  --ag-link-color: #a685ff;
+  --ag-link-hover-color: #d1b3ff;
 }

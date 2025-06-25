@@ -6,13 +6,6 @@
   </header>
 
   <div class="card">
-      <button
-        v-if="isHR"
-        class="btn-modify"
-        @click="onModifyClick"
-      >
-        수정
-      </button>
     <div class="search-bar-in-card">
       <img src="@/assets/icons/search.svg" alt="검색" class="search-icon" />
       <input
@@ -25,7 +18,7 @@
 
     <div class="ag-grid-container">
       <div class="ag-wrapper">
-        <AgGridVue
+        <BaseGrid
           class="ag-theme-alpine custom-theme"
           :gridOptions="{ theme: 'legacy' }"
           style="width: 100%; height: 500px;"
@@ -34,7 +27,8 @@
           rowSelection="multiple"
           :pagination="true"
           :paginationPageSize="pageSize"
-          @grid-ready="onGridReady"
+          @ready="onGridReady"
+          @cell-click="onCellClick"
         />
       </div>
 
@@ -61,6 +55,13 @@
         @click="onDeleteClick"
       >
         삭제
+      </button>
+            <button
+        v-if="isHR"
+        class="btn-modify"
+        @click="onModifyClick"
+      >
+        수정
       </button>
       <button
         v-if="isHR"
@@ -120,7 +121,6 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
 import { useUserStore } from '@/stores/user'
-import { AgGridVue } from 'ag-grid-vue3'
 import {
   ModuleRegistry,
   AllCommunityModule,
@@ -131,6 +131,7 @@ import {
   CellStyleModule,
   ValidationModule
 } from 'ag-grid-community'
+import BaseGrid from '@/components/grid/BaseGrid.vue'
 
 // AG Grid 모듈 등록
 ModuleRegistry.registerModules([
@@ -359,19 +360,13 @@ onMounted(fetchDictionary)
 }
 
 /* 헤더: desc와 수정 버튼을 같은 높이에 배치 */
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0 20px;
-  margin-bottom: 10px;
-}
 
 /* desc 위치는 그대로 유지 */
 .desc {
-  margin: 0;
-  font-size: 16px;
-  color: #333;
+    display: block;
+    margin-left: 20px;
+    margin-bottom: 10px;
+    font-size: 18px;
 }
 
 .card > .btn-modify {
@@ -404,13 +399,13 @@ onMounted(fetchDictionary)
 
 /* 카드 영역 */
 .card {
-  position: relative;
   background: #fff;
   border-radius: 12px;
-  box-shadow: 1px 1px 20px 1px rgba(0, 0, 0, 0.05);
-  margin: 0 20px 30px;
-  padding: 20px 40px 32px 40px;
-  box-sizing: border-box;
+  padding: 20px 32px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  margin-left: 20px;
+  max-width: 100%;
+  overflow-x: auto;
 }
 
 /* 검색창 */
@@ -544,9 +539,10 @@ onMounted(fetchDictionary)
 }
 
 .btn-save {
+  font-size: 14px;
+  font-weight: bold;
   background-color: #00a8e8;
   color: white;
-  font-weight: bold;
   border: 1px solid transparent;
   border-radius: 10px;
   padding: 10px 30px;
@@ -563,7 +559,9 @@ onMounted(fetchDictionary)
 }
 
 .btn-delete {
-  background-color: #d3d3d3;
+  font-size: 14px;
+  font-weight: bold;
+  background-color: #D3D3D3;
   color: #000;
   border: none;
   border-radius: 10px;
@@ -634,11 +632,47 @@ onMounted(fetchDictionary)
 /* 모달 버튼 배치 */
 .entry-buttons {
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
+  gap:10px
 }
-.entry-buttons .btn-delete,
+
 .entry-buttons .btn-save {
-  width: 48%;
+  font-size: 14px;
+  font-weight: bold;
+  background-color: #00a8e8;
+  color: white;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  padding: 10px 30px;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: background-color 0.2s, box-shadow 0.2s;
+  box-sizing: border-box;
+}
+.entry-buttons .btn-save:hover{
+  background-color: white;
+  color: #00a8e8;
+  border-color: #00a8e8;
+  box-shadow:
+  inset 1px 1px 10px rgba(0, 0, 0, 0.25);
+}
+.entry-buttons.btn-delete {
+  font-size: 14px;
+  font-weight: bold;
+  background-color: #D3D3D3;
+  color: #000;
+  border: none;
+  border-radius: 10px;
+  padding: 10px 30px;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: background-color 0.2s, box-shadow 0.2s;
+  box-sizing: border-box;
+}
+.entry-buttons.btn-delete:hover{
+  background-color: #000;
+  color: #fff;
 }
 
 

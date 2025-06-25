@@ -40,13 +40,13 @@ defineProps({
 }
 
 .modal-title {
-  font-size: 18px;
+  font-size: 20px;
   font-weight: bold;
   margin-bottom: 30px;
 }
 
 .modal-message {
-  font-size: 15px;
+  font-size: 18px;
   margin-bottom: 40px;
 }
 

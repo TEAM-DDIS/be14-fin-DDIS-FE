@@ -2,6 +2,7 @@
  
 <template>
   <h1 class="page-title">기안함</h1>
+  <div class="my-draft-page">
   <div class="tab-wrapper">
     <div class="tabs">
       <span :class="{active: tab==='전체'}" @click="tab='전체'">전체</span>
@@ -26,20 +27,21 @@
         </div>
       </div>
 
-      <!-- 3-2. 목록 테이블 영역 -->
-      <div class="table-box">
-        <AgGridVue
-        class="ag-theme-alpine custom-theme"
-        :gridOptions="{ theme: 'legacy' , rowSelection: 'single' }"
-        :columnDefs="currentColumnDefs"
-        :rowData="filteredForms"
-        :pagination="true"
-        :paginationPageSize="10"
-        :paginationPageSizeSelector="[10, 20, 50, 100]"
-        rowSelection="single"  
-        @row-click="handleFormRowClick"
-        style="width: 100%; height: 100%;"
-      />
+        <!-- 3-2. 목록 테이블 영역 -->
+        <div class="table-box">
+          <AgGridVue
+          class="ag-theme-alpine custom-theme"
+          :gridOptions="{ theme: 'legacy' , rowSelection: 'single' }"
+          :columnDefs="currentColumnDefs"
+          :rowData="filteredForms"
+          :pagination="true"
+          :paginationPageSize="10"
+          :paginationPageSizeSelector="[10, 20, 50, 100]"
+          rowSelection="single"  
+          @row-click="handleFormRowClick"
+          style="width: 100%; height: 100%;"
+        />
+      </div>
     </div>
   </div>
 </template>
@@ -118,6 +120,10 @@ const filteredForms = computed(() => {
     if (!doc || !doc.docStatus) return false
 
     if (!expectedStatuses.includes(doc.docStatus)) return false
+
+    if (search.title && !doc.title.toLowerCase().includes(search.title.toLowerCase())) {
+    return false
+  }
 
     // 조회기간 필터링
     if (search.startDate || search.endDate) {
@@ -205,24 +211,32 @@ function handleFormRowClick(params) {
 </script>
 
 <style>
+.my-draft-page{
+  padding: 20px 20px 20px;
+}
+
 /* 공통 입력 요소 테두리 둥글게 */
 input[type="month"],
 .search-bar input,
 .filters select {
   border-radius: 8px !important;
-  background-color: transparent !important;
+  background-color: var(--modal-box-bg);
+  color: var(--text-main);
+  font-family: 'inter';
   box-shadow: none !important;
+  border: 2px solid #ddd;
+
 }
 
 /* 월 선택 input 스타일 */
 input[type="month"] {
   height: 20px;
   padding: 6px 8px;
-  border: 1px solid #ccc;
-  background-color: transparent !important;
+  border: 2px solid #ddd;
+  background-color: var(--modal-box-bg);
+  color: var(--text-main);
+  font-family: 'inter';
   box-shadow: none !important;
-    background: #fff;
-
 
 }
 
@@ -232,7 +246,6 @@ input[type="month"] {
   align-items: center;
   gap: 13px;
   background: #fff;
-
 }
 
 /* 기간 섹션 배치 스타일 */
@@ -244,7 +257,6 @@ input[type="month"] {
   gap: 16px;
   box-shadow: 1px 1px 20px 1px rgba(0, 0, 0, 0.05);
   background: transparent;
-
 }
 
 /* 흰색 메인 컨텐츠 박스 */
@@ -253,11 +265,11 @@ input[type="month"] {
   border-radius: 0px 12px 12px 12px;
   box-shadow: 1px 1px 20px 1px rgba(0,0,0,0.05);
   width: 100%;
-  height: 700px;
+  height: 650px;
   min-width: 0;
   max-width: 100%;
-  margin: 0 20px 30px; 
-  padding: 20px 40px 32px 40px;
+  margin-bottom: 50px;
+  padding: 20px;
   box-sizing: border-box;
 }
 
@@ -265,7 +277,7 @@ input[type="month"] {
 .page-title {
   margin-left: 20px;
   margin-bottom: 30px;
-  color: #00a8e8;
+  color: var(--primary);
 }
 
 /* 🔷 겹쳐지는 탭 스타일 */
@@ -280,7 +292,7 @@ input[type="month"] {
   align-items: flex-end;
   gap: 0;
   position: relative;
-  margin: 50px 24px 0px 24px;
+  margin-right: -20px;  /* 👈 main-box 와 맞춤 */
 }
 
 .tabs span {
@@ -301,17 +313,10 @@ input[type="month"] {
 }
 
 .tabs .active {
-  background-color: #fff;
-  color: #000;
+  /* color: var(--primary); */
   z-index: 3;
   background: var(--bg-box);
-  border-bottom: none;
-}
-
-.tabs span:focus,
-.tabs span:active {
-  outline: none;             /* 포커스 테두리 제거 */
-  text-decoration: none;     /* 포커스 시 밑줄 제거 */
+  color: var(--modal-text);
   border-bottom: none;
 }
 
@@ -328,25 +333,26 @@ input[type="month"] {
 }
 
 .search-item {
+  background-color: var(--modal-box-bg);
   display: flex;                /* label, input을 한 줄에 배치 */
-  background-color: transparent;
   flex-direction: row;          /* 가로 정렬(한 줄) */
   align-items: center;          /* 세로 중앙 정렬 */
   gap: 5px;                     /* label과 input 사이 간격 */
   min-width: 150px;             /* 최소 너비(인풋이 깨지지 않게) */
+  background-color: transparent;
 }
 
 .search-item label {
   font-size: 16.5px;            /* label 폰트 크기 (1.04rem 기준) */
-  color: #000000;               /* label 텍스트 색상 */
   margin-bottom: 2px;           /* (행 아닌 열 정렬일 땐 의미 없음, row일 땐 영향 없음) */
   letter-spacing: -0.5px;       /* 자간 조정 */
+  color: var(--text-main);
 }
 
 .search-item input[type="date"],
 .search-item input[type="text"] {
   padding: 8px 12px;            /* 인풋 내부 여백 */
-  border: 1.2px solid #e1e7ee;  /* 연한 회색 테두리 */
+  border: 2px solid #ddd;
   border-radius: 8px;           /* 둥근 테두리 */
   font-size: 16px;              /* 입력값, placeholder 모두 16px로 통일 */
   width: 180px;                 /* 입력 란의 고정 폭 */
@@ -354,6 +360,9 @@ input[type="month"] {
   max-width: 180px;             /* 고정 폭: 포커스 등으로 절대 안 커짐 */
   box-sizing: border-box;       /* 패딩·테두리 포함한 크기 */
   transition: border 0.2s, box-shadow 0.2s;
+  background-color: var(--modal-box-bg);
+  color: var(--text-main);
+  font-family: 'inter';
 }
 
 /* 인풋 placeholder 색상 등 스타일 */
@@ -365,9 +374,9 @@ input[type="month"] {
 /* 입력란 클릭/포커스시 효과 */
 .search-item input[type="text"]:focus,
 .search-item input[type="date"]:focus {
-  outline: none;                /* 기본 파란 테두리 제거 */
-  border: 1px solid #1f2937;    /* 파란 테두리(폭은 2px, 색상 변경 가능) */
-  /* width가 180px로 고정이기 때문에, 포커스되어도 절대 커지지 않음!! */
+  outline: none;
+  border: 1px solid #ddd;          /* 포커스 시도 2px */
+  box-shadow: 0 0 0 1.5px #111; 
 }
 
 /* ------- 표 박스 ------- */
@@ -376,11 +385,10 @@ input[type="month"] {
   height: 500px;                 /* 원하는 고정 크기 */
   padding: 0;
   margin: 0;
-  border: 1px solid #e3e5e8;     /* 연한 회색 테두리 */
+  border: 1px solid var(--border-color);
   border-radius: 8px;            /* 둥근 모서리 */
   overflow: auto;             
   box-sizing: border-box;
-  /* → 이 상태에서 내부 AgGridVue가 100% 채움 */
 }
 
 /* 스타일 커스터마이징 */

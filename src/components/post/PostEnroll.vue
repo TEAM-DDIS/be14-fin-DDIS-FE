@@ -243,15 +243,11 @@ async function onSubmit() {
 .post-enroll-wrapper {
   background: #fff;
   border-radius: 12px;
-  box-shadow: 1px 1px 20px 1px rgba(0, 0, 0, 0.05);
-  width: 100%;
-  height: 100%;
-  min-width: 0;
+  padding: 20px 32px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  margin-left: 20px;
   max-width: 100%;
-  margin: 20px 0 0 10px;
-  padding: 20px 40px 32px 40px;
-  box-sizing: border-box;
-  margin-bottom: 30px;
+  overflow-x: auto;
 }
 
 /* page-title, desc (카드 밖) */
@@ -261,9 +257,10 @@ async function onSubmit() {
   color: #00a8e8;
 }
 .desc {
-  display: block;
-  margin-left: 20px;
-  margin-bottom: 10px;
+    display: block;
+    margin-left: 20px;
+    margin-bottom: 10px;
+    font-size: 18px;
 }
 
 /* 1) 제목/파일 행 정렬용 공통 */
@@ -304,12 +301,17 @@ async function onSubmit() {
 
 /* 입력칸 공통 */
 .form-input {
-  flex: 1;
-  padding: 12px 16px;
-  border: 1px solid #ccc;
+  flex: 1; /* label 옆 공간 채우기 */
+  position: relative;
+  border: 1px solid #c8c8c8;
   border-radius: 8px;
-  font-size: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
   box-sizing: border-box;
+  cursor: pointer;
+  transition: border-color 0.2s, background-color 0.2s;
 }
 
 /* 제목 입력칸 호버 시에도 테두리 색을 어둡게 */
@@ -325,13 +327,13 @@ async function onSubmit() {
 .file-dropzone {
   flex: 1; /* label 옆 공간 채우기 */
   position: relative;
-  height: 50px;
   border: 1px solid #c8c8c8;
+  height: 41px;
   border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 16px;
+  padding: 10px 12px;
   box-sizing: border-box;
   cursor: pointer;
   transition: border-color 0.2s, background-color 0.2s;

@@ -78,4 +78,13 @@ function onGridReady(params) {
   /* color: var(--primary); */
 }
 
+.custom-theme :deep(.ag-cell a) {
+  color: var(--ag-link-color) !important;
+  text-decoration: underline;
+}
+
+.custom-theme :deep(.ag-cell a:hover) {
+  color: var(--ag-link-hover-color) !important;
+}
+
 </style>

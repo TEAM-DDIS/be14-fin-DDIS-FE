@@ -28,11 +28,20 @@
       <RouterView />
     </div>
 
-    <!-- 챗봇 -->
+    <!-- 챗봇 플로팅 버튼 및 모달 -->
     <FloatingChat v-if="!hideLayout" @toggle="showChatbot = !showChatbot" />
     <transition name="chat-pop">
-      <ChatModal v-if="showChatbot" @close="showChatbot = false" />
+      <ChatModal
+        v-if="showChatbot"
+        @close="showChatbot = false"
+        @open-upload="showUploadModal = true"
+      />
     </transition>
+
+    <!-- ✅ UploadModal 전역에서 렌더링 -->
+    <Teleport to="body">
+      <UploadModal v-if="showUploadModal" @close="showUploadModal = false" />
+    </Teleport>
 
     <BaseToast ref="toastRef" />
   </div>
@@ -42,24 +51,28 @@
 import { useRoute } from 'vue-router'
 import { computed, ref, onMounted, onBeforeUnmount, watch } from 'vue'
 import axios from 'axios'
+
 import Header from './components/header/Header.vue'
 import Sidebar from './components/sidebar/Sidebar.vue'
 import SubSidebar from './components/sidebar/SubSidebar.vue'
 import FloatingChat from './components/chatbot/FloatingChat.vue'
 import ChatModal from './components/chatbot/ChatModal.vue'
+import UploadModal from './components/chatbot/UploadModal.vue'
 import BaseToast from '@/components/toast/BaseToast.vue'
+
 import { useAttendanceStore } from '@/stores/attendance'
 
 const toastRef = ref(null)
 const attendanceStore = useAttendanceStore()
 const route = useRoute()
+
 const selectedMenu = ref(null)
 const showChatbot = ref(false)
+const showUploadModal = ref(false)
 const hideLayout = computed(() => route.meta.hideLayout)
+const isDarkMode = ref(false)
 
 let alertedAtSix = false
-
-const isDarkMode = ref(false)
 
 onMounted(async () => {
   window.addEventListener('wheel', preventZoom, { passive: false })
@@ -72,8 +85,7 @@ onMounted(async () => {
         headers: { Authorization: `Bearer ${token}` },
       })
       isDarkMode.value = data
-    } catch (err) {
-      console.error('다크모드 불러오기 실패:', err)
+    } catch {
       isDarkMode.value = localStorage.getItem('darkMode') === 'true'
     }
   } else {
@@ -81,14 +93,11 @@ onMounted(async () => {
   }
 
   setInterval(() => {
-    const nowTime = new Date()
-    const checkIn = attendanceStore.checkIn
-    const checkOut = attendanceStore.checkOut
-    const isCheckedIn = attendanceStore.isCheckedIn
-
+    const now = new Date()
+    const { checkIn, checkOut, isCheckedIn } = attendanceStore
     if (
-      nowTime.getHours() === 18 &&
-      nowTime.getMinutes() === 0 &&
+      now.getHours() === 18 &&
+      now.getMinutes() === 0 &&
       !checkOut &&
       checkIn &&
       isCheckedIn &&
@@ -109,9 +118,7 @@ watch(isDarkMode, async (val) => {
         '/api/user/dark-mode',
         { darkModeEnabled: val },
         {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          headers: { Authorization: `Bearer ${token}` },
         }
       )
     } catch (err) {
@@ -152,9 +159,6 @@ html, body {
   font-family: sans-serif;
   background-color: var(--bg-body);
   color: var(--text-main);
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
   user-select: none;
 }
 
@@ -210,7 +214,6 @@ html, body {
 
 .main-content {
   padding: 20px;
-  /* background-color: var(--bg-main); */
   box-sizing: border-box;
   overflow: hidden;
 }

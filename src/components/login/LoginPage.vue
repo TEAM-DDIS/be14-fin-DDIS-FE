@@ -252,7 +252,7 @@ async function onLogin() {
   content: "";
   position: absolute;
   top: 0; left: 0;
-  width: 100%; height: 90%;
+  width: 100%; height: 100%;
   background: url("@/assets/icons/loginbackground.svg") no-repeat center/cover;
   opacity: 1;
 }

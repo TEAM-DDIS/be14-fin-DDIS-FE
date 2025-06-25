@@ -27,17 +27,19 @@
     
 
     <!-- AG Grid -->
-    <div class="ag-theme-alpine ag-grid-box">
-      <AgGridVue
+    <div class="ag-theme-alpine ag-grid-box custom-theme">
+      <BaseGrid
         class="ag-theme-alpine custom-theme"
-        :style="{ width: '100%', height: '500px' }"
         :columnDefs="columnDefs"
-        :rowData="filteredData"
-        :defaultColDef="defaultColDef"
-        rowSelection="multiple"               
+        :rowData="filteredData"               
         :gridOptions="gridOptions"
+        width="100%"
+        height="500px"
+        :pagination="true"
+        :pageSize="10"
         @grid-ready="onGridReady"
-        @cellClicked="onCellClick"
+        @cell-click="onCellClick"
+        @row-click="onRowClick"
       />
     </div>
       <!-- 하단 버튼 -->
@@ -66,9 +68,10 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter }            from 'vue-router'
 import axios                     from 'axios'
-import { AgGridVue }             from 'ag-grid-vue3'
+import BaseGrid from '@/components/grid/BaseGrid.vue'
 import { useUserStore }          from '@/stores/user'
 import BaseToast from '@/components/toast/BaseToast.vue'
+
 import {
   ModuleRegistry,
   AllCommunityModule,
@@ -131,10 +134,6 @@ const isHR = computed(() => {
   return false
 })
 
-
-// 4) 그리드 기본 설정
-const defaultColDef   = { sortable: true, filter: true, resizable: true }
-
 // 5) 컬럼 정의: 체크박스는 첫 번째 컬럼에만!
 const columnDefs = [
   {
@@ -172,9 +171,7 @@ const columnDefs = [
 // 6) gridOptions: 페이징+테마만
 const gridOptions = {
   theme: 'legacy',
-  pagination: true,
-  paginationPageSize: 20,
-  paginationPageSizeSelector: [5, 10, 20, 50]
+  rowSelection: 'multiple',
 }
 
 // 7) 상태 변수들
@@ -236,6 +233,13 @@ function onCellClick(event) {
   }
 }
 
+function onRowClick(event) {
+  const id = event.data.employeeId
+  if (id != null) {
+    router.push(`/employeeInfo/${id}`)
+  }
+}
+
 // 12) 삭제 모달
 function onDeleteClick() {
   const sel = gridApi.getSelectedRows()
@@ -273,7 +277,7 @@ function onRegister() {
   display: flex;
   align-items: center;
   font-size: 14px;
-  color: #374151;
+  color: var(--text-main);
 }
 .active-filter input {
   margin-right: 6px;
@@ -281,19 +285,20 @@ function onRegister() {
 .page-title {
   margin-left: 20px;
   margin-bottom: 30px;
-  color: #00a8e8;
+  color: var(--primary);
 }
 .desc {
   display: block;
   margin-left: 20px;
   margin-bottom: 10px;
+  font-size: 18px;
 }
 /* 카드 */
 .card {
-  background: #fff;
+  background: var(--bg-box);
   border-radius: 12px;
   box-shadow: 1px 1px 20px rgba(0,0,0,0.05);
-  margin: 20px 10px 30px;
+  margin: 0 20px 30px;
   padding: 20px 40px 32px;
 }
 /* 검색창 */
@@ -303,16 +308,18 @@ function onRegister() {
   margin-bottom: 10px;
   padding: 6px 8px;
   align-items: center;
-  border: 1px solid #D1D5DB;
-  border-radius: 4px;
+  border-radius: 8px;
 }
 .search-icon { width:20px;height:20px;margin-right:8px; }
 .search-input {
   flex: 1;
-  border: none;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  height: 26px;
   outline: none;
   font-size:14px;
-  color:#1F2937;
+  background-color: var(--modal-box-bg);
+  color: var(--text-main);
 }
 /* 그리드 박스 */
 .ag-grid-box {
@@ -339,9 +346,14 @@ function onRegister() {
   transition:all .2s;
 }
 .btn-save {
-  background:#00a8e8; color:#fff; border:1px solid transparent;
+  background-color: var(--primary);
+  color: var(--text-on-primary);
+  border:1px solid transparent;
 }
-.btn-save:hover { background:#fff; color:#00a8e8; border:1px solid #00a8e8; }
+.btn-save:hover { background-color: var(--bg-main);
+  color: var(--primary);
+  border-color: var(--primary);
+}
 .btn-delete {
   background:#d3d3d3; color:#000; border:none;
 }
@@ -368,16 +380,5 @@ function onRegister() {
   cursor:pointer; color:#1F2937; transition:color .2s;
 }
 .clickable-name:hover { color:#00a8e8; text-decoration:underline; }
-/* 커스텀 테마 */
-.custom-theme {
-  --ag-background-color:#fff;
-  --ag-foreground-color:#1F2937;
-  --ag-header-background-color:#F9FAFB;
-  --ag-header-foreground-color:#374151;
-  --ag-row-hover-color:#F3F4F6;
-  --ag-row-border-color:#E5E7EB;
-}
-.custom-theme .ag-row-hover .ag-cell {
-  background-color:var(--ag-row-hover-color) !important;
-}
+
 </style>

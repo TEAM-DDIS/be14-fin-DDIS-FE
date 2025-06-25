@@ -81,13 +81,10 @@ import axios from 'axios'
 import { useUserStore } from '@/stores/user'
 const accessToken = useUserStore().accessToken
 
-// 상위로 이벤트 발송
 const emit = defineEmits(['dept-selected', 'team-selected', 'rank-selected'])
 
-// 전체 계층 데이터
 const hierarchy = ref([])
 
-// 펼침/접힘 상태
 const expanded = reactive({})
 const teamRanks = reactive({})
 const teamJobs = reactive({})
@@ -112,11 +109,12 @@ onMounted(async () => {
     })
     if (!res.ok) throw new Error(`HTTP ${res.status}`)
     const data = await res.json()
-    // headId === 4인 항목을 최상단으로, 나머지는 headId 오름차순으로 정렬
+    
+    // 이사회 상위로
     hierarchy.value = data.sort((a, b) => {
-      if (a.headId === 4) return -1   // a가 4면 맨 앞으로
-      if (b.headId === 4) return 1    // b가 4면 뒤로
-      return a.headId - b.headId      // 그 외에는 오름차순
+      if (a.headId === 4) return -1
+      if (b.headId === 4) return 1
+      return a.headId - b.headId
     })
   } catch (err) {
     console.error('❌ 조직 계층 로드 실패:', err)
@@ -137,40 +135,21 @@ function onRankClick(rank) {
   })
 }
 
-
 function onJobClick(job) {
   emit('job-selected', {
     jobId: job.jobId,
-    jobName: job.jobName ?? '(이름 없음)',   // 이 줄 중요!
+    jobName: job.jobName ?? '(이름 없음)',
     jobCode: job.jobCode
   })
 }
 
-
-const allRanks = computed(() => {
-  const map = new Map()
-  hierarchy.value.forEach(head =>
-    head.departments?.forEach(dept =>
-      dept.teams?.forEach(team =>
-        team.members?.forEach(emp => {
-          const id   = emp.rankCode
-          const name = emp.rankName
-          if (id != null && !map.has(id)) {
-            map.set(id, { rankId: id, rankName: name })
-          }
-        })
-      )
-    )
-  )
-  return Array.from(map.values())
-})
-
 async function fetchTeamJobs(team) {
-  // if (!props.showJobs) return
 
   if (!teamJobs[team.teamId]) {
     try {
-      const res = await axios.get(`https://api.isddishr.site/introduction/team/${team.teamId}/job`)
+      const res = await axios.get(`https://api.isddishr.site/introduction/team/${team.teamId}/job`, {
+      headers: { 'Authorization': `Bearer ${accessToken}` }
+    })
       teamJobs[team.teamId] = res.data
     } catch (e) {
       console.error('Job fetch error ▶', e)
@@ -188,15 +167,21 @@ async function fetchTeamRanks(team) {
     try {
       // 1) 이 팀의 job 목록 조회
       const jobs = (await axios.get(
-        `https://api.isddishr.site/introduction/team/${team.teamId}/job`
+        `http://localhost:5000/introduction/team/${team.teamId}/job`, {
+          headers: { 'Authorization': `Bearer ${accessToken}` }
+        }
       )).data
 
       // 2) 각 jobId로 rank, position 동시 조회
       const ranksList = await Promise.all(
         jobs.map(async (j) => {
           const [ranks, positions] = await Promise.all([
-            axios.get(`https://api.isddishr.site/introduction/job/${j.jobId}/ranks`).then(r => r.data),
-            axios.get(`https://api.isddishr.site/introduction/job/${j.jobId}/positions`).then(r => r.data)
+            axios.get(`http://localhost:5000/introduction/job/${j.jobId}/ranks`, {
+              headers: { 'Authorization': `Bearer ${accessToken}` }
+            }).then(r => r.data),
+            axios.get(`http://localhost:5000/introduction/job/${j.jobId}/positions`, {
+              headers: { 'Authorization': `Bearer ${accessToken}` }
+            }).then(r => r.data)
           ])
 
          const rankToPosition = {
@@ -235,10 +220,6 @@ async function fetchTeamRanks(team) {
   if (props.showJobs) {
     await fetchTeamJobs(team)
   }
-}
-
-function isDeptManager(emp) {
-  return emp.rankName === '부장' && emp.positionName === '부서장'
 }
 
 function expandAll() {
@@ -367,13 +348,10 @@ function collapseDept(dept) {
 .org-box {
   height: 400px;
   overflow-y: auto;
-
-  /* Firefox */
   scrollbar-width: thin;
   scrollbar-color: rgba(0,0,0,0.2) rgba(0,0,0,0.05);
 }
 
-/* WebKit 기반 스크롤바 전체 너비/트랙/슬라이더 */
 .org-box::-webkit-scrollbar {
   width: 6px;
 }
@@ -390,7 +368,6 @@ function collapseDept(dept) {
   background-color: rgba(0,0,0,0.3);
 }
 
-/* (선택) 모서리 코너 부분도 투명 처리 */
 .org-box::-webkit-scrollbar-corner {
   background: transparent;
 }

@@ -66,7 +66,7 @@
                 v-show="expanded['d' + dept.departmentId]"
                 class="dept-children"
               >
-               <!-- 부서장 -->
+              <!-- 부서장 -->
                   <ul class="member-list">
                     <li v-if="dept.deptManager">
                       <label
@@ -83,7 +83,7 @@
                       </label>
                     </li>
                   </ul>
-  
+
                 <!-- 팀 리스트 반복 -->
                 <ul class="team-list">
                   <li v-for="team in dept.teams" :key="team.teamId">
@@ -133,10 +133,14 @@
   
   <script setup>
   import { ref, reactive, onMounted, watch } from 'vue'
-  
+  import { useUserStore } from '@/stores/user'
+
   // 부모 컴포넌트에게 방출할 이벤트 정의
   const emit = defineEmits(['dept-selected','team-selected','employees-selected'])
   
+  // 토큰설정
+  const accessToken = useUserStore().accessToken
+
   // 조직 계층 데이터
   const hierarchy = ref([])
   // 펼침/접힘 상태 저장 객체
@@ -147,11 +151,12 @@
   // 컴포넌트가 마운트되면 조직도 API 호출
   onMounted(async () => {
     try {
-      const res = await fetch('https://api.isddishr.site/structure/hierarchy')
+      const res = await fetch('https://api.isddishr.site/structure/hierarchy', {
+        headers: { 'Authorization': `Bearer ${accessToken}` }
+    })
       hierarchy.value = await res.json()
           hierarchy.value.forEach(head => {
       head.headManager = findManager(head.departments, '본부장')
-
       head.departments.forEach(dept => {
         dept.deptManager = findManager(dept.teams, '부서장')
       })
@@ -447,6 +452,24 @@ function collapseDept(dept) {
 }
 .sub-btn:hover {
   background: #aaa;
+}
+
+body[data-theme='dark'] ::v-deep(.org-container),
+body[data-theme='dark'] ::v-deep(.company-title),
+body[data-theme='dark'] ::v-deep(.company-title .rep),
+body[data-theme='dark'] ::v-deep(.node),
+body[data-theme='dark'] ::v-deep(.node i),
+body[data-theme='dark'] ::v-deep(.node.emp),
+body[data-theme='dark'] ::v-deep(.node.emp-manager) {
+  color: #fff !important;
+}
+body[data-theme='dark'] ::v-deep(.org-list li::before),
+body[data-theme='dark'] ::v-deep(.org-list li::after) {
+  background: #fff !important;
+}
+body[data-theme='dark'] ::v-deep(input[type='checkbox']) {
+  accent-color: #fff !important;
+  border-color: #fff !important;
 }
   </style>
   

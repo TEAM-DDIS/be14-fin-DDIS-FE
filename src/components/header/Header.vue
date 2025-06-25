@@ -28,7 +28,12 @@
 
       <template v-if="user">
         <div class="profile-wrapper">
-          <img src="/images/erpizza_profile.svg" alt="profile" class="profile-img" />
+          <img
+            :src="profileUrl"
+            alt="프로필"
+            class="profile"
+            @error="onImageError"
+          />
           <span class="user-name">{{ user.employeeName }}님</span>
         </div>
         <button class="btn-logout" @click="logout">로그아웃</button>
@@ -64,20 +69,22 @@ const userStore = useUserStore()
 
 const showNotification = ref(false)
 
-// onMounted(async () => {
-//   try {
-//     await fetchNotifications()
-//   } catch (e) {
-//     console.error('초기 알림 불러오기 실패:', e)
-//   }
-// })
+const profileUrl = computed(() => userStore.profileUrl)
+
+// S3 프로필 이미지 가져오기
+const S3_BASE_URL = 'https://ddisbucket-fin.s3.ap-northeast-2.amazonaws.com'
+
+const getProfileUrl = path =>
+  path ? `${S3_BASE_URL}/${path}` : '/images/erpizza_profile.svg'
+
+function onImageError(e) {
+  e.target.src = '/images/erpizza_profile.svg'
+}
+
 onMounted(() => {
+  userStore.fetchAllEmployees()
   store.fetch()
 })
-
-// const unreadCount = computed(() =>
-//   notifications.value.filter(n => n.unread).length
-// )
 
 const user = computed(() => userStore.user)
 
@@ -91,24 +98,6 @@ async function toggleNotification() {
   showNotification.value = !showNotification.value
 }
 
-// async function fetchNotifications() {
-//   const token = userStore.accessToken
-//   const res = await fetch('http://localhost:5000/notice/me', {
-//     headers: {
-//       Authorization: `Bearer ${token}`
-//     }
-//   })
-//   if (!res.ok) throw new Error(`알림 불러오기 실패: ${res.status}`)
-//   const data = await res.json()
-//   notifications.value = data.map(item => ({
-//     id: item.noticeId,
-//     type: item.noticeType,
-//     content: item.noticeContent,
-//     createdAt: item.createdAt,
-//     unread: !item.isRead,
-//     relatedId: item.relatedId
-//   }))
-// }
 
 async function handleNotificationClick(item) {
   const token = userStore.accessToken
@@ -199,7 +188,7 @@ function closeNotification() {
   align-items: center;
   gap: 8px;
 }
-.profile-img {
+.profile {
   width: 28px;
   height: 28px;
   border-radius: 50%;
