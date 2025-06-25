@@ -160,7 +160,6 @@ function onFileChange(e) {
 // 4) 사원 자동 완성 & 번호 매핑
 // ————————————————————————————————————————————————————————————————
 const employeeOptions = ref([])
-
 const form = reactive({
   employeeName: '',
   employeeNumber: '',
@@ -177,7 +176,7 @@ watch(() => form.employeeName, async name => {
   try {
     const { data } = await axios.get(
       '/employees/search',
-      { params: { name } }
+      { params: { name }, headers: authHeaders() }
     )
     employeeOptions.value = data
     const match = data.find(e => e.employeeName === name)

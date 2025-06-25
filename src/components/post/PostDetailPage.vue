@@ -371,7 +371,7 @@ onMounted(fetchNotice)
 /* page-title, desc */
 .page-title {
   margin-left: 20px;
-  margin-bottom: 50px;
+  margin-bottom: 30px;
   color: #00a8e8;
 }
 .desc {
@@ -382,6 +382,7 @@ onMounted(fetchNotice)
 
 .back-btn {
   width: 24px;
+  height: 24px;
   margin-right: -2px;
   cursor: pointer;
 }
@@ -401,13 +402,11 @@ onMounted(fetchNotice)
 .detail-card {
   background: #fff;
   border-radius: 12px;
-  box-shadow: 1px 1px 20px 1px rgba(0, 0, 0, 0.05);
-  width: 100%;
+  padding: 20px 32px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  margin-left: 20px;
   max-width: 100%;
-  margin: 20px 0 0 10px;
-  padding: 20px 40px 32px 40px;
-  box-sizing: border-box;
-  margin-bottom: 30px;
+  overflow-x: auto;
 }
 .detail-field {
   display: flex;
