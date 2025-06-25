@@ -63,12 +63,10 @@ getters: {
     })
   },
   profileUrl: (state) => {
-      // 로그인된 유저 아이디에 맞는 직원 객체 찾기
-      const emp = state.allEmployees.find(
+    const emp = state.allEmployees.find(
       e => String(e.employeeId) === String(state.user?.employeeId)
     )
-      // 실제 필드명이 employeePhotoUrl 이면 그 키를 사용
-      const path = emp?.employeePhotoUrl
+    const path = emp?.employeePhotoUrl
       return path
         ? `https://ddisbucket-fin.s3.ap-northeast-2.amazonaws.com/${path}`
         : '/images/erpizza_profile.svg'
