@@ -260,7 +260,7 @@ function findDeptName(deptId) {
 .page-title {
   margin-left: 20px;
   margin-bottom: 30px;
-  color: #00a8e8;
+  color: var(--primary); 
 }
 
 .desc {
@@ -304,7 +304,7 @@ function findDeptName(deptId) {
 }
 
 .placeholder {
-  color: #00a8e8;
+  color: var(--primary); 
   font-size: 15px;
   padding: 32px;
   text-align: center;
