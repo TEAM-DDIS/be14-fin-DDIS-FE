@@ -66,9 +66,11 @@
 
   --btn-border: #3f3f3f;
   --edit-bt: #b8b8b8;
+  --border-input: #dddddd;
 }
 
 body.dark {
+  --border-input: #fff;
   --edit-bt: #004d6b;
   --ch-today: #ddf2ff31;
   --bg-body: #1a1a1a;
