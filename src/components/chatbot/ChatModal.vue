@@ -15,6 +15,16 @@
             <div class="title-row">
               <img src="@/assets/icons/pizza-icon2.svg" alt="DDIS Logo" class="logo" />
               <span class="title">ERPIZZA</span>
+
+              <!-- 인사팀만 보이는 설정 버튼 -->
+              <button
+                v-if="isHR"
+                class="settings-btn"
+                @click="openSettings"
+                title="설정"
+              >
+                ⚙️
+              </button>
             </div>
             <button class="close-btn" @click="$emit('close')">✕</button>
           </div>
@@ -46,12 +56,16 @@
       </transition>
     </div>
   </transition>
+    <UploadModal v-if="showUploadModal" @close="showUploadModal = false" />
+
 </template>
 
 <script setup>
-import { ref, nextTick, onMounted  } from 'vue'
+import { ref, nextTick, onMounted, computed } from 'vue'
 import MessageBubble from './MessageBubble.vue'
 import { useUserStore } from '@/stores/user'
+import UploadModal from './UploadModal.vue'
+const showUploadModal = ref(false)
 const chatBody = ref(null)
 const input = ref('')
 const messages = ref([])
@@ -62,10 +76,40 @@ const token = useUserStore().accessToken
 const employeeStore = useUserStore()
 const employeeName  = employeeStore.name  // 실제 스토어에 맞게 변경
 const initPrompt = `현재 결재 대기 문서는 몇 건인가요? 오늘 모든 일정도 알려주세요. 오늘 일정이 없다면 없다고 해주세요`
+const userStore = useUserStore()
+// JWT 토큰 디코딩 유틸
+function parseJwtPayload(token) {
+  try {
+    const base64Url = token.split('.')[1]
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split('')
+        .map(c => `%${('00' + c.charCodeAt(0).toString(16)).slice(-2)}`)
+        .join('')
+    )
+    return JSON.parse(jsonPayload)
+  } catch {
+    return {}
+  }
+}
+const isHR = computed(() => {
+  const raw = userStore.accessToken?.startsWith('Bearer ')
+    ? userStore.accessToken.slice(7)
+    : userStore.accessToken
+  if (!raw) return false
 
-onMounted(() => {
-  sendMessage(initPrompt)
+  const { auth } = parseJwtPayload(raw)
+  if (Array.isArray(auth)) return auth.includes('ROLE_HR')
+  if (typeof auth === 'string') return auth.includes('ROLE_HR')
+  return false
 })
+
+function openSettings() {
+    console.log('설정 열기!') // 뜨면 정상 진입
+
+  showUploadModal.value = true
+}
 
 function scrollToBottom() {
   nextTick(() => {
@@ -196,7 +240,7 @@ function onMouseUp() {
   display: flex;
   justify-content: flex-end;
   align-items: flex-end;
-  z-index: 2000;
+  z-index: 3000;
   padding: 24px;
   box-sizing: border-box;
 }
@@ -347,5 +391,17 @@ function onMouseUp() {
 .chat-pop-leave-from {
   transform: scale(1);
   opacity: 1;
+}
+
+.settings-btn {
+  background: transparent;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+  margin-left: 8px;
+  color: white;
+}
+.settings-btn:hover {
+  color: var(--text-main);
 }
 </style>
