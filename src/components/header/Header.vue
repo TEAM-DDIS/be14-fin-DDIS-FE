@@ -66,24 +66,28 @@ defineProps({
 
 const router = useRouter()
 const userStore = useUserStore()
+// const url = useUserStore().profileUrl
 
 const showNotification = ref(false)
 
 const profileUrl = computed(() => userStore.profileUrl)
 
 // S3 프로필 이미지 가져오기
-const S3_BASE_URL = 'https://ddisbucket-fin.s3.ap-northeast-2.amazonaws.com'
+// const S3_BASE_URL = 'https://ddisbucket-fin.s3.ap-northeast-2.amazonaws.com'
 
-const getProfileUrl = path =>
-  path ? `${S3_BASE_URL}/${path}` : '/images/erpizza_profile.svg'
+// const getProfileUrl = path =>
+//   path ? `${S3_BASE_URL}/${path}` : '/images/erpizza_profile.svg'
 
 function onImageError(e) {
   e.target.src = '/images/erpizza_profile.svg'
 }
 
-onMounted(() => {
-  userStore.fetchAllEmployees()
+onMounted(async () => {
+  await userStore.fetchAllEmployees()
   store.fetch()
+
+  console.log('HEADER ▶ profileUrl =', userStore.profileUrl)
+
 })
 
 const user = computed(() => userStore.user)
