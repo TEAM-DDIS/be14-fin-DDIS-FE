@@ -123,7 +123,6 @@ onMounted(fetchFavorites)
 
 .menu-item,
 .edit-button {
-
   width: 100%;
   min-height: 65px;
   max-width: 300px;
@@ -153,7 +152,7 @@ onMounted(fetchFavorites)
 }
 
 .edit-button {
-  background-color: var(--bg-menu-btn-hover);
+  background-color: var(--edit-bt);
   font-weight: 600;
   border: none;
   cursor: pointer;
@@ -163,11 +162,11 @@ onMounted(fetchFavorites)
 }
 .edit-button:hover {
   background-color: var(--primary);
-  color: var(--text-main);
+  color: #fff;
 }
 .box {
   background: var(--bg-box);
-    color: var(--text-main);
+  color: var(--text-main);
   border-radius: 15px;
   padding: 20px;
   min-height: 200px;

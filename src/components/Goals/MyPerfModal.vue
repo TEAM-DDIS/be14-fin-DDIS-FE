@@ -45,7 +45,7 @@
               <td>{{ item.reviewScore }}</td>
             </tr>
             <tr v-if="filteredPerformances.length === 0">
-              <td colspan="3" class="empty-row">등록된 실적이 없습니다.</td>
+              <td colspan="4" class="empty-row">등록된 실적이 없습니다.</td>
             </tr>
           </tbody>
 
