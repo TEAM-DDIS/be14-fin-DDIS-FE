@@ -1,9 +1,16 @@
 <!-- 전자결재 > 기안작성 > (일반기안양식) -->
 <template>
   <!-- ◆ 페이지 제목 -->
-  <h1 class="page-title">기안작성</h1>
+  <h1 class="page-title">
+    <img
+        src="@/assets/icons/back_btn.svg"
+        alt="back"
+        class="back-btn"
+        @click="goBack"
+      />
+      기안작성
+    </h1>
   <p class="desc">업무 기안 작성</p>
-
   <!-- ◆ 전체 레이아웃 박스 -->
   <div class="main-box">
     <!-- ◆ 폼 컨테이너 -->
@@ -260,6 +267,10 @@ const form = reactive({
   body: ''
 });
 
+function goBack() {
+  router.back()
+}
+
 function showToast(msg) {
   toastRef.value?.show(msg);
 }
@@ -443,10 +454,17 @@ onMounted(() => {
   color: var(--primary);
 }
 
+.back-btn {
+  width: 24px;
+  height: 24px;
+  margin-right: -10px;
+  cursor: pointer;
+}
+
 .desc {
     display: block;
-    margin-left: 20px;
     margin-bottom: 10px;
+    margin-left: 20px;
     font-size: 18px;
   }
 
@@ -484,12 +502,13 @@ table tbody td {
 
 /* ✅ 메인 박스: 전체 레이아웃 래퍼 */
 .main-box {
-  background: var(--bg-main);
+  background-color: var(--bg-box);
   border-radius: 12px;
   padding: 20px 32px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  box-shadow: 1px 1px 20px 1px rgba(0,0,0,0.05);
   margin: 24px;
-  max-width: 1570px;
+  width: 100%;
+  max-width: 1475px;
   display: flex;
   flex-direction: column;
   min-height: fit-content;
@@ -515,7 +534,6 @@ table tbody td {
   color: var(--text-main);
 }
 
-
 /* ✅ 에디터 전체 영역 정렬 */
 .editor-wrapper {
   background: #f8f9fa;
@@ -533,7 +551,6 @@ table tbody td {
   margin: 0;
   border: none;
   gap: 0;
-
 }
 
 /* ✅ 에디터 라벨 (본문) */
@@ -545,7 +562,6 @@ table tbody td {
   border: 1px solid #ccc;
   color: var(--text-main);
 }
-
 /* ✅ 툴바 영역 (커스텀 툴바 오른쪽 정렬) */
 #custom-toolbar {
   display: flex;
@@ -553,7 +569,6 @@ table tbody td {
   gap: 8px;
   
 }
-
  /* ✅ Quill 에디터 입력창 스타일 */
 ::v-deep(.quill-editor-area .ql-container.ql-snow) {
   min-height: 300px;
@@ -565,27 +580,22 @@ table tbody td {
   line-height: 1.6;
   text-align: left;
 } 
-
 /* Quill 에디터 외곽 회색 선 제거 */
 ::v-deep(.quill-editor-area .ql-container.ql-snow) {
   border-bottom: none !important;
   margin-bottom: 0 !important;
   padding-bottom: 0 !important;
 }
-
-
 /* 에디터 내부 여백 제거 */
 ::v-deep(.quill-editor-area .ql-editor) {
   margin-bottom: 0 !important;
   padding-bottom: 0 !important;
 }
-
 /* ✅ Quill 테이블 스타일 커스터마이징 */
 ::v-deep(.quill-editor-area .ql-editor table) {
   width: 100%;
   border-collapse: collapse;
 }
-
 ::v-deep(.quill-editor-area .ql-editor table td),
 ::v-deep(.quill-editor-area .ql-editor table th) {
   border: 1px solid #ccc;
@@ -593,7 +603,6 @@ table tbody td {
   text-align: center;
   background-color: #fff;
 }
-
 ::v-deep(.quill-editor-area .ql-editor table th) {
   background-color: #f0f0f0;
   font-weight: bold;
@@ -712,7 +721,6 @@ td {
 
 table td:nth-child(odd) {
   background-color: #f8f9fa;
-  border-radius: 8px;
 }
 
 table td:nth-child(even) {
@@ -744,6 +752,7 @@ textarea {
   transition: border 0.2s ease;
   height: 36px; /* ✅ 추가된 높이 조정 */
   font-size: 14px; /* ✅ 추가된 글자 크기 조정 */
+  font-family : 'inherit';
   line-height: 1.5; /* ✅ 라인 정렬 */
   background: var(--bg-box);
   color: var(--text-main);
@@ -842,17 +851,15 @@ textarea {
   align-items: center;
   gap: 6px;
 }
-
+.file-info-text li {
+  margin-bottom: 2px;
+}
 .file-info-text {
-  color: #555; /* 어두운 회색 */
+  color: var(--modal-text);/* 어두운 회색 */
   font-size: 14px;
   line-height: 1.6;
   padding-left: 20px;
   margin-bottom: 30px;
-}
-
-.file-info-text li {
-  margin-bottom: 2px;
 }
 
 .button-group {
@@ -862,7 +869,7 @@ textarea {
   margin-bottom: 40px;
   margin-top: 30px;
   margin-left: auto;
-  margin-right: 155px;
+  margin-right: 100px;
 }
 
 .approval-header {
@@ -899,6 +906,7 @@ textarea {
   font-size: 15px;
   line-height: 1.7;
   padding: 0 8px 8px 8px;
+  font-family: inherit;
   color: var(--text-main);
 }
 
@@ -906,7 +914,7 @@ textarea {
 ::v-deep(.quill-editor-area .ql-editor) {
   padding: 12px 8px;
   min-height: 320px;
-  font-family: 'Arial', sans-serif;
+  font-family: inherit;
   font-size: 15px;
   line-height: 1.7;
   color: var(--text-main);
@@ -943,13 +951,11 @@ textarea {
   border-radius: 0;              /* 둥근 모서리 제거 */
 
 }
-
 .info-table .flex-row {
   height: 100%;
   display: flex;
   align-items: center; /* 내부 요소 수직 가운데 정렬 */
   border-radius: 0;              /* 둥근 모서리 제거 */
-
 }
 
 .info-table input[type="text"],
@@ -957,7 +963,7 @@ textarea {
   height: 38px; /* input과 select의 높이를 td 높이에 맞게 조정 */
   box-sizing: border-box;
   border-radius: 0;              /* 둥근 모서리 제거 */
-
+  font-family: inherit;
 }
 
 /* 기존 테이블 스타일 */
@@ -1071,7 +1077,7 @@ body[data-theme='dark'] ::v-deep(th) {
   transition: background-color 0.2s, box-shadow 0.2s, color 0.2s, border-color 0.2s;
   cursor: pointer;
   padding: 10px 30px;
-  background-color: var(--primary, #00a8e8);
+  background-color: var(--primary);
   color: var(--text-on-primary, #fff);
 }
 .button.gray {
@@ -1081,8 +1087,8 @@ body[data-theme='dark'] ::v-deep(th) {
 }
 .button:hover, .approval-button:hover {
   background-color: var(--bg-main, #fff);
-  color: var(--primary, #00a8e8);
-  border-color: var(--primary, #00a8e8);
+  color: var(--primary);
+  border-color: var(--primary);
   box-shadow: inset 1px 1px 10px rgba(0, 0, 0, 0.25);
 }
 .button.gray:hover {
@@ -1091,7 +1097,7 @@ body[data-theme='dark'] ::v-deep(th) {
 }
 
 .icon-button {
-  background-color: var(--primary, #00a8e8);
+  background-color: var(--primary);
   padding: 6px 10px;
   border-radius: 4px;
   display: flex;
@@ -1133,7 +1139,7 @@ input:focus,
 select:focus,
 textarea:focus {
   outline: none;
-  border: 1px solid var(--primary, #00a8e8);
+  border: 1px solid var(--primary);
 }
 
 /* ===================== 에디터/본문 ===================== */

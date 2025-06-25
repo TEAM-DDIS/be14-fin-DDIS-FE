@@ -2,6 +2,7 @@
 
 <template>
   <h1 class="page-title">기안작성</h1>
+   <div class="template-list-page">
     <!-- 헤더: 기안양식함 + 양식 추가 + 토글 -->
     <div class="form-list-header">
       <h3 class="box-title">기안양식함</h3>
@@ -27,7 +28,8 @@
           @row-click="handleFormRowClick"
         />
       </div>
-    </div>     
+    </div>
+  </div>     
 </template>
 
 <script setup>
@@ -70,6 +72,15 @@ function onAddForm() {
 </script>
 
 <style scoped>
+.box-title{
+  display: block;
+  margin-left: 10px;
+  margin-bottom: 10px;
+  font-size: 18px;
+}
+.template-list-page{
+  padding: 0 20px 20px;
+}
 
 .add {
   position: absolute;           /* 부모 요소 기준으로 절대 위치 지정 */
@@ -78,7 +89,7 @@ function onAddForm() {
   font-weight: bold;           /* 글자를 굵게 표시 */
   cursor: pointer;             /* 마우스 오버 시 커서를 손가락 모양으로 */
   font-family: inherit;        /* 상위 요소의 폰트 스타일 상속 */
-  background-color: #00a8e8;   /* 배경색: 밝은 파랑 */
+  background-color: var(--primary);   /* 배경색: 밝은 파랑 */
   color: white;                /* 글자색: 흰색 */
   border: 1px solid transparent; /* 투명 테두리 (hover 시 변화 대비) */
   border-radius: 10px;         /* 둥근 테두리 (모서리) */
@@ -90,24 +101,22 @@ function onAddForm() {
 }
 .add:hover {
   background-color: white;
-  color: #00a8e8;
-  border-color: #00a8e8;
+  color: var(--primary);
+  border-color: var(--primary);
   box-shadow:
   inset 1px 1px 10px rgba(0, 0, 0, 0.25);
 } 
 .page-title {
   margin-left: 20px;
   margin-bottom: 30px;
-  color: #00a8e8;
+  color: var(--primary);
   }
   
 .form-list-header {
   display: flex;
   align-items: center;
-  gap: 12px;           /* 두 요소 간격, 너무 붙으면 더 늘리세요 */
-  margin-bottom: 20px;
-  padding-left: 20px;
-}
+  gap: 12px;          
+} 
 .form-list-status {
   margin: 5px 0 0 4px;
   
@@ -115,17 +124,16 @@ function onAddForm() {
 .item-count {
   color: #666;
   font-size: 1em;
-  margin-left: 0;
+  margin-top: 10px;
 }
 .storage-box {
   width: 100%;
-  min-width: 0;
+  max-width: 100%;
   background-color: var(--bg-box);
   border-radius: 12px;
   padding: 32px 32px 40px 32px;
   box-shadow: 1px 1px 20px 1px rgba(0,0,0,0.05);
-  margin: 24px 0;
-  margin-left: 20px;
+  margin-bottom: 20px;
   /* overflow: hidden; */
   transition: background 0.2s;
   box-sizing: border-box; /* 추가 */
@@ -153,9 +161,12 @@ function onAddForm() {
 .search-input {
   max-width: 900px;
   padding: 8px;
-  border: 1px solid #c7c7c7;      /* 기본 2px */
+  background-color: var(--modal-box-bg);
+  color: var(--text-main);
+  border: 2px solid #ddd;     /* 기본 2px */
   border-radius: 8px;
   font-size: 1.05em;
+  font-family: 'inter';
   flex: 1 1 0;
 }
 .search-input:focus {
