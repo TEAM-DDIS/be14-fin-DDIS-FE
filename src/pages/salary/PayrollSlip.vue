@@ -64,7 +64,7 @@
 
       <!-- 월별 급여 내역: ag-grid 사용 -->
       <div class="history-box">
-        <h3 class="detail-title">월별 급여 내역</h3>
+      
         <AgGrid
           class="ag-theme-alpine custom-theme"
           :gridOptions="{ theme: 'legacy' }"
@@ -81,7 +81,9 @@
       <div class="detail-box">
         <p class="detail-intro" v-if="!selectedSlip">급여명세서를 보려면 왼쪽 내역을 클릭하세요.</p>
         <div v-else>
-          <h3 class="detail-title">{{ employee.employeeName }}님 {{ selectedSlip.yearMonth.replace('-', '년 ') }}월 급여명세서</h3>
+          <h3 class="detail-title">
+            {{ employee.employeeName }}님 {{ getWorkMonth(selectedSlip.salaryDate) }} 급여명세서
+          </h3>          
           <div class="slip-tables">
             <table class="table">
               <thead>
@@ -209,7 +211,7 @@ async function fetchSalaryHistory() {
   const current = new Date(start)
 
   while (current <= end) {
-    const yyyymm = `${current.getFullYear()}-${String(current.getMonth() + 1).padStart(2, '0')}`
+  const yyyymm = `${current.getFullYear()}-${String(current.getMonth() + 2).padStart(2, '0')}`;
     try {
       const { data } = await axios.get(`http://localhost:5000/payroll/me/salary`, {
         params: { month: yyyymm },
@@ -282,6 +284,16 @@ function formatCurrency(val) {
 function openModal() {
   showModal.value = true
 }
+
+function getWorkMonth(salaryDate) {
+  if (!salaryDate) return ''
+  const date = new Date(salaryDate)
+  date.setMonth(date.getMonth() - 1)
+  const y = date.getFullYear()
+  const m = String(date.getMonth() + 1).padStart(2, '0')
+  return `${y}년 ${m}월`
+}
+
 </script>
 
 
