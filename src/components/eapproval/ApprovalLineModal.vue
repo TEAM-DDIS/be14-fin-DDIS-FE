@@ -18,8 +18,10 @@
         <!-- ③-2) 정렬 키 선택 & 검색창 -->
         <div class="sort-search-group">
           <select v-model="sortKey">
-            <option value="name">이름</option>
-            <option value="department">부서</option>
+             <option value="name">사원명</option>
+              <option value="id">사원번호</option>
+              <option value="position">직책</option>
+              <option value="rank">직급</option>
           </select>
           <input type="text" v-model="search" placeholder="검색" />
         </div>
@@ -32,7 +34,22 @@
       <div class="modal-body">
         <!-- ④-1) 좌측: EHierarchy 컴포넌트로 조직도 렌더링 -->
         <div class="org-tree-area">
-          <!-- Listen for employees-selected event -->
+          <!-- 검색바 및 검색결과 리스트 추가 -->
+          <ul class="employee-search-result scrollbar" v-if="search.trim() && filteredAndSortedNodes.length">
+            <li
+              v-for="emp in filteredAndSortedNodes"
+              :key="emp.employeeId"
+              :class="{ selected: selectedNode?.employeeId === emp.employeeId }"
+              @click="selectFromSearch(emp)"
+              style="cursor:pointer;"
+            >
+              {{ emp.employeeName }} ({{ emp.positionName }}, {{ emp.rankName }})
+            </li>
+          </ul>
+          <div v-else-if="search.trim() && filteredAndSortedNodes.length === 0" class="no-result">
+            검색 결과가 없습니다.
+          </div>
+          <!-- 기존 조직도 -->
           <EHierarchy
             @loaded-hierarchy="onHierarchyLoaded"
             @employees-selected="onEmployeesSelected"
@@ -135,6 +152,8 @@ const props = defineProps({
 const emit = defineEmits(['submit', 'close', 'submitReceivers', 'submitCcs'])
 const sortKey = ref('name')
 const search  = ref('')
+const searchType = ref('name')
+const selectedNode = ref(null)
 
 // — 각 모드별 리스트
 const approverList    = ref([])
@@ -232,19 +251,25 @@ function selectEmployee(emp) {
 // 좌측 필터·정렬 (selectedNodes -> selectedHierarchyEmployees 로 변경)
 const filteredNodes = computed(() => {
   const q = search.value.trim().toLowerCase()
-  return q
-    ? flattenAllEmployees(hierarchyData.value).filter(e => // 전체 계층에서 필터링
-        e.employeeName.toLowerCase().includes(q) ||
-        e.positionName.toLowerCase().includes(q) ||
-        e.teamName.toLowerCase().includes(q) ||
-        e.departmentName.toLowerCase().includes(q)
-      )
-    : flattenAllEmployees(hierarchyData.value)
+  const type = searchType.value
+  if (!q) return flattenAllEmployees(hierarchyData.value)
+  return flattenAllEmployees(hierarchyData.value).filter(emp => {
+    if (type === 'name') {
+      return emp.employeeName?.toLowerCase().includes(q)
+    } else if (type === 'id') {
+      return String(emp.employeeId)?.toLowerCase().includes(q)
+    } else if (type === 'position') {
+      return emp.positionName?.toLowerCase().includes(q)
+    } else if (type === 'rank') {
+      return emp.rankName?.toLowerCase().includes(q)
+    }
+    return false
+  })
 })
 
 const filteredAndSortedNodes = computed(() => {
   const arr = [...filteredNodes.value]
-  return sortKey.value === 'name'
+  return searchType.value === 'name'
     ? arr.sort((a, b) => a.employeeName.localeCompare(b.employeeName))
     : arr.sort((a, b) => (a.departmentName || '').localeCompare(b.departmentName))
 })
@@ -435,6 +460,14 @@ function submitSelection() {
 
   console.log('✅ emit done, closing modal')
   emit('close')
+}
+
+// 검색 결과에서 사원 클릭 시 조직도에서 해당 사원 선택
+function selectFromSearch(emp) {
+  selectedNode.value = emp
+  // 조직도에서 해당 사원만 선택되도록 이벤트 트리거
+  // EHierarchy가 v-model이 아니므로, onEmployeesSelected를 직접 호출
+  onEmployeesSelected([emp.employeeId])
 }
 </script>
 
