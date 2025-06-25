@@ -1,10 +1,18 @@
 <!-- 본문 섹션 포함 전체 테이블 구조 점검 및 수정 -->
-<!-- ✅ 수정포인트: 모든 table은 thead/tbody 구조로 감쌈 -->
-<!-- ✅ BaseToast도 항상 DOM에 존재하도록 바깥쪽에 위치 -->
 
 <template>
+  <!-- ✅ 항상 DOM에 존재하도록 외부에 위치 -->
+<BaseToast ref="toastRef" />
   <div v-if="!isLoading">
-    <h1 class="page-title">{{ currentTitle }}</h1>
+    <h1 class="page-title">
+      <img
+        src="@/assets/icons/back_btn.svg"
+        alt="back"
+        class="back-btn"
+        @click="goBack"
+      />
+      {{ currentTitle }}
+    </h1>
     <p class="desc">{{ currentDesc }}</p>
 
     <div class="main-box">
@@ -44,10 +52,29 @@
         <!-- 버튼 -->
         <div class="action-header">
           <span class="section-title">결재선</span>
-          <button v-if="isDrafterViewingMyDraftBox" class="action-button" :disabled="!isRetractable" @click="openRetrieveModal">회수하기</button>
-          <button v-else-if="isApproverViewingApprovalBox" class="action-button" :disabled="!selectedLine || selectedLine.status !== '미결'" @click="openApprovalModal">결재하기</button>
-        </div>
+          <button v-if="isDrafterViewingMyDraftBox" 
+          class="action-button" 
+          :disabled="!isRetractable" 
+          @click="openRetrieveModal"
+          >회수하기</button>
 
+          <!-- 결재하기 버튼 + 안내문구 flex로 묶음 -->
+          <div v-else-if="isApproverViewingApprovalBox" class="approval-flex-container">
+            <span
+              v-if="!selectedLine"
+              class="approval-helper-text"
+            >
+              결재선을 선택하세요
+            </span>
+            <button
+              class="action-button"
+              :disabled="!selectedLine || selectedLine.status !== '미결'"
+              @click="openApprovalModal"
+              :title="!selectedLine ? '본인 결재선을 선택해 주세요' : (selectedLine.status !== '미결' ? '이미 결재된 항목입니다' : '')"
+            >결재하기</button>
+          </div>
+        </div>
+        
         <hr class="section-divider" />
 
         <!-- 결재선 테이블 -->
@@ -144,8 +171,6 @@
     </div>
   </div>
 
-  <!-- ✅ 항상 DOM에 존재하도록 외부에 위치 -->
-  <BaseToast ref="toastRef" />
 </template>
 
 
@@ -164,6 +189,7 @@ import BaseToast from '@/components/toast/BaseToast.vue';
 const route = useRoute()
 const router = useRouter()
 const docId = route.params.docId
+const isDarkMode = ref(false)
 
 // 📌 상태 변수 (reactive 데이터)
 const draftDetail = ref(null)         // 기안 상세 데이터
@@ -188,9 +214,12 @@ const pageTitleMap = {
 
 const currentTitle = computed(() => pageTitleMap[boxKey] || '문서함')
 
-const toastRef = ref(null);
-function showToast(msg) {
-  toastRef.value?.show(msg);
+// Toast 사용을 위한 ref 등록
+const toastRef = ref(null)
+
+// Toast 표시 함수
+function showToast(message, type = 'info') {
+  toastRef.value?.show?.(message, type)
 }
 
 //  query.formName 기준
@@ -381,30 +410,37 @@ console.log('📦 백엔드에서 받은 내용 - content:',{
 
 // 📌 컴포넌트가 화면에 처음 보여질 때 API 호출
 onMounted(async () => {
+    showToast('테스트 메시지입니다', 'success')
+
   await fetchDetail()
   await fetchPresignedUrls()
 })
 
 // 📌 결재라인 목록 중 하나를 클릭하면 해당 ID를 저장
 function selectLine(id) {
-  currentLineId.value = Number(id)
-  console.log('✅ 선택된 결재선:', draftDetail.value?.approvalLine.find(line => line.id === id))
+  const numericId = Number(id)
+  if (currentLineId.value === numericId) {
+    currentLineId.value = null // 다시 클릭하면 해제
+    console.log('🧹 선택 해제됨')
+  } else {
+    currentLineId.value = numericId
+    const selected = draftDetail.value?.approvalLine.find(line => Number(line.id) === numericId)
+    console.log('✅ 선택된 결재선:', selected)
+  }
 }
 
 function openApprovalModal() {
   if (!selectedLine.value) {
-    showToast('결재할 결재선을 선택해주세요.')
-    return
+   return showToast('결재선을 선택해 주세요', 'error')
   }
 
   if (String(selectedLine.value.employeeId) !== myId.value) {
-    showToast('결재 권한이 없습니다.')
-    return
+    return showToast('결재 권한이 없습니다.')
   }
 
   if (selectedLine.value.status !== '미결') {
-    showToast('미결 상태의 결재만 처리할 수 있습니다.')
-    return
+
+    return showToast('미결 상태의 결재만 처리할 수 있습니다.')
   }
 
   showApprovalModal.value = true
@@ -502,9 +538,14 @@ async function handleWithdraw() {
 .page-title {
   margin-left: 20px;
   margin-bottom: 30px;
-  color: #00a8e8;
+  color: var(--primary);
 }
-
+.back-btn {
+  width: 24px;
+  height: 24px;
+  margin-right: -10px;
+  cursor: pointer;
+}
 .desc {
     display: block;
     margin-bottom: 10px;
@@ -526,26 +567,44 @@ async function handleWithdraw() {
 }
 /* ✅ 메인 박스: 전체 레이아웃 래퍼 */
 .main-box {
-  background: #ffffff;
+  background: var(--bg-main);
+  color: var(--text-main);
   border-radius: 12px;
   padding: 20px 32px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
   margin: 24px;
-  max-width: 100%;
+  max-width: 1560px;
   display: flex;
   flex-direction: column;
   min-height: fit-content; /* or: min-height: 800px; */
+  overflow: visible;
+  
 }
 
 /* ✅ 내부 컨텐츠 컨테이너 */
 .container {
   font-family: Arial, sans-serif;
   min-width: 850px;
-  max-width: 1600px;
-  max-height: 1500px;
+  max-width: 1200px;
   margin: 20px auto;
+  table-layout: fixed;
 }
 
+.approval-flex-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 0;
+}
+
+.approval-helper-text {
+  font-size: 14px;
+  color: var(--primary);
+  font-weight: 500;
+  white-space: nowrap;
+  margin-left: 4px;
+  margin-top: 15px; /* 문구를 살짝 아래로 내림. 필요시 px 값 조정 */
+}
 
 /* ✅ 제목 영역 구분선 */
 .bold-divider {
@@ -570,13 +629,24 @@ h2 {
 
 th {
   font-weight: 600;
-  background: #f8f9fa;
+  background: var(--grid-head);
   border: 1px solid #e3e6ea;
   padding: 8px;
   text-align: left;
 }
 
+/* 섹션별로 명시적으로 다시 설정 (scoped 스타일 때문) */
+.info-table th,
+.section-content-table th,
+.content-table th {
+  background-color: var(--grid-head) !important;
+  color: var(--text-main);
+  font-weight: bold;
+}
+
 td {
+  color: var(--text-main);
+  background: var(--bg-box);
   font-weight: normal;
   border: 1px solid #e3e6ea;
   padding: 8px;
@@ -587,7 +657,7 @@ td {
 
 /* 테이블 공통 */
 table {
-  width: 100%;
+  table-layout: fixed;
   border-collapse: collapse;
   margin-bottom: 16px;
 }
@@ -612,15 +682,19 @@ table {
   margin-top: 0px; /* 제목 위 여백을 0으로 설정하여 부모 컨테이너가 제어하도록 함 */
   margin-bottom: 0px;
 }
-
+.helper-text {
+  font-size: 13px;
+  color: #777;
+  margin-top: 6px;
+}
 /* 하단 버튼 그룹 */
 .button-group {
   display: flex;
   gap: 12px;
   margin-bottom: 40px;
-  margin-left: auto;
   margin-top: 30px;
-  margin-right: 100px;
+  margin-left: auto;
+  margin-right: 155px;
 }
 
 /* 버튼 기본 */
@@ -628,8 +702,8 @@ table {
 .button {
   font-size: 14px;
   font-weight: bold;
-  background-color: #00a8e8;
-  color: white;
+  background-color: var(--primary);
+  color: var(--text-on-primary, #fff);
   border: 1px solid transparent;
   border-radius: 10px;
   padding: 10px 30px;
@@ -637,6 +711,8 @@ table {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   transition: background-color 0.2s, box-shadow 0.2s;
   box-sizing: border-box;
+  margin-left: auto;
+
 }
 
 .button:hover {
@@ -710,10 +786,11 @@ table {
 }
 
 .content-body {
-  min-height: 300px;        /* ✅ 기본 높이 고정 */
+  min-height: 300px;
   padding: 16px;
   white-space: pre-wrap;
-  background-color: #fdfdfd;
+  background-color: var(--bg-box);
+  color: var(--text-main);
   line-height: 1.6;
 }
 
@@ -727,7 +804,9 @@ table {
   display: flex;
   justify-content: center;
   gap: 12px;
-  margin-top: 24px;
+  margin-top: 0px;
+  margin-left: auto;
+  margin-right: 165px;
 }
 
 .success-message {
@@ -812,10 +891,11 @@ table {
 }
 
 .content-body {
-  min-height: 300px;        /* ✅ 기본 높이 고정 */
+  min-height: 300px;
   padding: 16px;
   white-space: pre-wrap;
-  background-color: #fdfdfd;
+  background-color: var(--bg-box);
+  color: var(--text-main);
   line-height: 1.6;
 }
 </style>
