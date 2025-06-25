@@ -273,7 +273,7 @@ function onCancel() {
 .page-title {
   margin-left: 20px;
   margin-bottom: 30px;
-  color: #00a8e8;
+  color: var(--primary);
 }
 .desc {
   display: block;
@@ -289,14 +289,13 @@ function onCancel() {
 
 /* 카드 영역 */
 .card {
-  background: #fff;
+  background: var(--bg-box);
   border-radius: 12px;
   box-shadow: 1px 1px 20px 1px rgba(0, 0, 0, 0.05);
-  width: 100%;
-  margin: 20px 0 0 10px;
+  width: 98%;
+  margin: 20px auto 30px 20px;
   padding: 20px 40px 32px 40px;
   box-sizing: border-box;
-  margin-bottom: 30px;
   min-height: 700px;
 }
 
@@ -305,14 +304,16 @@ function onCancel() {
   display: flex;
   gap: 20px;
   height: 100%;
+  padding: 20px 12px;
+  margin-top: 30px;
 }
 
 /* 왼쪽 업로드 영역 */
 .upload-area {
   flex: 0.7;
-  background-color: #f5f6f7;
-  border-radius: 8px;
-  height: 600px;
+  background-color: var(--modal-box-bg);
+  border-radius: 12px;
+  height: 400px;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -321,7 +322,7 @@ function onCancel() {
   margin-left: 20px;
 }
 .placeholder-text {
-  color: #999;
+  color: var(--text-sub);
   font-size: 1rem;
 }
 .preview-img {
@@ -345,24 +346,33 @@ function onCancel() {
 }
 .info-table th,
 .info-table td {
-  border: 1px solid #d1d5db;
+  border: 1px solid #ddd;
   padding: 20px 12px;
   font-size: 0.95rem;
 }
 .info-table th {
-  background-color: #fafafa;
+  background-color: var(--bg-label-cell);
   text-align: left;
   width: 120px;
-  color: #374151;
+  color: var(--text-main);
 }
 .info-table td input[type='text'],
 .info-table td input[type='date'] {
   width: 100%;
-  border: 1px solid #ccc;
+  border: 1px solid #ddd;
   border-radius: 4px;
   padding: 10px 8px;
   font-size: 0.9rem;
+  font-family: 'inherit';
   box-sizing: border-box;
+  background-color: var(--modal-box-bg);
+  color: var(--text-main);
+}
+.info-table td input[type='text']::placeholder {
+  color: var(--text-main);
+}
+input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: var(--icon-filter, brightness(0))
 }
 .info-table td input::placeholder {
   color: #bbb;
@@ -393,8 +403,8 @@ function onCancel() {
   color: #fff;
 }
 .btn-save {
-  background-color: #00a8e8;
-  color: white;
+  background-color: var(--primary);
+  color: var(--text-on-primary);
   font-weight: bold;
   border: 1px solid transparent;
   border-radius: 10px;
@@ -405,9 +415,9 @@ function onCancel() {
   box-sizing: border-box;
 }
 .btn-save:hover {
-  background-color: white;
-  color: #00a8e8;
-  border-color: #00a8e8;
+  background-color: var(--bg-main);
+  color: var(--primary);
+  border-color: var(--primary);
   box-shadow: inset 1px 1px 10px rgba(0, 0, 0, 0.25);
 }
 

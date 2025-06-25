@@ -15,8 +15,8 @@
     </div>
 
     <!-- AG Grid -->
-    <div class="ag-theme-alpine ag-grid-box">
-      <AgGridVue
+    <div class="ag-theme-alpine ag-grid-box custom-theme">
+      <BaseGrid
         class="ag-theme-alpine custom-theme"
         :gridOptions="{ theme: 'legacy' }"
         :style="`width: 100%; height: 500px;`"
@@ -68,7 +68,8 @@ import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
-import { AgGridVue } from 'ag-grid-vue3'
+// import { AgGridVue } from 'ag-grid-vue3'
+import BaseGrid from '@/components/grid/BaseGrid.vue'
 import BaseToast from '@/components/toast/BaseToast.vue'
 import {
   ModuleRegistry,
@@ -333,7 +334,7 @@ async function onCellClick(e) {
 .page-title {
   margin-left: 20px;
   margin-bottom: 50px;
-  color: #00a8e8;
+  color: var(--primary);
 }
 .desc {
   display: block;
@@ -342,14 +343,13 @@ async function onCellClick(e) {
 }
 /* 카드 영역 */
 .card {
-  background: #fff;
+  background: var(--bg-box);
   border-radius: 12px;
   box-shadow: 1px 1px 20px 1px rgba(0, 0, 0, 0.05);
-  width: 100%;
-  margin: 20px 0 0 10px;
+  width: 98%;
+  margin: 20px 0 30px 20px;
   padding: 20px 40px 32px 40px;
   box-sizing: border-box;
-  margin-bottom: 30px;
 }
 /* 검색창 */
 .search-bar-in-card {
@@ -360,7 +360,6 @@ async function onCellClick(e) {
   margin-bottom: 10px;
   padding: 6px 8px;
   font-size: 14px;
-  color: #1F2937;
 }
 .search-bar-in-card .search-icon {
   width: 20px;
@@ -370,11 +369,12 @@ async function onCellClick(e) {
 }
 .search-bar-in-card .search-input {
   width: 100%;
-  border: 1px solid #D1D5DB;
+  border: 1px solid #ddd;
   border-radius: 4px;
   padding: 6px 8px;
   font-size: 14px;
-  color: #1F2937;
+  color: var(--text-main);
+  background: var(--modal-box-bg);
 }
 .search-bar-in-card .search-input:focus {
   outline: none;
@@ -398,8 +398,8 @@ async function onCellClick(e) {
   gap: 10px;
 }
 .btn-save {
-  background-color: #00a8e8;
-  color: white;
+  background-color: var(--primary);
+  color: var(--text-on-primary);
   font-weight: bold;
   border: 1px solid transparent;
   border-radius: 10px;
@@ -410,9 +410,9 @@ async function onCellClick(e) {
   box-sizing: border-box;
 }
 .btn-save:hover {
-  background-color: white;
-  color: #00a8e8;
-  border-color: #00a8e8;
+  background-color: var(--bg-main);
+  color: var(--primary);
+  border-color: var(--primary);
   box-shadow: inset 1px 1px 10px rgba(0, 0, 0, 0.25);
 }
 .btn-delete {
@@ -466,57 +466,7 @@ async function onCellClick(e) {
 .modal-buttons .btn-save {
   width: 48%;
 }
-/* 셀 중앙 정렬 */
-.center-align {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-/* ★ 클릭 가능한 사원명 스타일 */
-.clickable-name {
-  cursor: pointer;
-  color: #1F2937; /* 기본 텍스트 색 */
-  transition: color 0.2s;
-}
-.clickable-name:hover {
-  color: #00a8e8;
-  text-decoration: underline;
-}
-/* ★ 클릭 가능한 계약서 텍스트 스타일 (추가) */
-.clickable-contract {
-  cursor: pointer;
-  color: #2563EB;
-  transition: color 0.2s;
-}
-.clickable-contract:hover {
-  color: #1D4ED8;
-  text-decoration: underline;
-}
-/* AG Grid 커스텀 테마 */
-.custom-theme {
-  --ag-background-color: #ffffff;
-  --ag-foreground-color: #1F2937;
-  --ag-header-background-color: #F9FAFB;
-  --ag-header-foreground-color: #374151;
-  --ag-row-hover-color: #F3F4F6;
-  --ag-row-border-color: #E5E7EB;
-}
-.custom-theme .ag-header-cell-label {
-  justify-content: center;
-}
-.custom-theme .ag-row-hover .ag-cell {
-  background-color: var(--ag-row-hover-color) !important;
-}
-.custom-theme .ag-body-viewport::-webkit-scrollbar {
-  height: 6px;
-}
-.custom-theme .ag-body-viewport::-webkit-scrollbar-thumb {
-  background-color: #CBD5E1;
-  border-radius: 3px;
-}
-.custom-theme .ag-body-viewport::-webkit-scrollbar-track {
-  background: transparent;
-}
+
 
 /* ▼ 이미지 미리보기 모달 전용 스타일 추가 */
 .image-modal {

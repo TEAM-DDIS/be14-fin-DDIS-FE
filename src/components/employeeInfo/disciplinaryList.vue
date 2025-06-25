@@ -16,8 +16,8 @@
     </div>
 
     <!-- 2) AG Grid -->
-    <div class="ag-theme-alpine ag-grid-box">
-      <AgGridVue
+    <div class="ag-theme-alpine ag-grid-box custom-theme">
+      <BaseGrid
         class="ag-theme-alpine custom-theme"
         :gridOptions="{ theme: 'legacy' }"
         :style="`width: 100%; height: 500px;`"
@@ -29,7 +29,7 @@
         :paginationPageSize="pageSize"
         :paginationPageSizeSelector="[5,10,20,50]"
         @grid-ready="onGridReady"
-        @cell-clicked="onCellClick"
+        @cell-click="onCellClick"
       />
     </div>
 
@@ -70,7 +70,6 @@ import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
-import { AgGridVue } from 'ag-grid-vue3'
 import BaseToast from '@/components/toast/BaseToast.vue'
 import {
   ModuleRegistry,
@@ -82,6 +81,7 @@ import {
   CellStyleModule,
   ValidationModule
 } from 'ag-grid-community'
+import BaseGrid from '@/components/grid/BaseGrid.vue'
 
 // — Axios 기본 URL 설정
 axios.defaults.baseURL = 'http://localhost:5000'
@@ -328,7 +328,7 @@ async function onCellClick(e) {
 .page-title {
   margin-left: 20px;
   margin-bottom: 30px;
-  color: #00a8e8;
+  color: var(--primary);
 }
 .desc {
   display: block;
@@ -337,14 +337,13 @@ async function onCellClick(e) {
 }
 /* 카드 영역 */
 .card {
-  background: #fff;
+  background: var(--bg-box);
   border-radius: 12px;
   box-shadow: 1px 1px 20px 1px rgba(0, 0, 0, 0.05);
-  width: 100%;
-  margin: 20px 0 0 10px;
+  width: 98%;
+  margin: 20px 0 30px 20px;
   padding: 20px 40px 32px 40px;
   box-sizing: border-box;
-  margin-bottom: 30px;
 }
 /* 검색창 */
 .search-bar-in-card {
@@ -365,11 +364,12 @@ async function onCellClick(e) {
 }
 .search-bar-in-card .search-input {
   width: 100%;
-  border: 1px solid #D1D5DB;
-  border-radius: 4px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
   padding: 6px 8px;
   font-size: 14px;
-  color: #1F2937;
+  color: var(--text-main);
+  background: var(--modal-box-bg);
 }
 .search-bar-in-card .search-input:focus {
   outline: none;
@@ -393,8 +393,8 @@ async function onCellClick(e) {
   gap: 10px;
 }
 .btn-save {
-  background-color: #00a8e8;
-  color: white;
+  background-color: var(--primary);
+  color: var(--text-on-primary);
   font-weight: bold;
   border: 1px solid transparent;
   border-radius: 10px;
@@ -405,9 +405,9 @@ async function onCellClick(e) {
   box-sizing: border-box;
 }
 .btn-save:hover {
-  background-color: white;
-  color: #00a8e8;
-  border-color: #00a8e8;
+  background-color: var(--bg-main);
+  color: var(--primary);
+  border-color: var(--primary);
   box-shadow: inset 1px 1px 10px rgba(0, 0, 0, 0.25);
 }
 .btn-delete {
@@ -486,31 +486,6 @@ async function onCellClick(e) {
 .clickable-contract:hover {
   color: #1D4ED8;
   text-decoration: underline;
-}
-/* AG Grid 커스텀 테마 */
-.custom-theme {
-  --ag-background-color: #ffffff;
-  --ag-foreground-color: #1F2937;
-  --ag-header-background-color: #F9FAFB;
-  --ag-header-foreground-color: #374151;
-  --ag-row-hover-color: #F3F4F6;
-  --ag-row-border-color: #E5E7EB;
-}
-.custom-theme .ag-header-cell-label {
-  justify-content: center;
-}
-.custom-theme .ag-row-hover .ag-cell {
-  background-color: var(--ag-row-hover-color) !important;
-}
-.custom-theme .ag-body-viewport::-webkit-scrollbar {
-  height: 6px;
-}
-.custom-theme .ag-body-viewport::-webkit-scrollbar-thumb {
-  background-color: #CBD5E1;
-  border-radius: 3px;
-}
-.custom-theme .ag-body-viewport::-webkit-scrollbar-track {
-  background: transparent;
 }
 
 :deep(.file-list-cell) {
