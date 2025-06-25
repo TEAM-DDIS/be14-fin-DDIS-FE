@@ -381,7 +381,9 @@ async function onDeptSelected(dept) {
 
   try {
     const res = await axios.get(
-      `http://localhost:5000/structure/departments/${dept.departmentId}/members`
+      `http://localhost:5000/structure/departments/${dept.departmentId}/members`, {
+      headers: { Authorization: `Bearer ${token}` }
+    }
     )
     deptMembers.value = res.data
   } catch (e) {
@@ -398,7 +400,9 @@ async function onTeamSelected(team) {
 
   try {
     const res = await axios.get(
-      `http://localhost:5000/structure/teams/${team.teamId}/members`
+      `http://localhost:5000/structure/teams/${team.teamId}/members`, {
+      headers: { Authorization: `Bearer ${token}` }
+    }
     )
     teamMembers.value = res.data
   } catch (e) {
