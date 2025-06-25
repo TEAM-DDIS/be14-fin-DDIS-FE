@@ -124,7 +124,7 @@ onMounted(async () => {
     // 프로필 presigned URL
     if (user.value.employeePhotoUrl) {
       const { data: url } = await axios.get(
-        'http://localhost:5000/s3/download-url',
+        'https://api.isddishr.site/s3/download-url',
         {
           params: {
             filename: user.value.employeePhotoUrl,
