@@ -163,7 +163,7 @@ function onSubmit() {
   z-index: 1000;
 }
 .modal-content {
-  background: var(--modal-box-bg);
+  background: var(--modal-bg);
   border-radius: 10px;
   padding: 24px 32px;
   width: 400px;
@@ -188,7 +188,7 @@ function onSubmit() {
   padding: 8px 12px;
   font-size: 14px;
   border: 1px solid #ddd;
-  border-radius: 6px;
+  border-radius: 8px;
   margin-bottom: 16px;
   box-sizing: border-box;
   background: var(--modal-bg);
@@ -197,8 +197,8 @@ function onSubmit() {
 
 .modal-buttons {
   display: flex;
-  justify-content: flex-end;
-  gap: 12px;
+  justify-content: center;
+  gap: 20px;
   margin-top: 20px;
 }
 

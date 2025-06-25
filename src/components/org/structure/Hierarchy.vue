@@ -72,33 +72,15 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, computed } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import { useUserStore } from '@/stores/user'
-const userStore = useUserStore()
-// const token = userStore.accessToken
+
 const accessToken = useUserStore().accessToken
 
-// 상위로 이벤트 발송
 const emit = defineEmits(['dept-selected', 'team-selected'])
 
-// 전체 계층 데이터
 const hierarchy = ref([])
-
-// 펼침/접힘 상태
 const expanded = reactive({})
-
-// onMounted(async () => {
-//   try {
-//     const res = await fetch('http://localhost:5000/structure/hierarchy', {
-//       headers: { 'Authorization': `Bearer ${accessToken}` }
-//     })
-//     if (!res.ok) throw new Error(`HTTP ${res.status}`)
-//     hierarchy.value = await res.json()
-//   } catch (err) {
-//     console.error('❌ 조직 계층 로드 실패:', err)
-//     hierarchy.value = []
-//   }
-// })
 
 onMounted(async () => {
   try {
@@ -107,11 +89,12 @@ onMounted(async () => {
     })
     if (!res.ok) throw new Error(`HTTP ${res.status}`)
     const data = await res.json()
-    // headId === 4인 항목을 최상단으로, 나머지는 headId 오름차순으로 정렬
+    
+    // 이사회 상위로
     hierarchy.value = data.sort((a, b) => {
-      if (a.headId === 4) return -1   // a가 4면 맨 앞으로
-      if (b.headId === 4) return 1    // b가 4면 뒤로
-      return a.headId - b.headId      // 그 외에는 오름차순
+      if (a.headId === 4) return -1
+      if (b.headId === 4) return 1
+      return a.headId - b.headId
     })
   } catch (err) {
     console.error('❌ 조직 계층 로드 실패:', err)
@@ -133,7 +116,6 @@ function onTeamClick(team) {
   emit('team-selected', team)
 }
 
-// 회사 대표 찾기 (positionCode === 'P005')
 function getCompanyRep() {
   for (const head of hierarchy.value) {
     if (head.headManager?.positionCode === 'P005') {
@@ -143,8 +125,6 @@ function getCompanyRep() {
   return ''
 }
 
-
-// 전체 열기
 function expandAll() {
   hierarchy.value.forEach(head => {
     expanded['h' + head.headId] = true
@@ -157,7 +137,6 @@ function expandAll() {
   })
 }
 
-// 전체 닫기
 function collapseAll() {
   hierarchy.value.forEach(head => {
     expanded['h' + head.headId] = false
@@ -170,7 +149,6 @@ function collapseAll() {
   })
 }
 
-// 본부 단위 전체 펼치기/닫기
 function expandHead(head) {
   expanded['h' + head.headId] = true
   head.departments.forEach(dept => {
@@ -191,7 +169,6 @@ function collapseHead(head) {
   })
 }
 
-// 부서 단위 전체 펼치기/닫기
 function expandDept(dept) {
   expanded['d' + dept.departmentId] = true
   dept.teams.forEach(team => {

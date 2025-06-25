@@ -184,7 +184,6 @@ function onTeamSelected(team) {
 async function onEmployeeSelected(emp) {
   const url = `http://localhost:5000/structure/employee/${emp.employeeId}`
     try {
-      console.log('📥 사원 상세 호출 URL:', url)
       const res = await fetch(url, {
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -209,7 +208,6 @@ async function onEmployeeSelected(emp) {
         profileImgPath: data.employeePhotoUrl
       }
     } catch (e) {
-      console.error('❌ 사원 상세 조회 실패:', e)
       selectedEmployee.value = null
     }
 }
