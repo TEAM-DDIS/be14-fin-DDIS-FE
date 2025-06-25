@@ -234,7 +234,9 @@ const employeeCache = reactive(new Map())
 
 onMounted(async () => {
   try {
-    const resp = await axios.get('http://localhost:5000/structure/hierarchy')
+    const resp = await axios.get('http://localhost:5000/structure/hierarchy',
+      { headers: { Authorization: `Bearer ${userStore.accessToken}` } }
+    )
     const full = Array.isArray(resp.data) ? resp.data : []
 
    fullHierarchy.value = full
@@ -290,7 +292,9 @@ async function loadEmployeeInfo() {
 
   if (!emp) {
     try {
-      const res = await axios.get(`http://localhost:5000/introduction/employee/${id}`)
+      const res = await axios.get(`http://localhost:5000/introduction/employee/${id}`,
+        { headers: { Authorization: `Bearer ${userStore.accessToken}` } }
+      )
       emp = res.data
       employeeCache.set(id, emp)
     } catch {
@@ -383,7 +387,9 @@ watch(() => form.org.headId, async headId => {
   departmentsNew.value = teamsNew.value = jobsNew.value = positionsNew.value = ranksNew.value = []
   if (!headId) return gridApi.value.refreshCells({ columns:['new'], force:true })
 
-  const r = await axios.get(`http://localhost:5000/structure/heads/${headId}/departments`)
+  const r = await axios.get(`http://localhost:5000/structure/heads/${headId}/departments`,
+    { headers: { Authorization: `Bearer ${userStore.accessToken}` } }
+  )
   departmentsNew.value = r.data
   gridApi.value.refreshCells({ columns:['new'], force:true })
 })
@@ -394,7 +400,9 @@ watch(() => form.org.departmentId, async deptId => {
   teamsNew.value = jobsNew.value = positionsNew.value = ranksNew.value = []
   if (!deptId) return gridApi.value.refreshCells({ columns:['new'], force:true })
 
-  const r = await axios.get(`http://localhost:5000/structure/departments/${deptId}`)
+  const r = await axios.get(`http://localhost:5000/structure/departments/${deptId}`,
+    { headers: { Authorization: `Bearer ${userStore.accessToken}` } }
+  )
   teamsNew.value = r.data.teams
   gridApi.value.refreshCells({ columns:['new'], force:true })
 })
@@ -405,7 +413,9 @@ watch(() => form.org.teamId, async teamId => {
   jobsNew.value = positionsNew.value = ranksNew.value = []
   if (!teamId) return gridApi.value.refreshCells({ columns:['new'], force:true })
 
-  const r = await axios.get(`http://localhost:5000/introduction/team/${teamId}/job`)
+  const r = await axios.get(`http://localhost:5000/introduction/team/${teamId}/job`,
+    { headers: { Authorization: `Bearer ${userStore.accessToken}` } }
+  )
   jobsNew.value = r.data.map(j => ({
     jobId: j.jobId, jobName: j.jobName, jobCode: j.jobCode
   }))
@@ -418,8 +428,12 @@ watch(() => form.org.jobId, async jobId => {
   positionsNew.value = ranksNew.value = []
   if (jobId) {
     const [posRes, rankRes] = await Promise.all([
-      axios.get(`http://localhost:5000/introduction/job/${jobId}/positions`),
-      axios.get(`http://localhost:5000/introduction/job/${jobId}/ranks`)
+      axios.get(`http://localhost:5000/introduction/job/${jobId}/positions`,
+        { headers: { Authorization: `Bearer ${userStore.accessToken}` } }
+      ),
+      axios.get(`http://localhost:5000/introduction/job/${jobId}/ranks`,
+        { headers: { Authorization: `Bearer ${userStore.accessToken}` } }
+      )
     ])
     positionsNew.value = posRes.data
     ranksNew.value = rankRes.data

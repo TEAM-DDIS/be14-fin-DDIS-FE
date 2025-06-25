@@ -804,6 +804,7 @@ function onBackClick() {
 }
 .desc {
   margin: 0; /* 텍스트 자체의 여백 제거 */
+  font-size: 18px;
 }
 
 /* 위쪽 카드 내부로 이동한 버튼 그룹 */
@@ -854,7 +855,7 @@ position: absolute;
 
 /* EmployeeDetail 전체 컨테이너 */
 .employee-detail {
-  padding: 20px;
+  margin: 10px 20px 0;
   font-size: 14px;
   max-width: 100%;
   overflow-x: hidden;
@@ -879,6 +880,7 @@ position: absolute;
   gap: 2rem;
   align-items: flex-start;
   min-width: 1024px;
+  padding: 16px 6px;
 }
 
 /* 하단 카드에 상대 위치 설정 */
@@ -896,12 +898,13 @@ position: absolute;
 .profile-wrapper {
   position: relative;
   display: inline-block;
+  margin-top: 6px;
 }
 .profile-img {
   width: 200px;
   height: 260px;
   object-fit: cover;
-  border-radius: 8px;
+  border-radius: 12px;
 }
 
 /* 사진이 없을 때 표시되는 박스 및 텍스트 */

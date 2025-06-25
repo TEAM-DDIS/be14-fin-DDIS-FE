@@ -279,6 +279,7 @@ function onCancel() {
   display: block;
   margin-left: 20px;
   margin-bottom: 10px;
+  font-size: 18px;
 }
 
 .back-btn {
@@ -293,7 +294,7 @@ function onCancel() {
   border-radius: 12px;
   box-shadow: 1px 1px 20px 1px rgba(0, 0, 0, 0.05);
   width: 98%;
-  margin: 20px auto 30px 20px;
+  margin: 0 20px 30px 20px;
   padding: 20px 40px 32px 40px;
   box-sizing: border-box;
   min-height: 700px;
@@ -360,7 +361,7 @@ function onCancel() {
 .info-table td input[type='date'] {
   width: 100%;
   border: 1px solid #ddd;
-  border-radius: 4px;
+  border-radius: 8px;
   padding: 10px 8px;
   font-size: 0.9rem;
   font-family: 'inherit';
@@ -384,6 +385,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   justify-content: flex-end;
   gap: 12px;
   margin-top: 30px;
+  margin-right: 18px;
 }
 
 .btn-cancel {

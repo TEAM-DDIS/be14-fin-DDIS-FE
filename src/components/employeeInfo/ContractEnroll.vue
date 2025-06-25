@@ -279,6 +279,7 @@ function onCancel() {
   display: block;
   margin-left: 20px;
   margin-bottom: 10px;
+  font-size: 18px;
 }
 
 /* 카드 영역: 높이를 늘려서 min-height 적용 */
@@ -288,7 +289,7 @@ function onCancel() {
   border-radius: 12px;
   box-shadow: 1px 1px 20px 1px rgba(0, 0, 0, 0.05);
   width: 98%;
-  margin: 20px 0 30px 20px;
+  margin: 0 0 30px 20px;
   padding: 20px 40px 32px 40px;
   box-sizing: border-box;
   /* 높이를 아래로 늘립니다 */

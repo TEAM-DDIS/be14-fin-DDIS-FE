@@ -804,7 +804,8 @@ async function onPhotoSelected(e) {
   margin-left: 20px;     /* 기존 .desc 의 margin-left */
 }
 .desc {
-  margin: 0; /* 텍스트 자체의 여백 제거 */
+  margin: 0;
+  font-size: 18px;
 }
 
 .back-btn {
@@ -852,7 +853,7 @@ async function onPhotoSelected(e) {
 
 /* EmployeeDetail 전체 컨테이너 */
 .employee-detail {
-  padding: 20px;
+  margin: 10px 20px 0;
   font-size: 14px;
   max-width: 100%;
   overflow-x: hidden; 
@@ -891,6 +892,7 @@ async function onPhotoSelected(e) {
   gap: 2rem;
   align-items: flex-start;
   min-width: 1024px;
+  padding: 16px 6px;
 }
 
 /* 프로필 */
@@ -900,12 +902,13 @@ async function onPhotoSelected(e) {
 .profile-wrapper {
   position: relative;
   display: inline-block;
+  margin-top: 6px;
 }
 .profile-img {
   width: 200px;
   height: 260px;
   object-fit: cover;
-  border-radius: 8px;
+  border-radius: 12px;
 }
 
 /* 사진이 없을 때 표시되는 박스 및 텍스트 */
@@ -1057,7 +1060,7 @@ async function onPhotoSelected(e) {
   padding: 0.6rem;
   font-size: 0.9rem;
   font-family: 'inherit';
-  border: 1px solid #ddd;
+  border: 1px solid var(--border-color);
   border-radius: 8px;
   box-sizing: border-box;
   line-height: 1.2; 

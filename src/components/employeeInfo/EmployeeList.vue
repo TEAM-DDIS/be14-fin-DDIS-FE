@@ -291,13 +291,14 @@ function onRegister() {
   display: block;
   margin-left: 20px;
   margin-bottom: 10px;
+  font-size: 18px;
 }
 /* 카드 */
 .card {
   background: var(--bg-box);
   border-radius: 12px;
   box-shadow: 1px 1px 20px rgba(0,0,0,0.05);
-  margin: 20px 20px 30px;
+  margin: 0 20px 30px;
   padding: 20px 40px 32px;
 }
 /* 검색창 */
@@ -313,7 +314,7 @@ function onRegister() {
 .search-input {
   flex: 1;
   border: 1px solid #ddd;
-  border-radius: 4px;
+  border-radius: 8px;
   height: 26px;
   outline: none;
   font-size:14px;

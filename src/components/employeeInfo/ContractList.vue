@@ -27,7 +27,7 @@
         :pagination="true"
         :paginationPageSize="pageSize"
         :paginationPageSizeSelector="[5,10,20,50]"
-        @grid-ready="onGridReady"
+        @ready="onGridReady"
         @cell-clicked="onCellClick"
       />
     </div>
@@ -45,6 +45,7 @@
   <!-- 삭제 확인 모달 -->
   <div v-if="showDeleteModal" class="modal-overlay">
     <div class="modal-content">
+      <h2> 계약서/법정서류 삭제</h2>
       <p>선택된 항목을 삭제하시겠습니까?</p>
       <div class="modal-buttons">
         <button class="btn-delete cancel" @click="cancelDelete">취소</button>
@@ -333,13 +334,14 @@ async function onCellClick(e) {
 <style scoped>
 .page-title {
   margin-left: 20px;
-  margin-bottom: 50px;
+  margin-bottom: 30px;
   color: var(--primary);
 }
 .desc {
   display: block;
   margin-left: 20px;
   margin-bottom: 10px;
+  font-size: 18px;
 }
 /* 카드 영역 */
 .card {
@@ -347,7 +349,7 @@ async function onCellClick(e) {
   border-radius: 12px;
   box-shadow: 1px 1px 20px 1px rgba(0, 0, 0, 0.05);
   width: 98%;
-  margin: 20px 0 30px 20px;
+  margin: 0 0 30px 20px;
   padding: 20px 40px 32px 40px;
   box-sizing: border-box;
 }
@@ -370,7 +372,7 @@ async function onCellClick(e) {
 .search-bar-in-card .search-input {
   width: 100%;
   border: 1px solid #ddd;
-  border-radius: 4px;
+  border-radius: 8px;
   padding: 6px 8px;
   font-size: 14px;
   color: var(--text-main);
@@ -445,27 +447,37 @@ async function onCellClick(e) {
   z-index: 1000;
 }
 .modal-content {
-  background: #ffffff;
-  border-radius: 8px;
-  padding: 20px 24px;
-  width: 320px;
+  background: var(--modal-box-bg);
+  border-radius: 12px;
+  padding: 16px 24px;
+  width: 350px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
   text-align: center;
 }
+.modal-content h2 {
+  margin-bottom: 30px;
+}
 .modal-content p {
-  margin-bottom: 20px;
-  font-size: 16px;
+  margin-bottom: 40px;
+  font-size: 18px;
 }
 .modal-buttons {
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
+  gap: 16px;
+}
+
+.modal-buttons .btn-save {
+  width: 35%;
+  padding: 12px 0;
+  margin-bottom: 10px;
 }
 .modal-buttons .btn-delete {
-  width: 48%;
+  width: 35%;
+  padding: 12px 0;
+  margin-bottom: 12px;
 }
-.modal-buttons .btn-save {
-  width: 48%;
-}
+
 
 
 /* ▼ 이미지 미리보기 모달 전용 스타일 추가 */
