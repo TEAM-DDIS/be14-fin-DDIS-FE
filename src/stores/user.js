@@ -62,20 +62,15 @@ getters: {
       return datesToInclude.includes(mmdd)
     })
   },
-  currentEmployee: (state) => {
-    if (!state.user || !state.allEmployees.length) return null
-    return state.allEmployees.find(
-      emp => emp.employeeId === state.user.employeeId
-    ) || null
-  },
   profileUrl: (state) => {
-     const emp = state.currentEmployee
-     // 실제 응답 필드가 profileImgPath라면 이 키를 사용
-     const path = emp?.employeePhotoUrl 
-     return path
-       ? `https://ddisbucket-fin.s3.ap-northeast-2.amazonaws.com/${path}`
-       : '/images/erpizza_profile.svg'
-   }
+    const emp = state.allEmployees.find(
+      e => String(e.employeeId) === String(state.user?.employeeId)
+    )
+    const path = emp?.employeePhotoUrl
+      return path
+        ? `https://ddisbucket-fin.s3.ap-northeast-2.amazonaws.com/${path}`
+        : '/images/erpizza_profile.svg'
+    }
 }
 
 })
