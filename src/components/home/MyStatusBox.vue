@@ -3,7 +3,7 @@
   <div class="box my-status">
     <div class="profile-wrapper" v-if="user">
       <img
-        :src="user.employeePhotoUrl || '/images/erpizza_profile.svg'"
+        :src="previewSrc || '/images/erpizza_profile.svg'"
         alt="프로필"
         class="avatar"
         @error="onImageError"
@@ -36,6 +36,7 @@
         </div>
       </div>
     </div>
+
     <!-- 근태 현황 -->
     <div class="attendance-wrapper">
       <div class="section-title-row">
@@ -66,21 +67,21 @@
     </div>
   </div>
   <BaseToast ref="toastRef" />
-
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
-import BaseToast from '@/components/toast/BaseToast.vue' 
-const router = useRouter()
+import BaseToast from '@/components/toast/BaseToast.vue'
+import axios from 'axios'
 
+const router = useRouter()
 const user = ref(null)
+const previewSrc = ref('')
 const draftCount = ref(0)
 const approveWaitingCount = ref(0)
 const rejectCount = ref(0)
-
 const remainLeave = ref(0)
 const weeklyWorkHours = ref(0)
 const weeklyOvertimeHours = ref(0)
@@ -120,6 +121,21 @@ onMounted(async () => {
     if (!resUser.ok) throw new Error('유저 정보 조회 실패')
     user.value = await resUser.json()
 
+    // 프로필 presigned URL
+    if (user.value.employeePhotoUrl) {
+      const { data: url } = await axios.get(
+        'http://localhost:5000/s3/download-url',
+        {
+          params: {
+            filename: user.value.employeePhotoUrl,
+            contentType: 'image/png'
+          },
+          headers
+        }
+      )
+      previewSrc.value = url
+    }
+
     // 잔여 연차
     const resLeave = await fetch('http://localhost:5000/attendance/leave/status/me', { headers })
     if (resLeave.ok) {
@@ -155,14 +171,14 @@ onMounted(async () => {
       const data = await resApprovals.json()
       approveWaitingCount.value = data.filter(doc => doc.status === '대기중').length
     }
+
   } catch (err) {
     console.error('데이터 불러오기 실패:', err)
     showToast('나의 현황 데이터를 불러오지 못했습니다.')
   }
 })
-
-
 </script>
+
 
 <style scoped>
 .profile-wrapper{
