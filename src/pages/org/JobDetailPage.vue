@@ -256,13 +256,14 @@ function saveEdit(updated) {
 .page-title {
   margin-left: 20px;
   margin-bottom: 30px;
-  color: #00a8e8;
+  color: var(--primary); 
 }
 .back-btn {
   width: 24px;
   height: 24px;
   margin-right: -10px;
   cursor: pointer;
+  color: var(--primary); 
 }
 .desc {
   display: block;

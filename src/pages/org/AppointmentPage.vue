@@ -196,7 +196,7 @@ function onCellClick(e) {
   .page-title {
     margin-left: 20px;
     margin-bottom: 30px;
-    color: #00a8e8;
+    color: var(--primary); 
   }
   .desc {
     display: block;
