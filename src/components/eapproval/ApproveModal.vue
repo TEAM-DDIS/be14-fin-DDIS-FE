@@ -93,7 +93,8 @@ function submitApproval() {
 }
 .modal-content {
   width: 480px;
-  background: #fff;
+  background: var(--modal-box-bg);
+  color: var(--text-main, #222);
   border-radius: 12px;
   box-shadow: 0 4px 16px rgba(0,0,0,0.2);
   padding: 24px;
@@ -124,6 +125,7 @@ function submitApproval() {
   font-size: 20px;
   font-weight: bold;
   margin-left: 50px;
+  color: var(--text-main, #222);
 }
 
 hr {
@@ -138,6 +140,7 @@ hr {
   grid-template-columns: 100px 1fr;
   align-items: start;
   margin-bottom: 16px;
+  color: var(--text-main, #222);
 }
 .label-cell {
   font-weight: bold;
@@ -154,12 +157,14 @@ hr {
   width: 100%;
   min-height: 100px;
   padding: 10px;
-  border: 1px solid #ccc;     /* 기본 테두리 두께를 1px 로 설정 */
+  border: 1px solid var(--ag-row-border-color, #ccc);
   border-radius: 6px;
   font-size: 14px;
   resize: none;
   outline: none;              /* 브라우저 기본 focus outline 제거 */
   box-sizing: border-box;
+  background: var(--bg-box, #fff);
+  color: var(--text-main, #222);
 }
 .approval-count {
   position: absolute;
@@ -200,8 +205,8 @@ hr {
 .btn-submit {
   font-size: 14px;
   font-weight: bold;
-  background-color: #00a8e8;
-  color: white;
+  background-color: var(--primary, );
+  color: var(--text-on-primary, #fff);
   border: 1px solid transparent;
   border-radius: 10px;
   padding: 10px 30px;
@@ -215,9 +220,9 @@ hr {
   color: #fff;
 }
 .btn-submit:hover {
-  background-color: white;
-  color: #00a8e8;
-  border-color: #00a8e8;
+  background-color: var(--bg-main, #fff);
+  color: var(--primary);
+  border-color: var(--primary);
   box-shadow:
   inset 1px 1px 10px rgba(0, 0, 0, 0.25);
 }
