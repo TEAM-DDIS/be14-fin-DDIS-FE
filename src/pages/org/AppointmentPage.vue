@@ -65,7 +65,6 @@ import ConfirmModal from '@/components/org/appointment/ConfirmModal.vue'
 ModuleRegistry.registerModules([AllCommunityModule])
 
 const userStore = useUserStore()
-const API_BASE        = 'http://localhost:5000/appointment-history'
 const selectedType    = ref('')
 const filterEmployee  = ref('')
 const rowData         = ref([])
@@ -75,6 +74,7 @@ const router          = useRouter()
 const showConfirm = ref(false)
 const confirmMessage = ref('')
 let confirmCallback = null
+const token = useUserStore().accessToken
 
 const toastRef = ref(null)
 
@@ -119,9 +119,15 @@ const columnDefs = [
   }
 ]
 
-async function loadData(endpoint = 'approved') {
+async function loadData() {
+  const url = 'http://localhost:5000/appointment-history/approved'
   try {
-    const res = await fetch(`${API_BASE}/${endpoint}`)
+    const res = await fetch(url, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    })
     if (!res.ok) throw new Error(res.statusText)
     rowData.value = await res.json()
   } catch (err) {

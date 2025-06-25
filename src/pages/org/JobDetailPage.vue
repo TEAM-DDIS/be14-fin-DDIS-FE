@@ -161,18 +161,26 @@ const selectedJobs = computed(() => {
 })
 
 onMounted(async () => {
+  const BASE = 'http://localhost:5000/introduction'
   try {
-    const BASE = 'http://localhost:5000/introduction'
-
-    // 팀 상세 정보
-    const teamRes = await fetch(`${BASE}/team/${teamId}`)
+    const teamRes = await fetch(`${BASE}/team/${teamId}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    })
     if (!teamRes.ok) throw new Error(`HTTP ${teamRes.status}`)
     const teamData = await teamRes.json()
     teamName.value = teamData.teamName
     teamIntro.value = teamData
 
     // 해당 팀의 직무 목록 조회
-    const jobsRes = await fetch(`${BASE}/team/${teamId}/job`)
+    const jobsRes = await fetch(`${BASE}/team/${teamId}/job`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    })
     if (!jobsRes.ok) throw new Error(`HTTP ${jobsRes.status}`)
     let jobsData = await jobsRes.json()
 
