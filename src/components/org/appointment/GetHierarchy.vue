@@ -142,14 +142,20 @@
       const res = await fetch('http://localhost:5000/structure/hierarchy', {
       headers: { 'Authorization': `Bearer ${accessToken}` }
     })
-      hierarchy.value = await res.json()
-          hierarchy.value.forEach(head => {
-      head.headManager = findManager(head.departments, '본부장')
-
-      head.departments.forEach(dept => {
-        dept.deptManager = findManager(dept.teams, '부서장')
-      })
+      // hierarchy.value = await res.json()
+      const data = await res.json()
+      hierarchy.value = data.sort((a, b) => {
+      if (a.headId === 4) return -1   // a가 4면 맨 앞으로
+      if (b.headId === 4) return 1    // b가 4면 뒤로
+      return a.headId - b.headId      // 그 외에는 오름차순
     })
+      hierarchy.value.forEach(head => {
+        head.headManager = findManager(head.departments, '본부장')
+
+        head.departments.forEach(dept => {
+          dept.deptManager = findManager(dept.teams, '부서장')
+        })
+      })
 
       emit('loaded-hierarchy', hierarchy.value)
     } catch (err) {
@@ -373,6 +379,9 @@ function collapseDept(dept) {
   .node.dept:hover,
   .node.team:hover,
   .node.emp:hover {
+    color: #00a8e8;
+  }
+  .node.emp.selected {
     color: #00a8e8;
   }
   

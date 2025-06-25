@@ -222,6 +222,16 @@ onMounted(async () => {
       departments: h.departments 
     }))
 
+   {
+     const list = [...headquarters.value]
+     const idx = list.findIndex(hq => hq.headId === 4)
+     if (idx !== -1) {
+       const [item] = list.splice(idx, 1)
+       list.unshift(item)
+     }
+     headquarters.value = list
+   }
+
     const deptList = []
     const teamList = []
     const empList = []
