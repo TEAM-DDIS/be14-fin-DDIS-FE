@@ -109,7 +109,7 @@
     try {
         const token = userStore.accessToken 
 
-        const res = await fetch('https://api.isddishr.site/correction/history/process/all', {
+        const res = await fetch('https://api.isddishr.site/attendance/correction/history/process/all', {
             method: 'GET',
             headers: {
                 Authorization: `Bearer ${token}`  
