@@ -19,12 +19,13 @@
     <!-- 3-1. 검색 영역 -->
     <div class="search-row">
       <div class="search-item">
-        <label>기안상신일</label>
-        <input type="date" v-model="search.date" />
-      </div>
-      <div class="search-item">
         <label>기안 제목</label>
         <input type="text" v-model="search.title" placeholder="기안 제목 입력" />
+      </div>
+      <div class="search-item">
+        <label>기안상신일</label>
+        <input type="date" v-model="search.startDate" /> ~
+        <input type="date" v-model="search.endDate" />
       </div>
     </div>
 
@@ -36,10 +37,12 @@
         :columnDefs="currentColumnDefs"
         :rowData="filteredForms"
         :pagination="true"
-        rowSelection="single"
-        @rowClicked="handleFormRowClick"
+        :paginationPageSize="10"
+        :paginationPageSizeSelector="[10, 20, 50, 100]"
+        rowSelection="single"  
+        @row-click="handleFormRowClick"
         :overlayNoRowsTemplate="'<span class=\'ag-empty\'>데이터가 없습니다.</span>'"
-        style="width:100%; height:100%;"
+        style="width: 100%; height: 100%;"
       />
     </div>
   </div>
@@ -47,7 +50,7 @@
 
 <script setup>
 import { ref, reactive, computed, onMounted, watch } from 'vue'
-import { AgGridVue } from 'ag-grid-vue3'
+import AgGridVue from '@/components/grid/BaseGrid.vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import axios from 'axios'
@@ -55,7 +58,7 @@ import { ModuleRegistry, AllCommunityModule } from 'ag-grid-community'
 
 // 상태 정의
 const tab = reactive({ value: '결재' })
-const search = reactive({ date: '', title: '' })
+const search = reactive({startDate: '', endDate: '',  title: ''})
 const docs = ref([])
 const router = useRouter() 
 const userStore = useUserStore()
@@ -165,29 +168,27 @@ onMounted(fetchApprovals)
 watch(tab, fetchApprovals)
 
 // 검색/탭 조건에 따른 필터링
-const filteredForms = computed(() => {
+const filteredForms = computed(() => {   
   const expected = statusMap[tab.value]
 
   // 1. 필터링
   const filtered = docs.value.filter(doc => {
     if (!doc) return false
     const isRejected = doc.lineStatus === '반려' || doc.docStatus === '반려'
-
     if (tab.value !== '전체' && isRejected) return false
     if (tab.value === '전체' && isRejected) return true
-
     if (expected) {
       const docStatusMatch = expected.docStatus.includes(doc.docStatus)
       const lineStatusMatch = expected.lineStatus.includes(doc.lineStatus)
       if (!docStatusMatch || !lineStatusMatch) return false
     }
+    if (search.startDate || search.endDate) {
+    const submitted = doc.submittedAt?.slice(0, 10) // yyyy-MM-dd
+    if (!submitted) return false
 
-    if (search.title && !doc.title?.includes(search.title)) return false
-    if (search.date) {
-      const dateOnly = doc.submittedAt?.slice(0, 10)
-      if (dateOnly !== search.date) return false
-    }
-
+    if (search.startDate && submitted < search.startDate) return false
+    if (search.endDate && submitted > search.endDate) return false
+  }
     return true
   })
 
@@ -201,7 +202,6 @@ const filteredForms = computed(() => {
     writer: formatWriter(doc.drafter, doc.drafterRank)
   }))
 })
-
 
 // 행 클릭 핸들러
 function handleFormRowClick(params) {
@@ -219,16 +219,16 @@ function handleFormRowClick(params) {
 <style>
 /* 흰색 메인 컨텐츠 박스 */
 .main-box {
-    background: #fff;
-    border-radius: 12px;
-    box-shadow: 1px 1px 20px 1px rgba(0,0,0,0.05);
-    width: 100%;
-    height: 700px;
-    min-width: 0;
-    max-width: 100%;
-    margin: 20px 0 0 0;     /* 상단 32px, 좌우하단 0 */
-    padding: 40px 40px 32px 40px; /* 상 우 하 좌 */
-    box-sizing: border-box;
+  background-color: var(--bg-box);
+  border-radius: 0px 12px 12px 12px;
+  box-shadow: 1px 1px 20px 1px rgba(0,0,0,0.05);
+  width: 100%;
+  height: 700px;
+  min-width: 0;
+  max-width: 100%;
+  margin: 0px 24px 24px 24px;  
+  padding: 40px 40px 32px 40px; /* 상 우 하 좌 */
+  box-sizing: border-box;
 }
 
 /* 페이지 타이틀 */
@@ -238,32 +238,45 @@ function handleFormRowClick(params) {
     color: #00a8e8;
 }
 
-    /* 🔷 겹쳐지는 탭 스타일 */
-    .tab-wrapper {
-        position: relative;
-        z-index: 2;
-    }
+/* 🔷 겹쳐지는 탭 스타일 */
+.tab-wrapper {
+    position: relative;
+    z-index: 2;
+}
 
 /* 탭 영역 */
 .tabs {
-    display: flex;
-    gap: 36px;           /* 탭 사이 간격 */
-    font-size: 1.2em;
-    font-weight: 500;
-    margin-left: 4px;
+  display: flex;
+  align-items: flex-end;
+  gap: 0;
+  position: relative;
+  margin: 50px 24px 0px 24px;
 }
 
 .tabs span {
-    color: #8b95a1;
-    padding-bottom: 8px;
-    cursor: pointer;
-    transition: color 0.2s;
+  font-size: 18px;
+  padding: 10px 30px;
+  border: none;
+  border-bottom: none;
+  background-color: #C8C8C8;
+  color: white;
+  text-decoration: none; /* ✅ 밑줄 제거 */
+  cursor: pointer;
+  border-top-left-radius: 12px;
+  border-top-right-radius: 12px;
+  position: relative;
+  z-index: 1;
+  margin-right: -20px; /* ✅ 가로 겹치기 */
+  transition: all 0.2s ease;
 }
 
 .tabs .active {
-    color: #1f2937;
-    border-bottom: 3px solid #00a8e8;  /* 클릭시 검은색 강조 */
-    font-weight: bold
+  background-color: #fff;
+  color: #000;
+  z-index: 3;
+  border-bottom: none;
+  background: var(--bg-box);
+
 }
 
 /* ------- 검색 영역 ------ */
@@ -330,14 +343,13 @@ function handleFormRowClick(params) {
     margin: 0;
     border: 1px solid #e3e5e8;     /* 연한 회색 테두리 */
     border-radius: 8px;            /* 둥근 모서리 */
-    background: #fff;
     overflow: auto;             
     box-sizing: border-box;
 /* → 이 상태에서 내부 AgGridVue가 100% 채움 */
 }
 
 /* 스타일 커스터마이징 */
-.ag-custom .ag-header-row {
+/* .ag-custom .ag-header-row {
     background-color: #f8f9fa !important;
     border-color: #c8c8c8 !important;
 }
@@ -349,5 +361,5 @@ function handleFormRowClick(params) {
 }
 .ag-custom .ag-root-wrapper, .ag-custom .ag-cell, .ag-custom .ag-header-cell {
     border-color: #c8c8c8 !important;
-}
+} */
 </style>

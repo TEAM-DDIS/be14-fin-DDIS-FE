@@ -154,9 +154,14 @@ function saveEdit(updated) {
 }
 
 onMounted(async () => {
+  const BASE = 'http://localhost:5000/introduction'
   try {
-    const BASE = 'http://localhost:5000/introduction'
-    const res = await fetch(`${BASE}/department`)
+    const res = await fetch(`${BASE}/department`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    })
     if (!res.ok) throw new Error(`HTTP ${res.status}`)
     const data = await res.json()
     orgData.value.introduction = data

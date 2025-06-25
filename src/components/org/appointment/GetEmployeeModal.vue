@@ -319,7 +319,7 @@ function submitSelection() {
 .modal-header {
   display: flex;
   align-items: center;
-  justify-content: flex-start;
+  justify-content: center;
   gap: 12px;
   padding: 0 18px 0 18px;
   border-bottom: 1.5px solid var(--border-color);
@@ -504,7 +504,7 @@ function submitSelection() {
 
 .modal-footer {
   display: flex;
-  justify-content: flex-end;
+  justify-content: center;
   gap: 12px;
   padding: 24px 32px 24px 0;
   border-top: 1.5px solid var(--border-color);
@@ -512,8 +512,8 @@ function submitSelection() {
   border-radius: 0 0 12px 12px;
 }
 .footer-btn {
-  right: 20px;
-  gap: 15px;
+  display: flex;
+  gap: 24px;
   margin-bottom: 12px;
 }
 

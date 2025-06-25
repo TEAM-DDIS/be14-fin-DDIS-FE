@@ -638,6 +638,7 @@ function handleReload() {
   display: block;
   margin-left: 20px;
   margin-bottom: 10px;
+  margin-top: 0;
   font-size: 18px;
 }
 
@@ -653,10 +654,10 @@ function handleReload() {
   align-items: center;
   background: var(--bg-box);
   border-radius: 12px;
-  padding: 10px 24px;
+  padding: 8px 16px;
   height: 70px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-  margin-bottom: 50px;
+  margin-bottom: 30px;
   gap: 20px;
   margin-left: 20px;
 }
