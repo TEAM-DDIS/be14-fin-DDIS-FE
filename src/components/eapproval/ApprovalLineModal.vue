@@ -434,7 +434,7 @@ function selectFromSearch(emp) {
 .modal-overlay {
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
-  background: var(--modal-box-bg);
+  background: rgba(0,0,0,0.15);
   z-index: 1000;
   display: flex;
   align-items: center;
@@ -451,6 +451,7 @@ function selectFromSearch(emp) {
   display: flex;
   flex-direction: column;
   position: relative;
+  padding: 0 0 0 0;
 }
 
 .approver-table th:nth-child(1),
@@ -520,7 +521,7 @@ function selectFromSearch(emp) {
 }
 .tab-group .active {
   background: var(--bg-main, #fff);
-  color: var(--primary);
+  color: var(--primary, --primary);
   border-bottom: 2px solid var(--bg-main, #fff);
   font-weight: bold;
 }
