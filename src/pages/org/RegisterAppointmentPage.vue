@@ -696,8 +696,9 @@ async function submit() {
       payload,
       { headers: { 
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${userStore.accessToken}`
-       }
+        'Authorization': `Bearer ${token}`
+       },
+       withCredentials: true,
       }
     );
     showToast('등록 성공!');
