@@ -32,23 +32,37 @@
   </tr>
 </table>
 
+- [팀 소개 바로가기](https://github.com/TEAM-DDIS/be14-fin-DDIS-FE/wiki/👥-팀-소개)
+
 ---
 
 ## 프로젝트 소개
 
-- [기획서 바로가기]
+- [프로젝트 소개 바로가기](https://github.com/TEAM-DDIS/be14-fin-DDIS-FE/wiki/📝-프로젝트-소개)
 
-### 개요
+> 직원이 정말 필요로 하는 기능만 담았습니다.  
+복잡한 절차는 줄이고, 사용성은 더 직관적으로.  
+누구나 쉽게 쓸 수 있는 진짜 HR 시스템, ERPIZZA.
 
-### 기획 의도
+---
 
-### 차별성
+## 📍 프로젝트 개요
 
-### 해결방안 및 기대효과
+기존의 복잡하고 딱딱한 인사 시스템에서 벗어나,  
+ **필요 정보를 쉽게 확인하고**, 불필요한 절차 없이 **직관적으로 처리할 수 있는**  자유롭고 실용적인 업무 환경을 제공하는 ERP 시스템 입니다.
+
+ERP 시스템이라고 해서 무거울 필요는 없습니다.  
+직원들의 **진짜 니즈를 반영한 UX**,  
+**챗봇을 활용한 스마트한 업무 지원**,  
+**반복 업무의 자동화**까지.
+
+이 모든 것을 담은 ERPIZZA는 **직관적이고 실용적인 새로운 인사 시스템**입니다.
 
 ---
 
 ## 기술 스택
+
+- [기술스택 바로가기](https://github.com/TEAM-DDIS/be14-fin-DDIS-FE/wiki/🛠-기술-스택)
 
 ### Backend
 
@@ -96,70 +110,70 @@
 
 ## 주요 기능
 
-- [주요기능 바로가기]
+- [주요기능 바로가기](https://github.com/TEAM-DDIS/be14-fin-DDIS-FE/wiki/✨-주요-기능)
 
 ---
 
 ## 깃 플로우
 
-- [깃 플로우 바로가기]
+- [깃 플로우 바로가기](https://github.com/TEAM-DDIS/be14-fin-DDIS-FE/wiki/🌱-깃-플로우)
 
 ---
 
 ## 시스템 아키텍처
 
-- [시스템 아키텍처처 바로가기]
+- [시스템 아키텍처처 바로가기](https://github.com/TEAM-DDIS/be14-fin-DDIS-FE/wiki/⛓️-시스템-아키텍처)
 
 ---
 
 ## 설계 문서
 
-### 📌 기획서
+### 📑 기획서
 
-- [기획서 바로가기]
+- [기획서 바로가기](https://github.com/TEAM-DDIS/be14-fin-DDIS-FE/wiki/📑-기획서)
 
-### 📌 WBS
+### 📅 WBS
 
-- [WBS 바로가기]
+- [WBS 바로가기](https://github.com/TEAM-DDIS/be14-fin-DDIS-FE/wiki/📅-WBS)
 
-### 📌 플로우차트
+### 🌊 플로우차트
 
-- [플로우차트 바로가기]
+- [플로우차트 바로가기](https://github.com/TEAM-DDIS/be14-fin-DDIS-FE/wiki/🌊-플로우차트)
 
-### 📌 요구사항 명세서
+### 📋 요구사항 명세서
 
-- [요구사항 명세서 바로가기]
+- [요구사항 명세서 바로가기](https://github.com/TEAM-DDIS/be14-fin-DDIS-FE/wiki/📋-요구사항-명세서)
 
-### 📌 DDD
+### 💡 DDD
 
-- [DDD 바로가기]
+- [DDD 바로가기](https://github.com/TEAM-DDIS/be14-fin-DDIS-FE/wiki/💡-DDD)
 
-### 📌 논리 모델링
+### 📘 논리 모델링
 
-- [논리 모댈링 바로가기]
+- [논리 모댈링 바로가기](https://github.com/TEAM-DDIS/be14-fin-DDIS-FE/wiki/📘-논리-모델링)
 
-### 📌 물리 모델링
+### 📕 물리 모델링
 
-- [물리 바로가기]
+- [물리 바로가기](https://github.com/TEAM-DDIS/be14-fin-DDIS-FE/wiki/📕-물리-모델링)
 
-### 📌 화면 설계서
+### 🖌️ 화면 설계서
 
-- [화면 설계서 바로가기]
+- [화면 설계서 바로가기](https://github.com/TEAM-DDIS/be14-fin-DDIS-FE/wiki/🖌️-화면-설계서)
 
-### 📌 테스트 케이스
+### 🧪 테스트 케이스
 
-- [테스트 케이스스 바로가기]
+- [테스트 케이스 바로가기](https://github.com/TEAM-DDIS/be14-fin-DDIS-FE/wiki/🧪-테스트-케이스)
 
 ---
 
 ## 트러블 슈팅
 
-- [트러블 슈팅 바로가기]
+- [트러블 슈팅 바로가기](https://github.com/TEAM-DDIS/be14-fin-DDIS-FE/wiki/💥-트러블-슈팅)
 
 ---
 
 ## 회고
 
-- [회고 바로가기]
+- [회고 바로가기](https://github.com/TEAM-DDIS/be14-fin-DDIS-FE/wiki/📌-회고)
 
 ---
