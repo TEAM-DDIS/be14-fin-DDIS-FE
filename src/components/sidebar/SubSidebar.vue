@@ -107,11 +107,13 @@
                     },
                     {
                         name: '계약서/법정서류 관리',
-                        path: '/employeeInfo/Contract'
+                        path: '/employeeInfo/Contract',
+                        hrOnly: true 
                     },
                     {
                         name: '징계 관리',
-                        path: '/employeeInfo/disciplinary'
+                        path: '/employeeInfo/disciplinary',
+                        hrOnly: true 
                     },
                         
                 ]
