@@ -66,7 +66,7 @@ onMounted(async () => {
   const token = userStore.accessToken
   const employeeId = localStorage.getItem('employeeId')
   const stomp      = new Client({
-    brokerURL:      `wss://https://api.isddishr.site/ws-notice`,
+    brokerURL:      `wss://api.isddishr.site/ws-notice`,
     connectHeaders: { Authorization: `Bearer ${token}` },
     onConnect: () => {
       stomp.subscribe(`/topic/notice/${employeeId}`, ({ body }) => {
