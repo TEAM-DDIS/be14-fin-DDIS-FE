@@ -41,7 +41,7 @@
     </div>
 
     <!-- 기간 설정 -->
-    <p class="desc">기간 설정</p>
+    <p class="desc">기간 설정 (지급월 기준)</p>
     <div class="section period">
       <div class="inputs">
         <label><strong>조회기간</strong></label>
@@ -150,24 +150,29 @@ function showToast(msg) {
   toastRef.value?.show(msg)
 }
 const salaryColumnDefs = [
-  { headerName: '지급일자', field: 'salaryDate' },
+  { headerName: '지급일자', field: 'salaryDate' , width: 150},
+  {
+    headerName: '근무월',
+    valueGetter: p => getWorkMonth(p.data.salaryDate),
+    cellClass: 'right-align', width: 150
+  },
   {
     headerName: '총지급',
     field: 'totalIncome',
     valueFormatter: params => formatCurrency(params.value),
-    cellClass: 'right-align'
+    cellClass: 'right-align',flex:1
   },
   {
     headerName: '총공제',
     field: 'totalDeductions',
     valueFormatter: params => formatCurrency(params.value),
-    cellClass: 'right-align'
+    cellClass: 'right-align',flex:1
   },
   {
     headerName: '실지급',
     field: 'netSalary',
     valueFormatter: params => formatCurrency(params.value),
-    cellClass: 'right-align'
+    cellClass: 'right-align',flex:1
   }
 ]
 function parseJwtPayload() {
@@ -211,7 +216,10 @@ async function fetchSalaryHistory() {
   const current = new Date(start)
 
   while (current <= end) {
-  const yyyymm = `${current.getFullYear()}-${String(current.getMonth() + 2).padStart(2, '0')}`;
+    // const payMonth = new Date(current.getFullYear(), current.getMonth() + 1); // +1개월
+    // const yyyymm = `${payMonth.getFullYear()}-${String(payMonth.getMonth() + 1).padStart(2, '0')}`;
+
+    const yyyymm = `${current.getFullYear()}-${String(current.getMonth() + 1).padStart(2, '0')}`
     try {
       const { data } = await axios.get(`https://api.isddishr.site/payroll/me/salary`, {
         params: { month: yyyymm },
