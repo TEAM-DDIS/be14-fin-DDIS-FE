@@ -124,14 +124,14 @@ const gridApi = ref(null)
 
 const columnDefs = [
   { headerName: '사번', field: 'employeeId' },
-  { headerName: '성명', field: 'employeeName'  , width: 160},
-  { headerName: '퇴직일', field: 'retirementDate' , width: 160},
-  { headerName: '지급일자', field: 'provisionDate' , width: 160},
-  { headerName: '지급현황', field: 'provisionSituation' , width: 160},
-  { headerName: '비고', field: 'remark', width: 150 },
-  { headerName: '퇴직금 총액', field: 'retireTotal', valueFormatter: formatCurrency, width: 160},
-  { headerName: '퇴직소득세', field: 'retireIncomeTax', valueFormatter: formatCurrency, width: 160},
-  { headerName: '실지급액', field: 'provisionActual', valueFormatter: formatCurrency, width: 160}
+  { headerName: '성명', field: 'employeeName' },
+  { headerName: '퇴직일', field: 'retirementDate' },
+  { headerName: '지급일자', field: 'provisionDate'},
+  { headerName: '지급현황', field: 'provisionSituation' },
+  { headerName: '비고', field: 'remark'},
+  { headerName: '퇴직금 총액', field: 'retireTotal', valueFormatter: formatCurrency},
+  { headerName: '퇴직소득세', field: 'retireIncomeTax', valueFormatter: formatCurrency},
+  { headerName: '실지급액', field: 'provisionActual', valueFormatter: formatCurrency}
 ]
 
 const filteredData = computed(() => {
