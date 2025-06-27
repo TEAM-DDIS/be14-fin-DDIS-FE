@@ -755,18 +755,18 @@ async function onSave() {
     return showToast('입력 형식을 확인해주세요.')
   }
 
-  console.log('▶ 서버로 보내는 form.employeePhotoUrl:', form.employeePhotoUrl)
-  console.log('▶ preview 용 profileSrc:', profileSrc.value)
+  // console.log('▶ 서버로 보내는 form.employeePhotoUrl:', form.employeePhotoUrl)
+  // console.log('▶ preview 용 profileSrc:', profileSrc.value)
 
   // 3) 모두 통과했으면 서버에 요청
   try {
-    console.log('onSave 직전 form.employeePhotoUrl:', form.employeePhotoUrl)
+    // console.log('onSave 직전 form.employeePhotoUrl:', form.employeePhotoUrl)
     const res = await axios.post(
       '/employees/enroll',
       form,
       { headers: authHeaders() }
     );
-    console.log('등록 응답:', res.data)
+    // console.log('등록 응답:', res.data)
     showToast(`등록되었습니다 (ID: ${res.data})`);
     router.push('/employeeInfo/employeeList');
   } catch (err) {

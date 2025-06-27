@@ -610,10 +610,10 @@ async function loadHierarchy() {
 onMounted(loadHierarchy)
 
 function onDeptSelectedForMove(dept) {
-  console.log('이동용 부서 선택 ▶', dept)
+  // console.log('이동용 부서 선택 ▶', dept)
 }
 function onTeamSelectedForMove(team) {
-  console.log('이동용 팀 선택 ▶', team)
+  // console.log('이동용 팀 선택 ▶', team)
 }
 
 function handleReload() {

@@ -85,7 +85,7 @@
 
     function handleSearch(range) {
         dateRange.value = range
-        console.log('조회기간:', range)
+        // console.log('조회기간:', range)
     }
 </script>
 

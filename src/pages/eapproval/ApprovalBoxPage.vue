@@ -135,12 +135,12 @@ function formatDateTime(dateString) {
 }
 
 async function fetchApprovals() {
-  console.log('✅ fetchApprovals 호출됨. 현재 탭:', tab.value)  // 👈 무조건 찍혀야 함
+  // console.log('✅ fetchApprovals 호출됨. 현재 탭:', tab.value)  // 👈 무조건 찍혀야 함
   try {
     const res = await axios.get(`https://api.isddishr.site/approvals/ApprovalBox?tab=${tab.value}`, {
       headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
     })
-    console.log('📦 응답 데이터:', res.data)
+    // console.log('📦 응답 데이터:', res.data)
     
     const list = Array.isArray(res.data) ? res.data : res.data.documents || []
 
@@ -218,7 +218,7 @@ const filteredForms = computed(() => {
 
 // 행 클릭 핸들러
 function handleFormRowClick(params) {
-  console.log('선택된 행:', params.data)
+  // console.log('선택된 행:', params.data)
   const docId = params.data.docId
   // /drafts/8 같은 경로로 이동
   router.push({

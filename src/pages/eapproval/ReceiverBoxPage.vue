@@ -74,7 +74,7 @@ const fetchDocs = async () => {
     if (!res.ok) throw new Error('문서 목록 조회 실패')
 
     const data = await res.json()
-    console.log('[수신함] 서버에서 받은 데이터:', data)
+    // console.log('[수신함] 서버에서 받은 데이터:', data)
     docs.value = data
   } catch (err) {
     console.error(err)

@@ -216,7 +216,7 @@ function onEmployeesSelected(ids) {
   selectedHierarchyEmployees.value = flattenAllEmployees(hierarchyData.value).filter(emp =>
     ids.includes(Number(emp.employeeId))
   );
-  console.log('선택된 사원들 (selectedHierarchyEmployees):', selectedHierarchyEmployees.value);
+  // console.log('선택된 사원들 (selectedHierarchyEmployees):', selectedHierarchyEmployees.value);
 }
 
 // 좌측 필터·정렬 (selectedNodes -> selectedHierarchyEmployees 로 변경)
@@ -361,7 +361,7 @@ function addApprover(type) {
       }
     }
   });
-    console.log('결재자 추가 후 approverList:', approverList.value);
+    // console.log('결재자 추가 후 approverList:', approverList.value);
   }
 
 // — 최종 등록
@@ -373,7 +373,7 @@ function submitSelection() {
       employeeId: Number(u.employeeId),
       name:       u.name
     }))
-    console.log('🔔 submitSelection called, mode=수신자, payload=', payload)
+    // console.log('🔔 submitSelection called, mode=수신자, payload=', payload)
     emit('submitReceivers', payload)
 
   } else if (props.mode === '참조자') {
@@ -381,7 +381,7 @@ function submitSelection() {
       employeeId: Number(u.employeeId),
       name:       u.name
     }))
-    console.log('🔔 submitSelection called, mode=참조자, payload=', payload)
+    // console.log('🔔 submitSelection called, mode=참조자, payload=', payload)
     emit('submitCcs', payload)
 
   } else {
@@ -389,11 +389,11 @@ function submitSelection() {
       ...a,
       employeeId: Number(a.employeeId)
     }))
-    console.log('🔔 submitSelection called, mode=결재선, payload=', payload)
+    // console.log('🔔 submitSelection called, mode=결재선, payload=', payload)
     emit('submit', payload)
   }
 
-  console.log('✅ emit done, closing modal')
+  // console.log('✅ emit done, closing modal')
   emit('close')
 }
 

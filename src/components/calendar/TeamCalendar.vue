@@ -110,7 +110,7 @@
     eventClick: function(info) {
       const props = info.event.extendedProps
 
-      console.log('[이벤트 클릭] extendedProps:', props)
+      // console.log('[이벤트 클릭] extendedProps:', props)
 
       if (props.type === 'meeting') {
         selectedEvent.value = {
@@ -149,7 +149,7 @@
 
           const saved = await res.json()
 
-          console.log('[등록 응답]', saved)
+          // console.log('[등록 응답]', saved)
 
           // 일정 등록 성공 시 캘린더에 추가
           calendarOptions.events.push({

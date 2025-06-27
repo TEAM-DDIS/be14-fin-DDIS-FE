@@ -33,7 +33,7 @@ async function uploadFile() {
   const s3Key = `company-policy/${file.value.name}`
 
   try {
-    const res = await axios.get('http://localhost:5000/s3/upload-pdf', {
+    const res = await axios.get('https://api.isddishr.site/s3/upload-pdf', {
       params: { filename: s3Key, contentType }
     })
 

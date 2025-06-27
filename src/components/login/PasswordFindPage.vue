@@ -189,7 +189,7 @@ async function verifyOtp() {
     if (res.status !== 204) throw new Error('OTP가 올바르지 않습니다')
     infoMessage.value = 'OTP 인증 완료! 새 비밀번호를 입력하세요.'
     step.value = 3                  // ← 이메일과 동일하게 3단계
-    console.log('step→', step.value)
+    // console.log('step→', step.value)
   } catch (e) { handleErr(e) }
 }
 

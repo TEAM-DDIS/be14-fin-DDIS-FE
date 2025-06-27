@@ -321,7 +321,7 @@ async function onDrop(targetType, targetItem, event) {
   if (node) node.classList.remove('drag-over')
 
   const { type, item } = dragData.value
-  console.log('onDrop', type, '→', targetType, item, 'to', targetItem)
+  // console.log('onDrop', type, '→', targetType, item, 'to', targetItem)
   if (type === 'department' && targetType === 'head') {
     item.headId = targetItem.headId
     pendingMoves.value.push({

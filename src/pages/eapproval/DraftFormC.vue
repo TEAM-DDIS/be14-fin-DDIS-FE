@@ -366,7 +366,7 @@ export default {
           throw new Error("기안자 정보 조회 실패");
         }
         const data = await res.json();
-        console.log("\u2705 기안자 정보:", data);
+        // console.log("\u2705 기안자 정보:", data);
         this.form.departmentName = data.departmentName;
         this.form.drafter = data.name;
         this.form.rankName = data.rankName;
@@ -382,7 +382,7 @@ export default {
      // ② 자동 결재선 조회 - 기안자의 사번(empId)로 자동 결재라인 조회하여 approvalLines에 세팅
      async fetchAutoApprovalLine(empId) {
 
-  console.log("▶ fetchAutoApprovalLine 호출, empId =", empId);
+  // console.log("▶ fetchAutoApprovalLine 호출, empId =", empId);
   try {
     // response 객체에서 바로 data만 꺼내오기
     const { data } = await axios.get(
@@ -410,7 +410,7 @@ export default {
       approvedAt:    null,
       comment:       ""
     }));
-    console.log("📋 화면에 출력될 결재선:", this.approvalLines);
+    // console.log("📋 화면에 출력될 결재선:", this.approvalLines);
 
   } catch (error) {
     console.error("❌ 자동 결재선 조회 실패:", error);
@@ -422,7 +422,7 @@ export default {
     openReferenceModal() { this.showReferenceModal = true; },
     // ④ 사용자 선택 모달 결과 처리
     onApprovalLineSubmit(lines) {
-      console.log('🟢 수신된 커스텀 결재선:', lines);
+      // console.log('🟢 수신된 커스텀 결재선:', lines);
       this.approvalLines = lines;
       this.showApprovalModal = false;
     },
@@ -461,7 +461,7 @@ export default {
           key,
           selected: false
         });
-        console.log('업로드 후 uploadedFiles:', this.uploadedFiles);
+        // console.log('업로드 후 uploadedFiles:', this.uploadedFiles);
         this.fileInput = null;
       } catch(e) {
         console.error(e);
@@ -536,7 +536,7 @@ async confirmDraftSave() {
         }
       };
 
-      console.log("상신 데이터", JSON.stringify(submitData, null, 2));
+      // console.log("상신 데이터", JSON.stringify(submitData, null, 2));
       
       // (b) 서버에 POST 요청
        try {

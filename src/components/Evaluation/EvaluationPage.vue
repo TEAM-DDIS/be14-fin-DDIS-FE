@@ -429,10 +429,10 @@ async function fetchTeam() {
   if (!res.ok) throw new Error('팀원 불러오기 실패')
 
   const rawEmployees = await res.json()
-  console.log('현재 사용자:', currentUser.value)
+  // console.log('현재 사용자:', currentUser.value)
   const myId = String(currentUser.value?.employeeId)
   employees.value = rawEmployees.filter(emp => String(emp.employeeId) !== myId)
-  console.log('불러온 팀원:', rawEmployees.map(e => e.employeeId))
+  // console.log('불러온 팀원:', rawEmployees.map(e => e.employeeId))
 
 
   // 선택할 사람이 있을 때만 초기 선택

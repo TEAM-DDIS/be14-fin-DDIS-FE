@@ -106,7 +106,7 @@ const isHR = computed(() => {
 })
 
 function openSettings() {
-    console.log('설정 열기!') // 뜨면 정상 진입
+    // console.log('설정 열기!') // 뜨면 정상 진입
 
   showUploadModal.value = true
 }

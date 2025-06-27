@@ -61,13 +61,13 @@ const selectedOrg = ref({
 
 function handleSelect(item) {
   if ('teamId' in item) {
-    console.log('[TEAM 선택됨]', item)
+    // console.log('[TEAM 선택됨]', item)
     selectedOrg.value.teamId = item.teamId
     selectedOrg.value.departmentId = item.departmentId
     selectedOrg.value.headId = findHeadIdByDepartmentId(item.departmentId)
 
   } else if ('departmentId' in item) {
-    console.log('[DEPT 선택됨]', item)
+    // console.log('[DEPT 선택됨]', item)
     selectedOrg.value.departmentId = item.departmentId
     selectedOrg.value.teamId = null
     selectedOrg.value.headId = findHeadIdByDepartmentId(item.departmentId)
@@ -88,7 +88,7 @@ function findHeadIdByDepartmentId(deptId) {
    selectedOrg.value.rankName = rank.rankName
    selectedOrg.value.positionCode = rank.positionCode ?? null
    selectedOrg.value.positionName = rank.positionName ?? null
-   console.log('[RANK 선택됨]', rank)
+   // console.log('[RANK 선택됨]', rank)
 }
 
 function handleJobSelect(job) {

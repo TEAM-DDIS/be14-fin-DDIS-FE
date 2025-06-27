@@ -167,7 +167,7 @@ async function fetchTeamRanks(team) {
     try {
       // 1) 이 팀의 job 목록 조회
       const jobs = (await axios.get(
-        `http://localhost:5000/introduction/team/${team.teamId}/job`, {
+        `https://api.isddishr.site/introduction/team/${team.teamId}/job`, {
           headers: { 'Authorization': `Bearer ${accessToken}` }
         }
       )).data
@@ -176,10 +176,10 @@ async function fetchTeamRanks(team) {
       const ranksList = await Promise.all(
         jobs.map(async (j) => {
           const [ranks, positions] = await Promise.all([
-            axios.get(`http://localhost:5000/introduction/job/${j.jobId}/ranks`, {
+            axios.get(`https://api.isddishr.site/introduction/job/${j.jobId}/ranks`, {
               headers: { 'Authorization': `Bearer ${accessToken}` }
             }).then(r => r.data),
-            axios.get(`http://localhost:5000/introduction/job/${j.jobId}/positions`, {
+            axios.get(`https://api.isddishr.site/introduction/job/${j.jobId}/positions`, {
               headers: { 'Authorization': `Bearer ${accessToken}` }
             }).then(r => r.data)
           ])

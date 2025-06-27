@@ -165,14 +165,14 @@ function flattenAllEmployees(tree) {
 }
 
 function onEmployeesSelected(ids, emp) {
-  console.log('선택된 ID:', ids)
-  console.log('선택된 객체:', emp)
+  // console.log('선택된 ID:', ids)
+  // console.log('선택된 객체:', emp)
 
   selectedNodes.value = flattenAllEmployees(hierarchy.value).filter(emp =>
     ids.includes(Number(emp.employeeId))
   )
   selectedNode.value = emp || (selectedNodes.value.length > 0 ? selectedNodes.value[0] : null)
-  console.log('선택된 사원 객체:', selectedNode.value)
+  // console.log('선택된 사원 객체:', selectedNode.value)
 }
 
 const filteredNodes = computed(() => {

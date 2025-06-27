@@ -205,8 +205,8 @@ function authHeaders() {
 // ————————————————————————————————————————————————————————————————
 async function onSave() {
   // 1) 토큰 로그 (디버깅용)
-  console.log('▶ accessToken =', userStore.accessToken)
-  console.log('▶ auth header =', `Bearer ${userStore.accessToken}`)
+  // console.log('▶ accessToken =', userStore.accessToken)
+  // console.log('▶ auth header =', `Bearer ${userStore.accessToken}`)
 
   // 2) 필수 입력 체크
   if (

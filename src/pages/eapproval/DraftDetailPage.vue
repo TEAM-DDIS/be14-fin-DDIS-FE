@@ -249,15 +249,15 @@ const isRetractable = computed(() => {
   if (!draftDetail.value || !myId.value) return false // myId가 초기화되지 않았으면 false
   const isDrafter = String(draftDetail.value.drafterId) === myId.value // drafterId도 String으로 변환하여 비교
   const firstApproverStatus = draftDetail.value.approvalLine?.[1]?.status // 첫 번째 결재자(기안자 다음)의 상태
-  console.log('회수 가능 여부 체크:', {
-    isDrafter,
-    boxKey,
-    docStatus: draftDetail.value.docStatus,
-    firstApproverStatus,
-    myId: myId.value,
-    drafterId: draftDetail.value.drafterId,
-    approvalLine: draftDetail.value.approvalLine
-  })
+  // console.log('회수 가능 여부 체크:', {
+  //   isDrafter,
+  //   boxKey,
+  //   docStatus: draftDetail.value.docStatus,
+  //   firstApproverStatus,
+  //   myId: myId.value,
+  //   drafterId: draftDetail.value.drafterId,
+  //   approvalLine: draftDetail.value.approvalLine
+  // })
   return isDrafter &&
          boxKey === 'MyDraftBox' && // Only in MyDraftBox
         draftDetail.value.docStatus === '심사중' &&
@@ -318,10 +318,10 @@ async function fetchDetail() {
     try {
     // --- START: Ensure employeeId is in localStorage and myId ref is set --- BEGIN
     let employeeIdFromLocalStorage = userStore.employeeId
-    console.log('fetchDetail: Initial userStore employeeId:', employeeIdFromLocalStorage)
+    // console.log('fetchDetail: Initial userStore employeeId:', employeeIdFromLocalStorage)
 
     if (!employeeIdFromLocalStorage || employeeIdFromLocalStorage === 'null' || employeeIdFromLocalStorage === 'undefined') {
-      console.log('fetchDetail: employeeId not found in localStorage, trying to fetch from /drafter/me')
+      // console.log('fetchDetail: employeeId not found in localStorage, trying to fetch from /drafter/me')
       try {
         const token = localStorage.getItem("token")
         if (!token) {
@@ -338,7 +338,7 @@ async function fetchDetail() {
         if (userRes.data && userRes.data.empId) {
           localStorage.setItem('employeeId', String(userRes.data.empId)) // String으로 저장
           myId.value = String(userRes.data.empId) // myId ref 업데이트
-          console.log('fetchDetail: Fetched employeeId from /drafter/me and set in localStorage and myId ref:', myId.value)
+          // console.log('fetchDetail: Fetched employeeId from /drafter/me and set in localStorage and myId ref:', myId.value)
         } else {
           console.warn('fetchDetail: ⚠️ /drafter/me did not return empId. Response data:', userRes.data)
         }
@@ -347,14 +347,14 @@ async function fetchDetail() {
       }
     } else {
       myId.value = employeeIdFromLocalStorage // localStorage에서 가져온 값을 myId ref에 설정
-      console.log('fetchDetail: employeeId already exists in localStorage, set to myId ref:', myId.value)
+      // console.log('fetchDetail: employeeId already exists in localStorage, set to myId ref:', myId.value)
     }
     // --- END: Ensure employeeId is in localStorage and myId ref is set --- END
 
     const res = await axios.get(`https://api.isddishr.site/drafts/query/${docId}`, {
       headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
     })
-    console.log('✅ 상세 데이터:', res.data)
+    // console.log('✅ 상세 데이터:', res.data)
 
     const data = res.data
 
@@ -398,11 +398,11 @@ async function fetchDetail() {
 
     }
 
-console.log('📦 백엔드에서 받은 제목 - title:', data.docTitle)
-console.log('📦 백엔드에서 받은 내용 - content:',{
-        refFile: Array.isArray(parsed.refFile) ? parsed.refFile : [],
-        body: parsed.body || ''
-      })
+// console.log('📦 백엔드에서 받은 제목 - title:', data.docTitle)
+// console.log('📦 백엔드에서 받은 내용 - content:',{
+//         refFile: Array.isArray(parsed.refFile) ? parsed.refFile : [],
+//         body: parsed.body || ''
+//       })
 
   } catch (e) {
     error.value = e
@@ -425,11 +425,11 @@ function selectLine(id) {
   const numericId = Number(id)
   if (currentLineId.value === numericId) {
     currentLineId.value = null // 다시 클릭하면 해제
-    console.log('🧹 선택 해제됨')
+    // console.log('🧹 선택 해제됨')
   } else {
     currentLineId.value = numericId
     const selected = draftDetail.value?.approvalLine.find(line => Number(line.id) === numericId)
-    console.log('✅ 선택된 결재선:', selected)
+    // console.log('✅ 선택된 결재선:', selected)
   }
 }
 
@@ -497,7 +497,7 @@ async function handleApprove({ lineId, status, opinion }) {
 }
 
 async function handleWithdraw() {
-  console.log('📤 handleWithdraw 호출 –', { docId: draftDetail.value.docId })
+  // console.log('📤 handleWithdraw 호출 –', { docId: draftDetail.value.docId })
   try {
     const token = localStorage.getItem('token') || ''
     const headers = token ? { Authorization: `Bearer ${token}` } : {}

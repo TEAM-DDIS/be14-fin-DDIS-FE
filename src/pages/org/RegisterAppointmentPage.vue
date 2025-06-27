@@ -292,7 +292,7 @@ async function loadEmployeeInfo() {
 
   if (!emp) {
     try {
-      const res = await axios.get(`http://localhost:5000/introduction/employee/${id}`,
+      const res = await axios.get(`https://api.isddishr.site/introduction/employee/${id}`,
         { headers: { Authorization: `Bearer ${userStore.accessToken}` } }
       )
       emp = res.data
@@ -323,7 +323,7 @@ async function loadEmployeeInfo() {
   positionsCurrent.value = [{ positionCode: emp.positionCode, positionName: emp.positionName }]
   ranksCurrent.value     = [{ rankCode: emp.rankCode, rankName: emp.rankName }]
 
-  console.log('[✅ API 응답]', emp)
+  // console.log('[✅ API 응답]', emp)
 
   gridApi.value.refreshCells({ columns: ['current'], force: true })
 }
@@ -387,7 +387,7 @@ watch(() => form.org.headId, async headId => {
   departmentsNew.value = teamsNew.value = jobsNew.value = positionsNew.value = ranksNew.value = []
   if (!headId) return gridApi.value.refreshCells({ columns:['new'], force:true })
 
-  const r = await axios.get(`http://localhost:5000/structure/heads/${headId}/departments`,
+  const r = await axios.get(`https://api.isddishr.site/structure/heads/${headId}/departments`,
     { headers: { Authorization: `Bearer ${userStore.accessToken}` } }
   )
   departmentsNew.value = r.data
@@ -400,7 +400,7 @@ watch(() => form.org.departmentId, async deptId => {
   teamsNew.value = jobsNew.value = positionsNew.value = ranksNew.value = []
   if (!deptId) return gridApi.value.refreshCells({ columns:['new'], force:true })
 
-  const r = await axios.get(`http://localhost:5000/structure/departments/${deptId}`,
+  const r = await axios.get(`https://api.isddishr.site/structure/departments/${deptId}`,
     { headers: { Authorization: `Bearer ${userStore.accessToken}` } }
   )
   teamsNew.value = r.data.teams
@@ -413,7 +413,7 @@ watch(() => form.org.teamId, async teamId => {
   jobsNew.value = positionsNew.value = ranksNew.value = []
   if (!teamId) return gridApi.value.refreshCells({ columns:['new'], force:true })
 
-  const r = await axios.get(`http://localhost:5000/introduction/team/${teamId}/job`,
+  const r = await axios.get(`https://api.isddishr.site/introduction/team/${teamId}/job`,
     { headers: { Authorization: `Bearer ${userStore.accessToken}` } }
   )
   jobsNew.value = r.data.map(j => ({
@@ -428,10 +428,10 @@ watch(() => form.org.jobId, async jobId => {
   positionsNew.value = ranksNew.value = []
   if (jobId) {
     const [posRes, rankRes] = await Promise.all([
-      axios.get(`http://localhost:5000/introduction/job/${jobId}/positions`,
+      axios.get(`https://api.isddishr.site/introduction/job/${jobId}/positions`,
         { headers: { Authorization: `Bearer ${userStore.accessToken}` } }
       ),
-      axios.get(`http://localhost:5000/introduction/job/${jobId}/ranks`,
+      axios.get(`https://api.isddishr.site/introduction/job/${jobId}/ranks`,
         { headers: { Authorization: `Bearer ${userStore.accessToken}` } }
       )
     ])
@@ -576,7 +576,7 @@ function handleOrgSelected(selected) {
 
   syncOrgToGrid()
 
-  console.log('[form.org 저장된 값]', JSON.stringify(form.org, null, 2))
+  // console.log('[form.org 저장된 값]', JSON.stringify(form.org, null, 2))
 
   showOrgSelectorModal.value = false
 }
@@ -688,7 +688,7 @@ async function submit() {
 }
 
 
-  console.log('▶ 전송 payload:', payload);
+  // console.log('▶ 전송 payload:', payload);
 
   try {
     await axios.post(

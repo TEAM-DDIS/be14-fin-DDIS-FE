@@ -207,7 +207,7 @@ function goBack() {
 
 async function submitReview() {
   const { performanceId, score, content } = reviewForm.value
-  console.log('perfId=', performanceId)
+  // console.log('perfId=', performanceId)
   if (!performanceId) {
     return alert('수정할 실적 ID가 없습니다. 먼저 실적을 선택하세요.')
   }

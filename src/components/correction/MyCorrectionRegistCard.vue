@@ -46,7 +46,7 @@
   const loading = ref(false)
 
   async function handleSubmit(data) {
-    console.log('제출된 데이터:', data)
+    // console.log('제출된 데이터:', data)
     const userStore = useUserStore()
     const token = userStore.accessToken
 

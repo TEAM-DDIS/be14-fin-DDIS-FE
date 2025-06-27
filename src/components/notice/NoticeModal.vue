@@ -59,14 +59,14 @@ function formatDate(dateTime) {
 onMounted(async () => {
   // 1) 초기 알림 불러오기
   await store.fetch()
-  console.log('🔔 초기 로드된 알림:', store.list)
+  // console.log('🔔 초기 로드된 알림:', store.list)
 
   // 2) WebSocket 구독
   const userStore = useUserStore()
   const token = userStore.accessToken
   const employeeId = localStorage.getItem('employeeId')
   const stomp      = new Client({
-    brokerURL:      `ws://https://api.isddishr.site/ws-notice`,
+    brokerURL:      `wss://https://api.isddishr.site/ws-notice`,
     connectHeaders: { Authorization: `Bearer ${token}` },
     onConnect: () => {
       stomp.subscribe(`/topic/notice/${employeeId}`, ({ body }) => {
@@ -82,7 +82,7 @@ onMounted(async () => {
       })
     },
     reconnectDelay: 5000,
-    debug:          (msg) => console.log('[STOMP]', msg)
+    // debug:          (msg) => console.log('[STOMP]', msg)
   })
   stomp.activate()
 })

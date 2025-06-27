@@ -79,7 +79,7 @@ onMounted(async () => {
   await userStore.fetchAllEmployees()
   store.fetch()
 
-  console.log('HEADER ▶ profileUrl =', userStore.profileUrl)
+  // console.log('HEADER ▶ profileUrl =', userStore.profileUrl)
 
 })
 

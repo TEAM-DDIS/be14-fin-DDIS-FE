@@ -165,7 +165,7 @@ async function fetchMyDrafts() {
     })
 
     // 🔽 여기에 콘솔 출력 추가
-    console.log('📦 서버에서 받아온 기안문 목록:', res.data)
+    // console.log('📦 서버에서 받아온 기안문 목록:', res.data)
 
     docs.value = res.data.map(d => ({
       docId: d.docId,
@@ -199,7 +199,7 @@ onMounted(() => {
 
 // 6) 행 클릭 핸들러
 function handleFormRowClick(params) {
-  console.log('선택된 행:', params.data)
+  // console.log('선택된 행:', params.data)
   const docId = params.data.docId
   // /drafts/8 같은 경로로 이동
   router.push({

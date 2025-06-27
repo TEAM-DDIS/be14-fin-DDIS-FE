@@ -257,7 +257,7 @@
   async function getUploadInfo(file) {
     const token = localStorage.getItem('token')
     const qs = new URLSearchParams({ filename: file.name, contentType: file.type }).toString()
-    const res = await fetch(`http://localhost:8000/s3/upload-url?${qs}`, {
+    const res = await fetch(`https://api.isddishr.site/s3/upload-url?${qs}`, {
       headers: { Authorization: `Bearer ${token}` }
     })
     if (!res.ok) throw new Error('Presign URL 요청 실패')
@@ -347,7 +347,7 @@
           this.receiverList  = receiverList
           this.referenceList = referenceList
           this.uploadedFiles = uploadedFiles
-          console.log('🟢 임시저장본 복원 완료')
+          // console.log('🟢 임시저장본 복원 완료')
         } catch { console.warn('⚠️ 캐시 파싱 실패') }
       }
     },
@@ -377,10 +377,10 @@
         }
   
         try {
-          await axios.post('http://localhost:8000/drafts/temp', payload, {
+          await axios.post('https://api.isddishr.site/drafts/temp', payload, {
             headers:{ Authorization:`Bearer ${userStore.getItem('token')}` }
           })
-          console.log('💾 [auto] 서버 임시저장 성공')
+          // console.log('💾 [auto] 서버 임시저장 성공')
         } catch(e){
           console.warn('⚠️ [auto] 서버 임시저장 실패:', e.message)
         }
@@ -389,7 +389,7 @@
       },
       async loadDrafterInfo() {
         try {
-          const res = await fetch("http://localhost:8000/drafter/me", {
+          const res = await fetch("https://api.isddishr.site/drafter/me", {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`
             }
@@ -399,7 +399,7 @@
             throw new Error("기안자 정보 조회 실패");
           }
           const data = await res.json();
-          console.log("\u2705 기안자 정보:", data);
+          // console.log("\u2705 기안자 정보:", data);
           this.form.departmentName = data.departmentName;
           this.form.drafter = data.name;
           this.form.rankName = data.rankName;
@@ -413,10 +413,10 @@
         this.form.draftDate = val;
       },
       async fetchAutoApprovalLine(empId) {
-        console.log("▶ fetchAutoApprovalLine 호출, empId =", empId);
+        // console.log("▶ fetchAutoApprovalLine 호출, empId =", empId);
         try {
           const { data } = await axios.get(
-            "http://localhost:8000/approval-line",
+            "https://api.isddishr.site/approval-line",
             {
               params:     { employeeId: empId },
               headers:    { Authorization: `Bearer ${localStorage.getItem("token")}` }
@@ -439,7 +439,7 @@
             approvedAt:    null,
             comment:       ""
           }));
-          console.log("📋 화면에 출력될 결재선:", this.approvalLines);
+          // console.log("📋 화면에 출력될 결재선:", this.approvalLines);
         } catch (error) {
           console.error("❌ 자동 결재선 조회 실패:", error);
         }
@@ -448,7 +448,7 @@
       openReceiverModal() { this.showReceiverModal = true; },
       openReferenceModal() { this.showReferenceModal = true; },
       onApprovalLineSubmit(lines) {
-        console.log('🟢 수신된 커스텀 결재선:', lines);
+        // console.log('🟢 수신된 커스텀 결재선:', lines);
         this.approvalLines = lines;
         this.showApprovalModal = false;
       },
@@ -530,11 +530,11 @@
           notes: this.form.notes,
         };
   
-         console.log("상신 데이터", JSON.stringify(submitData, null, 2));
+         // console.log("상신 데이터", JSON.stringify(submitData, null, 2));
   
          try {
           const res = await axios.post(
-            "http://localhost:8000/drafts/creation", submitData, {
+            "https://api.isddishr.site/drafts/creation", submitData, {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`
             }
