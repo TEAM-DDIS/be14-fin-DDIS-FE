@@ -26,6 +26,7 @@
 
             <!-- ───────── 업로드 아이콘 추가 ───────── -->
             <button
+              v-if="isEditing"
               class="upload-btn-icon"
               type="button"
               @click="triggerFileSelect"
@@ -417,18 +418,32 @@ const disciplineColumnDefs = ref([
   },
   { headerName: '번호',            field: 'disciplinaryId',          width: 80,  cellClass: 'center-align' },
   { headerName: '사원명',          field: 'employeeName',            flex: 1.2 },
-  {
-    headerName: '징계 서류',
-    field: 'fileList',
-    flex: 2,
-    cellRenderer: params => {
-      const files = Array.isArray(params.value) ? params.value : []
-      if (!files.length) return '-'
-      return `<div class="file-list-cell">${
-        files.map((f,i) => `<a href="#" data-idx="${i}">${f.fileName}</a>`).join('')
-      }</div>`
-    }
-  },
+// disciplineColumnDefs 예시
+{
+  headerName: '징계 서류',
+  field: 'fileList',
+  flex: 2,
+  cellRenderer: params => {
+    const files = Array.isArray(params.value) ? params.value : []
+    if (!files.length) return '-'
+    const container = document.createElement('div')
+    container.className = 'file-list-cell'
+    files.forEach((f, i) => {
+      const a = document.createElement('a')
+      a.href = '#'
+      a.textContent = f.fileName
+      a.dataset.idx = i
+      a.addEventListener('click', async evt => {
+        evt.preventDefault()
+        // 바로 다운로드 호출
+        await downloadFile(f.fileUrl, f.fileName)
+      })
+      container.appendChild(a)
+    })
+    return container
+  }
+},
+
   { headerName: '징계 내용',     field: 'disciplinaryDescription', flex: 2 },
   {
     headerName: '징계일자',
@@ -452,16 +467,38 @@ const contractColumnDefs = ref([
   { headerName: 'ID',               field: 'contractId',          width: 80, cellClass: 'center-align' },
   { headerName: '사원명',           field: 'employeeName',        flex: 1.2 },
   { headerName: '계약 설명',        field: 'contractDescription', flex: 2 },
-  {
+{
     headerName: '파일',
     field: 'fileList',
     flex: 2,
     cellRenderer: params => {
       const files = Array.isArray(params.value) ? params.value : []
       if (!files.length) return '-'
-      return `<div class="file-list-cell">${
-        files.map((f,i) => `<a href="#" data-idx="${i}">${f.fileName}</a>`).join('')
-      }</div>`
+
+      // 컨테이너 엘리먼트 생성
+      const container = document.createElement('div')
+      container.className = 'file-list-cell'
+
+      files.forEach((f, i) => {
+        const a = document.createElement('a')
+        a.href = '#'
+        a.textContent = f.fileName
+        a.dataset.idx = i
+
+        // 클릭 시 presigned URL 받아서 다운로드
+        a.addEventListener('click', async evt => {
+          evt.preventDefault()
+          try {
+            await downloadFile(f.fileUrl, f.fileName)
+          } catch (err) {
+            console.error('다운로드 실패:', err)
+          }
+        })
+
+        container.appendChild(a)
+      })
+
+      return container
     }
   },
   {

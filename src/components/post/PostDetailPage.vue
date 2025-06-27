@@ -5,9 +5,11 @@
         alt="back"
         class="back-btn"
         @click="goBack"
-       />공지사항
+    />공지사항
     </h1>
-  <p class="desc">공지사항 상세조회</p>
+    <div class="desc-row">
+    <p class="desc">공지사항 상세조회</p>
+    </div>
 
   <!-- 로딩 / 에러 -->
   <div v-if="loading" class="status-text">로딩 중...</div>
@@ -374,16 +376,22 @@ onMounted(fetchNotice)
   margin-bottom: 30px;
   color: #00a8e8;
 }
+
+.desc-row {
+  display: flex;
+  align-items: center;   /* 텍스트와 버튼을 수직 가운데 정렬 */
+  margin-left: 20px;     /* 기존 .desc 의 margin-left */
+}
+
 .desc {
-  display: block;
-  margin-left: 20px;
-  margin-bottom: 10px;
+  margin: 0;
+  font-size: 18px;
 }
 
 .back-btn {
   width: 24px;
   height: 24px;
-  margin-right: -2px;
+  margin-right: -6px;
   cursor: pointer;
 }
 
@@ -405,6 +413,7 @@ onMounted(fetchNotice)
   padding: 20px 32px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
   margin-left: 20px;
+  margin-top: 10px;
   max-width: 100%;
   overflow-x: auto;
 }
