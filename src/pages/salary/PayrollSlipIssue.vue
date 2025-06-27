@@ -57,7 +57,7 @@
     </div>
 
     <!-- 기간 설정 영역 -->
-    <p class="desc">기간 설정</p>
+    <p class="desc">기간 설정 (지급월 기준)</p>
     <div class="section period">
       <div class="inputs">
         <label><strong>조회기간</strong></label>
@@ -244,40 +244,44 @@ const filters = reactive({
 
 const columnDefs = [
   { headerName: '사번', field: 'employeeId' },
-  { headerName: '성명', field: 'employeeName' },
+  { headerName: '성명', field: 'employeeName' , width: 130},
   { headerName: '본부', field: 'headName' },
   { headerName: '부서', field: 'departmentName' },
   { headerName: '팀', field: 'teamName' },
-  { headerName: '직급', field: 'rankName' },
+  { headerName: '직급', field: 'rankName', width: 130 },
   { headerName: '거래은행', field: 'bankName' },
-  { headerName: '계좌번호', field: 'bankAccount' },
-  { headerName: '예금주', field: 'bankDepositor' }
+  { headerName: '계좌번호', field: 'bankAccount' ,flex:1},
+  { headerName: '예금주', field: 'bankDepositor', width: 130 }
 ]
 
 const salaryColumnDefs = [
   { headerName: '사원번호', field: 'employeeId' },
-  { headerName: '성명', field: 'employeeName' },
-  { headerName: '지급일자', field: 'salaryDate' },
+  { headerName: '성명', field: 'employeeName' , width: 100},
+  { headerName: '지급일자', field: 'salaryDate' , width: 130},
+  {
+    headerName: '근무월',
+    valueGetter: p => getWorkMonth(p.data.salaryDate),
+    cellClass: 'right-align', width: 130
+  },
   {
     headerName: '총지급',
     field: 'totalIncome',
     valueFormatter: params => formatCurrency(params.value),
-    cellClass: 'right-align'
+    cellClass: 'right-align', width: 150
   },
   {
     headerName: '총공제',
     field: 'totalDeductions',
     valueFormatter: params => formatCurrency(params.value),
-    cellClass: 'right-align'
+    cellClass: 'right-align', width: 150
   },
   {
     headerName: '실지급',
     field: 'netSalary',
     valueFormatter: params => formatCurrency(params.value),
-    cellClass: 'right-align'
-  }
+    cellClass: 'right-align', width: 150
+  },
 
-  
 ]
 
 const uniqueHeads = computed(() => [...new Set(employees.value.map(e => e.headName).filter(Boolean))])
@@ -343,9 +347,11 @@ async function fetchSalaryHistory() {
       filteredEmployees.value.some(emp => emp.employeeId === item.employeeId)
     )
 
-    salaryHistory.value = filtered.map(s => ({
+    salaryHistory.value = filtered
+    .sort((a, b) => new Date(a.salaryDate) - new Date(b.salaryDate)) // 과거순 정렬
+    .map(s => ({
       ...s,
-      yearMonth: s.salaryDate.slice(0, 7)
+      yearMonth: getWorkMonth(s.salaryDate)
     }))
 
     scrollToSalarySection()
@@ -358,7 +364,7 @@ async function selectSlip(e) {
   const row = e.data
   try {
     const { data: salary } = await axios.get(`http://localhost:5000/payroll/salaries/${row.employeeId}`, {
-      params: { month: row.yearMonth },
+      params: { month: row.salaryDate.slice(0, 7) },
       headers: { Authorization: `Bearer ${token}` }
     })
 
