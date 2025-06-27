@@ -102,7 +102,10 @@
           급여명세서를 확인하려면 왼쪽에서 확인하고자 하는 행을 클릭해주세요.
         </p>
         <div v-if="selectedSlip.yearMonth" class="detail-content">
-          <h3 class="detail-title">{{ selectedSlip.employeeName }}님 {{ selectedSlip.yearMonth.replace('-', '년 ') }}월 급여명세서</h3>
+
+          <h3 class="detail-title">
+             {{ selectedSlip.employeeName }}님 {{ getWorkMonth(selectedSlip.salaryDate) }} 급여명세서
+          </h3>
           <div class="slip-tables">
             <!-- 지급 항목 테이블 -->
             <table class="table">
@@ -421,6 +424,16 @@ onMounted(async () => {
 function openModal() {
   showModal.value = true
 }
+
+function getWorkMonth(salaryDate) {
+  if (!salaryDate) return ''
+  const date = new Date(salaryDate)
+  date.setMonth(date.getMonth() - 1)
+  const y = date.getFullYear()
+  const m = String(date.getMonth() + 1).padStart(2, '0')
+  return `${y}년 ${m}월`
+}
+
 </script>
 
 
