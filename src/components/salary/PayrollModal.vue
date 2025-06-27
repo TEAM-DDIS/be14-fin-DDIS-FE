@@ -347,7 +347,7 @@ function downloadPDF() {
 .today {
   text-align: center;
   font-size: 18px;
-  margin-bottom: 30px;
+  margin-bottom: 20px;
   font-weight: bold;
   color: var(--modal-text);
 }

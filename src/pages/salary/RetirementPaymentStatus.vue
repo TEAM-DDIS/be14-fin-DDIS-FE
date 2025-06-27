@@ -124,14 +124,14 @@ const gridApi = ref(null)
 
 const columnDefs = [
   { headerName: '사번', field: 'employeeId' },
-  { headerName: '성명', field: 'employeeName' },
-  { headerName: '퇴직일', field: 'retirementDate' },
-  { headerName: '지급일자', field: 'provisionDate' },
-  { headerName: '지급현황', field: 'provisionSituation' },
-  { headerName: '비고', field: 'remark' },
-  { headerName: '퇴직금 총액', field: 'retireTotal', valueFormatter: formatCurrency },
-  { headerName: '퇴직소득세', field: 'retireIncomeTax', valueFormatter: formatCurrency },
-  { headerName: '실지급액', field: 'provisionActual', valueFormatter: formatCurrency }
+  { headerName: '성명', field: 'employeeName'  , width: 160},
+  { headerName: '퇴직일', field: 'retirementDate' , width: 160},
+  { headerName: '지급일자', field: 'provisionDate' , width: 160},
+  { headerName: '지급현황', field: 'provisionSituation' , width: 160},
+  { headerName: '비고', field: 'remark', width: 150 },
+  { headerName: '퇴직금 총액', field: 'retireTotal', valueFormatter: formatCurrency ,flex:1},
+  { headerName: '퇴직소득세', field: 'retireIncomeTax', valueFormatter: formatCurrency ,flex:1},
+  { headerName: '실지급액', field: 'provisionActual', valueFormatter: formatCurrency ,flex:1}
 ]
 
 const filteredData = computed(() => {
@@ -365,7 +365,15 @@ select {
   align-items: center;
   gap: 13px;
 }
+/* 기본적으로 primary 색상 */
+input[type="radio"] {
+  accent-color: var(--primary);
+}
 
+/* 라이트 모드일 때만 별도 색상 지정 */
+body:not(.dark) input[type="radio"] {
+  accent-color: #1c9dd0; /* 예: 더 어두운 회색으로 */
+}
 /* 상세보기 버튼 정렬 영역 */
 .btn-area {
   display: flex;
