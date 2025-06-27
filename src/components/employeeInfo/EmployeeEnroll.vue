@@ -858,7 +858,7 @@ position: absolute;
   margin: 10px 20px 0;
   font-size: 14px;
   max-width: 100%;
-  overflow-x: hidden;
+  overflow-x: auto;
 }
 
 /* 공통 Card 스타일 (상단/하단 모두 동일) */
@@ -988,7 +988,7 @@ position: absolute;
 .same-size-input {
   width: 180px;
   height: 36px;
-  padding: 0.6rem;
+  padding: 0 0.6rem; 
   font-size: 0.9rem;
   font-family: 'inherit';
   border: 1px solid #ddd;
