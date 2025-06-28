@@ -47,6 +47,7 @@
       @save="saveEdit"
     />
   </div>
+  <BaseToast ref="toastRef" />
 </template>
 
 <script setup>
@@ -54,6 +55,7 @@ import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import EditDeptModal from '@/components/org/introduction/EditDeptModal.vue'
+import BaseToast from '@/components/toast/BaseToast.vue'
 
 const userStore = useUserStore()
 const token = userStore.accessToken
@@ -75,6 +77,12 @@ function parseJwtPayload(token) {
   } catch (e) {
     return null
   }
+}
+
+const toastRef = ref(null)
+
+function showToast(msg) {
+  toastRef.value?.show(msg)
 }
 
 const orgData = ref({
@@ -167,6 +175,7 @@ function saveEdit(updated) {
         orgData.value.introduction[idx].introductionContext = data.introductionContext
       }
       closeEditModal()
+      showToast('부서 소개 수정이 완료되었습니다.')
     })
     .catch(err => {
       console.error('❌ 부서 소개 수정 실패:', err)
@@ -319,10 +328,7 @@ onMounted(async () => {
   box-sizing: border-box;
 
   display: block;
-  margin-left: auto;
-  margin-right: 40px;
-  margin-top: 30px;
-  margin-bottom: 20px;
+  margin: 30px 40px 20px auto;
 }
 
 .edit-button:hover {

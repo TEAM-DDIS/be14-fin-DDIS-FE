@@ -535,6 +535,7 @@ async function handleAddOrg({ type, name, parentId }) {
     // showToast("등록 성공!")
     showAddModal.value = false
     window.location.reload()
+    showToast('조직 등록이 완료되었습니다.')
   } catch (e) {
     showToast('조직 추가 중 오류가 발생했습니다.')
   }
@@ -549,26 +550,29 @@ function closeDeleteModal() {
 }
 async function handleDeleteOrg({ type, ids }) {
   try {
-    const endpointMap = {
-      head: 'head',
-      department: 'department',
-      team: 'team'
-    }
-    const endpoint = endpointMap[type]
-    const headers = { Authorization: `Bearer ${token}` }
 
-    await Promise.all(
-      ids.map(id =>
-       axios.delete(
-         `http://localhost:5000/org/delete/${endpoint}/${id}`,
-         { headers }
-       )
-      )
-    )
+    showToast('해당 조직 삭제 예정입니다.')
+    // const endpointMap = {
+    //   head: 'head',
+    //   department: 'department',
+    //   team: 'team'
+    // }
+    // const endpoint = endpointMap[type]
+    // const headers = { Authorization: `Bearer ${token}` }
+
+    // await Promise.all(
+    //   ids.map(id =>
+    //    axios.delete(
+    //      `http://localhost:5000/org/delete/${endpoint}/${id}`,
+    //      { headers }
+    //    )
+    //   )
+    // )
     showDeleteModal.value = false
-    window.location.reload()
+
+    // window.location.reload()
     // showToast('삭제 성공!')
-    await loadHierarchy()
+    // await loadHierarchy()
   } catch (err) {
     console.error('삭제 실패', err)
     showToast('삭제 중 오류가 발생했습니다.')

@@ -16,18 +16,18 @@
             <input v-model="search" type="text" placeholder="검색어 입력" />
           </div>
           <ul class="employee-search-result scrollbar" v-if="search.trim() && filteredAndSortedNodes.length">
-              <li
-                v-for="emp in filteredAndSortedNodes"
-                :key="emp.employeeId"
-                :class="{ selected: selectedNode?.employeeId === emp.employeeId }"
-                @click="onEmployeesSelected([emp.employeeId], emp)"
-              >
-                {{ emp.employeeName }} ({{ emp.positionName }}, {{ emp.rankName }})
-              </li>
-            </ul>
-            <div v-else-if="search.trim() && filteredAndSortedNodes.length === 0" class="no-result">
-              검색 결과가 없습니다.
-            </div>
+            <li
+              v-for="emp in filteredAndSortedNodes"
+              :key="emp.employeeId"
+              :class="{ selected: selectedNode?.employeeId === emp.employeeId }"
+              @click="onEmployeesSelected([emp.employeeId], emp)"
+            >
+              {{ emp.employeeName }} ({{ emp.positionName }}, {{ emp.rankName }})
+            </li>
+          </ul>
+          <div v-else-if="search.trim() && filteredAndSortedNodes.length === 0" class="no-result">
+            검색 결과가 없습니다.
+          </div>
           </div>
         <button class="delete-btn btn-delete" @click="deleteSelectedEmployees">
           삭제
@@ -282,8 +282,10 @@ function submitSelection() {
   background-color: #e0f4ff;
 }
 .no-result {
-  color: #888;
+  color: var(--text-sub);
   text-align: center;
+  margin-top: -10px;
+  font-size: 10px;
 }
 
 .modal-overlay {
@@ -296,7 +298,7 @@ function submitSelection() {
   justify-content: center;
 }
 .modal-content {
-  background: var(--modal-bg);
+  background: var(--modal-bg2);
   border-radius: 12px;
   width: 900px;
   min-width: 700px;
@@ -328,32 +330,6 @@ function submitSelection() {
   border-bottom: 1.5px solid var(--border-color);
   position: relative;
   flex-wrap: nowrap;
-}
-
-.sort-search-group {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-left: 12px;
-  flex-shrink: 0;
-}
-.sort-search-group select {
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  padding: 4px 8px;
-  font-size: 14px;
-  width: 90px;
-  min-width: 70px;
-  max-width: 120px;
-}
-.sort-search-group input {
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  padding: 4px 8px;
-  font-size: 14px;
-  width: 120px;
-  min-width: 80px;
-  max-width: 180px;
 }
 
 .delete-btn {
@@ -394,6 +370,7 @@ function submitSelection() {
 .search-wrapper {
   position: relative;
   display: inline-block; 
+  height: 50px;
 }
 .search-bar {
   position: relative; 
@@ -442,6 +419,7 @@ function submitSelection() {
   box-shadow: 0 2px 8px rgba(0,0,0,0.15);
   z-index: 1000;
   font-size: 14px;
+  top: 30px;
   
 }
 

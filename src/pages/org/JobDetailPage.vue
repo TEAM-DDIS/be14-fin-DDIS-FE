@@ -441,9 +441,7 @@ function saveEdit(updated) {
   box-sizing: border-box;
 
   display: block;
-  margin-left: auto;
-  margin-right: 20px;
-  margin-bottom: 20px;
+  margin: 0 80px 20px auto;
 }
 .edit-button:disabled {
   background-color: #aaa;

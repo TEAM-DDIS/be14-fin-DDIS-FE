@@ -164,7 +164,7 @@ function onSubmit() {
 }
 .modal-content {
   background: var(--modal-bg);
-  border-radius: 10px;
+  border-radius: 12px;
   padding: 24px 32px;
   width: 400px;
   max-width: 90%;
