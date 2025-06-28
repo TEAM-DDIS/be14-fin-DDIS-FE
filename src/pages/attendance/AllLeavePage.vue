@@ -11,16 +11,16 @@
             <div class="tab-wrapper">
                 <div class="tab-menu">
                     <button
-                    :class="{ active: activeTab === 'used' }"
-                    @click="activeTab = 'used'"
-                    >
-                    사용내역
-                    </button>
-                    <button
                     :class="{ active: activeTab === 'regist' }"
                     @click="activeTab = 'regist'"
                     >
                     신청내역
+                    </button>
+                    <button
+                    :class="{ active: activeTab === 'used' }"
+                    @click="activeTab = 'used'"
+                    >
+                    사용내역
                     </button>
                 </div>
             </div>
@@ -54,7 +54,7 @@
     const router = useRouter()
     const userStore = useUserStore()
 
-    const activeTab = ref('used')
+    const activeTab = ref('regist')
     const dateRange = ref({ start: '', end: '' })
 
     function parseJwt(token) {
