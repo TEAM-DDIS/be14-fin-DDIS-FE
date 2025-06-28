@@ -162,8 +162,9 @@ axios.defaults.baseURL = 'http://localhost:5000'
 const route     = useRoute()
 const router    = useRouter()
 const userStore = useUserStore()
-const toastRef = ref(null)
 
+
+const toastRef = ref(null)
 function showToast(msg) {
     toastRef.value?.show(msg)
 }

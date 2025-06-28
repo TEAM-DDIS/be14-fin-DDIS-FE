@@ -354,12 +354,48 @@ function onCellClick(e) {
 }
 .modal-buttons {
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
+  gap:10px
 }
 .modal-buttons .btn-delete {
-  width: 48%;
+  font-size: 14px;
+  font-weight: bold;
+  background-color: #D3D3D3;
+  color: #000;
+  border: none;
+  border-radius: 10px;
+  padding: 10px 30px;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: background-color 0.2s, box-shadow 0.2s;
+  box-sizing: border-box;
 }
 .modal-buttons .btn-save {
-  width: 48%;
+  font-size: 14px;
+  font-weight: bold;
+  background-color: #00a8e8;
+  color: white;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  padding: 10px 30px;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: background-color 0.2s, box-shadow 0.2s;
+  box-sizing: border-box;
 }
+
+.modal-buttons .btn-delete:hover{
+  background-color: #000;
+  color: #fff;
+}
+
+.modal-buttons .btn-save:hover{
+  background-color: white;
+  color: #00a8e8;
+  border-color: #00a8e8;
+  box-shadow:
+  inset 1px 1px 10px rgba(0, 0, 0, 0.25);
+}
+
 </style>
