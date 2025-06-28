@@ -3,10 +3,6 @@
     <main class="main-content">
       <!-- 헤더 -->
       <div class="header-bar page-title">
-      <img src="@/assets/icons/back_btn.svg"
-          alt="back"
-          class="back-btn"
-          @click="goBack" />
       <h1>평가</h1>
     </div>
 
@@ -500,10 +496,19 @@ async function submitManagerEval(decision) {
     const updated = await res.json()
     selectedGoal.value.evaluation.score   = updated.reviewerScore
     selectedGoal.value.evaluation.comment = updated.reviewerContent
-    showToast('상사평가 저장 완료')
+    
+     if (decision === '승인') {
+     showToast('평가가 승인되었습니다. 🎉')
+   } else {
+     showToast('평가가 반려되었습니다. 🛑')
+   }
   } catch (e) {
     console.error(e)
-    showToast('상사평가 실패')
+     if (decision === '승인') {
+     showToast('승인 처리 중 오류가 발생했습니다. 😢')
+   } else {
+     showToast('반려 처리 중 오류가 발생했습니다. 😢')
+   }
   }
 }
 function showToast(msg) {
@@ -548,7 +553,6 @@ padding: 0;
   display: flex;
   overflow: hidden;
   /* margin-top: 3px; */
-  margin-left: 3px;
   gap: 0;
 }
 
@@ -739,6 +743,7 @@ padding: 0;
   flex: 1;
   background: var(--bg-box);
   border-radius: 12px;
+  border-top-left-radius: 0;
   padding: 16px;
   box-shadow: 1px 1px 20px 1px rgba(0, 0, 0, 0.05);
   display: flex;

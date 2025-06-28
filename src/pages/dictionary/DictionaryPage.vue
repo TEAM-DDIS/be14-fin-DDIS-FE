@@ -151,7 +151,7 @@ const API_BASE    = 'http://localhost:5000/dictionary'
 let gridApi       = null
 const columnDefs  = ref([
   { headerName: '', field: 'checkbox', checkboxSelection: true, headerCheckboxSelection: true, width: 50, pinned: 'left' },
-  { headerName: '번호', field: 'id', width: 100, cellClass: 'center-align' },
+  { headerName: '번호', valueGetter: params => params.api.getDisplayedRowCount() - params.node.rowIndex, sortable: false, flex: 0.3, cellClass:'center-align' },
   { headerName: '용어', field: 'title', flex: 0.5, autoHeight: true, cellStyle: { whiteSpace: 'normal' } },
   { headerName: '설명', field: 'definition', flex: 2, cellClass: 'center-align' }
 ])

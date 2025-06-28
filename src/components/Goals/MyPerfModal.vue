@@ -170,7 +170,7 @@ watch(() => props.performances, () => {
     cursor: pointer; 
 }
 .clickable-row:hover { 
-    background: #f0f8ff; 
+    background:var(--ag-row-border-color); 
 }
 .filter-row select {
     padding: 6px 8px;
