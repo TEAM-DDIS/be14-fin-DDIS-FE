@@ -268,7 +268,7 @@
   :deep(.calendar--team .fc-col-header-cell.fc-day-sat) { color: blue; }
   :deep(.calendar--team .fc-daygrid-day.fc-day-sun .fc-daygrid-day-number) { color: red; }
   :deep(.calendar--team .fc-daygrid-day.fc-day-sat .fc-daygrid-day-number) { color: blue; }
-  :deep(.calendar--team .fc-day-today) {  background-color: var(--fade-background) !important;}
+  :deep(.calendar--team .fc-day-today) {  background-color: var(--ch-today) !important;}
 
   :deep(.calendar--team .fc-daygrid-event) {
     height: auto !important;
