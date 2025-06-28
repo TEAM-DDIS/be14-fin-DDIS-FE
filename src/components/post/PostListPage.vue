@@ -263,7 +263,7 @@ function onCellClick(e) {
   width: 150px;
   border: 1px solid #ccc;
   border-radius: 8px;
-  padding: 6px 8px;
+  padding: 7px 8px;
   font-size: 14px;
 }
 /* .search-bar-in-card .search-input:focus {
