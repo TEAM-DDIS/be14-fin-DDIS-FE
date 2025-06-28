@@ -51,14 +51,12 @@
 
         <!-- 버튼 -->
         <div class="action-header">
-          <button
-            v-if="isDrafterViewingMyDraftBox && draftDetail.docStatus !== '반려'"
-            class="action-button"
-            :disabled="!isRetractable"
-            @click="openRetrieveModal"
-          >
-            회수하기
-          </button>
+          <span class="section-title">결재선</span>
+          <button v-if="isDrafterViewingMyDraftBox" 
+          class="action-button" 
+          :disabled="!isRetractable" 
+          @click="openRetrieveModal"
+          >회수하기</button>
 
           <!-- 결재하기 버튼 + 안내문구 flex로 묶음 -->
           <div v-else-if="isApproverViewingApprovalBox" class="approval-flex-container">
@@ -269,9 +267,10 @@ const isRetractable = computed(() => {
 // 새롭게 추가되는 computed 속성
 const isDrafterViewingMyDraftBox = computed(() => {
   if (!draftDetail.value || !myId.value) return false
+  const status = draftDetail.value.docStatus
   return String(draftDetail.value.drafterId) === myId.value &&
          boxKey === 'MyDraftBox' &&
-         draftDetail.value.docStatus !== '회수' // '회수' 상태일 때는 보이지 않음
+         !['회수', '반려'].includes(status) // '회수' 상태일 때는 보이지 않음
 })
 
 const isApproverViewingApprovalBox = computed(() => {
@@ -296,7 +295,7 @@ async function fetchPresignedUrls() {
     console.warn('📦 첨부파일 없음 - presigned URL 요청 생략')
     return
   }
-  const token = userStore.token
+  const token = localStorage.getItem('token')
   for (const file of draftDetail.value.attachments) {
     const qs = new URLSearchParams({
       filename:    file.key,       // DB에 저장된 S3 key
@@ -325,9 +324,9 @@ async function fetchDetail() {
     if (!employeeIdFromLocalStorage || employeeIdFromLocalStorage === 'null' || employeeIdFromLocalStorage === 'undefined') {
       console.log('fetchDetail: employeeId not found in localStorage, trying to fetch from /drafter/me')
       try {
-          const token = userStore.token
+        const token = localStorage.getItem("token")
         if (!token) {
-          console.warn('fetchDetail: No token found in userStore. Cannot fetch user info.')
+          console.warn('fetchDetail: No token found in localStorage. Cannot fetch user info.')
           // router.push({ name: 'LoginPage' }); // 로그인 페이지로 리다이렉트
           // return; // 토큰이 없으면 함수 종료
         }
@@ -580,7 +579,6 @@ async function handleWithdraw() {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
   margin: 24px;
   max-width: 100%;
-  width: 100%;
   display: flex;
   flex-direction: column;
   min-height: fit-content; /* or: min-height: 800px; */

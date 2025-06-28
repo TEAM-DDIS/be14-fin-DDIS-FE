@@ -203,11 +203,10 @@ const formatDateTime = (isoString) => {
   border-radius: 0px 12px 12px 12px;
   box-shadow: 1px 1px 20px 1px rgba(0,0,0,0.05);
   width: 100%;
-  height: 650px;
   min-width: 0;
   max-width: 100%;
   margin-bottom: 20px;
-  padding: 20px;
+  padding: 30px;
   box-sizing: border-box;
 }
 
@@ -239,14 +238,14 @@ const formatDateTime = (isoString) => {
   border: none;
   border-bottom: none;
   background-color: #C8C8C8;
-  color: white;
+  color: var(--bg-main);
   text-decoration: none; /* ✅ 밑줄 제거 */
   cursor: pointer;
   border-top-left-radius: 12px;
   border-top-right-radius: 12px;
   position: relative;
   z-index: 1;
-  margin-right: -20px; /* ✅ 가로 겹치기 */
+  margin-right: -10px; /* ✅ 가로 겹치기 */
   transition: all 0.2s ease;
 }
 
@@ -280,39 +279,29 @@ const formatDateTime = (isoString) => {
   }
 
 .search-item label {
-  font-size: 16.5px;            /* label 폰트 크기 (1.04rem 기준) */
-  margin-bottom: 2px;           /* (행 아닌 열 정렬일 땐 의미 없음, row일 땐 영향 없음) */
-  letter-spacing: -0.5px;       /* 자간 조정 */
-  color: var(--text-main);       /* 자간 조정 */
+  margin-bottom: 2px;           
+  color: var(--text-main);
 }
 
 .search-item input[type="date"],
 .search-item input[type="text"] {
-  padding: 8px 12px;            /* 인풋 내부 여백 */
-  border: 1px solid var(--border-color);
-  border-radius: 8px;           /* 둥근 테두리 */
-  font-size: 16px;              /* 입력값, placeholder 모두 16px로 통일 */
-  width: 180px;                 /* 입력 란의 고정 폭 */
-  min-width: 180px;
-  max-width: 180px;             /* 고정 폭: 포커스 등으로 절대 안 커짐 */
-  box-sizing: border-box;       /* 패딩·테두리 포함한 크기 */
+  padding: 6px 8px;          /* 인풋 내부 여백 */
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;           /* 둥근 테두리 */
+  width: 200px;
   transition: border 0.2s, box-shadow 0.2s;
   background-color: var(--modal-box-bg);
+  height: 18px;
   color: var(--text-main);
+  font-family: 'inter';
 }
 
 /* 인풋 placeholder 색상 등 스타일 */
 .search-item input[type="text"]::placeholder {
-    color: #bbb;
-    font-size: 16px;              /* placeholder도 16px로 고정 */
+  color: #bbb;
+  height: 18px;          
 }
 
-/* 입력란 클릭/포커스시 효과 */
-.search-item input[type="text"]:focus,
-.search-item input[type="date"]:focus {
-    outline: none;                /* 기본 파란 테두리 제거 */
-    border: 1px solid var(--border-color);
-}
 
 /* ------- 표 박스 ------- */
 .table-box {
