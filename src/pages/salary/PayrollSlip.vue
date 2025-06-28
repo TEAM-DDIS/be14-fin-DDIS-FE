@@ -406,6 +406,7 @@ input[type="month"] {
   border-radius: 4px;
   height: 18px;
 }
+
 .period input[type="month"]::-webkit-calendar-picker-indicator {
     filter: var(--icon-filter);
     }
@@ -439,6 +440,8 @@ input[type="month"] {
   display: flex;
   align-items: center;
   gap: 13px;
+  background-color: var(--bg-box);
+  
 }
 
 .period label {
