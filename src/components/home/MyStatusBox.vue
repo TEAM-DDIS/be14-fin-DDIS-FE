@@ -166,6 +166,7 @@ onMounted(async () => {
     }
 
     // 결재 대기 문서
+
     const resApprovals = await fetch('http://localhost:5000/approvals/ApprovalBox?tab=결재', {
       headers: { Authorization: `Bearer ${token}` }
     })
