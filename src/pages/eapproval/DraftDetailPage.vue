@@ -51,12 +51,14 @@
 
         <!-- 버튼 -->
         <div class="action-header">
-          <span class="section-title">결재선</span>
-          <button v-if="isDrafterViewingMyDraftBox" 
-          class="action-button" 
-          :disabled="!isRetractable" 
-          @click="openRetrieveModal"
-          >회수하기</button>
+          <button
+            v-if="isDrafterViewingMyDraftBox && draftDetail.docStatus !== '반려'"
+            class="action-button"
+            :disabled="!isRetractable"
+            @click="openRetrieveModal"
+          >
+            회수하기
+          </button>
 
           <!-- 결재하기 버튼 + 안내문구 flex로 묶음 -->
           <div v-else-if="isApproverViewingApprovalBox" class="approval-flex-container">
@@ -294,7 +296,7 @@ async function fetchPresignedUrls() {
     console.warn('📦 첨부파일 없음 - presigned URL 요청 생략')
     return
   }
-  const token = localStorage.getItem('token')
+  const token = userStore.token
   for (const file of draftDetail.value.attachments) {
     const qs = new URLSearchParams({
       filename:    file.key,       // DB에 저장된 S3 key
@@ -323,9 +325,9 @@ async function fetchDetail() {
     if (!employeeIdFromLocalStorage || employeeIdFromLocalStorage === 'null' || employeeIdFromLocalStorage === 'undefined') {
       console.log('fetchDetail: employeeId not found in localStorage, trying to fetch from /drafter/me')
       try {
-        const token = localStorage.getItem("token")
+          const token = userStore.token
         if (!token) {
-          console.warn('fetchDetail: No token found in localStorage. Cannot fetch user info.')
+          console.warn('fetchDetail: No token found in userStore. Cannot fetch user info.')
           // router.push({ name: 'LoginPage' }); // 로그인 페이지로 리다이렉트
           // return; // 토큰이 없으면 함수 종료
         }
@@ -694,11 +696,11 @@ table {
 /* 하단 버튼 그룹 */
 .button-group {
   display: flex;
+  justify-content: flex-end; /* 버튼을 오른쪽으로 붙이기 */
   gap: 12px;
-  margin-bottom: 40px;
   margin-top: 30px;
-  margin-left: auto;
-  margin-right: 155px;
+  margin-bottom: 40px;
+  padding-right: 10px;  /* 필요 시 조정 */
 }
 
 /* 버튼 기본 */
