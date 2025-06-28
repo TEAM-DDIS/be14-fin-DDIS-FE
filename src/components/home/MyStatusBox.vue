@@ -166,7 +166,7 @@ onMounted(async () => {
     }
 
     // 결재 대기 문서
-    const resApprovals = await fetch('http://localhost:5000/approvals', { headers })
+    const resApprovals = await fetch('http://localhost:5000/approvals/ApprovalBox', { headers })
     if (resApprovals.ok) {
       const data = await resApprovals.json()
       approveWaitingCount.value = data.filter(doc => doc.status === '대기중').length
