@@ -919,6 +919,13 @@ padding: 0;
   background: var(--bg-main);
   color: var(--text-main);
 }
+.empty-text{
+  color: var(--primary);
+  margin-top: 20px;
+  font-size: 20px;
+  font-weight: bold;
+  text-align: center;
+}
 .detail-table th {
   width: 30%;
   background-color: var(--bg-label-cell);
