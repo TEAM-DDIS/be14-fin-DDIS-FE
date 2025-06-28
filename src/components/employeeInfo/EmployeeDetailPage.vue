@@ -637,6 +637,10 @@ const errors = reactive({
   bankAccount: ''
 })
 
+
+
+
+
 // 정규식 패턴 정의
 const patterns = {
   contact: /^\d{3}-\d{3,4}-\d{4}$/,
@@ -865,9 +869,21 @@ const disciplineColumnDefs = ref([
     cellRenderer: params => {
       const files = Array.isArray(params.value) ? params.value : []
       if (!files.length) return '-'
-      return `<div class="file-list-cell">${
-        files.map((f,i) => `<a href="#" data-idx="${i}">${f.fileName}</a>`).join('')
-      }</div>`
+      const container = document.createElement('div')
+      container.className = 'file-list-cell'
+      files.forEach((f, i) => {
+        const a = document.createElement('a')
+        a.href = '#'
+        a.textContent = f.fileName
+        a.dataset.idx = i
+        a.addEventListener('click', async evt => {
+          evt.preventDefault()
+          // 바로 다운로드 호출
+          await downloadFile(f.fileUrl, f.fileName)
+        })
+        container.appendChild(a)
+      })
+      return container
     }
   },
   { headerName: '징계 내용',     field: 'disciplinaryDescription', flex: 2 },
@@ -900,9 +916,31 @@ const contractColumnDefs = ref([
     cellRenderer: params => {
       const files = Array.isArray(params.value) ? params.value : []
       if (!files.length) return '-'
-      return `<div class="file-list-cell">${
-        files.map((f,i) => `<a href="#" data-idx="${i}">${f.fileName}</a>`).join('')
-      }</div>`
+
+      // 컨테이너 엘리먼트 생성
+      const container = document.createElement('div')
+      container.className = 'file-list-cell'
+
+      files.forEach((f, i) => {
+        const a = document.createElement('a')
+        a.href = '#'
+        a.textContent = f.fileName
+        a.dataset.idx = i
+
+        // 클릭 시 presigned URL 받아서 다운로드
+        a.addEventListener('click', async evt => {
+          evt.preventDefault()
+          try {
+            await downloadFile(f.fileUrl, f.fileName)
+          } catch (err) {
+            console.error('다운로드 실패:', err)
+          }
+        })
+
+        container.appendChild(a)
+      })
+
+      return container
     }
   },
   {
@@ -1577,7 +1615,7 @@ onMounted(async () => {
 .same-size-input {
   width: 180px;
   height: 36px;
-  padding: 0.6rem;
+  padding: 0 0.6rem;
   font-size: 0.9rem;
   border: 1px solid #ddd;
   border-radius: 8px;

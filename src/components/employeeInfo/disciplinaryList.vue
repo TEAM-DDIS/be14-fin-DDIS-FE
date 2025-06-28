@@ -155,20 +155,29 @@ const columnDefs = ref([
   },
   { headerName: '번호', valueGetter: params => params.api.getDisplayedRowCount() - params.node.rowIndex, sortable: false, flex:0.3},
   { headerName: '사원명',          field: 'employeeName',            flex: 0.3},
+// disciplineColumnDefs 예시
   {
     headerName: '징계 서류',
     field: 'fileList',
     flex: 2,
     cellRenderer: params => {
-      const files = Array.isArray(params.value) 
-        ? params.value.filter(f => f && f.fileName) 
-        : []
+      const files = Array.isArray(params.value) ? params.value : []
       if (!files.length) return '-'
-      return `<div class="file-list-cell">${
-        files.map((f,i) =>
-          `<a href="#" data-idx="${i}">${f.fileName}</a>`
-        ).join('')
-      }</div>`
+      const container = document.createElement('div')
+      container.className = 'file-list-cell'
+      files.forEach((f, i) => {
+        const a = document.createElement('a')
+        a.href = '#'
+        a.textContent = f.fileName
+        a.dataset.idx = i
+        a.addEventListener('click', async evt => {
+          evt.preventDefault()
+          // 바로 다운로드 호출
+          await downloadFile(f.fileUrl, f.fileName)
+        })
+        container.appendChild(a)
+      })
+      return container
     }
   },
   { headerName: '징계 내용',      field: 'disciplinaryDescription', flex: 1.5 },

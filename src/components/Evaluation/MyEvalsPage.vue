@@ -108,6 +108,7 @@
       </section>
     </div>
   </div>
+    <BaseToast ref="toastRef" />
 </template>
 
 <script setup>
@@ -122,7 +123,8 @@ const reviewForm = ref({ performanceId: null, score: '', content: '' })
 const userStore = useUserStore()
 const router = useRouter()
 const token = useUserStore().accessToken
-
+import BaseToast from '@/components/toast/BaseToast.vue'
+const toastRef = ref(null)
 
 // performance.reviewerScore 가 있는 목표만
 const evaluatedGoals = computed(() =>
@@ -209,10 +211,10 @@ async function submitReview() {
   const { performanceId, score, content } = reviewForm.value
   // console.log('perfId=', performanceId)
   if (!performanceId) {
-    return alert('수정할 실적 ID가 없습니다. 먼저 실적을 선택하세요.')
+    return showToast('수정할 실적 ID가 없습니다. 먼저 실적을 선택하세요.')
   }
   if (!score) {
-    return alert('평가 점수를 선택해주세요.')
+    return showToast('평가 점수를 선택해주세요.')
   }
 
   const token = localStorage.getItem('token')
@@ -241,13 +243,15 @@ async function submitReview() {
     selectedGoal.value.performance.reviewerScore   = updated.reviewerScore
     selectedGoal.value.performance.reviewerContent = updated.reviewerContent
     editMode.value = false
-    alert('상사평가가 수정되었습니다.')
+    showToast('상사평가가 수정되었습니다.')
   } catch (e) {
     console.error(e)
-    alert('수정 중 오류가 발생했습니다.')
+    showToast('수정 중 오류가 발생했습니다.')
   }
 }
-
+function showToast(msg) {
+  toastRef.value?.show(msg)
+}
 onMounted(fetchGoals)
 </script>
 
@@ -257,7 +261,7 @@ onMounted(fetchGoals)
 .page-title {
   margin-left: 20px;
   margin-bottom: 30px;
-  color: #00a8e8;
+  color: var(--primary);
 }
 .desc {
     display: block;
@@ -271,7 +275,7 @@ onMounted(fetchGoals)
   height: calc(100vh - 100px);
 }
 .panel {
-  background: #fff;
+  background: var( --bg-box);
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
   padding: 24px;
@@ -282,7 +286,7 @@ onMounted(fetchGoals)
 }
 .perf-panel {
   width: 55%;
-  background: #f5f5f5;
+  background: var(--calendar-border-color);
   overflow-y: auto;
 }
 .placeholder, .empty {
@@ -302,9 +306,9 @@ onMounted(fetchGoals)
 }
 .goal-card {
   position: relative;
-  background: #fff;
+  background: var(--bg-box);
   border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0px 0px 5px 4px var(--menu-btn-shadow);  padding: 16px;
   padding: 16px;
   padding-bottom: 20px;
   margin-bottom: 12px;
@@ -323,12 +327,14 @@ onMounted(fetchGoals)
     inset 0 4px 8px rgba(0, 0, 0, 0.15),
     0 2px 8px rgba(0, 0, 0, 0.1);
   transform: translateY(0);
-  background-color: #f7f7f7;
+  background-color: var(--ag-primary-hover);
 }
 
 .goal-card:hover {
-  transform: translateY(-2px);
-  opacity: 1;
+  /* transform: translateY(-2px); */
+  box-shadow: inset 0px 0px 5px 4px var(--menu-btn-shadow);
+  transition: background-color 0.3s, box-shadow 0.3s;
+  background-color: var(--ag-primary-hover);
 }
 .back-btn {
   width: 25px;
@@ -339,7 +345,7 @@ onMounted(fetchGoals)
 .card-top {
   display: flex;
   justify-content: space-between;
-  color: #888;
+  color: var(--text-main);
   font-size: 0.85rem;
   margin-bottom: 10px;
   margin-top: 10px;
@@ -354,7 +360,7 @@ onMounted(fetchGoals)
   margin-top: 16px;
 }
 .perf-title {
-  color: #00a8e8;
+  color: var(--primary);
   font-size: 1.5rem;
   margin-bottom: 16px;
 }
@@ -382,7 +388,7 @@ onMounted(fetchGoals)
   display: block;
   margin-bottom: 6px;
   font-weight: 600;
-  color: #333;
+  /* color: #333; */
 }
 
 .form-row select,
@@ -391,9 +397,10 @@ onMounted(fetchGoals)
   width: 100%;
   padding: 12px;
   font-size: 1rem;
-  border: 1px solid #ddd;
+  border: 1px solid var(--border-input);
   border-radius: 8px;
-  background: #fff;
+  background-color: var(--bg-main); 
+  color: var(--text-main); 
   box-shadow: 0 1px 4px rgba(0,0,0,0.05);
   box-sizing: border-box;
   resize: none;
@@ -411,7 +418,6 @@ onMounted(fetchGoals)
 .btn-cancel {
   font-size: 14px;
   font-weight: bold;
-  background-color: #00a8e8;
   color: white;
   border: 1px solid transparent;
   border-radius: 10px;
@@ -422,12 +428,26 @@ onMounted(fetchGoals)
   box-sizing: border-box;
   
 }
-
+.btn-cancel {
+  background-color: #d3d3d3;
+  color: #000;
+  border: none;
+}
+.btn-cancel:hover {
+  background-color: #000;
+  color: #fff;
+}
+.btn-primary,
+.btn-save{
+  background-color: var(--primary);
+  color: var(--text-on-primary);
+  border: 1px solid transparent;
+}
 .btn-primary:hover,
 .btn-save:hover {
-  background-color: white;
-  color: #00a8e8;
-  border-color: #00a8e8;
+  background-color: var(--bg-main);
+  color: var(--primary);
+  border-color: var(--primary);
   box-shadow:
   inset 1px 1px 10px rgba(0, 0, 0, 0.25);
 }
@@ -436,15 +456,22 @@ onMounted(fetchGoals)
   width: 100%;
   border-collapse: collapse;
 }
-.detail-table-vertical th,
-.detail-table-vertical td {
-  border: 1px solid #e0e0e0;
+.detail-table-vertical th {
+  border: 1px solid var(--border-color);
   padding: 12px;
   text-align: left;
-  background: #fff;
+  background: var(--bg-label-cell);
+  color: var(--text-main);
+}
+.detail-table-vertical td {
+  border: 1px solid var(--border-color);
+  background: var(--bg-main);
+  padding: 12px;
+  text-align: left;
 }
 .detail-table-vertical th {
-  background: #fafafa;
+  background: var(--bg-label-cell);
+  color: var(--text-main);
   font-weight: 600;
   width:45%;
 }
