@@ -252,13 +252,13 @@ function downloadPDF() {
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 1000;
+  z-index: 3000;
 }
 
 /* 모달 본체 */
 .modal {
   background: var(--modal-bg2);
-    color: var(--modal-text);
+  color:  var(--modal-text);
   border-radius: 12px;
   padding: 24px;
   padding-bottom: 80px; /* 하단 버튼 공간 확보 */
