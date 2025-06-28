@@ -410,7 +410,6 @@
     border: 1px solid transparent;
     border-radius: 10px;
     padding: 10px 30px;
-    margin-top: 20px;
     cursor: pointer;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
     transition: background-color 0.2s, box-shadow 0.2s;
