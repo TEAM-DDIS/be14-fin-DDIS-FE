@@ -1,14 +1,10 @@
 <template>
   <div class="performance-page">
     <h1 class="page-title">
-      <img src="@/assets/icons/back_btn.svg"
-      alt="back"
-      class="back-btn"
-      @click="goBack" />
       전체 성과 이력
     </h1>
 
-
+<p class="desc">전체 성과 이력</p>
     <div class="ag-grid-wrapper">
       <div class="filters-container">
       <!-- 왼쪽: 이름 검색 -->
@@ -55,6 +51,7 @@
         :columnDefs="columnDefs"
         :rowData="filteredData"
         :pagination="true"
+        :paginationPageSize="20"
         style="height: 500px; width: 100%; margin: 0 auto;"
       />
     </div>
@@ -157,30 +154,40 @@ const filteredData = computed(() =>
 </script>
 
 <style scoped>
-.performance-page {
-  padding: 24px;
-}
-
 .page-title {
-  margin-bottom: 20px;
-  font-size: 24px;
-  color: #00a8e8;
-  font-weight: bold;
+  margin-left: 20px;
+  margin-bottom: 30px;
+  color: var(--primary);
+}
+.back-btn {
+  width: 25px;
+  height: 25px;
+  margin-right: -10px;
+  cursor: pointer;
+}
+.desc {
+  display: block;
+  margin-left: 20px;
+  margin-bottom: 10px;
+  font-size: 18px;
+  color: var(--text-main);
 }
 
 .ag-grid-wrapper {
-  background: #ffffff;
-  padding: 20px;
-  border-radius: 12px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  background-color: var(--bg-box);
+  padding: 30px;
+  margin: 0 20px 24px;
+  border-radius: 8px;
+  box-shadow: 1px 1px 20px 1px rgba(0, 0, 0, 0.05);
 }
 .filters-container {
- 
-  padding: 16px;
+  /* padding: 16px; */
   display: flex;
   justify-content: space-between;  /* 왼쪽·오른쪽 분리 */
   align-items: flex-end;
   margin-bottom: 16px;
+  /* margin-bottom: 10px; */
+  margin-right: 20px;
 }
 
 .filters-left {
@@ -202,18 +209,27 @@ const filteredData = computed(() =>
   font-weight: 600;
   margin-right: 13px;
 }
-.filter-item input,
+.filter-item input{
+  width: 150px;
+  padding: 6px 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  height: 18px;
+  background-color: var(--bg-main);
+  color: var(--text-main);
+  border-radius: 8px !important;
+}
+/* .search-bar {
+  margin-bottom: 12px;
+  gap: 10px;
+  display: flex;
+} */
 .filter-item select {
   padding: 6px 8px;
   border: 1px solid #ccc;
   border-radius: 4px;
-  font-size: 14px;
-  min-width: 100px;
-}
-.back-btn {
-  width: 20px;
-  height: 20px;
-  margin-right: -10px;
-  cursor: pointer;
+  background-color: var(--bg-main);
+  color: var(--text-main);
+  border-radius: 8px !important;
 }
 </style>

@@ -461,7 +461,7 @@ const headOptions = [
   { id: 1, name: '개발본부' },
   { id: 2, name: '경영지원본부' },
   { id: 3, name: '사업본부' },
-  { id: 4, name: '대표' },
+  { id: 4, name: '이사회' },
 ]
 
 const departmentOptions = [
@@ -471,7 +471,7 @@ const departmentOptions = [
   { id: 4, name: '재무회계부서' },
   { id: 5, name: '마케팅부서' },
   { id: 6, name: '영업부서' },
-  { id: 7, name: '대표' },
+  { id: 7, name: '소속 없음' },
 ]
 
 const teamOptions = [
@@ -487,7 +487,7 @@ const teamOptions = [
   { id: 10, name: '퍼포먼스팀' },
   { id: 11, name: 'B2B영업팀' },
   { id: 12, name: 'B2C영업팀' },
-  { id: 13, name: '대표' },
+  { id: 13, name: '소속 없음' },
 ]
 
 const jobOptions = [
@@ -600,7 +600,8 @@ watch(() => form.departmentId, () => {
 const departmentMap = {
   '개발본부': ['PC게임개발부서', '아트개발부서'],
   '경영지원본부': ['인사부서', '재무회계부서'],
-  '사업본부': ['마케팅부서', '영업부서']
+  '사업본부': ['마케팅부서', '영업부서'],
+  '이사회': ['소속 없음']
 }
 const teamMap = {
   'PC게임개발부서': ['PC개발팀', 'PC게임기획팀'],
@@ -608,7 +609,8 @@ const teamMap = {
   '인사부서': ['채용팀', '인사평가팀'],
   '재무회계부서': ['급여정산팀', '세무관리팀'],
   '마케팅부서': ['콘텐츠마케팅팀', '퍼포먼스팀'],
-  '영업부서': ['B2B영업팀', 'B2C영업팀']
+  '영업부서': ['B2B영업팀', 'B2C영업팀'],
+  '소속 없음': ['소속 없음']
 }
 
 // ✅ 수정된 computed 함수들 - form.value 제거

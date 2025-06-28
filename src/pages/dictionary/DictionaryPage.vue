@@ -114,12 +114,14 @@
       </div>
     </div>
   </div>
+  <BaseToast ref="toastRef" />
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
+import BaseToast from '@/components/toast/BaseToast.vue'
 import { useUserStore } from '@/stores/user'
 import {
   ModuleRegistry,
@@ -148,10 +150,15 @@ const router      = useRouter()
 const userStore   = useUserStore()
 const API_BASE    = 'http://localhost:5000/dictionary'
 
+const toastRef = ref(null)
+function showToast(msg) {
+    toastRef.value?.show(msg)
+}
+
 let gridApi       = null
 const columnDefs  = ref([
   { headerName: '', field: 'checkbox', checkboxSelection: true, headerCheckboxSelection: true, width: 50, pinned: 'left' },
-  { headerName: '번호', field: 'id', width: 100, cellClass: 'center-align' },
+  { headerName: '번호', valueGetter: params => params.api.getDisplayedRowCount() - params.node.rowIndex, sortable: false, flex: 0.3, cellClass:'center-align' },
   { headerName: '용어', field: 'title', flex: 0.5, autoHeight: true, cellStyle: { whiteSpace: 'normal' } },
   { headerName: '설명', field: 'definition', flex: 2, cellClass: 'center-align' }
 ])
@@ -264,14 +271,14 @@ async function fetchDictionary() {
     }))
   } catch (e) {
     console.error(e)
-    alert('용어사전 로드에 실패했습니다.')
+    showToast('용어사전 로드에 실패했습니다.')
   }
 }
 
 // 삭제 모달 오픈
 function onDeleteClick() {
   if (!gridApi.getSelectedRows().length) {
-    return alert('삭제할 항목을 선택하세요.')
+    return showToast('삭제할 항목을 선택하세요.')
   }
   showDeleteModal.value = true
 }
@@ -287,7 +294,7 @@ async function confirmDelete() {
     await fetchDictionary()
   } catch (e) {
     console.error(e)
-    alert('삭제에 실패했습니다.')
+    showToast('삭제에 실패했습니다.')
   } finally {
     showDeleteModal.value = false
   }
@@ -305,7 +312,7 @@ function onRegisterClick() {
 function onModifyClick() {
   const rows = gridApi.getSelectedRows()
   if (rows.length !== 1) {
-    return alert('하나만 선택하세요.')
+    return showToast('하나만 선택하세요.')
   }
   isEditMode.value      = true
   editingId.value       = rows[0].id
@@ -324,7 +331,7 @@ async function confirmEntry() {
   const title = entryTitle.value.trim()
   const def   = entryDefinition.value.trim()
   if (!title || !def) {
-    return alert('용어명과 내용을 모두 입력하세요.')
+    return showToast('용어명과 내용을 모두 입력하세요.')
   }
   try {
     if (isEditMode.value) {
@@ -344,7 +351,7 @@ async function confirmEntry() {
     showEntryModal.value = false
   } catch (e) {
     console.error(e)
-    alert('저장에 실패했습니다.')
+    showToast('저장에 실패했습니다.')
   }
 }
 
@@ -627,6 +634,10 @@ onMounted(fetchDictionary)
   height: 100px;
   resize: vertical;
   box-sizing: border-box;
+}
+
+.entry-modal p {
+  text-align: center;
 }
 
 /* 모달 버튼 배치 */

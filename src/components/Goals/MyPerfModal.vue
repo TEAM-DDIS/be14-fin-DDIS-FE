@@ -112,7 +112,7 @@ watch(() => props.performances, () => {
   margin-top: 8px;
   text-align: right;
   font-weight: bold;
-  color: #00a8e8;
+  color: var(--primary);
   padding-top: 10px;
 }
 .filter-row {
@@ -120,15 +120,17 @@ watch(() => props.performances, () => {
   align-items: center;
   margin: 16px 0;
 }
-
-
-
+.filter-row select{
+  background: var(--bg-main);
+  color: var(--text-main);
+}
 .filter-right {
   font-weight: bold;
-  color: #00a8e8;
+  color: var(--primary);
 }
 .modal-content {
-  background: #fff;
+  background: var(--modal-bg2) !important;
+  color: var(--modal-text);
   border-radius: 8px;
   padding: 24px;
   width: 90%;
@@ -150,7 +152,7 @@ watch(() => props.performances, () => {
   font-size: 24px; cursor: pointer;
 }
 .btn-close:hover{
-  color:#00a8e8
+  color: var(--primary);
 }
 .my-perf-table {
   width: 100%; border-collapse: collapse;
@@ -168,7 +170,7 @@ watch(() => props.performances, () => {
     cursor: pointer; 
 }
 .clickable-row:hover { 
-    background: #f0f8ff; 
+    background:var(--ag-row-border-color); 
 }
 .filter-row select {
     padding: 6px 8px;

@@ -581,6 +581,7 @@ input[type="month"] {
   display: flex;
   align-items: center;
   gap: 13px;
+  background-color: var(--bg-box);
 }
 
 /* 조회 버튼 hover 효과 */
@@ -666,7 +667,7 @@ input[type="month"] {
 .detail-title {
   text-align: center;
   font-weight: bold;
-  margin: 0 0 12px;
+  margin: 0 0 19px;
 }
 
 /* 강조 텍스트 */

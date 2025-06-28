@@ -158,18 +158,22 @@ onMounted(async () => {
     }
 
     // 상신 문서
-    const resDrafts = await fetch('http://localhost:5000/drafts/query', { headers })
+    const resDrafts = await fetch('http://localhost:5000/approvals/draftDoc', { headers })
     if (resDrafts.ok) {
       const data = await resDrafts.json()
-      draftCount.value = data.filter(doc => doc.status === '대기중').length
-      rejectCount.value = data.filter(doc => doc.status === '반려').length
+      draftCount.value = data.filter(d => d.docStatus === '대기중' || d.docStatus === '심사중').length
+      rejectCount.value = data.filter(d => d.docStatus === '반려').length
     }
 
     // 결재 대기 문서
-    const resApprovals = await fetch('http://localhost:5000/approvals', { headers })
+
+    const resApprovals = await fetch('http://localhost:5000/approvals/ApprovalBox?tab=결재', {
+      headers: { Authorization: `Bearer ${token}` }
+    })
+
     if (resApprovals.ok) {
-      const data = await resApprovals.json()
-      approveWaitingCount.value = data.filter(doc => doc.status === '대기중').length
+      const list = await resApprovals.json()
+      approveWaitingCount.value = list.length
     }
 
   } catch (err) {
