@@ -25,7 +25,7 @@ defineProps({
 .modal-overlay {
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
-  background-color: rgba(0, 0, 0, 0.4);
+  background-color: rgba(0, 0, 0, 0.6);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -33,8 +33,8 @@ defineProps({
 }
 
 .modal-content {
-  background: var(--modal-box-bg);
-  padding: 20px;
+  background: var(--modal-bg2);
+  padding: 30px;
   border-radius: 12px;
   width: 300px;
   text-align: center;
@@ -69,7 +69,7 @@ defineProps({
 .btn.confirm {
   font-size: 14px;
   font-weight: bold;
-  background-color: #00a8e8;
+  background-color: var(--primary);
   color: white;
   border: 1px solid transparent;
   border-radius: 10px;
@@ -79,9 +79,9 @@ defineProps({
   transition: background-color 0.2s, box-shadow 0.2s;
 }
 .btn.confirm:hover {
-  background-color: white;
-  color: #00a8e8;
-  border-color: #00a8e8;
+  background-color:  var(--bg-main);
+  color: var(--primary);
+  border-color: var(--primary);
   box-shadow: inset 1px 1px 10px rgba(0, 0, 0, 0.25);
 }
 
