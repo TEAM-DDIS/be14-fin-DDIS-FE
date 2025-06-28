@@ -1154,11 +1154,12 @@ color: var(--primary);
   border-radius: 6px;
   color: #fff;
   cursor: pointer;
+  border: 1px solid transparent;
 }
 .btn-delete:hover {
   background-color: var(--bg-main);
-  color: var(--primary);
-  border-color: var(--primary);
+  color: var(--text-main);
+  border-color: var(--text-main);
   box-shadow:
   inset 1px 1px 10px rgba(0, 0, 0, 0.25);
 }
