@@ -211,7 +211,7 @@ if (!isHR) {
 onMounted(async () => {
   try {
     const { data } = await axios.get(
-      'https://api.isddishr/structure/hierarchy',
+      'https://api.isddishr.site/structure/hierarchy',
       { headers: { Authorization: `Bearer ${token}` } }
     )
     headquarters.value = data.map(h => ({
