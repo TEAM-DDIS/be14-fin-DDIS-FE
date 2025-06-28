@@ -2,15 +2,13 @@
   <div class="evaluation-page">
     <main class="main-content">
       <!-- 헤더 -->
-      <div class="header-bar">
-        <h1 class="page-title">
-          <img src="@/assets/icons/back_btn.svg"
+      <div class="header-bar page-title">
+      <img src="@/assets/icons/back_btn.svg"
           alt="back"
           class="back-btn"
           @click="goBack" />
-          평가
-        </h1>
-      </div>
+      <h1>평가</h1>
+    </div>
 
       <div class="content-panels">
         <!-- 1) 평가 대상자 리스트 -->
@@ -515,76 +513,87 @@ function showToast(msg) {
 
 <style scoped>
 /* 전체 레이아웃 */
- .page-title {
-    margin-left: 20px;
-    margin-bottom: 30px;
-    color: #00a8e8;
-  }
-  .desc {
-    display: block;
-    /* margin-left: 20px; */
-    margin-bottom: 10px;
-    font-size: 18px;
-  }
-  .block {
-    padding: 20px;
-    display: flex;
-    flex-direction: column;
-  }
-  .header-bar {
-    display: flex;
-    align-items: center;
-    
-  }
-  /* 탭 버튼 스타일 */
+.page-title {
+  /* margin-left: 20px;
+  margin-bottom: 30px; */
+  color: var(--primary);
+}
+.desc {
+  margin-top:9px;
+  display: block;
+  /* margin-left: 20px; */
+  margin-bottom: 10px;
+  font-size: 18px;
+  color: var(--text-main);
+}
+.block {
+  /* padding: 20px; */
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+.header-bar {
+  display: flex;
+  align-items: center;
+  margin-top: -20px;
+}
+.header-bar.page-title {
+display: flex;
+align-items: center;
+gap: 8px;
+padding: 0;
+}
+/* 탭 버튼 스타일 */
 .tab-bar {
   display: flex;
   overflow: hidden;
-  margin-top: 16px;
+  /* margin-top: 3px; */
+  margin-left: 3px;
+  gap: 0;
 }
 
 /* 각 탭 버튼 */
 .tab {
-  font-size: 15px;
-  padding: 6px 14px;
-  background-color: #c8c8c8;
+  font-size: 18px;
+  padding: 10px 20px;
   border: none;
-  border-radius: 10px 10px 0 0;
-  margin-right: -8px;
-  box-shadow: 1px 1px 20px rgba(0, 0, 0, 0.05);
-  transition: all 0.2s ease;
+  border-bottom: none;
+  background-color: #C8C8C8;
   color: white;
   cursor: pointer;
+  border-top-left-radius: 12px;
+  border-top-right-radius: 12px;
+  position: relative;
+  z-index: 1;
+  margin-right: -10px; /* ✅ 가로 겹치기 */
+  transition: all 0.2s ease;
 }
 
- .tab:not(:last-child) {
-  border-right: 1px solid #e0e0e0;
-}
 
 /* 활성 탭 */
 .tab.active {
-  background-color: white;
-  color: black;
-  font-weight: bold;
+    background: var(--bg-box);
+    color: var(--modal-text);
+    z-index: 3;
 }
 
 /* goals-panel border-top 지우면 탭 아래 딱 붙습니다 */
 .goals-panel {
   border-top: none;
 }
-  .btn-my-reviews {
-    margin-left: auto;
-    font-size: 14px;
-    font-weight: bold;
-    background-color: #00a8e8;
-    color: white;
-    border: 1px solid transparent;
-    border-radius: 10px;
-    padding: 10px 30px;
-    cursor: pointer;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-    transition: background-color 0.2s, box-shadow 0.2s;
-    box-sizing: border-box;
+.btn-my-reviews {
+  margin-left: auto;
+  font-size: 14px;
+  font-weight: bold;
+  background-color: #00a8e8;
+  color: white;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  padding: 10px 30px;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: background-color 0.2s, box-shadow 0.2s;
+  box-sizing: border-box;
 }
 .btn-my-reviews:hover {
   background-color: white;
@@ -593,28 +602,30 @@ function showToast(msg) {
   box-shadow:
   inset 1px 1px 10px rgba(0, 0, 0, 0.25);
 }
-  .perf-block {
-    /* padding: -20px; */
-    margin-left: -40px;
-    flex: 1;
-    min-height: 0;
-  }
-  
-  .hide-scrollbar {
-    overflow: auto;
-    scrollbar-width: none;
-  }
+.perf-block {
+  /* padding: -20px; */
+  margin-left: -40px;
+  flex: 1;
+  min-height: 0;
+}
+
+.hide-scrollbar {
+  overflow: auto;
+  scrollbar-width: none;
+}
 
 .evaluation-page {
-  height: 100vh;
+  height: 90vh;
   display: flex;
-  font-family: 'Noto Sans KR', sans-serif;
+  justify-content: center; 
+  /* font-family: 'Noto Sans KR', sans-serif; */
+  /* padding-right: 10px; */
 }
 .main-content {
   flex: 1;
   display: flex;
   flex-direction: column;
-  
+  /* padding-right: 30px; */
 }
 .existing-files ul {
   list-style: none;
@@ -652,53 +663,56 @@ function showToast(msg) {
 }
 .arrows {
   position:absolute;
-  top: 25%;              /* 패널 높이 중간(필요 시 조정) */
-  left: 990px;
+  top: 15%;              /* 패널 높이 중간(필요 시 조정) */
+  left: 88.5%;
   transform: translateY(-50%);
+  filter: var(--arrow-filter);
+  z-index: 5;
 }
 
 /* 1) 평가 대상자 리스트 */
 .people-panel {
   position: relative;
-  width: 400px;
+  width: 450px;
   min-height: 360px;
   flex: 1;
-  background: #fff;
+  background: var(--bg-box);
   border-radius: 12px;
   padding: 16px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  box-shadow: 0px 0px 5px 4px var(--menu-btn-shadow);
   display: flex;
   flex-direction: column;
   overflow-y: auto;
   z-index: 3;
+  margin-right: 10px;
 }
 .people-list {
   list-style: none;
-  padding: 0;
+  padding: 10px;
   margin: 0;
 }
 .people-list li {
+  background: var(--bg-box);
+  box-shadow: 0px 0px 5px 4px var(--menu-btn-shadow);
   display: flex;
   align-items: center;
-  padding: 8px;
-  margin-bottom: 8px;
-  border-radius: 8px;
+  padding: 15px;
+  margin-bottom: 15px;
+  border-radius: 12px;
   cursor: pointer;
   transition: background 0.2s;
 }
-.people-list li.selected
- {
-    box-shadow:
-    inset 0 4px 8px rgba(0, 0, 0, 0.15),
-    0 2px 8px rgba(0, 0, 0, 0.1);
-  transform: translateY(0);
-  background-color: #f7f7f7;
-}
-.people-list li:hover{
-   transform: translateY(-2px);
+.people-list li.selected{
   box-shadow:
     inset 0 4px 8px rgba(0, 0, 0, 0.15),
     0 2px 8px rgba(0, 0, 0, 0.1);
+  transform: translateY(0);
+  background-color: var(--ag-primary-hover);
+}
+.people-list li:hover{
+  box-shadow: inset 0px 0px 5px 4px var(--menu-btn-shadow);
+  transition: background-color 0.3s, box-shadow 0.3s;
+  background-color: var(--ag-primary-hover);
 }
 .desc-tabs {
   display: flex;
@@ -709,28 +723,29 @@ function showToast(msg) {
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  margin-right: 8px;
+  margin-right: 13px;
   object-fit: cover;
 }
 .info { flex: 1; }
-.name { font-weight: 600; color: #333; }
-.role { font-size: 0.85rem; color: #666; }
-.dept { font-size: 0.75rem; color: #888; }
+.name { font-weight: 600; margin-right: 5px;}
+.role { font-size: 13px; color: var(--text-main); }
+.dept { font-size: 15px; color: #00A8E8;}
 
 /* 2) 목표 카드 리스트 */
 .goals-panel {
   position: relative;
-  width: 500px;
+  width: 530px;
   min-height: 360px;
   flex: 1;
-  background: #fff;
+  background: var(--bg-box);
   border-radius: 12px;
   padding: 16px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  box-shadow: 1px 1px 20px 1px rgba(0, 0, 0, 0.05);
   display: flex;
   flex-direction: column;
   overflow-y: auto;
   z-index: 3;
+  margin-right: 50px;
 }
 .goals-list {
   flex: 1;
@@ -738,39 +753,40 @@ function showToast(msg) {
   display: flex;
   flex-direction: column;
   gap: 12px;
+  padding: 10px;
 }
 .goal-card {
-  background: #fff;
+  background: var(--bg-box);
   border-radius: 12px;
-  padding: 16px;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  padding: 20px;
+  box-shadow: 0px 0px 5px 4px var(--menu-btn-shadow);
   cursor: pointer;
   transition: transform 0.2s, box-shadow 0.2s;
 }
 .goal-card:hover {
-  transform: translateY(-2px);
+  /* transform: translateY(-2px); */
+  box-shadow: inset 0px 0px 5px 4px var(--menu-btn-shadow);
+  transition: background-color 0.3s, box-shadow 0.3s;
+  background-color: var(--ag-primary-hover);
+}
+.goal-card.selected {
   box-shadow:
     inset 0 4px 8px rgba(0, 0, 0, 0.15),
     0 2px 8px rgba(0, 0, 0, 0.1);
-}
-.goal-card.selected {
-      box-shadow:
-    inset 0 4px 8px rgba(0, 0, 0, 0.15),
-    0 2px 8px rgba(0, 0, 0, 0.1);
   transform: translateY(0);
-  background-color: #f7f7f7;
+  background-color: var(--ag-primary-hover);
 }
 .card-top {
   display: flex;
   justify-content: space-between;
-  color: #888;
+  /* color: #888; */
   font-size: 0.85rem;
   margin-bottom: 8px;
 }
 .card-title {
   margin: 0 0 12px;
   font-weight: 600;
-  color: #333;
+  /* color: #333; */
 }
 .card-bottom {
   display: flex;
@@ -788,16 +804,25 @@ function showToast(msg) {
 
 /* 과거 평가 카드 스타일 */
 .history-card {
-  background: #fff;
+  background: var(--bg-box);
   border-radius: 12px;
   padding: 16px;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+  box-shadow: 0px 0px 5px 4px var(--menu-btn-shadow);
   cursor: pointer;
   transition: transform 0.2s, box-shadow 0.2s;
 }
 .history-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  /* transform: translateY(-2px); */
+  box-shadow: inset 0px 0px 5px 4px var(--menu-btn-shadow);
+  transition: background-color 0.3s, box-shadow 0.3s;
+  background-color: var(--ag-primary-hover);
+}
+.history-card.selected {
+  box-shadow:
+    inset 0 4px 8px rgba(0, 0, 0, 0.15),
+    0 2px 8px rgba(0, 0, 0, 0.1);
+  transform: translateY(0);
+  background-color: var(--ag-primary-hover);
 }
 .progress-group {
   flex: 1;
@@ -819,7 +844,7 @@ function showToast(msg) {
 }
 .progress-text {
   font-size: 0.85rem;
-  color: #444;
+  /* color: #444; */
   min-width: 32px;
   text-align: right;
 }
@@ -838,13 +863,13 @@ function showToast(msg) {
 
 /* 3) 평가 입력 패널 */
 .perf-panel {
-  width: 450px;
+  width: 500px;
   min-height: 330px;
   flex: 1;
-  background: #F8F9FA;
+  background: var(--calendar-border-color);
   border-radius: 12px;
   padding: 30px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  box-shadow: 0px 0px 5px 4px var(--menu-btn-shadow);
   display: flex;
   flex-direction: column;
   overflow-y: auto;
@@ -856,13 +881,13 @@ function showToast(msg) {
 }
 .detail-header .label {
   font-size: 0.85rem;
-  color: #666;
+  /* color: #666; */
   margin-bottom: 4px;
 }
 .detail-header .title {
   font-size: 1.5rem;
   font-weight: 600;
-  color: #00a8e8;
+  color: var(--primary);
   line-height: 1.2;
 }
 
@@ -870,14 +895,13 @@ function showToast(msg) {
 .detail-subheader {
   font-size: 0.95rem;
   font-weight: 600;
-  color: #333;
   margin: 16px 0 8px;
 }
 
 /* 상세 정보 테이블 */
 .detail-info {
-  background: #fff;
-  border: 1px solid #e0e0e0;
+  background: var(--bg-label-cell);
+  border: 1px solid  var(--border-color);
   border-radius: 8px;
   overflow: hidden;
 }
@@ -889,25 +913,26 @@ function showToast(msg) {
 .detail-table td {
   padding: 10px;
   text-align: left;
-  border-bottom: 1px solid #e0e0e0;
-  border-right: 1px solid #e0e0e0;
+  border-bottom: 1px solid  var(--border-color);
+  border-right: 1px solid var(--border-color);
   font-size: 0.95rem;
+  background: var(--bg-main);
+  color: var(--text-main);
 }
 .detail-table th {
   width: 30%;
-  background: #fafafa;
+  background-color: var(--bg-label-cell);
   font-weight: 600;
-  color: #333;
 }
 .detail-table td {
-  background: #fff;
-  color: #444;
+  background-color: var(--bg-main);
+  color: var(--text-main);
 }
 .detail-table .subheader td {
-  background: #f7f7f7;
+  background-color: var(--bg-label-cell);
   font-weight: 600;
   text-align: center;
-  
+
 }
 .detail-table .description {
   white-space: pre-wrap;
@@ -935,9 +960,10 @@ function showToast(msg) {
   width: 100%;
   padding: 12px;
   font-size: 1rem;
-  border: 1px solid #ddd;
+  border: 1px solid var(--border-input);
   border-radius: 8px;
-  background: #fff;
+  background-color: var(--bg-main); 
+  color: var(--text-main); 
   box-shadow: 0 1px 4px rgba(0,0,0,0.05);
   box-sizing: border-box;
   resize: none;
@@ -962,8 +988,8 @@ function showToast(msg) {
 .btn-save {
   font-size: 14px;
   font-weight: bold;
-  background-color: #00a8e8;
-  color: white;
+  background-color: var(--primary);
+  color: var(--text-on-primary);  
   border: 1px solid transparent;
   border-radius: 10px;
   padding: 10px 30px;
@@ -974,9 +1000,9 @@ function showToast(msg) {
 }
 
 .btn-save:hover {
-  background-color: white;
-  color: #00a8e8;
-  border-color: #00a8e8;
+  background-color: var(--bg-main);
+  color: var(--primary);
+  border-color: var(--primary);
   box-shadow:
   inset 1px 1px 10px rgba(0, 0, 0, 0.25);
 }
