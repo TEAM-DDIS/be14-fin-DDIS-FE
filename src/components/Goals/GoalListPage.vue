@@ -917,7 +917,7 @@ tr{
 .form-row input:focus,
 .form-row textarea:focus {
   outline: none;
-  border-color: var(--border-input) !important;
+  border-color: var(--text-main) !important;
   background-color: var(--bg-main) !important; 
   color: var(--text-main); 
 }
@@ -926,7 +926,7 @@ tr{
   font-size: 0.95rem;
   line-height: 1.4;
   padding: 8px 12px;
-  border: 1px solid var(--border-input);
+  /* border: 1px solid var(--border-input); */
   border-radius: 6px;
   background-color: var(--bg-main);  
   color: var(--text-main);
@@ -1153,8 +1153,8 @@ tr{
   cursor: pointer;
 }
 .btn-delete:hover {
-  background-color: white;
-  color: #c8c8c8;;
+  background-color: var(--bg-main);
+  color: var(--primary);
   border-color: var(--primary);
   box-shadow:
   inset 1px 1px 10px rgba(0, 0, 0, 0.25);
@@ -1190,11 +1190,12 @@ table.detail-table-vertical {
   font-size: 0.9rem;
 }
 .detail-table-vertical th {
-  background: #fafafa;
+  background: var(--bg-label-cell);
+  color: var(--text-main);
   font-weight: 600;
 }
 .detail-table-vertical td {
-  background: #ffffff;
+  background: var(--bg-main);
 }
 .attach-area,
 .input-area {
@@ -1206,9 +1207,10 @@ table.detail-table-vertical {
 .input-area input,
 .input-area textarea {
   padding: 8px;
-  border: 1px solid #d9d9d9;
+  border: 1px solid var(--border-input);
   border-radius: 6px;
-  background: #fafafa;
+  background: var(--bg-main);
+  color: var(--text-main);
   resize: none;
 }
 .input-area textarea {
@@ -1216,18 +1218,24 @@ table.detail-table-vertical {
   font-size: 0.95rem;
   line-height: 1.4;
   padding: 8px 12px;
-  border: 1px solid #d9d9d9;
+  border: 1px solid var(--border-input);
+  color: var(--text-main);
   border-radius: 6px;
-  background: #fafafa;
+  background: var(--bg-main);
   box-sizing: border-box;
   resize: none;
   height: 48px;
 }
+.input-area input:focus,
+.input-area textarea:focus {
+  outline: none;
+  border-color: var(--text-main);
+}
 .form-row textarea:focus,
 .input-area textarea:focus {
   outline: none;
-  border-color: black;
-  background: #fff;
+  border-color: var(--text-main);
+  /* background: var(--bg-main); */
 }
 .attach-area label {
   width: 80px;
@@ -1236,8 +1244,8 @@ table.detail-table-vertical {
 .file-box {
   display: flex;
   align-items: center;
-  background: #fafafa;
-  border-radius: 6px;
+  background: var(--bg-main);
+  border-radius: 4px;
   padding: 6px 12px;
   gap: 8px;
 }
@@ -1323,13 +1331,13 @@ table.detail-table-vertical {
 .detail-label {
   font-size: 1rem;
   font-weight: 600;
-  color: #333;
+  color: var(--modal-text);
 }
 .detail-table-vertical tr:nth-child(odd) td {
-  background: #ffffff;
+  background: var(--bg-main);
 }
 .detail-table-vertical tr:nth-child(even) td {
-  background: #fff;
+  background: var(--bg-main);
 }
 .link-preview {
   color: inherit;            /* 부모 텍스트 색상 그대로 */
