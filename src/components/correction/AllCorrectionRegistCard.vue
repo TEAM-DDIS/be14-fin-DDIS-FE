@@ -342,7 +342,7 @@
         justify-content: space-between;
         flex-wrap: wrap;
         gap: 10px;
-        margin-bottom: 10px;
+        margin-bottom: 15px;
     }
 
     .search-bar {
