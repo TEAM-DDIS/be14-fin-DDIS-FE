@@ -238,7 +238,7 @@
         border: 1px solid #ccc;
         background: var(--modal-bg);
         color: var(--text-main);
-        border-radius: 4px;
+        border-radius: 8px;
     }
 
     .search {
@@ -256,7 +256,7 @@
         border: 1px solid #ccc;
         background: var(--modal-bg);
         color: var(--text-main);
-        border-radius: 4px;
+        border-radius: 8px;
     }
 
     .fixed-select {

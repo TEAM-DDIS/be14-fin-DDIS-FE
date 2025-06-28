@@ -9,16 +9,16 @@
     <div class="tab-wrapper">
       <div class="tab-menu">
         <button
-        :class="{ active: activeTab === 'used' }"
-        @click="activeTab = 'used'"
-        >
-        사용내역
-        </button>
-        <button
         :class="{ active: activeTab === 'regist' }"
         @click="activeTab = 'regist'"
         >
         신청내역
+        </button>
+        <button
+        :class="{ active: activeTab === 'used' }"
+        @click="activeTab = 'used'"
+        >
+        사용내역
         </button>
       </div>
     </div>
@@ -36,7 +36,7 @@
   import MyLeaveRegistCard from '@/components/leave/MyLeaveRegistCard.vue';
   import MyLeaveUsedCard from '@/components/leave/MyLeaveUsedCard.vue';
 
-  const activeTab = ref('used')
+  const activeTab = ref('regist')
 </script>
 
 <style scoped>

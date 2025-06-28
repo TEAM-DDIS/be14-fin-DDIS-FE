@@ -5,16 +5,16 @@
         <div class="tab-wrapper">
             <div class="tab-menu">
                 <button
-                :class="{ active: activeTab === 'used' }"
-                @click="activeTab = 'used'"
-                >
-                정정내역
-                </button>
-                <button
                 :class="{ active: activeTab === 'regist' }"
                 @click="activeTab = 'regist'"
                 >
                 신청내역
+                </button>
+                <button
+                :class="{ active: activeTab === 'used' }"
+                @click="activeTab = 'used'"
+                >
+                정정내역
                 </button>
             </div>
         </div>
@@ -31,7 +31,7 @@
     import MyCorrectionRegistCard from '@/components/correction/MyCorrectionRegistCard.vue';
     import MyCorrectionUsedCard from '@/components/correction/MyCorrectionUsedCard.vue';
 
-    const activeTab = ref('used')
+    const activeTab = ref('regist')
 </script>
 
 <style scoped>
