@@ -800,8 +800,8 @@ input#weight.input-complete {
   display: block;
 }
 .back-btn {
-  width: 20px;
-  height: 20px;
+  width: 25px;
+  height: 25px;
   margin-right: -10px;
   cursor: pointer;
 }
@@ -1033,6 +1033,9 @@ tr{
   cursor: pointer;
   opacity: 0;
   transition: opacity 0.2s;
+}
+.btn-card-delete:hover{
+color: var(--primary);
 }
 .goal-card:hover .btn-card-delete {
   opacity: 1;
