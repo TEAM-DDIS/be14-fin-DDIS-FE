@@ -374,7 +374,7 @@ onMounted(fetchNotice)
 .page-title {
   margin-left: 20px;
   margin-bottom: 30px;
-  color: #00a8e8;
+  color: var(--primary);
 }
 
 .desc-row {
@@ -389,9 +389,9 @@ onMounted(fetchNotice)
 }
 
 .back-btn {
-  width: 24px;
-  height: 24px;
-  margin-right: -6px;
+  width: 25px;
+  height: 25px;
+  /* margin-right: -10px; */
   cursor: pointer;
 }
 
@@ -408,7 +408,7 @@ onMounted(fetchNotice)
 
 /* ================= 읽기 모드 스타일 ================= */
 .detail-card {
-  background: #fff;
+  background: var(--bg-box);
   border-radius: 12px;
   padding: 20px 32px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
@@ -425,21 +425,20 @@ onMounted(fetchNotice)
 .detail-field .label {
   width: 100px;
   font-weight: 500;
-  color: #333;
   flex-shrink: 0;
 }
 .detail-field .value {
   flex: 1;
   padding: 8px 12px;
-  border: 1px solid #e0e0e0;
+  border: 1px solid var(--border-color);
   border-radius: 8px;
-  background: #fafafa;
-  color: #333;
+  background-color: var(--bg-main);
+  color: var(--text-main);
   word-break: break-word;
   box-sizing: border-box;
 }
 .file-link {
-  color: #00a8e8;
+  color: var(--primary);
   text-decoration: none;
 }
 .file-link:hover {
@@ -466,8 +465,8 @@ onMounted(fetchNotice)
   margin: 0 20px 20px;
 }
 .btn-save {
-  background-color: #00a8e8;
-  color: white;
+  background-color: var(--primary);
+  color: var(--text-on-primary);  
   font-weight: bold;
   border: 1px solid transparent;
   border-radius: 10px;
@@ -479,8 +478,8 @@ onMounted(fetchNotice)
 }
 .btn-save:hover {
   background-color: #fff;
-  color: #00a8e8;
-  border-color: #00a8e8;
+  color: var(--primary);
+  border-color: var(--primary);
   box-shadow: inset 1px 1px 6px rgba(0, 0, 0, 0.15);
 }
 .btn-delete {
@@ -529,7 +528,7 @@ onMounted(fetchNotice)
   background: #eef6ff;
   border-radius: 6px;
   font-size: 14px;
-  color: #00a8e8;
+  color: var(--primary);
   text-decoration: none;
 }
 .file-item-inline a:hover {
@@ -538,7 +537,7 @@ onMounted(fetchNotice)
 
 /* ================= 수정 모드 스타일 ================= */
 .post-enroll-wrapper {
-  background: #fff;
+  background: var(--bg-box);
   border-radius: 12px;
   padding: 20px 32px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
@@ -555,7 +554,6 @@ onMounted(fetchNotice)
   width: 100px;
   margin-right: 12px;
   font-weight: 500;
-  color: #333;
 }
 .required {
   color: #e74c3c;
@@ -623,8 +621,8 @@ onMounted(fetchNotice)
 }
 .btn-save.small:hover {
   background-color: #fff;
-  color: #00a8e8;
-  border-color: #00a8e8;
+  color: var(--primary);
+  border-color: var(--primary);
   box-shadow: inset 1px 1px 6px rgba(0, 0, 0, 0.15);
 }
 .btn-delete.small:hover {
@@ -674,7 +672,6 @@ onMounted(fetchNotice)
   display: block;
   margin-bottom: 8px;
   font-weight: 500;
-  color: #333;
 }
 .editor {
   min-height: 300px;
