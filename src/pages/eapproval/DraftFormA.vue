@@ -282,8 +282,10 @@ function updateDraftDate(val) {
 async function loadDrafterInfo() {
   try {
     const res = await fetch("http://localhost:5000/drafter/me", {
-    headers: { Authorization: `Bearer ${userStore.accessToken}` }
+    headers: { Authorization: `Bearer ${userStore.accessToken}`
+      }
     });
+    console.log("✅ 현재 accessToken:", userStore.accessToken);
     if (!res.ok) throw new Error("기안자 정보 조회 실패");
     const data = await res.json();
     form.departmentName = data.departmentName;

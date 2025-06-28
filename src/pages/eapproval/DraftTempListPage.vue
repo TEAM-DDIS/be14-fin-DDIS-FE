@@ -5,7 +5,7 @@
    <div class="template-list-page">
     <!-- 헤더: 기안양식함 + 양식 추가 + 토글 -->
     <div class="form-list-header">
-      <h3 class="box-title">기안양식함</h3>
+      <div class="box-title">기안양식함</div>
       <!-- <button class="button add" @click="onAddForm">양식 추가</button> -->
       <span class="item-count">양식목록 {{ registeredForms.length }}건</span>
     </div>
@@ -73,15 +73,13 @@ function onAddForm() {
 
 <style scoped>
 .box-title{
-  display: block;
-  margin-left: 10px;
+  
   margin-bottom: 10px;
   font-size: 18px;
 }
 .template-list-page{
   padding: 0 20px 20px;
 }
-
 .add {
   position: absolute;           /* 부모 요소 기준으로 절대 위치 지정 */
   right: 24px;                  /* 오른쪽에서 24px 떨어진 위치 */
@@ -122,9 +120,9 @@ function onAddForm() {
   
 }
 .item-count {
-  color: #666;
+  color: var(--primary);
   font-size: 1em;
-  margin-top: 10px;
+  margin-bottom: 10px;
 }
 .storage-box {
   width: 100%;
