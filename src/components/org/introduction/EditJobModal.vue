@@ -44,10 +44,12 @@ const local = reactive({
   job_id: props.initial.jobId,
   team_name: props.initial.teamName || '',
   job_name: props.initial.jobName || '',
+  job_code: props.initial.jobCode || '',
   job_role_text: (props.initial.jobRole || []).join('\n'),
   job_need_text: (props.initial.jobNeed || []).join('\n'),
   job_necessary_text: (props.initial.jobNecessary || []).join('\n'),
   job_preference_text: (props.initial.jobPreference || []).join('\n'),
+  team_id: props.initial.teamId || null,
 })
 
 watch(
@@ -56,17 +58,20 @@ watch(
     local.job_id = val.jobId
     local.team_name = val.teamName || ''
     local.job_name = val.jobName || ''
+    local.job_code = val.jobCode || ''
     local.job_role_text = (val.jobRole || []).join('\n')
     local.job_need_text = (val.jobNeed || []).join('\n')
     local.job_necessary_text = (val.jobNecessary || []).join('\n')
     local.job_preference_text = (val.jobPreference || []).join('\n')
-  }
+    local.team_id = val.teamId || null
+  },
 )
 
 function onSave() {
   emit('save', {
     jobId: local.job_id,
     jobName: local.job_name,
+    jobCode: local.job_code,
     jobRole: local.job_role_text
       .split('\n')
       .map(l => l.trim())
@@ -83,6 +88,7 @@ function onSave() {
       .split('\n')
       .map(l => l.trim())
       .filter(l => l),
+    teamId: local.team_id
   })
 }
 </script>

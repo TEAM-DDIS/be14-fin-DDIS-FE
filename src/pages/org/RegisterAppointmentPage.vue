@@ -71,7 +71,7 @@
             class="ag-theme-alpine custom-theme"
             :gridOptions="{ theme: 'legacy' }"
             :width="'100%'"
-            :height="'285px'"
+            :height="'280px'"
             :columnDefs="columnDefs"
             :rowData="rowData"
             :defaultColDef="{ sortable: true, resizable: true }"
@@ -168,7 +168,7 @@ if (!isHR) {
 }
 
 function goBack() {
-  router.back()
+  router.push('/org/appointment')
 }
 
 // 폼 상태
@@ -799,8 +799,7 @@ function cancel() {
 .org-section {
   flex: 1;
   min-width: 400px;
-  
-  margin-top: 65px;
+  margin-top: 68px;
 }
 
 .info-section {
@@ -813,7 +812,7 @@ function cancel() {
 }
 .info-table th,
 .info-table td {
-  border: 1px solid var(--border-color);
+  border: 1px solid #ddd;
   padding: 12px 12px;
 }
 .info-table th {
@@ -846,7 +845,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 .button-group {
   position: absolute;
   bottom: 50px;
-  right: 210px;
+  right: 215px;
   display: flex;
   gap: 15px;
 }

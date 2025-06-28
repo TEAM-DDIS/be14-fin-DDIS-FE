@@ -666,9 +666,8 @@ function handleReload() {
   padding: 8px 16px;
   height: 70px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-  margin-bottom: 30px;
   gap: 20px;
-  margin-left: 20px;
+  margin: 0 20px 30px;
 }
 .toolbar-label {
   font-weight: bold;
@@ -740,14 +739,14 @@ function handleReload() {
   height: 25px;
 }
 .toolbar-search {
-  padding: 6px 12px;
+  padding: 6px 10px;
   border: 1px solid #ddd;
   color: var(--text-main);
   border-radius: 8px;
   font-size: 16px;
   width: 200px;
-  height: 40%;
-  background: var(--modal-box-bg);
+  height: 38%;
+  background: var(--bg-main);
 }
 
 .content-grid {
@@ -756,7 +755,7 @@ function handleReload() {
   gap: 24px;
   align-items: stretch;
   margin-left: 20px;
-
+  margin-right: 20px;
 }
 .section {
   display: flex;
@@ -864,7 +863,7 @@ function handleReload() {
   background-color: var(--bg-label-cell);
 }
 .member-table tr.active {
-  background: #ececec;
+  background: var(--modal-box-bg);
 }
 .no-data {
   text-align: center;

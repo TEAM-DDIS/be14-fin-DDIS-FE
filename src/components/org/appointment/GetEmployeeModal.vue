@@ -5,15 +5,30 @@
         <h2 class="modal-title">사원 선택</h2>
       </div>
       <div class="modal-header">
-        <div class="search-bar">
-          <select v-model="searchType">
-            <option value="name">사원명</option>
-            <option value="id">사원번호</option>
-            <option value="position">직책</option>
-            <option value="rank">직급</option>
-          </select>
-          <input v-model="search" type="text" placeholder="검색어 입력" />
-        </div>
+        <div class="search-wrapper">
+          <div class="search-bar">
+            <select v-model="searchType">
+              <option value="name">사원명</option>
+              <option value="id">사원번호</option>
+              <option value="position">직책</option>
+              <option value="rank">직급</option>
+            </select>
+            <input v-model="search" type="text" placeholder="검색어 입력" />
+          </div>
+          <ul class="employee-search-result scrollbar" v-if="search.trim() && filteredAndSortedNodes.length">
+              <li
+                v-for="emp in filteredAndSortedNodes"
+                :key="emp.employeeId"
+                :class="{ selected: selectedNode?.employeeId === emp.employeeId }"
+                @click="onEmployeesSelected([emp.employeeId], emp)"
+              >
+                {{ emp.employeeName }} ({{ emp.positionName }}, {{ emp.rankName }})
+              </li>
+            </ul>
+            <div v-else-if="search.trim() && filteredAndSortedNodes.length === 0" class="no-result">
+              검색 결과가 없습니다.
+            </div>
+          </div>
         <button class="delete-btn btn-delete" @click="deleteSelectedEmployees">
           삭제
         </button>
@@ -21,19 +36,7 @@
 
       <div class="modal-body">
         <div class="org-tree-area">
-          <ul class="employee-search-result scrollbar" v-if="search.trim() && filteredAndSortedNodes.length">
-            <li
-              v-for="emp in filteredAndSortedNodes"
-              :key="emp.employeeId"
-              :class="{ selected: selectedNode?.employeeId === emp.employeeId }"
-              @click="onEmployeesSelected([emp.employeeId], emp)"
-            >
-              {{ emp.employeeName }} ({{ emp.positionName }}, {{ emp.rankName }})
-            </li>
-          </ul>
-          <div v-else-if="search.trim() && filteredAndSortedNodes.length === 0" class="no-result">
-            검색 결과가 없습니다.
-          </div>
+          
           <Hierarchy
             @loaded-hierarchy="onHierarchyLoaded"
             @employees-selected="onEmployeesSelected"
@@ -388,11 +391,15 @@ function submitSelection() {
   background: var(--modal-box-bg);
 }
 
+.search-wrapper {
+  position: relative;
+  display: inline-block; 
+}
 .search-bar {
+  position: relative; 
   display: flex;
   align-items: center;
   gap: 8px;
-  margin: 12px 0;
   margin-left: 12px;
   flex-shrink: 0;
 }
@@ -403,42 +410,45 @@ function submitSelection() {
   padding: 6px 10px;
   font-size: 14px;
   min-width: 90px;
-  background: var(--modal-box-bg);
+  background: var(--bg-main);
   box-shadow: 0 1px 4px rgba(0,0,0,0.05);
   color: var(--text-main);
 }
 
 .search-bar input {
   border: 1px solid #ddd;
-  border-radius: 6px;
+  border-radius: 8px;
   padding: 6px 12px;
   font-size: 14px;
-  width: 180px;
-  background: var(--modal-box-bg);
+  width: 170px;
+  background: var(--bg-main);
   color: var(--text-main);
   box-shadow: 0 1px 4px rgba(0,0,0,0.05);
 }
 
 .employee-search-result {
-  list-style: none;
+  position: absolute;
+  top: 100%;
+  right: 0;
+  max-height: 200px;
+  width: 61%; 
+  margin: 0.5px 0 0;
   padding: 0;
-  margin: 0 0 12px 0;
-  width: 100%;
-  font-size: 14px;
-  max-height: 180px;
-  overflow-y: auto;
-  background: var(--modal-bg);
+  list-style: none;
+  background: var(--modal-box-bg);
   border: 1px solid #ddd;
   border-radius: 8px;
-  box-shadow: 0 1px 6px rgba(0,0,0,0.1);
+  overflow-y: auto;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  z-index: 1000;
+  font-size: 14px;
+  
 }
 
 .employee-search-result li {
-  padding: 8px 12px;
+  padding: 6px 12px;
   cursor: pointer;
   border-bottom: 1px solid #ddd;
-  transition: background 0.2s;
-  overflow-y: auto;
 }
 
 .employee-search-result.scrollbar {

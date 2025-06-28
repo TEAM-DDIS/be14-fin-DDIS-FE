@@ -228,7 +228,7 @@ function onCellClick(e) {
   }
   .filters label {
     font-weight: 500;
-    color: var(--text-main);;
+    color: var(--text-main);
   }
   .filters select,
   .filters input {
@@ -237,7 +237,7 @@ function onCellClick(e) {
     padding: 6px 8px;
     font-size: 14px;
     color: var(--text-main);
-    background: var(--modal-box-bg);
+    background: var(--bg-main);
   }
   .filters input {
     width: 250px;
