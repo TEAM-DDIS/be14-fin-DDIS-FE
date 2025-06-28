@@ -1,10 +1,6 @@
 <template>
   <div class="goal-page">
     <h1 class="page-title">
-      <img src="@/assets/icons/back_btn.svg"
-      alt="back"
-      class="back-btn"
-      @click="goBack" />
       내가 쓴 평가
     </h1>
     <p class="desc">실적 목록</p>
