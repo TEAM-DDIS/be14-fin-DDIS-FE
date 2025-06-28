@@ -164,8 +164,8 @@ const filteredData = computed(() =>
   color: var(--primary);
 }
 .back-btn {
-  width: 24px;
-  height: 24px;
+  width: 25px;
+  height: 25px;
   margin-right: -10px;
   cursor: pointer;
 }
@@ -235,11 +235,5 @@ const filteredData = computed(() =>
   background-color: var(--bg-main);
   color: var(--text-main);
   border-radius: 8px !important;
-}
-.back-btn {
-  width: 20px;
-  height: 20px;
-  margin-right: -10px;
-  cursor: pointer;
 }
 </style>
