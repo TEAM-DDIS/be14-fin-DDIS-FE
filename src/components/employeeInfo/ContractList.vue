@@ -146,6 +146,28 @@ function authHeaders() {
   return { Authorization: `Bearer ${userStore.accessToken}` }
 }
 
+async function downloadFile(fileUrl, fileName) {
+  try {
+    const { data: presignedUrl } = await axios.get(
+      '/s3/download-url',
+      { params: { filename: fileUrl, contentType: '' }, headers: authHeaders() }
+    )
+    const res  = await fetch(presignedUrl)
+    const blob = await res.blob()
+    const url  = URL.createObjectURL(blob)
+    const a    = document.createElement('a')
+    a.href     = url
+    a.download = fileName
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+  } catch (err) {
+    console.error('파일 다운로드 실패:', err)
+    showToast('파일 다운로드에 실패했습니다.')
+  }
+}
+
 // defaultColDef (정렬·필터·리사이즈 활성화)
 const defaultColDef = {
   sortable: true,
@@ -171,15 +193,33 @@ const columnDefs = ref([
     field: 'fileList',
     flex: 2,
     cellRenderer: params => {
-      const files = Array.isArray(params.value)
-        ? params.value.filter(f => f && f.fileName)
-        : []
+      const files = Array.isArray(params.value) ? params.value : []
       if (!files.length) return '-'
-      return `<div class="file-list-cell">${
-        files.map((f,i) =>
-          `<a href="#" data-idx="${i}">${f.fileName}</a>`
-        ).join('')
-      }</div>`
+
+      // 컨테이너 엘리먼트 생성
+      const container = document.createElement('div')
+      container.className = 'file-list-cell'
+
+      files.forEach((f, i) => {
+        const a = document.createElement('a')
+        a.href = '#'
+        a.textContent = f.fileName
+        a.dataset.idx = i
+
+        // 클릭 시 presigned URL 받아서 다운로드
+        a.addEventListener('click', async evt => {
+          evt.preventDefault()
+          try {
+            await downloadFile(f.fileUrl, f.fileName)
+          } catch (err) {
+            console.error('다운로드 실패:', err)
+          }
+        })
+
+        container.appendChild(a)
+      })
+
+      return container
     }
   },
   {

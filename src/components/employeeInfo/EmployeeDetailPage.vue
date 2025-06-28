@@ -70,29 +70,12 @@
               :readonly="!isEditing"
             />
           </div>
-          <!-- 직무 선택 -->
+          <!-- 직무 -->
           <div class="info-item">
             <label class="label-bold">직무</label>
-            <!-- 수정 중이면 드롭다운 -->
-            <select
-              v-if="isEditing"
-              v-model="form.jobId"
-              class="same-size-input"
-            >
-              <option value="">선택</option>
-              <option
-                v-for="opt in jobOptions"
-                :key="opt.id"
-                :value="opt.id"
-              >
-                {{ opt.name }}
-              </option>
-            </select>
-            <!-- 아니면 읽기 전용 텍스트 -->
             <input
-              v-else
               class="same-size-input"
-              :value="jobOptions.find(o => o.id === form.jobId)?.name || '-'"
+              :value="form.jobName || '-'"
               readonly
             />
           </div>
@@ -122,43 +105,23 @@
               />
             </template>
           </div>
+          <!-- 본부 -->
           <div class="info-item">
-            <label class="label-bold">
-              본부
-              <span class="required-star">*</span>
-            </label>
+            <label class="label-bold">본부</label>
             <input
               class="same-size-input"
-              :value="headOptions.find(o => o.id === Number(form.headId))?.name || '-'"
+              :value="form.headName || '-'"
               readonly
             />
           </div>
+          <!-- 직책 -->
           <div class="info-item">
-            <label class="label-bold">
-              직책
-              <span class="required-star">*</span>
-            </label>
-            <!-- 수정 모드일 때 드롭다운 -->
-            <template v-if="isEditing">
-              <select v-model="form.positionId" class="same-size-input">
-                <option value="">선택</option>
-                <option
-                  v-for="opt in positionOptions"
-                  :key="opt.id"
-                  :value="opt.id"
-                >
-                  {{ opt.name }}
-                </option>
-              </select>
-            </template>
-            <!-- 보기 모드일 때 읽기 전용 텍스트 -->
-            <template v-else>
-              <input
-                class="same-size-input"
-                :value="positionOptions.find(o => o.id === form.positionId)?.name || '-'"
-                readonly
-              />
-            </template>
+            <label class="label-bold">직책</label>
+            <input
+              class="same-size-input"
+              :value="form.positionName || '-'"
+              readonly
+            />
           </div>
           <div class="info-item">
             <label class="label-bold">입사일
@@ -166,56 +129,34 @@
             </label>
             <input type="date" class="same-size-input" v-model="form.employmentDate" :readonly="!isEditing" />
           </div>
+          <!-- 부서 -->
           <div class="info-item">
-            <label class="label-bold">
-              부서
-              <span class="required-star">*</span>
-            </label>
+            <label class="label-bold">부서</label>
             <input
               class="same-size-input"
-              :value="departmentOptions.find(o => o.id === form.departmentId)?.name || '-'"
+              :value="form.departmentName || '-'"
               readonly
             />
           </div>
+          <!-- 직급 -->
           <div class="info-item">
-            <label class="label-bold">
-              직급
-              <span class="required-star">*</span>
-            </label>
-            <!-- 수정 모드일 때 드롭다운 -->
-            <template v-if="isEditing">
-              <select v-model="form.rankId" class="same-size-input">
-                <option value="">선택</option>
-                <option
-                  v-for="opt in rankOptions"
-                  :key="opt.id"
-                  :value="opt.id"
-                >
-                  {{ opt.name }}
-                </option>
-              </select>
-            </template>
-            <!-- 보기 모드일 때 읽기 전용 텍스트 -->
-            <template v-else>
-              <input
-                class="same-size-input"
-                :value="rankOptions.find(o => o.id === form.rankId)?.name || '-'"
-                readonly
-              />
-            </template>
+            <label class="label-bold">직급</label>
+            <input
+              class="same-size-input"
+              :value="form.rankName || '-'"
+              readonly
+            />
           </div>
           <div class="info-item">
             <label class="label-bold">퇴사일</label>
             <input type="date" class="same-size-input" v-model="form.retirementDate" :readonly="!isEditing" />
           </div>
+          <!-- 팀 -->
           <div class="info-item">
-            <label class="label-bold">
-              팀
-              <span class="required-star">*</span>
-            </label>
+            <label class="label-bold">팀</label>
             <input
               class="same-size-input"
-              :value="teamOptions.find(o => o.id === form.teamId)?.name || '-'"
+              :value="form.teamName || '-'"
               readonly
             />
           </div>
@@ -637,6 +578,10 @@ const errors = reactive({
   bankAccount: ''
 })
 
+
+
+
+
 // 정규식 패턴 정의
 const patterns = {
   contact: /^\d{3}-\d{3,4}-\d{4}$/,
@@ -731,94 +676,7 @@ const insuranceOptions   = ['가입','미가입']
 const disorderOptions    = ['장애','비장애']
 const marriageOptions    = ['미혼','기혼']
 
-const headOptions = [
-  { id: 1, name: '개발본부' },
-  { id: 2, name: '경영지원본부' },
-  { id: 3, name: '사업본부' },
-  { id: 4, name: '대표' },
-]
 
-const departmentOptions = [
-  { id: 1, name: 'PC게임개발부서' },
-  { id: 2, name: '아트개발부서' },
-  { id: 3, name: '인사부서' },
-  { id: 4, name: '재무회계부서' },
-  { id: 5, name: '마케팅부서' },
-  { id: 6, name: '영업부서' },
-  { id: 7, name: '대표' },
-]
-
-const teamOptions = [
-  { id: 1, name: 'PC개발팀' },
-  { id: 2, name: 'PC게임기획팀' },
-  { id: 3, name: '아트기획팀' },
-  { id: 4, name: '아트팀' },
-  { id: 5, name: '채용팀' },
-  { id: 6, name: '인사평가팀' },
-  { id: 7, name: '급여정산팀' },
-  { id: 8, name: '세무관리팀' },
-  { id: 9, name: '콘텐츠마케팅팀' },
-  { id: 10, name: '퍼포먼스팀' },
-  { id: 11, name: 'B2B영업팀' },
-  { id: 12, name: 'B2C영업팀' },
-  { id: 13, name: '대표' },
-]
-
-const jobOptions = [
-  { id: 1, name: 'PC게임개발' },
-  { id: 2, name: 'PC 플랫폼 기반 개발' },
-  { id: 3, name: '게임 기능 구현 및 테스트' },
-  { id: 4, name: 'PC 게임 기획' },
-  { id: 5, name: 'PC 게임 컨셉 및 시나리오 설계' },
-  { id: 6, name: '콘텐츠 기획 및 문서화' },
-  { id: 7, name: '게임 아트 스타일 기획' },
-  { id: 8, name: '비주얼 방향성 설계' },
-  { id: 9, name: '아트 리소스 기획 및 관리' },
-  { id: 10, name: '3D 캐릭터 디자인' },
-  { id: 11, name: '배경, 이펙트 3D 제작' },
-  { id: 12, name: 'UI/UX 디자인 (사용자 인터페이스)' },
-  { id: 13, name: '채용 공고 작성 및 지원자 관리' },
-  { id: 14, name: '면접 일정 조율 및 평가 진행' },
-  { id: 15, name: '리크루팅 채널 관리 및 인재풀 운영' },
-  { id: 16, name: '성과평가 지표 설계 및 운영' },
-  { id: 17, name: '다면평가 및 피드백 관리' },
-  { id: 18, name: '평가 결과 분석 및 보상 연계' },
-  { id: 19, name: '급여 및 상여금 계산' },
-  { id: 20, name: '4대보험 신고 및 정산' },
-  { id: 21, name: '급여 관련 법적 이슈 대응' },
-  { id: 22, name: '부가세, 법인세 신고' },
-  { id: 23, name: '세무 감사 대응' },
-  { id: 24, name: '비용 절감 세무 전략 수립' },
-  { id: 25, name: '콘텐츠 기획 및 제작' },
-  { id: 26, name: '브랜드 캠페인 운영' },
-  { id: 27, name: '마케팅 전략 수립' },
-  { id: 28, name: '퍼포먼스 광고 집행 및 최적화' },
-  { id: 29, name: '매체 운영 및 효율 분석' },
-  { id: 30, name: '기업 대상 서비스 제안 및 계약' },
-  { id: 31, name: '파트너사 관리 및 협업 운영' },
-  { id: 32, name: '맞춤형 솔루션 영업 전략 수립' },
-  { id: 33, name: '개인 고객 대상 제품/서비스 영업' },
-  { id: 34, name: 'CRM 기반 리텐션 전략 수립' },
-  { id: 35, name: '온·오프라인 프로모션 운영' },
-  { id: 36, name: '없음' },
-]
-
-const rankOptions = [
-  { id: 1, name: '사원' },
-  { id: 2, name: '대리' },
-  { id: 3, name: '과장' },
-  { id: 4, name: '부장' },
-  { id: 5, name: '상무' },
-  { id: 6, name: '사장' },
-]
-
-const positionOptions = [
-  { id: 1, name: '팀원' },
-  { id: 2, name: '팀장' },
-  { id: 3, name: '부서장' },
-  { id: 4, name: '본부장' },
-  { id: 5, name: '대표이사' },
-]
 
 // — 인사발령 컬럼 정의
 const appointmentColumnDefs = ref([
@@ -826,7 +684,7 @@ const appointmentColumnDefs = ref([
   {
     headerName: '번호',
     width: 90,
-    valueGetter: params => params.node.rowIndex + 1,
+    valueGetter: params => params.api.getDisplayedRowCount() - params.node.rowIndex, sortable: false, flex: 0.3, cellClass:'center-align',
     sortable: false,
     suppressMenu: true
   },
@@ -856,7 +714,7 @@ const disciplineColumnDefs = ref([
     width: 50,
     pinned: 'left'
   },
-  { headerName: '번호',            field: 'disciplinaryId',          width: 80,  cellClass: 'center-align' },
+  { headerName: '번호',            valueGetter: params => params.api.getDisplayedRowCount() - params.node.rowIndex, sortable: false, flex: 0.3, cellClass:'center-align' },
   { headerName: '사원명',          field: 'employeeName',            flex: 1.2 },
   {
     headerName: '징계 서류',
@@ -865,9 +723,21 @@ const disciplineColumnDefs = ref([
     cellRenderer: params => {
       const files = Array.isArray(params.value) ? params.value : []
       if (!files.length) return '-'
-      return `<div class="file-list-cell">${
-        files.map((f,i) => `<a href="#" data-idx="${i}">${f.fileName}</a>`).join('')
-      }</div>`
+      const container = document.createElement('div')
+      container.className = 'file-list-cell'
+      files.forEach((f, i) => {
+        const a = document.createElement('a')
+        a.href = '#'
+        a.textContent = f.fileName
+        a.dataset.idx = i
+        a.addEventListener('click', async evt => {
+          evt.preventDefault()
+          // 바로 다운로드 호출
+          await downloadFile(f.fileUrl, f.fileName)
+        })
+        container.appendChild(a)
+      })
+      return container
     }
   },
   { headerName: '징계 내용',     field: 'disciplinaryDescription', flex: 2 },
@@ -890,7 +760,7 @@ const contractColumnDefs = ref([
     width: 50,
     pinned: 'left'
   },
-  { headerName: 'ID',               field: 'contractId',          width: 80, cellClass: 'center-align' },
+  { headerName: '번호',               valueGetter: params => params.api.getDisplayedRowCount() - params.node.rowIndex, sortable: false, flex: 0.3, cellClass:'center-align' },
   { headerName: '사원명',           field: 'employeeName',        flex: 1.2 },
   { headerName: '계약 설명',        field: 'contractDescription', flex: 2 },
   {
@@ -900,9 +770,31 @@ const contractColumnDefs = ref([
     cellRenderer: params => {
       const files = Array.isArray(params.value) ? params.value : []
       if (!files.length) return '-'
-      return `<div class="file-list-cell">${
-        files.map((f,i) => `<a href="#" data-idx="${i}">${f.fileName}</a>`).join('')
-      }</div>`
+
+      // 컨테이너 엘리먼트 생성
+      const container = document.createElement('div')
+      container.className = 'file-list-cell'
+
+      files.forEach((f, i) => {
+        const a = document.createElement('a')
+        a.href = '#'
+        a.textContent = f.fileName
+        a.dataset.idx = i
+
+        // 클릭 시 presigned URL 받아서 다운로드
+        a.addEventListener('click', async evt => {
+          evt.preventDefault()
+          try {
+            await downloadFile(f.fileUrl, f.fileName)
+          } catch (err) {
+            console.error('다운로드 실패:', err)
+          }
+        })
+
+        container.appendChild(a)
+      })
+
+      return container
     }
   },
   {
@@ -1193,54 +1085,54 @@ onMounted(async () => {
       { headers: authHeaders() }
     );
 
-    // ▼ 다른 필드들도 기존처럼 form에 할당
+    // ▼ emp의 모든 필드를 form에 직접 할당
     Object.assign(form, {
-      employeeId:       emp.employeeId,
-      employeeName:     emp.employeeName,
-      jobName:          emp.jobName,
-      workType:         emp.workType,
-      headName:         emp.headName,
-      positionName:     emp.positionName,
-      employmentDate:   emp.employmentDate,
-      departmentName:   emp.departmentName,
-      rankName:         emp.rankName,
-      retirementDate:   emp.retirementDate,
-      teamName:         emp.teamName,
-      employeeContact:  emp.employeeContact,
-      employeeEmail:    emp.employeeEmail,
-      employeeNation:   emp.employeeNation,
-      employeeGender:   emp.employeeGender,
-      employeeBirth:    emp.employeeBirth,
-      employeeResident: emp.employeeResident,
-      employeeAddress:  emp.employeeAddress,
-      isFourInsurances: emp.isFourInsurances,
-      bankName:         emp.bankName,
-      bankDepositor:    emp.bankDepositor,
-      bankAccount:      emp.bankAccount,
-      isDisorder:       emp.isDisorder,
-      militaryType:     emp.militaryType,
-      isMarriage:       emp.isMarriage,
-      marriageDate:     emp.marriageDate,
-      familyCount:      emp.familyCount,
-      careerYearCount:  emp.careerYearCount,
-      previousCompany:  emp.previousCompany,
-      finalAcademic:    emp.finalAcademic,
-      employeeSchool:   emp.employeeSchool,
-      employeeDept:     emp.employeeDept,
-      graduationYear:   emp.graduationYear,
+      employeeId:        emp.employeeId,
+      employeeName:      emp.employeeName,
+      employeePhotoName: emp.employeePhotoName,
+      employeePhotoUrl:  emp.employeePhotoUrl,
+      jobName:           emp.jobName,
+      workType:          emp.workType,
+      headName:          emp.headName,
+      positionName:      emp.positionName,
+      employmentDate:    emp.employmentDate,
+      departmentName:    emp.departmentName,
+      rankName:          emp.rankName,
+      retirementDate:    emp.retirementDate,
+      teamName:          emp.teamName,
+      employeeContact:   emp.employeeContact,
+      employeeEmail:     emp.employeeEmail,
+      employeeNation:    emp.employeeNation,
+      employeeGender:    emp.employeeGender,
+      employeeBirth:     emp.employeeBirth,
+      employeeResident:  emp.employeeResident,
+      employeeAddress:   emp.employeeAddress,
+      isFourInsurances:  emp.isFourInsurances,
+      bankName:          emp.bankName,
+      bankDepositor:     emp.bankDepositor,
+      bankAccount:       emp.bankAccount,
+      isDisorder:        emp.isDisorder,
+      militaryType:      emp.militaryType,
+      isMarriage:        emp.isMarriage,
+      marriageDate:      emp.marriageDate,
+      familyCount:       emp.familyCount,
+      careerYearCount:   emp.careerYearCount,
+      previousCompany:   emp.previousCompany,
+      finalAcademic:     emp.finalAcademic,
+      employeeSchool:    emp.employeeSchool,
+      employeeDept:      emp.employeeDept,
+      graduationYear:    emp.graduationYear,
 
-      positionId:       positionOptions.find(o => o.name === emp.positionName)?.id   || '',
-      rankId:           rankOptions.find(o => o.name === emp.rankName)?.id           || '',
-      jobId:            jobOptions.find(o => o.name === emp.jobName)?.id             || '',
-      headId:           headOptions.find(o => o.name === emp.headName)?.id           || '',
-      departmentId:     departmentOptions.find(o => o.name === emp.departmentName)?.id || '',
-      teamId:           teamOptions.find(o => o.name === emp.teamName)?.id           || ''
-    })
+      // — DB에서 내려주는 ID를 그대로 할당
+      positionId:       emp.positionId,
+      rankId:           emp.rankId,
+      jobId:            emp.jobId,
+      headId:           emp.headId,
+      departmentId:     emp.departmentId,
+      teamId:           emp.teamId
+    });
 
-    // ▼ form 에는 **key** 만 저장
-    form.employeePhotoUrl = emp.employeePhotoUrl;
-
-    // ▼ key 가 있으면 presigned URL 받아와서 previewSrc 에 세팅
+    // ▼ 프로필 이미지 preview 세팅
     if (emp.employeePhotoUrl) {
       try {
         const { data: url } = await axios.get(
@@ -1257,7 +1149,10 @@ onMounted(async () => {
       } catch {
         previewSrc.value = '';
       }
+    } else {
+      previewSrc.value = '';
     }
+
   } catch (err) {
     console.error(err);
     showToast('사원 정보를 불러오는 데 실패했습니다.');
@@ -1298,6 +1193,7 @@ onMounted(async () => {
     console.error('계약 조회 실패:', err);
   }
 });
+
 </script>
 
 <style scoped>
@@ -1577,7 +1473,7 @@ onMounted(async () => {
 .same-size-input {
   width: 180px;
   height: 36px;
-  padding: 0.6rem;
+  padding: 0 0.6rem;
   font-size: 0.9rem;
   border: 1px solid #ddd;
   border-radius: 8px;

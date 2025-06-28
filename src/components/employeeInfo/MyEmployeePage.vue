@@ -26,6 +26,7 @@
 
             <!-- ───────── 업로드 아이콘 추가 ───────── -->
             <button
+              v-if="isEditing"
               class="upload-btn-icon"
               type="button"
               @click="triggerFileSelect"
@@ -93,7 +94,7 @@
           <div class="info-item">
             <label class="label-bold">연락처</label>
             <input
-              class="same-size-input"
+              class="same-size-input editable"
               v-model="form.employeeContact"
               :readonly="!isEditing"
             />
@@ -108,7 +109,7 @@
             <label class="label-bold">이메일</label>
             <input
               type="email"
-              class="same-size-input"
+              class="same-size-input editable"
               v-model="form.employeeEmail"
               :readonly="!isEditing"
             />
@@ -145,7 +146,7 @@
               <div class="info-item">
                 <label class="label-bold">거래 은행</label>
                 <input
-                  class="same-size-input"
+                  class="same-size-input editable"
                   v-model="form.bankName"
                   :readonly="!isEditing"
                 />
@@ -158,7 +159,7 @@
                 <label class="label-bold">생년월일</label>
                 <input
                   type="date"
-                  class="same-size-input"
+                  class="same-size-input editable"
                   v-model="form.employeeBirth"
                   :readonly="!isEditing"
                 />
@@ -166,7 +167,7 @@
               <div class="info-item">
                 <label class="label-bold">계좌 번호</label>
                 <input
-                  class="same-size-input"
+                  class="same-size-input editable"
                   v-model="form.bankAccount"
                   :readonly="!isEditing"
                 />
@@ -180,7 +181,7 @@
               <div class="info-item">
                 <label class="label-bold">예금주</label>
                 <input
-                  class="same-size-input"
+                  class="same-size-input editable"
                   v-model="form.bankDepositor"
                   :readonly="!isEditing"
                 />
@@ -206,7 +207,7 @@
               <div class="info-item">
                 <label class="label-bold">주소</label>
                 <input
-                  class="same-size-input"
+                  class="same-size-input editable"
                   v-model="form.employeeAddress"
                   :readonly="!isEditing"
                 />
@@ -385,7 +386,7 @@ const appointmentColumnDefs = ref([
     {
       headerName: '번호',
       width: 90,
-      valueGetter: params => params.node.rowIndex + 1,
+      valueGetter: params => params.api.getDisplayedRowCount() - params.node.rowIndex, sortable: false, flex: 0.3, cellClass:'center-align',
       sortable: false,
       suppressMenu: true
     },
@@ -415,20 +416,34 @@ const disciplineColumnDefs = ref([
     width: 50,
     pinned: 'left'
   },
-  { headerName: '번호',            field: 'disciplinaryId',          width: 80,  cellClass: 'center-align' },
+  { headerName: '번호',           valueGetter: params => params.api.getDisplayedRowCount() - params.node.rowIndex, sortable: false, flex: 0.3, cellClass:'center-align' },
   { headerName: '사원명',          field: 'employeeName',            flex: 1.2 },
-  {
-    headerName: '징계 서류',
-    field: 'fileList',
-    flex: 2,
-    cellRenderer: params => {
-      const files = Array.isArray(params.value) ? params.value : []
-      if (!files.length) return '-'
-      return `<div class="file-list-cell">${
-        files.map((f,i) => `<a href="#" data-idx="${i}">${f.fileName}</a>`).join('')
-      }</div>`
-    }
-  },
+// disciplineColumnDefs 예시
+{
+  headerName: '징계 서류',
+  field: 'fileList',
+  flex: 2,
+  cellRenderer: params => {
+    const files = Array.isArray(params.value) ? params.value : []
+    if (!files.length) return '-'
+    const container = document.createElement('div')
+    container.className = 'file-list-cell'
+    files.forEach((f, i) => {
+      const a = document.createElement('a')
+      a.href = '#'
+      a.textContent = f.fileName
+      a.dataset.idx = i
+      a.addEventListener('click', async evt => {
+        evt.preventDefault()
+        // 바로 다운로드 호출
+        await downloadFile(f.fileUrl, f.fileName)
+      })
+      container.appendChild(a)
+    })
+    return container
+  }
+},
+
   { headerName: '징계 내용',     field: 'disciplinaryDescription', flex: 2 },
   {
     headerName: '징계일자',
@@ -449,19 +464,41 @@ const contractColumnDefs = ref([
     width: 50,
     pinned: 'left'
   },
-  { headerName: 'ID',               field: 'contractId',          width: 80, cellClass: 'center-align' },
+  { headerName: '번호',               valueGetter: params => params.api.getDisplayedRowCount() - params.node.rowIndex, sortable: false, flex: 0.3, cellClass:'center-align' },
   { headerName: '사원명',           field: 'employeeName',        flex: 1.2 },
   { headerName: '계약 설명',        field: 'contractDescription', flex: 2 },
-  {
+{
     headerName: '파일',
     field: 'fileList',
     flex: 2,
     cellRenderer: params => {
       const files = Array.isArray(params.value) ? params.value : []
       if (!files.length) return '-'
-      return `<div class="file-list-cell">${
-        files.map((f,i) => `<a href="#" data-idx="${i}">${f.fileName}</a>`).join('')
-      }</div>`
+
+      // 컨테이너 엘리먼트 생성
+      const container = document.createElement('div')
+      container.className = 'file-list-cell'
+
+      files.forEach((f, i) => {
+        const a = document.createElement('a')
+        a.href = '#'
+        a.textContent = f.fileName
+        a.dataset.idx = i
+
+        // 클릭 시 presigned URL 받아서 다운로드
+        a.addEventListener('click', async evt => {
+          evt.preventDefault()
+          try {
+            await downloadFile(f.fileUrl, f.fileName)
+          } catch (err) {
+            console.error('다운로드 실패:', err)
+          }
+        })
+
+        container.appendChild(a)
+      })
+
+      return container
     }
   },
   {
@@ -1184,5 +1221,16 @@ input[readonly] {
   .bottom-card {
     padding-bottom: 70px;
   }
+}
+
+.readonly {
+  background: #f5f5f5;
+  color: #555;
+  border-color: #ddd;
+}
+
+.editable {
+  background: white;
+  border-color: var(--primary);
 }
 </style>
