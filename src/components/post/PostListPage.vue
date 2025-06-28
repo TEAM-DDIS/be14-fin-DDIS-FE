@@ -48,12 +48,14 @@
       </div>
     </div>
   </div>
+  <BaseToast ref="toastRef" />
 </template>
 
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import axios from 'axios'
 import { useRouter } from 'vue-router'
+import BaseToast from '@/components/toast/BaseToast.vue'
 import { useUserStore } from '@/stores/user'
 import {
   ModuleRegistry,
@@ -81,6 +83,11 @@ ModuleRegistry.registerModules([
 // — vue-router / pinia
 const router    = useRouter()
 const userStore = useUserStore()
+const toastRef = ref(null)
+
+function showToast(msg) {
+    toastRef.value?.show(msg)
+}
 
 // JWT 토큰 디코딩 유틸
 function parseJwtPayload(token) {
@@ -151,7 +158,7 @@ onMounted(async () => {
     rowData.value  = res.data
   } catch (e) {
     console.error('공지사항 목록 조회 실패:', e)
-    alert('공지사항을 불러오는 중 오류가 발생했습니다.')
+    showToast('공지사항을 불러오는 중 오류가 발생했습니다.')
   }
 })
 
@@ -176,7 +183,7 @@ function onGridReady(params) {
 // — 4) 삭제 모달 & 삭제 처리
 function onDeleteClick() {
   const sel = gridApi?.getSelectedRows() || []
-  if (!sel.length) return alert('삭제할 항목을 선택하세요.')
+  if (!sel.length) return showToast('삭제할 항목을 선택하세요.')
   showDeleteModal.value = true
 }
 function cancelDelete() {
@@ -196,10 +203,10 @@ async function confirmDelete() {
     rowData.value  = rowData.value.filter(r => !ids.includes(r.boardId))
     gridApi.deselectAll()
     showDeleteModal.value = false
-    alert('선택 항목이 삭제되었습니다.')
+    showToast('선택 항목이 삭제되었습니다.')
   } catch (err) {
     console.error('삭제 실패:', err)
-    alert('삭제 중 오류가 발생했습니다.')
+    showToast('삭제 중 오류가 발생했습니다.')
   }
 }
 
