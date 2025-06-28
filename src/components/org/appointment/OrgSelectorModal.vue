@@ -5,8 +5,46 @@
         <p class="modal-title">조직 선택</p>
       </header>
 
+      <div class="search-container">
+        <div class="search-area">
+          <div class="search-input-container">
+            <img
+              :src="searchIcon"
+              alt="search"
+              class="search-img"
+            />
+            <input
+              v-model="searchQuery"
+              type="text"
+              placeholder="부서 혹은 팀 검색"
+              class="search-input"
+            />
+          </div>
+        </div>
+
+        <div class="body-container">
+          <!-- ① 검색어가 있으면 리스트 표시 -->
+          <ul
+            v-if="searchQuery.trim()"
+            class="search-result-list"
+          >
+            <li
+              v-for="node in searchResults"
+              :key="nodeKey(node)"
+              :class="{ selected: isSelected(node) }"
+              @click="selectNode(node)"
+            >
+              {{ nodeLabel(node) }}
+            </li>
+            <li v-if="searchResults.length===0" class="no-result">
+              검색 결과가 없습니다.
+            </li>
+          </ul>
+        </div>
+      </div>
       <OrgTree
-        :hierarchy="props.hierarchy"
+        :hierarchy="filteredHierarchy"
+        
         :show-ranks="props.showRanks"
         :show-jobs="props.showJobs"
         @dept-selected="handleSelect"
@@ -28,6 +66,7 @@
 <script setup>
   import { ref, computed } from 'vue'
   import OrgTree from '@/components/org/structure/HierarchyAppointment.vue'
+  import searchIcon from '@/assets/icons/search.svg'
 
   const props = defineProps({
     hierarchy: Array,
@@ -58,7 +97,76 @@ const selectedOrg = ref({
   rankName: null
 })
 
+ const searchQuery = ref('')
 
+/** hierarchy 를 평탄화해 모든 노드를 배열로 **/
+function flatten(tree) {
+  const list = []
+  tree.forEach(head => {
+    head.departments?.forEach(dept => {
+      list.push({ type:'department', ...dept, headId:head.headId })
+      dept.teams?.forEach(team => {
+        list.push({ type:'team', ...team, departmentId:dept.departmentId, headId:head.headId })
+        // 직무/직급 노드도 포함하려면 추가로 push
+        team.jobs?.forEach(job => {
+          list.push({ type:'job', ...job, teamId:team.teamId, departmentId:dept.departmentId, headId:head.headId })
+        })
+        team.ranks?.forEach(rank => {
+          list.push({ type:'rank', ...rank, teamId:team.teamId, departmentId:dept.departmentId, headId:head.headId })
+        })
+      })
+    })
+  })
+  return list
+}
+
+/** 검색어에 일치하는 노드만 반환 **/
+const allNodes = computed(() => flatten(props.hierarchy))
+const searchResults = computed(() => {
+  const q = searchQuery.value.trim().toLowerCase()
+  if (!q) return []
+  return allNodes.value.filter(n =>
+    (n.departmentName   || '').toLowerCase().includes(q) ||
+    (n.teamName         || '').toLowerCase().includes(q) ||
+    (n.jobName          || '').toLowerCase().includes(q) ||
+    (n.rankName         || '').toLowerCase().includes(q)
+  )
+})
+
+/** 리스트와 트리 선택 공통 함수 **/
+function nodeKey(n) {
+  return `${n.type}-${n.headId}-${n.departmentId||''}-${n.teamId||''}-${n.jobId||''}-${n.rankCode||''}`
+}
+function nodeLabel(n) {
+  if (n.type==='department') return `부서: ${n.departmentName}`
+  if (n.type==='team')       return `팀: ${n.teamName}`
+  if (n.type==='job')        return `직무: ${n.jobName}`
+  if (n.type==='rank')       return `직급: ${n.rankName}`
+  return ''
+}
+function isSelected(n) {
+  return (
+    (n.type==='department' && selectedOrg.value.departmentId===n.departmentId) ||
+    (n.type==='team'       && selectedOrg.value.teamId===n.teamId) ||
+    (n.type==='job'        && selectedOrg.value.jobId===n.jobId) ||
+    (n.type==='rank'       && selectedOrg.value.rankCode===n.rankCode)
+  )
+}
+function selectNode(n) {
+  // 클릭된 노드로 선택 정보 세팅
+  if (n.type==='department') {
+    selectedOrg.value = { headId:n.headId, departmentId:n.departmentId, teamId:null, jobId:null, rankCode:null }
+  }
+  if (n.type==='team') {
+    selectedOrg.value = { headId:n.headId, departmentId:n.departmentId, teamId:n.teamId, jobId:null, rankCode:null }
+  }
+  if (n.type==='job') {
+    selectedOrg.value.jobId = n.jobId
+  }
+  if (n.type==='rank') {
+    selectedOrg.value.rankCode = n.rankCode
+  }
+}
 function handleSelect(item) {
   if ('teamId' in item) {
     console.log('[TEAM 선택됨]', item)
@@ -127,7 +235,6 @@ function handleConfirm() {
   font-weight: bold;
   text-align: center;
   width: 100%; 
-  
 }
 .modal-content {
   background: var(--modal-box-bg);
@@ -140,11 +247,80 @@ function handleConfirm() {
   justify-content: space-between;
   align-items: center;
 }
+
+.search-container {
+  padding: 12px 16px;
+}
+
+.search-area {
+  width: 100%;            /* .modal-content 의 너비를 100% 사용 */
+  max-width: 480px;       /* 필요하면 최대값 설정 */
+  margin: 0 auto 16px;    /* 가운데 정렬 + 하단 여백 */
+  box-sizing: border-box; 
+}
+
+.search-input-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+.search-img {
+  width: 25px;
+  height: 25px;
+   flex-shrink: 0;
+}
+.search-input {
+  flex: 1;
+  width: 100%;
+  padding: 8px 12px;
+  font-size: 15px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  box-sizing: border-box;
+  margin-bottom: 5px;
+  background-color: var(--modal-bg);
+  color: var(--text-main);
+}
+
+.body-container {
+  display:flex;
+}
+.search-result-list {
+  width: 100%;
+  flex:1; 
+  list-style:none; 
+  margin:0; 
+  padding:0; 
+  overflow-y: auto;
+  border:1px solid #ddd; 
+  border-radius:8px;
+  font-size: 15px;
+  color: var(--text-main);
+}
+.search-result-list li {
+  padding: 5px 12px; 
+  cursor:pointer;
+}
+.search-result-list li:hover {
+  background-color: var(--primary-hover);
+}
+.search-result-list li.selected {
+  background-color: var(--primary);
+  font-weight:bold;
+}
+.no-result { 
+  padding:12px; 
+  text-align:center; 
+  color: var(--text-sub); 
+}
+
+
 .modal-footer {
   margin-top: 20px;
   display: flex;
-  justify-content: flex-end;
-  gap: 15px;
+  justify-content: center;
+  gap: 20px;
   margin-bottom: 10px;
 }
 .btn-select {

@@ -110,7 +110,7 @@ const columnDefs = [
   { headerName: '사원번호', field: 'employeeId',             flex: 1 },
   { headerName: '발령사유', field: 'appointmentReason',      flex: 1 },
   { headerName: '발령유형', field: 'appointmentType',        flex: 1 },
-  { headerName: '발령일자', field: 'appointmentEffectiveDate', flex: 1 },
+  { headerName: '발령일자', field: 'appointmentEffectiveDate', flex: 1, sort: 'desc' },
   {
     headerName: '상세',
     field: 'detail',
