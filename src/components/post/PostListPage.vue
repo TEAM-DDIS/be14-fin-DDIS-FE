@@ -341,7 +341,7 @@ function onCellClick(e) {
   z-index: 1000;
 }
 .modal-content {
-  background: #ffffff;
+  background: var(--bg-box);
   border-radius: 8px;
   padding: 20px 24px;
   width: 320px;
@@ -374,7 +374,7 @@ function onCellClick(e) {
 .modal-buttons .btn-save {
   font-size: 14px;
   font-weight: bold;
-  background-color: #00a8e8;
+  background-color: var(--primary);
   color: white;
   border: 1px solid transparent;
   border-radius: 10px;
@@ -391,9 +391,9 @@ function onCellClick(e) {
 }
 
 .modal-buttons .btn-save:hover{
-  background-color: white;
-  color: #00a8e8;
-  border-color: #00a8e8;
+  background-color: var(--bg-main);
+  color: var(--primary);
+  border-color: var(--primary);
   box-shadow:
   inset 1px 1px 10px rgba(0, 0, 0, 0.25);
 }
