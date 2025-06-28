@@ -342,7 +342,7 @@
         justify-content: space-between;
         flex-wrap: wrap;
         gap: 10px;
-        margin-bottom: 10px;
+        margin-bottom: 15px;
     }
 
     .search-bar {
@@ -357,7 +357,7 @@
         border: 1px solid #ccc;
         background: var(--modal-bg);
         color: var(--text-main);
-        border-radius: 4px;
+        border-radius: 8px;
     }
 
     .search {
@@ -375,7 +375,7 @@
         border: 1px solid #ccc;
         background: var(--modal-bg);
         color: var(--text-main);
-        border-radius: 4px;
+        border-radius: 8px;
     }
 
     .fixed-select {
@@ -410,7 +410,6 @@
     border: 1px solid transparent;
     border-radius: 10px;
     padding: 10px 30px;
-    margin-top: 20px;
     cursor: pointer;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
     transition: background-color 0.2s, box-shadow 0.2s;

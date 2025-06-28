@@ -15,6 +15,7 @@
             v-if="form.type === '시간 외 근무' || form.type === '야간 근무'"
             label="시간"
             label-position="top"
+            class="fixed-input-area"
         >
             <div class="time-input-wrapper">
             <el-input
@@ -34,6 +35,7 @@
             v-if="form.type === '휴일 근무'"
             label="날짜"
             label-position="top"
+            class="fixed-input-area"
         >
             <el-date-picker
             v-model="form.date"
@@ -44,6 +46,7 @@
             popper-class="overtime-datepicker"
             :append-to-body="false"
             :teleported="false"
+            style="width: 130px"
             />
         </el-form-item>
         </el-form>
@@ -161,7 +164,7 @@ background-color: var(--bg-main);
 }
 
 .duration-input {
-  width: 120px;
+  width: 130px;
 }
 
 /* 단위 라벨 */
@@ -211,5 +214,26 @@ background-color: var(--bg-main);
   color: var(--text-main);                /* 텍스트 색 */
   transition: border 0.3s, box-shadow 0.3s;
 }
+
+/* 폼 아이템 높이 고정 */
+:deep(.fixed-input-area) {
+  min-height: 72px; /* 또는 height: 72px 로 고정 */
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+
+:deep(.el-date-editor.el-input) {
+  height: 34px; /* el-input과 동일하게 */
+}
+
+:deep(.el-date-editor .el-input__wrapper) {
+  height: 34px;
+  padding: 0 11px;
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+}
+
 </style>
 

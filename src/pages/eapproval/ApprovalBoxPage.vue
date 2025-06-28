@@ -84,34 +84,38 @@ function formatWriter(name, rank) {
 const columnDefsByTab = {
   '전체': [
     { headerName: '번호', field: 'no', width: 100 },
-    { headerName: '구분', field: 'type', width: 150 },
+    { headerName: '구분', field: 'type', width: 180 },
     { headerName: '제목', field: 'title', flex: 1 },
-    { headerName: '상신일시', field: 'submittedAt', width: 230, sort: 'desc' },
-    { headerName: '결재상태', field: 'docStatus', width: 230 },
-    { headerName: '기안자', field: 'writer', width: 150 }
+    { headerName: '결재유형', field: 'lineType', width: 180},
+    { headerName: '상신일시', field: 'submittedAt', width: 180, sort: 'desc' },
+    { headerName: '결재상태', field: 'docStatus', width: 180 },
+    { headerName: '기안자', field: 'writer', width: 180 }
   ],
   '결재': [
     { headerName: '번호', field: 'no', width: 100 },
-    { headerName: '구분', field: 'type', width: 150 },
+    { headerName: '구분', field: 'type', width: 180 },
     { headerName: '제목', field: 'title', flex: 1 },
-    { headerName: '상신일시', field: 'submittedAt', width: 230, sort: 'desc' },
-    { headerName: '결재상태', field: 'docStatus', width: 230 },
-    { headerName: '기안자', field: 'writer', width: 150 }
+    { headerName: '결재유형', field: 'lineType', width: 180},
+    { headerName: '상신일시', field: 'submittedAt', width: 180, sort: 'desc' },
+    { headerName: '결재상태', field: 'docStatus', width: 180 },
+    { headerName: '기안자', field: 'writer', width: 180 }
   ],
   '진행': [
     { headerName: '번호', field: 'no', width: 100 },
-    { headerName: '구분', field: 'type', width: 150 },
+    { headerName: '구분', field: 'type', width: 180 },
     { headerName: '제목', field: 'title', flex: 1 },
-    { headerName: '상신일시', field: 'submittedAt', width: 230, sort: 'desc' },
-    { headerName: '결재상태', field: 'docStatus', width: 230 },
-    { headerName: '기안자', field: 'writer', width: 150 }
+    { headerName: '결재유형', field: 'lineType', width: 180},
+    { headerName: '상신일시', field: 'submittedAt', width: 180, sort: 'desc' },
+    { headerName: '결재상태', field: 'docStatus', width: 180 },
+    { headerName: '기안자', field: 'writer', width: 180 }
   ],
   '완료': [
     { headerName: '번호', field: 'no', width: 100 },
-    { headerName: '구분', field: 'type', width: 150 },
+    { headerName: '구분', field: 'type', width: 180 },
     { headerName: '제목', field: 'title', flex: 1 },
-    { headerName: '완료일시', field: 'approvedAt', width: 230, sort: 'desc' },
-    { headerName: '기안자', field: 'writer', width: 150 }
+    { headerName: '결재유형', field: 'lineType', width: 180},
+    { headerName: '완료일시', field: 'approvedAt', width: 180, sort: 'desc' },
+    { headerName: '기안자', field: 'writer', width: 180 }
   ]
 }
 const currentColumnDefs = computed(() => columnDefsByTab[tab.value] || [])
@@ -148,6 +152,7 @@ async function fetchApprovals() {
       .filter(doc => doc && typeof doc === 'object') // 안전 필터링
     .map((doc, idx) => ({
       docId:       doc.docId,
+      lineType:    doc.lineType,
       title:       doc.title,
       submittedAt: formatDateTime(doc.submittedAt || doc.createdAt),
       approvedAt:  formatDateTime(doc.approvedAt),

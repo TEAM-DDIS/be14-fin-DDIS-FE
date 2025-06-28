@@ -711,15 +711,6 @@ table {
   margin-bottom: 16px;
 }
 
-th,
-td {
-  border: 1px solid #ccc;
-  padding: 8px;
-  text-align: center;
-
-  font-size: 14px;
-  font-weight: bold;
-}
 
 table td:nth-child(odd) {
   background-color: #f8f9fa;
@@ -749,7 +740,6 @@ textarea {
   width: 100%;
   padding: 6px;
   box-sizing: border-box;
-  border: 1px solid #ccc;
   border-radius: 8px;
   transition: border 0.2s ease;
   height: 36px; /* ✅ 추가된 높이 조정 */
@@ -760,12 +750,12 @@ textarea {
   color: var(--text-main);
 }
 
-input:focus,
+/* input:focus,
 select:focus,
 textarea:focus {
   outline: none;
-  border: 1px solid var(--primary);
-}
+  border: 1px solid #e0e0e0;
+} */
 
 textarea {
   height: 200px;
@@ -1137,12 +1127,7 @@ textarea {
   color: var(--text-main, #222);
   transition: border 0.2s ease;
 }
-input:focus,
-select:focus,
-textarea:focus {
-  outline: none;
-  border: 1px solid var(--primary);
-}
+
 
 /* ===================== 에디터/본문 ===================== */
 .editor-wrapper {
