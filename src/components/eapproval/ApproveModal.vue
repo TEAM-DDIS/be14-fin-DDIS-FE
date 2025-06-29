@@ -176,18 +176,12 @@ hr {
 
 .modal-footer {
   display: flex;
-  justify-content: flex-end;
   gap: 12px;
-  margin-top: 16px;
+  align-items: center;
+  justify-content: center; 
+
 }
-.btn-cancel,
-.btn-submit {
-  padding: 8px 24px;
-  font-size: 14px;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-}
+
 .btn-cancel {
   font-size: 14px;
   font-weight: bold;
@@ -196,8 +190,6 @@ hr {
   border: none;
   border-radius: 10px;
   padding: 10px 30px;
-  font-weight: bold;
-  cursor: pointer;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   transition: background-color 0.2s, box-shadow 0.2s;
   box-sizing: border-box;
@@ -206,7 +198,7 @@ hr {
   font-size: 14px;
   font-weight: bold;
   background-color: var(--primary, );
-  color: var(--text-on-primary, #fff);
+  color: var(--text-on-primary);
   border: 1px solid transparent;
   border-radius: 10px;
   padding: 10px 30px;
