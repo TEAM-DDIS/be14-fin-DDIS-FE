@@ -267,6 +267,7 @@ function onCellClick(e) {
 }
 .search-bar-in-card .search-input {
   background-color: var(--ag-background-color);
+  color: var(--text-main);
   width: 150px;
   border: 1px solid #ccc;
   border-radius: 8px;

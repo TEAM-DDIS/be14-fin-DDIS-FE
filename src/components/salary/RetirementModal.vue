@@ -95,15 +95,17 @@
         </tbody>
       </table>
 
-<div class="footer">
+      <div class="footer">
         <p class="today">{{ formatDate(slip.provisionDate, true) }}</p>
-        <button class="btn left no-print" @click="sendMail">
+        <button 
+          v-if="slip && slip.provisionDate !== null"
+          class="btn left no-print" 
+          @click="sendMail">
           메일 전송
         </button>
         <button class="btn right no-print" @click="downloadPDF">PDF 다운로드</button>
       </div>
     </div>
-
     <!-- Toast 알림 -->
     <BaseToast ref="toastRef" />
   </div>
@@ -156,30 +158,38 @@ const averageDailySalary = computed(() => {
 
 const monthlySalaryRows = computed(() => {
   const retirementDate = new Date(props.slip.retirementDate)
-  const start = new Date(retirementDate.getTime() - 89 * 86400000)
-  const range = Array.from({ length: 90 }, (_, i) => new Date(start.getTime() + i * 86400000))
+  const startDate = new Date(retirementDate)
+  startDate.setDate(startDate.getDate() - 89) // 정확히 90일
+
+  const range = Array.from({ length: 90 }, (_, i) => {
+    const d = new Date(startDate)
+    d.setDate(d.getDate() + i)
+    return d
+  })
 
   const months = [
-    { month: props.slip.month2, salary: props.slip.month2Salary },
     { month: props.slip.month1, salary: props.slip.month1Salary },
+    { month: props.slip.month2, salary: props.slip.month2Salary },
     { month: props.slip.month3, salary: props.slip.month3Salary },
     { month: props.slip.month4, salary: props.slip.month4Salary },
-  ].filter(e => e.month && e.salary)
+  ].filter(e => e.month && typeof e.salary === 'number')
 
   return months.map(({ month, salary }) => {
     const [year, m] = month.split('-').map(Number)
-    const daysInMonth = new Date(year, m, 0).getDate()
     const filtered = range.filter(d => d.getFullYear() === year && d.getMonth() + 1 === m)
 
     let label = `${year}-${String(m).padStart(2, '0')}`
-    let prorated = salary
-    if (filtered.length === daysInMonth) label += ' (전체)'
-    else if (filtered.length) {
-      label += ` (${filtered[0].getDate()}~${filtered[filtered.length - 1].getDate()}일)`
-      prorated = Math.round(salary * (filtered.length / daysInMonth))
+    if (filtered.length > 0) {
+      const start = filtered[0].getDate()
+      const end = filtered[filtered.length - 1].getDate()
+      label += ` (${start}일~${end}일)`
     }
 
-    return { label, amount: prorated, sortDate: new Date(year, m - 1) }
+    return {
+      label,
+      amount: salary,
+      sortDate: new Date(year, m - 1)
+    }
   }).sort((a, b) => b.sortDate - a.sortDate)
 })
 
