@@ -914,9 +914,4 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   border-color: var(--primary);
   box-shadow: inset 1px 1px 10px rgba(0, 0, 0, 0.25);
 }
-
-.org-select {
-  z-index: 10;
-}
-
 </style>
