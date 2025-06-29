@@ -89,7 +89,7 @@ function submitApproval() {
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 1000;
+  z-index: 3000;
 }
 .modal-content {
   width: 480px;
