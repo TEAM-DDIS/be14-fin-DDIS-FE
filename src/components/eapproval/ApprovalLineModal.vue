@@ -453,10 +453,10 @@ function selectFromSearch(emp) {
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
   background: rgba(0,0,0,0.15);
-  z-index: 1000;
   display: flex;
   align-items: center;
   justify-content: center;
+  z-index: 3000;
 }
 .modal-content {
   background: var(--bg-main);
