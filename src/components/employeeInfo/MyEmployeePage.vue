@@ -26,6 +26,7 @@
 
             <!-- ───────── 업로드 아이콘 추가 ───────── -->
             <button
+              v-if="isEditing"
               class="upload-btn-icon"
               type="button"
               @click="triggerFileSelect"
@@ -93,7 +94,7 @@
           <div class="info-item">
             <label class="label-bold">연락처</label>
             <input
-              class="same-size-input"
+              class="same-size-input editable"
               v-model="form.employeeContact"
               :readonly="!isEditing"
             />
@@ -108,7 +109,7 @@
             <label class="label-bold">이메일</label>
             <input
               type="email"
-              class="same-size-input"
+              class="same-size-input editable"
               v-model="form.employeeEmail"
               :readonly="!isEditing"
             />
@@ -145,7 +146,7 @@
               <div class="info-item">
                 <label class="label-bold">거래 은행</label>
                 <input
-                  class="same-size-input"
+                  class="same-size-input editable"
                   v-model="form.bankName"
                   :readonly="!isEditing"
                 />
@@ -158,7 +159,7 @@
                 <label class="label-bold">생년월일</label>
                 <input
                   type="date"
-                  class="same-size-input"
+                  class="same-size-input editable"
                   v-model="form.employeeBirth"
                   :readonly="!isEditing"
                 />
@@ -166,7 +167,7 @@
               <div class="info-item">
                 <label class="label-bold">계좌 번호</label>
                 <input
-                  class="same-size-input"
+                  class="same-size-input editable"
                   v-model="form.bankAccount"
                   :readonly="!isEditing"
                 />
@@ -180,7 +181,7 @@
               <div class="info-item">
                 <label class="label-bold">예금주</label>
                 <input
-                  class="same-size-input"
+                  class="same-size-input editable"
                   v-model="form.bankDepositor"
                   :readonly="!isEditing"
                 />
@@ -206,7 +207,7 @@
               <div class="info-item">
                 <label class="label-bold">주소</label>
                 <input
-                  class="same-size-input"
+                  class="same-size-input editable"
                   v-model="form.employeeAddress"
                   :readonly="!isEditing"
                 />
@@ -253,8 +254,8 @@
         </div>
         <!-- 인사발령 탭: AG Grid -->
         <div v-else-if="currentTab === '인사발령'">
-          <div class="ag-theme-alpine ag-grid-box">  
-            <AgGridVue
+          <div class="ag-theme-alpine ag-grid-box custom-theme">  
+            <BaseGrid
               :columnDefs="appointmentColumnDefs"
               :gridOptions="{ theme: 'legacy' }"
               :rowData="appointmentData"
@@ -270,8 +271,8 @@
         </div>
         <!-- 징계 탭: AG Grid -->
         <div v-else-if="currentTab === '징계'">
-          <div class="ag-theme-alpine ag-grid-box">
-            <AgGridVue
+          <div class="ag-theme-alpine ag-grid-box custom-theme">
+            <BaseGrid
               :columnDefs="disciplineColumnDefs"
               :gridOptions="{ theme: 'legacy' }"            
               :rowData="disciplineData"
@@ -287,8 +288,8 @@
         </div>
         <!-- 계약 탭: AG Grid -->
         <div v-else-if="currentTab === '계약'">
-          <div class="ag-theme-alpine ag-grid-box">
-            <AgGridVue
+          <div class="ag-theme-alpine ag-grid-box custom-theme">
+            <BaseGrid
               :columnDefs="contractColumnDefs"
               :gridOptions="{ theme: 'legacy' }"
               :rowData="contractData"
@@ -322,7 +323,8 @@ import { ref, reactive, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
 import { useUserStore } from '@/stores/user'
-import { AgGridVue } from 'ag-grid-vue3'
+// import { AgGridVue } from 'ag-grid-vue3'
+import BaseGrid from '@/components/grid/BaseGrid.vue'
 import BaseToast from '@/components/toast/BaseToast.vue'
 import detailIconUrl from '@/assets/icons/detail_appointment.svg'
 import {
@@ -384,7 +386,7 @@ const appointmentColumnDefs = ref([
     {
       headerName: '번호',
       width: 90,
-      valueGetter: params => params.node.rowIndex + 1,
+      valueGetter: params => params.api.getDisplayedRowCount() - params.node.rowIndex, sortable: false, flex: 0.3, cellClass:'center-align',
       sortable: false,
       suppressMenu: true
     },
@@ -414,20 +416,34 @@ const disciplineColumnDefs = ref([
     width: 50,
     pinned: 'left'
   },
-  { headerName: '번호',            field: 'disciplinaryId',          width: 80,  cellClass: 'center-align' },
+  { headerName: '번호',           valueGetter: params => params.api.getDisplayedRowCount() - params.node.rowIndex, sortable: false, flex: 0.3, cellClass:'center-align' },
   { headerName: '사원명',          field: 'employeeName',            flex: 1.2 },
-  {
-    headerName: '징계 서류',
-    field: 'fileList',
-    flex: 2,
-    cellRenderer: params => {
-      const files = Array.isArray(params.value) ? params.value : []
-      if (!files.length) return '-'
-      return `<div class="file-list-cell">${
-        files.map((f,i) => `<a href="#" data-idx="${i}">${f.fileName}</a>`).join('')
-      }</div>`
-    }
-  },
+// disciplineColumnDefs 예시
+{
+  headerName: '징계 서류',
+  field: 'fileList',
+  flex: 2,
+  cellRenderer: params => {
+    const files = Array.isArray(params.value) ? params.value : []
+    if (!files.length) return '-'
+    const container = document.createElement('div')
+    container.className = 'file-list-cell'
+    files.forEach((f, i) => {
+      const a = document.createElement('a')
+      a.href = '#'
+      a.textContent = f.fileName
+      a.dataset.idx = i
+      a.addEventListener('click', async evt => {
+        evt.preventDefault()
+        // 바로 다운로드 호출
+        await downloadFile(f.fileUrl, f.fileName)
+      })
+      container.appendChild(a)
+    })
+    return container
+  }
+},
+
   { headerName: '징계 내용',     field: 'disciplinaryDescription', flex: 2 },
   {
     headerName: '징계일자',
@@ -448,19 +464,41 @@ const contractColumnDefs = ref([
     width: 50,
     pinned: 'left'
   },
-  { headerName: 'ID',               field: 'contractId',          width: 80, cellClass: 'center-align' },
+  { headerName: '번호',               valueGetter: params => params.api.getDisplayedRowCount() - params.node.rowIndex, sortable: false, flex: 0.3, cellClass:'center-align' },
   { headerName: '사원명',           field: 'employeeName',        flex: 1.2 },
   { headerName: '계약 설명',        field: 'contractDescription', flex: 2 },
-  {
+{
     headerName: '파일',
     field: 'fileList',
     flex: 2,
     cellRenderer: params => {
       const files = Array.isArray(params.value) ? params.value : []
       if (!files.length) return '-'
-      return `<div class="file-list-cell">${
-        files.map((f,i) => `<a href="#" data-idx="${i}">${f.fileName}</a>`).join('')
-      }</div>`
+
+      // 컨테이너 엘리먼트 생성
+      const container = document.createElement('div')
+      container.className = 'file-list-cell'
+
+      files.forEach((f, i) => {
+        const a = document.createElement('a')
+        a.href = '#'
+        a.textContent = f.fileName
+        a.dataset.idx = i
+
+        // 클릭 시 presigned URL 받아서 다운로드
+        a.addEventListener('click', async evt => {
+          evt.preventDefault()
+          try {
+            await downloadFile(f.fileUrl, f.fileName)
+          } catch (err) {
+            console.error('다운로드 실패:', err)
+          }
+        })
+
+        container.appendChild(a)
+      })
+
+      return container
     }
   },
   {
@@ -590,39 +628,44 @@ async function onCellClick(e) {
 // 페이지 진입 시 데이터 로드
 onMounted(async () => {
   try {
-    // 기본 사원 정보
+    // 1) 기본 사원 정보 (이미 헤더 있음)
     const { data } = await axios.get(
       '/employees/myinfo',
       { headers: { Authorization: `Bearer ${userStore.accessToken}` } }
     )
     Object.assign(form, data)
+
+    // 2) 프로필 미리보기 URL 요청에도 헤더 추가
     if (data.employeePhotoUrl) {
-      const { data: url } = await axios.get('/s3/download-url', {
-        params: { filename: data.employeePhotoUrl, contentType: 'image/png' }
-      })
+      const { data: url } = await axios.get(
+        '/s3/download-url',
+        {
+          params: { filename: data.employeePhotoUrl, contentType: 'image/png' },
+          headers: { Authorization: `Bearer ${userStore.accessToken}` }
+        }
+      )
       previewSrc.value = url
     }
 
-    // 인사발령 목록
+    // 3) 인사발령 목록
     const res  = await axios.get(
       `/appointment-history/employee/${data.employeeId}`,
       { headers: { Authorization: `Bearer ${userStore.accessToken}` } }
     )
-    // 응답 wrapper 안에 list 프로퍼티에 실제 배열이 들어 있다면
-    appointmentData.value = Array.isArray(res.data)
-      ? res.data
-      : res.data.list
+    appointmentData.value = Array.isArray(res.data) ? res.data : res.data.list
 
-    // 징계 목록
-    const discs = await axios.get(`/disciplinary/employee/${data.employeeId}`, {
-      headers: { Authorization: `Bearer ${userStore.accessToken}` }
-    })
+    // 4) 징계 목록
+    const discs = await axios.get(
+      `/disciplinary/employee/${data.employeeId}`,
+      { headers: { Authorization: `Bearer ${userStore.accessToken}` } }
+    )
     disciplineData.value = discs.data
 
-    // 계약 목록
-    const contracts = await axios.get(`/contract/employee/${data.employeeId}`, {
-      headers: { Authorization: `Bearer ${userStore.accessToken}` }
-    })
+    // 5) 계약 목록
+    const contracts = await axios.get(
+      `/contract/employee/${data.employeeId}`,
+      { headers: { Authorization: `Bearer ${userStore.accessToken}` } }
+    )
     contractData.value = contracts.data
 
   } catch (err) {
@@ -752,17 +795,30 @@ async function onPhotoSelected(e) {
   if (!file) return
 
   try {
-    const { data: { url, key } } = await axios.get('/s3/upload-url', {
-      params: { filename: file.name, contentType: file.type },
-      headers: { Authorization: `Bearer ${userStore.accessToken}` }
-    })
+    // presign URL
+    const { data: { url, key } } = await axios.get(
+      '/s3/upload-url',
+      {
+        params: { filename: file.name, contentType: file.type },
+        headers: { Authorization: `Bearer ${userStore.accessToken}` }
+      }
+    )
+    // S3 PUT
     await axios.put(url, file, { headers: { 'Content-Type': file.type } })
+
     form.employeePhotoUrl  = key
     form.employeePhotoName = file.name
-    const { data: previewUrl } = await axios.get('/s3/download-url', {
-      params: { filename: key, contentType: file.type }
-    })
+
+    // preview URL (헤더 추가)
+    const { data: previewUrl } = await axios.get(
+      '/s3/download-url',
+      {
+        params: { filename: key, contentType: file.type },
+        headers: { Authorization: `Bearer ${userStore.accessToken}` }
+      }
+    )
     previewSrc.value = previewUrl
+
   } catch (err) {
     console.error(err)
     showToast('사진 업로드에 실패했습니다.')
@@ -775,7 +831,7 @@ async function onPhotoSelected(e) {
 .page-title {
   margin-left: 20px;
   margin-bottom: 30px;
-  color: #00a8e8;
+  color: var(--primary);
 }
 
 /* "사원 상세 조회" 텍스트와 버튼을 같은 행에 배치 */
@@ -785,18 +841,20 @@ async function onPhotoSelected(e) {
   margin-left: 20px;     /* 기존 .desc 의 margin-left */
 }
 .desc {
-  margin: 0; /* 텍스트 자체의 여백 제거 */
+  margin: 0;
+  font-size: 18px;
 }
 
 .back-btn {
   width: 24px;
   margin-right: -2px;
   cursor: pointer;
+  color: var(--primary);
 }
 
 .btn-save {
-  background-color: #00a8e8;
-  color: white;
+  background-color: var(--primary);
+  color: var(--text-on-primary);
   font-weight: bold;
   border: 1px solid transparent;
   border-radius: 10px;
@@ -807,9 +865,9 @@ async function onPhotoSelected(e) {
   box-sizing: border-box;
 }
 .btn-save:hover {
-  background-color: white;
-  color: #00a8e8;
-  border-color: #00a8e8;
+  background-color: var(--bg-main);
+  color: var(--primary);
+  border-color: var(--primary);
   box-shadow: inset 1px 1px 10px rgba(0, 0, 0, 0.25);
 }
 
@@ -832,16 +890,15 @@ async function onPhotoSelected(e) {
 
 /* EmployeeDetail 전체 컨테이너 */
 .employee-detail {
-  padding: 1rem;
+  margin: 10px 20px 0;
   font-size: 14px;
   max-width: 100%;
-  overflow-x: hidden;
-  margin: 0 auto;
+  overflow-x: hidden; 
 }
 
 /* 공통 Card 스타일 (상단/하단 모두 동일) */
 .card {
-  background: #fff;
+  background: var(--bg-box);
   border-radius: 12px;
   box-shadow: 1px 1px 20px 1px rgba(0, 0, 0, 0.05);
   width: 100%;
@@ -872,6 +929,7 @@ async function onPhotoSelected(e) {
   gap: 2rem;
   align-items: flex-start;
   min-width: 1024px;
+  padding: 16px 6px;
 }
 
 /* 프로필 */
@@ -881,24 +939,25 @@ async function onPhotoSelected(e) {
 .profile-wrapper {
   position: relative;
   display: inline-block;
+  margin-top: 6px;
 }
 .profile-img {
   width: 200px;
   height: 260px;
   object-fit: cover;
-  border-radius: 8px;
+  border-radius: 12px;
 }
 
 /* 사진이 없을 때 표시되는 박스 및 텍스트 */
 .profile-placeholder-box {
   width: 200px;
   height: 260px;
-  border: 1px dashed #ccc;
+  border: 1px dashed #ddd;
   border-radius: 8px;
   display: flex;
   justify-content: center;
   align-items: center;
-  background-color: #fafafa;
+  background-color: var(--modal-bg);
 }
 .no-photo-text {
   color: #999;
@@ -919,6 +978,9 @@ async function onPhotoSelected(e) {
 .upload-icon {
   width: 40px;
   height: 40px;
+}
+.upload-btn-icon:hover .upload-icon {
+  filter: invert(41%) sepia(50%) saturate(6012%) hue-rotate(173deg) brightness(90%) contrast(98%);
 }
 
 /* 액션 버튼을 하단 카드의 오른쪽 하단에 고정 */
@@ -964,8 +1026,8 @@ async function onPhotoSelected(e) {
 
 /* 선택된 탭 위로 */
 .tab-button.active {
-  background-color: #fff;
-  color: #000;
+  background: var(--bg-box);
+  color: var(--modal-text);
   z-index: 3;
 }
 
@@ -1020,7 +1082,7 @@ async function onPhotoSelected(e) {
   align-items: center;
   gap: 0.5rem;
   position: relative;
-  margin-bottom: 8px; 
+  margin-bottom: 8px;
 }
 .label-bold {
   font-weight: 600;
@@ -1028,14 +1090,20 @@ async function onPhotoSelected(e) {
   text-align: right;
 }
 .same-size-input {
+  background-color: var(--modal-box-bg) !important;
+  color: var(--text-main);
   width: 180px;
   height: 36px;
   padding: 0.6rem;
   font-size: 0.9rem;
-  border: 1px solid #ccc;
-  border-radius: 4px;
+  font-family: 'inherit';
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
   box-sizing: border-box;
   line-height: 1.2; 
+}
+.same-size-input::-webkit-calendar-picker-indicator {
+  filter: var(--icon-filter, brightness(0))
 }
 
 /* 셀 중앙 정렬 */
@@ -1092,14 +1160,14 @@ async function onPhotoSelected(e) {
   color: #fff;
 }
 .btn-confirm {
-  background-color: #00a8e8;
-  color: white;
+  background-color: var(--primary);
+  color: var(--text-on-primary);
   flex: 1;
 }
 .btn-confirm:hover {
-  background-color: white;
-  color: #00a8e8;
-  border: 1px solid #00a8e8;
+  background-color: var(--bg-main);
+  color: var(--primary);
+  border-color: var(--primary);
 }
 
 input[readonly] {
@@ -1153,5 +1221,16 @@ input[readonly] {
   .bottom-card {
     padding-bottom: 70px;
   }
+}
+
+.readonly {
+  background: #f5f5f5;
+  color: #555;
+  border-color: #ddd;
+}
+
+.editable {
+  background: white;
+  border-color: var(--primary);
 }
 </style>

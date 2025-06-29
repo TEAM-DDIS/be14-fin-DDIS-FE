@@ -102,7 +102,7 @@
 
 .btn-area {
   display: flex;
-  justify-content: flex-end;
+  justify-content: center;
   gap: 8px;
   margin-top: 30px;
 }
@@ -124,7 +124,7 @@
   box-sizing: border-box;
 }
 .submit-btn:hover {
-  background-color: var(--text-on-primary);
+background-color: var(--bg-main);
   color: var(--primary);
   border-color: var(--primary);
   box-shadow: inset 1px 1px 10px rgba(0, 0, 0, 0.25);
@@ -136,28 +136,30 @@
   height: 40px;
   font-size: 14px;
   font-weight: bold;
-  background-color: var(--bg-menu-btn-hover);
-  color: var(--text-main);
-  border: 1px solid var(--border-color);
+  background-color: #d3d3d3;
+  color: #000;
+  border: none;
   border-radius: 10px;
   padding: 10px 30px;
   cursor: pointer;
-  box-shadow: 0 2px 8px var(--hover-shadow);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   transition: background-color 0.2s, box-shadow 0.2s;
   box-sizing: border-box;
 }
 .delete-btn:hover {
-  background-color: var(--text-main);
-  color: var(--text-on-primary);
+  background-color: #000;
+  color: #fff;
+  border-color: var(--primary);
+
 }
 
 /* 카드 전체 */
 .personal-event-card {
   --el-color-primary: var(--primary) !important;
-  background-color: var(--bg-box);
+  /* background-color: var(--bg-box); */
   padding: 20px;
   border-radius: 12px;
-  box-shadow: 1px 1px 20px var(--hover-shadow);
+  /* box-shadow: 1px 1px 20px var(--hover-shadow); */
   color: var(--text-main);
 }
 
@@ -166,5 +168,24 @@
   color: var(--text-main);
   font-size: 16px;
   font-weight: 500;
+}
+:deep(.el-input__wrapper.is-focus),
+:deep(.el-input__wrapper:hover) {
+  border-color: var(--border-color) !important;
+  box-shadow: none !important;
+}
+:deep(.el-input__inner) {
+  color: var(--text-main);
+  font-size: 14px;
+  padding: 5px;
+}
+:deep(.el-input__wrapper),
+:deep(.el-date-editor.el-input__wrapper),
+:deep(.el-time-editor.el-input__wrapper) {
+  background-color: var(--bg-main);       /* 입력 배경 */
+  border: 1px solid var(--border-color);  /* 테두리 */
+  border-radius: 8px;
+  color: var(--text-main);                /* 텍스트 색 */
+  transition: border 0.3s, box-shadow 0.3s;
 }
 </style>

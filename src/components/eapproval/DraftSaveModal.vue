@@ -2,7 +2,7 @@
 
 <!-- 기안상신 모달 -->
 <template>
-  <div class="modal-overlay" @click.self="$emit('close')">
+  <div class="modal-overlay">
     <div class="modal-content">
       <!-- ◆ 모달 제목 -->
         <div class="model-text">
@@ -37,29 +37,31 @@ function submitApproval() {
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 1000;
+  z-index: 3000;
 }
 
 .modal-content {
-  background: #fff;
+  background: var(--bg-main, #fff);
   border-radius: 10px;
   padding: 24px 32px;
   width: 280px;
   max-width: 90%;
   box-shadow: 0 4px 12px rgba(0,0,0,0.2);
   text-align: center;
+  color: var(--text-main, #222);
 }
 
 .modal-title {
   font-size: 20px;
   font-weight: bold;
   margin-bottom: 30px;
+  color: var(--text-main, #222);
 }
 
 .modal-description {
   font-size: 16px;
   margin-bottom: 50px;
-  color: #333;
+  color: var(--text-main, #222);
 }
 
 .approval-footer {
@@ -80,8 +82,8 @@ function submitApproval() {
   font-weight: bold;
   cursor: pointer;
   font-family: inherit;
-  background-color: #00a8e8;
-  color: white;
+  background-color: var(--primary);
+  color: var(--text-on-primary, #fff);
   border: 1px solid transparent;
   border-radius: 10px;
   padding: 10px 30px;
@@ -90,9 +92,9 @@ function submitApproval() {
 }
 
 .modal-btn-submit:hover {
-  background-color: #fff;
-  color: #00a8e8;
-  border: 1px solid #00a8e8;
+  background-color: var(--bg-main, #fff);
+  color: var(--primary, #00a8e8);
+  border: 1px solid var(--primary, #00a8e8);
 }
 
 .modal-btn-cancel {

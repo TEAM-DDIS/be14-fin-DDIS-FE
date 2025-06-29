@@ -127,11 +127,14 @@
   .page-title {
     margin-left: 20px;
     margin-bottom: 30px;
-    color: #00a8e8;
+    color: var(--primary);
   }
 
   .back-btn {
     width: 24px;
+    margin: 0px;
+    height: 24px;
+    /* padding-top: 10px; */
     margin-right: -10px;
     cursor: pointer;
   }
@@ -143,14 +146,14 @@
   }
 
   .all-leave-page {
-    padding: 20px;
+    margin: 0 20px 24px;
   }
 
   .employee-info {
-    margin-bottom: 50px;
+    margin-bottom: 10px;
   }
 
   .date-filter {
-    margin-bottom: 50px;
+    margin-bottom: 10px;
   }
 </style>

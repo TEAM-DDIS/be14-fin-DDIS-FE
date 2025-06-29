@@ -23,8 +23,8 @@
   const loading = ref(false)
 
   const columnDefs = [
-    { headerName: '번호', valueGetter: params => params.api.getDisplayedRowCount() - params.node.rowIndex, sortable: false },
-    { headerName: '처리상태', field: 'approvalStatus' },
+    { headerName: '번호', valueGetter: params => params.api.getDisplayedRowCount() - params.node.rowIndex, sortable: false, width: 100 },
+    { headerName: '처리상태', field: 'approvalStatus', width: 150 },
     { headerName: '신청일', field: 'requestTime' },
     { headerName: '정정요청일', field: 'workDate'},
     { headerName: '출근시각', field: 'beforeCheckInTime', valueFormatter: ({ value }) => value ? value.split('.')[0] : '' },
@@ -73,7 +73,7 @@
   .correction-used-wrapper {
     display: flex;
     justify-content: space-between;
-    background: #fff;
+    background: var(--bg-box);
     padding: 30px;
     border-radius: 0px 12px 12px 12px;
     box-shadow: 1px 1px 20px 1px rgba(0, 0, 0, 0.05);

@@ -86,7 +86,7 @@
   .leave-count-wrapper {
     display: flex;
     justify-content: space-between;
-    background: #fff;
+    background: var(--bg-box);
     padding-top: 30px;
     padding-bottom: 30px;
     border-radius: 12px;
@@ -127,14 +127,14 @@
   .label {
     font-size: 20px;
     font-weight: bold;
-    color: black;
+    color: var(--text-main);
     margin-bottom: 10px;
   }
 
   .value {
     font-size: 25px;
     font-weight: bold;
-    color: black;
+    color: var(--text-main);
   }
 
   .blue {

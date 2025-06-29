@@ -1,5 +1,6 @@
 // src/stores/user.js
 import { defineStore } from 'pinia'
+import router from '@/router/index'
 
 export const useUserStore = defineStore('user', {
   state: () => ({
@@ -17,11 +18,12 @@ export const useUserStore = defineStore('user', {
       localStorage.setItem('user', JSON.stringify(userData))
     },
     logout() {
-      this.accessToken = ''
-      this.user = null
-      this.allEmployees = []
-      localStorage.removeItem('token')
-      localStorage.removeItem('user')
+        localStorage.removeItem('draft-auto-cache');
+        localStorage.removeItem('pinia-user')  // ← persist 키!
+        localStorage.removeItem('token')       // 토큰
+        localStorage.removeItem('user')        // 예비
+
+        router.replace({ name: 'Login' })
     },
     async fetchAllEmployees() {
       if (!this.accessToken) return
@@ -59,7 +61,16 @@ getters: {
       const mmdd = getMonthDay(emp.employeeBirth)
       return datesToInclude.includes(mmdd)
     })
-  }
+  },
+  profileUrl: (state) => {
+    const emp = state.allEmployees.find(
+      e => String(e.employeeId) === String(state.user?.employeeId)
+    )
+    const path = emp?.employeePhotoUrl
+      return path
+        ? `https://ddisbucket-fin.s3.ap-northeast-2.amazonaws.com/${path}`
+        : '/images/erpizza_profile.svg'
+    }
 }
 
 })

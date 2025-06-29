@@ -97,7 +97,7 @@
 
     .btn-area {
         display: flex;
-        justify-content: flex-end;
+        justify-content: center;
         margin-top: 30px;
     }
 
@@ -106,8 +106,8 @@
         height: 40px;
         font-size: 14px;
         font-weight: bold;
-        background-color: #00a8e8;
-        color: white;
+        background-color: var(--primary);
+        color: var(--text-on-primary);
         border: 1px solid transparent;
         border-radius: 10px;
         padding: 10px 30px;
@@ -118,9 +118,9 @@
     }
 
     .submit-btn:hover {
-        background-color: white;
-        color: #00a8e8;
-        border-color: #00a8e8;
+        background-color: var(--bg-main);
+        color: var(--primary);
+        border-color: var(--primary);
         box-shadow:
         inset 1px 1px 10px rgba(0, 0, 0, 0.25);
     }
@@ -137,7 +137,7 @@
         padding: 10px 30px;
         font-weight: bold;
         cursor: pointer;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
         transition: background-color 0.2s, box-shadow 0.2s;
         box-sizing: border-box;
     }
@@ -157,7 +157,44 @@
     }
 
     :deep(.el-form-item__label) {
-        color: #000;
+        color: var(--text-main);
         font-size: 18px;
     }
+    :deep(.el-input__wrapper),
+:deep(.el-date-editor.el-input__wrapper),
+:deep(.el-time-editor.el-input__wrapper) {
+  background-color: var(--bg-main);       /* 입력 배경 */
+  border: 1px solid var(--border-color);  /* 테두리 */
+  border-radius: 10px;
+  color: var(--text-main);                /* 텍스트 색 */
+  transition: border 0.3s, box-shadow 0.3s;
+}
+
+/* 포커스 상태일 때 */
+/* :deep(.el-input__wrapper.is-focus),
+:deep(.el-input__wrapper:hover) {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 1px var(--primary);
+} */
+
+/* 내부 텍스트 색 */
+:deep(.el-input__inner ) {
+  color: var(--text-main);
+  font-size: 16px;
+}
+:deep(.el-textarea__inner ) {
+  background-color: var(--bg-main); 
+  color: var(--text-main);
+  font-size: 16px;
+}
+/* placeholder 색 */
+:deep(.el-input__inner::placeholder) {
+  color: var(--text-muted);
+}
+
+/* date/time picker 아이콘 색상 */
+:deep(.el-input__inner) {
+  filter: var(--arrow-filter);
+}
+
 </style>

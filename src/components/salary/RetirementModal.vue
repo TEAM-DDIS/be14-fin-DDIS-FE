@@ -95,15 +95,17 @@
         </tbody>
       </table>
 
-<div class="footer">
+      <div class="footer">
         <p class="today">{{ formatDate(slip.provisionDate, true) }}</p>
-        <button class="btn left no-print" @click="sendMail">
+        <button 
+          v-if="slip && slip.provisionDate !== null"
+          class="btn left no-print" 
+          @click="sendMail">
           메일 전송
         </button>
         <button class="btn right no-print" @click="downloadPDF">PDF 다운로드</button>
       </div>
     </div>
-
     <!-- Toast 알림 -->
     <BaseToast ref="toastRef" />
   </div>
@@ -156,30 +158,38 @@ const averageDailySalary = computed(() => {
 
 const monthlySalaryRows = computed(() => {
   const retirementDate = new Date(props.slip.retirementDate)
-  const start = new Date(retirementDate.getTime() - 89 * 86400000)
-  const range = Array.from({ length: 90 }, (_, i) => new Date(start.getTime() + i * 86400000))
+  const startDate = new Date(retirementDate)
+  startDate.setDate(startDate.getDate() - 89) // 정확히 90일
+
+  const range = Array.from({ length: 90 }, (_, i) => {
+    const d = new Date(startDate)
+    d.setDate(d.getDate() + i)
+    return d
+  })
 
   const months = [
-    { month: props.slip.month2, salary: props.slip.month2Salary },
     { month: props.slip.month1, salary: props.slip.month1Salary },
+    { month: props.slip.month2, salary: props.slip.month2Salary },
     { month: props.slip.month3, salary: props.slip.month3Salary },
     { month: props.slip.month4, salary: props.slip.month4Salary },
-  ].filter(e => e.month && e.salary)
+  ].filter(e => e.month && typeof e.salary === 'number')
 
   return months.map(({ month, salary }) => {
     const [year, m] = month.split('-').map(Number)
-    const daysInMonth = new Date(year, m, 0).getDate()
     const filtered = range.filter(d => d.getFullYear() === year && d.getMonth() + 1 === m)
 
     let label = `${year}-${String(m).padStart(2, '0')}`
-    let prorated = salary
-    if (filtered.length === daysInMonth) label += ' (전체)'
-    else if (filtered.length) {
-      label += ` (${filtered[0].getDate()}~${filtered[filtered.length - 1].getDate()}일)`
-      prorated = Math.round(salary * (filtered.length / daysInMonth))
+    if (filtered.length > 0) {
+      const start = filtered[0].getDate()
+      const end = filtered[filtered.length - 1].getDate()
+      label += ` (${start}일~${end}일)`
     }
 
-    return { label, amount: prorated, sortDate: new Date(year, m - 1) }
+    return {
+      label,
+      amount: salary,
+      sortDate: new Date(year, m - 1)
+    }
   }).sort((a, b) => b.sortDate - a.sortDate)
 })
 
@@ -248,16 +258,17 @@ function downloadPDF() {
 .modal-wrapper {
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.6);
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 1000;
+  z-index: 3000;
 }
 
 /* 모달 본체 */
 .modal {
-  background: white;
+  background: var(--modal-bg2);
+  color:  var(--modal-text);
   border-radius: 12px;
   padding: 24px;
   padding-bottom: 80px; /* 하단 버튼 공간 확보 */
@@ -277,9 +288,10 @@ function downloadPDF() {
   border: none;
   background: transparent;
   cursor: pointer;
+  color: var(--modal-text);
 }
 .close-btn:hover {
-  color: #00a8e8;
+  color: var(--primary);
 }
 
 /* 모달 제목 */
@@ -297,26 +309,31 @@ function downloadPDF() {
   width: 100%;
   border-collapse: collapse;
   table-layout: fixed;
+    color: var(--modal-text);
 }
 
 /* 테이블 내부 셀 기본 패딩 + 테두리 */
+/* 셀 스타일 */
 .bordered th,
-.bordered td {
-  border: 1px solid #ccc;
+.bordered td,
+.details-table th,
+.details-table td,
+.deduction-table th,
+.deduction-table td {
+  border: 1px solid var(--border-color);
   padding: 6px 8px;
 }
-
 /* 배경색 유틸 */
 .gray {
-  background: #f8f9fa;
+  background: var(--bg-label-cell);
   text-align: left;
 }
 .gray-row {
-  background-color: #f8f9fa;
-  border: 1px solid #e0e0e0;
+  background: var(--bg-label-cell);
+  border: 1px solid var(--border-color);
 }
 .white-bg {
-  background: white;
+  background: var(--bg-main);
 }
 
 /* 섹션 제목 테이블 */
@@ -325,11 +342,12 @@ function downloadPDF() {
 }
 .section-title-table td {
   text-align: center;
-  background: #f8f9fa;
+  background: var(--bg-label-cell);
   font-weight: bold;
-  border: 1px solid #ccc;
+  border: 1px solid var(--border-color);
   padding: 10px;
   font-size: 16px;
+    color: var(--modal-text);
 }
 
 /* 상세/공제 테이블 셀 */
@@ -337,7 +355,7 @@ function downloadPDF() {
 .details-table td,
 .deduction-table th,
 .deduction-table td {
-  border: 1px solid #ccc;
+  border: 1px solid var(--border-color);
   padding: 8px;
   text-align: left;
 }
@@ -348,10 +366,10 @@ function downloadPDF() {
 }
 .highlight {
   font-weight: bold;
-  color: #00a8e8;
+  color: var(--primary);
 }
 .highlight-row {
-  background-color: #f8f9fa;
+  background-color: var(--bg-label-cell);
 }
 
 /* 하단 버튼 영역 */
@@ -367,13 +385,14 @@ function downloadPDF() {
   font-size: 18px;
   font-weight: bold;
   margin-bottom: 20px;
+  color: var(--modal-text);
 }
 
 /* 버튼 공통 스타일 */
 .btn {
   position: absolute;
-  background-color: #00a8e8;
-  color: white;
+  background-color: var(--primary);
+  color: var(--text-on-primary);
   font-weight: bold;
   border: 1px solid transparent;
   border-radius: 10px;
@@ -383,9 +402,9 @@ function downloadPDF() {
   transition: background-color 0.2s, box-shadow 0.2s;
 }
 .btn:hover {
-  background-color: white;
-  color: #00a8e8;
-  border-color: #00a8e8;
+  background-color: var(--bg-main);
+  color: var(--primary);
+  border-color: var(--primary);
   box-shadow: inset 1px 1px 10px rgba(0, 0, 0, 0.25);
 }
 .btn.left {

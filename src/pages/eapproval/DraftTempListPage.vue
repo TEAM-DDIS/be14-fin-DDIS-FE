@@ -2,9 +2,10 @@
 
 <template>
   <h1 class="page-title">기안작성</h1>
+   <div class="template-list-page">
     <!-- 헤더: 기안양식함 + 양식 추가 + 토글 -->
     <div class="form-list-header">
-      <h3 class="box-title">기안양식함</h3>
+      <div class="box-title">기안양식함</div>
       <!-- <button class="button add" @click="onAddForm">양식 추가</button> -->
       <span class="item-count">양식목록 {{ registeredForms.length }}건</span>
     </div>
@@ -24,16 +25,17 @@
           :rowData="filteredForms"
           :pagination="true"
           rowSelection="single"
-          @rowClicked="handleFormRowClick"
+          @row-click="handleFormRowClick"
         />
       </div>
-    </div>     
+    </div>
+  </div>     
 </template>
 
 <script setup>
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { AgGridVue } from 'ag-grid-vue3'
+import AgGridVue from '@/components/grid/BaseGrid.vue'
 import { ModuleRegistry, AllCommunityModule } from 'ag-grid-community'
 ModuleRegistry.registerModules([AllCommunityModule])
 
@@ -43,8 +45,8 @@ const formsExpanded = ref(true)
 
 const registeredForms = ref([
   { id: 1, name: '업무기안서', retention: '5년' , path: '/eapproval/formA' },
-  { id: 2, name: '외근신청서', retention: '5년', manager: '인사팀 이쁜펭', path: '/eapproval/formB' },
-  // { id: 3, name: '인사발령 결재요청서', retention: '5년', manager: '인사팀 이쁜펭', path: '/eapproval/formC' }
+  // { id: 2, name: '연차신청서', retention: '5년', path: '/eapproval/formB' },
+  // { id: 3, name: '인사발령 결재요청서', retention: '5년', path: '/eapproval/formC' }
 ])
 
 const formColumnDefs = [
@@ -70,7 +72,13 @@ function onAddForm() {
 </script>
 
 <style scoped>
-
+.box-title{
+  margin-bottom: 10px;
+  font-size: 18px;
+}
+.template-list-page{
+  padding: 0 20px 20px;
+}
 .add {
   position: absolute;           /* 부모 요소 기준으로 절대 위치 지정 */
   right: 24px;                  /* 오른쪽에서 24px 떨어진 위치 */
@@ -78,7 +86,7 @@ function onAddForm() {
   font-weight: bold;           /* 글자를 굵게 표시 */
   cursor: pointer;             /* 마우스 오버 시 커서를 손가락 모양으로 */
   font-family: inherit;        /* 상위 요소의 폰트 스타일 상속 */
-  background-color: #00a8e8;   /* 배경색: 밝은 파랑 */
+  background-color: var(--primary);   /* 배경색: 밝은 파랑 */
   color: white;                /* 글자색: 흰색 */
   border: 1px solid transparent; /* 투명 테두리 (hover 시 변화 대비) */
   border-radius: 10px;         /* 둥근 테두리 (모서리) */
@@ -90,74 +98,67 @@ function onAddForm() {
 }
 .add:hover {
   background-color: white;
-  color: #00a8e8;
-  border-color: #00a8e8;
+  color: var(--primary);
+  border-color: var(--primary);
   box-shadow:
   inset 1px 1px 10px rgba(0, 0, 0, 0.25);
 } 
 .page-title {
   margin-left: 20px;
   margin-bottom: 30px;
-  color: #00a8e8;
+  color: var(--primary);
   }
   
 .form-list-header {
   display: flex;
   align-items: center;
-  gap: 12px;           /* 두 요소 간격, 너무 붙으면 더 늘리세요 */
-  margin-bottom: 20px;
-  padding-left: 4px;
-}
+  gap: 12px;          
+} 
 .form-list-status {
   margin: 5px 0 0 4px;
+  
 }
 .item-count {
-  color: #666;
+  color: var(--primary);
   font-size: 1em;
-  margin-left: 0;
+  margin-bottom: 10px;
 }
 .storage-box {
   width: 100%;
-  min-width: 0;
-  background: #fff;
+  max-width: 100%;
+  background-color: var(--bg-box);
   border-radius: 12px;
   padding: 32px 32px 40px 32px;
   box-shadow: 1px 1px 20px 1px rgba(0,0,0,0.05);
-  margin: 24px 0;
-  /* overflow: hidden; */
+  margin-bottom: 20px;
   transition: background 0.2s;
   box-sizing: border-box; /* 추가 */
-}
-.storage-box.fixed-height {
-  height: 700px;
-  display: flex;
-  flex-direction: column;
+  padding: 30px;
 }
 .search-area {
-  width: 400px;
-  height: auto;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 20px;
-  justify-content: flex-start;
+  margin-bottom: 15px;
+  background-color: var(--modal-box-bg);
+  display: flex;                /* label, input을 한 줄에 배*/
+  flex-direction: row;          /* 가로 정렬(한 줄) */
+  align-items: center;          /* 세로 중앙 정렬 */
+  gap: 5px;                     /* label과 input 사이 간격 */
+  min-width: 150px;             /* 최소 너비(인풋이 깨지지 않게) */
+  background-color: transparent;
 }
 .search-logo {
-  width: 28px;
-  height: auto;
+  width: 20px;
   margin-right: 4px;
 }
 .search-input {
-  max-width: 900px;
-  padding: 8px;
-  border: 1px solid #c7c7c7;      /* 기본 2px */
-  border-radius: 8px;
-  font-size: 1.05em;
-  flex: 1 1 0;
+  padding: 6px 8px;         
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;           
+  width: 200px;
+  transition: border 0.2s, box-shadow 0.2s;
+  background-color: var(--modal-box-bg);
+  height: 18px;
+  color: var(--text-main);
+  font-family: 'inter';
 }
-.search-input:focus {
-  outline: none;
-  border: 1px solid #111;          /* 포커스 시도 2px */
-  box-shadow: 0 0 0 1.5px #111;    /* 옵션: 강조 효과 */
-}
+
 </style>

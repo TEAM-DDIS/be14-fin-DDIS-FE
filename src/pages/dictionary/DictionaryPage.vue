@@ -1,14 +1,11 @@
 <template>
   <h1 class="page-title">용어사전</h1>
 
-  <!-- 헤더: desc와 수정 버튼을 같은 높이에 배치 -->
   <header class="header">
     <p class="desc">용어사전 목록</p>
-    <button class="btn-modify" @click="onModifyClick">수정</button>
   </header>
 
   <div class="card">
-    <!-- 검색창 -->
     <div class="search-bar-in-card">
       <img src="@/assets/icons/search.svg" alt="검색" class="search-icon" />
       <input
@@ -19,11 +16,9 @@
       />
     </div>
 
-    <!-- AG Grid + 초성 사이드바를 감싸는 컨테이너 -->
     <div class="ag-grid-container">
-      <!-- 실제 AG Grid만 감싸는 래퍼 -->
       <div class="ag-wrapper">
-        <AgGridVue
+        <BaseGrid
           class="ag-theme-alpine custom-theme"
           :gridOptions="{ theme: 'legacy' }"
           style="width: 100%; height: 500px;"
@@ -32,20 +27,20 @@
           rowSelection="multiple"
           :pagination="true"
           :paginationPageSize="pageSize"
-          :paginationPageSizeSelector="[5,10,20,50]"
-          :rowHeight="defaultRowHeight"
-          :getRowHeight="getRowHeight"
-          @grid-ready="onGridReady"
+          @ready="onGridReady"
+          @cell-click="onCellClick"
         />
       </div>
 
-      <!-- 초성/영문 이니셜 사이드바 -->
       <div class="initials-sidebar">
         <ul>
           <li
             v-for="cho in initials"
             :key="cho"
-            :class="{ active: selectedInitial === cho, disabled: !typeInitials.includes(cho) }"
+            :class="{
+              active: selectedInitial === cho,
+              disabled: !typeInitials.includes(cho)
+            }"
             @click="onInitialClick(cho)"
           >
             {{ cho }}
@@ -53,17 +48,33 @@
         </ul>
       </div>
     </div>
-  </div>
-
-  <!-- 하단 버튼 -->
-  <div class="pagination-control">
-    <div class="button-group">
-      <button class="btn-delete" @click="onDeleteClick">삭제</button>
-      <button class="btn-save" @click="onRegisterClick">등록</button>
+        <div class="button-group">
+      <button
+        v-if="isHR"
+        class="btn-delete"
+        @click="onDeleteClick"
+      >
+        삭제
+      </button>
+            <button
+        v-if="isHR"
+        class="btn-modify"
+        @click="onModifyClick"
+      >
+        수정
+      </button>
+      <button
+        v-if="isHR"
+        class="btn-modify"
+        @click="onRegisterClick"
+      >
+      등록
+      </button>
     </div>
   </div>
 
-  <!-- 삭제 확인 모달 (입력/수정 모달과 동일한 디자인) -->
+  <div class="pagination-control"></div>
+
   <div v-if="showDeleteModal" class="modal-overlay">
     <div class="modal-content entry-modal">
       <h3>용어 삭제</h3>
@@ -75,7 +86,6 @@
     </div>
   </div>
 
-  <!-- 등록/수정 모달 (공통 디자인) -->
   <div v-if="showEntryModal" class="modal-overlay">
     <div class="modal-content entry-modal">
       <h3>{{ isEditMode ? '용어 수정' : '용어 등록' }}</h3>
@@ -104,13 +114,15 @@
       </div>
     </div>
   </div>
+  <BaseToast ref="toastRef" />
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { AgGridVue } from 'ag-grid-vue3'
- import axios from 'axios'
+import axios from 'axios'
+import BaseToast from '@/components/toast/BaseToast.vue'
+import { useUserStore } from '@/stores/user'
 import {
   ModuleRegistry,
   AllCommunityModule,
@@ -121,6 +133,7 @@ import {
   CellStyleModule,
   ValidationModule
 } from 'ag-grid-community'
+import BaseGrid from '@/components/grid/BaseGrid.vue'
 
 // AG Grid 모듈 등록
 ModuleRegistry.registerModules([
@@ -133,290 +146,247 @@ ModuleRegistry.registerModules([
   ValidationModule
 ])
 
-const router = useRouter()
-let gridApi = null
-const defaultRowHeight = 60
+const router      = useRouter()
+const userStore   = useUserStore()
+const API_BASE    = 'https://api.isddishr.site/dictionary'
 
-// 컬럼 정의
-const columnDefs = ref([
-  {
-    headerName: '',
-    field: 'checkbox',
-    checkboxSelection: true,
-    headerCheckboxSelection: true,
-    width: 50,
-    pinned: 'left',
-    cellClass: 'checkbox-cell',
-    headerClass: 'checkbox-header-cell'
-  },
-  {
-    headerName: '번호',
-    field: 'id',
-    width: 100,
-    cellClass: 'center-align',
-    headerClass: 'header-number'
-  },
-  {
-    headerName: '용어',
-    field: 'title',
-    flex: 0.5,
-    autoHeight: true,
-    cellStyle: { whiteSpace: 'normal' },
-    headerClass: 'header-word'
-  },
-  {
-    headerName: '설명',
-    field: 'definition',
-    flex: 2,
-    cellClass: 'center-align',
-    headerClass: 'header-definition'
-  },
+const toastRef = ref(null)
+function showToast(msg) {
+    toastRef.value?.show(msg)
+}
+
+let gridApi       = null
+const columnDefs  = ref([
+  { headerName: '', field: 'checkbox', checkboxSelection: true, headerCheckboxSelection: true, width: 50, pinned: 'left' },
+  { headerName: '번호', valueGetter: params => params.api.getDisplayedRowCount() - params.node.rowIndex, sortable: false, flex: 0.3, cellClass:'center-align' },
+  { headerName: '용어', field: 'title', flex: 0.5, autoHeight: true, cellStyle: { whiteSpace: 'normal' } },
+  { headerName: '설명', field: 'definition', flex: 2, cellClass: 'center-align' }
 ])
+const rowData         = ref([])
+const searchText      = ref('')
+const pageSize        = ref(10)
+const initials        = ref([
+  'ㄱ','ㄲ','ㄴ','ㄷ','ㄸ','ㄹ','ㅁ','ㅂ','ㅃ','ㅅ','ㅆ','ㅇ',
+  'ㅈ','ㅉ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ',
+  'A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P',
+  'Q','R','S','T','U','V','W','X','Y','Z'
+])
+const selectedInitial = ref('')
+const showDeleteModal = ref(false)
+const showEntryModal  = ref(false)
+const isEditMode      = ref(false)
+const entryTitle      = ref('')
+const entryDefinition= ref('')
+const editingId       = ref(null)
 
-const rowData = ref([])
+// JWT 페이로드 파싱
+function parseJwtPayload(token) {
+  try {
+    const base64Url = token.split('.')[1]
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split('')
+        .map(c => `%${('00' + c.charCodeAt(0).toString(16)).slice(-2)}`)
+        .join('')
+    )
+    return JSON.parse(jsonPayload)
+  } catch {
+    return {}
+  }
+}
 
-// 백엔드 API 기본 URL (필요에 따라 수정)
-const API_BASE = 'https://api.isddishr.site/dictionary'
+// HR 여부 계산
+const isHR = computed(() => {
+  const raw = userStore.accessToken?.replace(/^Bearer\s/, '') || ''
+  const { auth } = parseJwtPayload(raw)
+  if (Array.isArray(auth))    return auth.includes('ROLE_HR')
+  if (typeof auth === 'string') return auth.includes('ROLE_HR')
+  return false
+})
 
-// 컴포넌트 마운트 시 데이터 로드
-onMounted(fetchDictionary)
+// 인증 헤더 생성
+function authHeaders() {
+  return { Authorization: `Bearer ${userStore.accessToken}` }
+}
 
-/** 전체 목록 조회 */
+// 초성·영문 이니셜 계산
+function getInitialChar(str) {
+  if (!str) return ''
+  const c    = str.charAt(0)
+  const code = c.charCodeAt(0)
+  const cho  = [
+    'ㄱ','ㄲ','ㄴ','ㄷ','ㄸ','ㄹ','ㅁ','ㅂ','ㅃ','ㅅ',
+    'ㅆ','ㅇ','ㅈ','ㅉ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ'
+  ]
+  if (cho.includes(c)) return c
+  if ((code >= 65 && code <= 90) || (code >= 97 && code <= 122)) {
+    return c.toUpperCase()
+  }
+  const uni = code - 0xAC00
+  if (uni < 0 || uni > 11171) return ''
+  return cho[Math.floor(uni / 588)]
+}
+
+// 활성화된 이니셜만
+const typeInitials = computed(() => {
+  const s = new Set()
+  rowData.value.forEach(d => {
+    const init = getInitialChar(d.type)
+    if (init) s.add(init)
+  })
+  return [...s]
+})
+
+// 검색 + 이니셜 필터링
+const filteredData = computed(() => {
+  return rowData.value.filter(item => {
+    const okSearch = !searchText.value ||
+      item.title.toLowerCase().includes(searchText.value.toLowerCase())
+    const okInit = !selectedInitial.value ||
+      getInitialChar(item.type) === selectedInitial.value
+    return okSearch && okInit
+  })
+})
+
+// AG Grid 준비 콜백
+function onGridReady(params) {
+  gridApi = params.api
+}
+
+// 이니셜 클릭 핸들러
+function onInitialClick(cho) {
+  selectedInitial.value = selectedInitial.value === cho ? '' : cho
+}
+
+// 전체 목록 조회
 async function fetchDictionary() {
   try {
-      const res = await axios.get(`${API_BASE}`)
-
-      rowData.value = res.data.map(d => ({
+    const res = await axios.get(API_BASE, { headers: authHeaders() })
+    rowData.value = res.data.map(d => ({
       id: d.dictionaryId,
       title: d.dictionaryName,
       definition: d.dictionaryContent,
       type: d.dictionaryType
     }))
-  } catch (err) {
-    console.error(err)
-    alert('용어사전 로드에 실패했습니다.')
+  } catch (e) {
+    console.error(e)
+    showToast('용어사전 로드에 실패했습니다.')
   }
 }
 
-const searchText = ref('')
-const pageSize = ref(10)
-const showDeleteModal = ref(false)
-
-// 등록/수정 모달 상태
-const showEntryModal = ref(false)
-const isEditMode = ref(false)
-const entryTitle = ref('')
-const entryDefinition = ref('')
-const editingId = ref(null)
-
-const initials = ref([
-  'ㄱ','ㄲ','ㄴ','ㄷ','ㄸ','ㄹ','ㅁ','ㅂ','ㅃ','ㅅ','ㅆ','ㅇ','ㅈ','ㅉ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ',
-  'A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z'
-])
-
-
-
-
-const selectedInitial = ref('')
-
- // 초성/영문 계산 함수
-function getInitialChar(str) {
-  if (!str) return ''
-  const c = str.charAt(0)
-
-  // ① 이미 초성(Jamo) 문자가 들어온 경우 바로 반환
-  const choList = [
-    'ㄱ','ㄲ','ㄴ','ㄷ','ㄸ','ㄹ',
-    'ㅁ','ㅂ','ㅃ','ㅅ','ㅆ','ㅇ',
-    'ㅈ','ㅉ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ'
-  ]
-  if (choList.includes(c)) {
-    return c
-  }
-
-  // ② 영어 알파벳이면 대문자 반환
-  const code = c.charCodeAt(0)
-  if ((code >= 65 && code <= 90) || (code >= 97 && code <= 122)) {
-    return c.toUpperCase()
-  }
-
-  // ③ 한글 음절인 경우 초성 계산
-  const uni = code - 0xAC00
-  if (uni < 0 || uni > 11171) {
-    return ''
-  }
-  const idx = Math.floor(uni / 588)
-  return choList[idx]  // 여기서 choList 재활용
-}
-
-
-// 2) 실제 데이터로부터 활성화할 이니셜만 수집
-const typeInitials = computed(() => {
-  const set = new Set()
-  rowData.value.forEach(item => {
-    const i = getInitialChar(item.type)
-    if (i) set.add(i)
-  })
-  return Array.from(set)
-})
-
-// 3) 검색 + type 이니셜 필터
-const filteredData = computed(() => {
-  return rowData.value.filter(item => {
-    const okSearch = !searchText.value
-      || item.title.toLowerCase().includes(searchText.value.toLowerCase())
-
-    // ① 실제 type 첫 글자에서 뽑는 이니셜
-    const init = getInitialChar(item.type)
-    
-    // ② 비교
-    const okInitial = !selectedInitial.value
-      || init === selectedInitial.value
-
-    return okSearch && okInitial
-  })
-})
-
-
-function onGridReady(params) {
-  gridApi = params.api
-}
-
-// 4) 클릭 시 selectedInitial 토글
-function onInitialClick(cho) {
-  selectedInitial.value = (selectedInitial.value === cho) ? '' : cho
-}
-
-
-// 삭제 버튼 클릭 → 삭제 확인 모달 열기
+// 삭제 모달 오픈
 function onDeleteClick() {
-  const selectedRows = gridApi.getSelectedRows()
-  if (selectedRows.length === 0) {
-    alert('삭제할 항목을 선택하세요.')
-    return
+  if (!gridApi.getSelectedRows().length) {
+    return showToast('삭제할 항목을 선택하세요.')
   }
   showDeleteModal.value = true
 }
-
-// 삭제 모달 취소
 function cancelDelete() {
   showDeleteModal.value = false
 }
-
-// 삭제 모달 확인 → 삭제 로직
-function confirmDelete() {
-  const selectedRows = gridApi.getSelectedRows()
-  if (selectedRows.length > 0) {
-    rowData.value = rowData.value.filter(row => !selectedRows.includes(row))
-    gridApi.deselectAll()
+async function confirmDelete() {
+  try {
+    const rows = gridApi.getSelectedRows()
+    await Promise.all(rows.map(r =>
+      axios.delete(`${API_BASE}/${r.id}`, { headers: authHeaders() })
+    ))
+    await fetchDictionary()
+  } catch (e) {
+    console.error(e)
+    showToast('삭제에 실패했습니다.')
+  } finally {
+    showDeleteModal.value = false
   }
-  showDeleteModal.value = false
-
-  alert('삭제가 완료되었습니다.')
 }
 
-// 등록 버튼 클릭 → 등록 모달 열기
+// 등록 모달 오픈
 function onRegisterClick() {
   isEditMode.value = false
   entryTitle.value = ''
   entryDefinition.value = ''
-  editingId.value = null
   showEntryModal.value = true
 }
 
-// 수정 버튼 클릭 → 선택된 항목이 있으면 수정 모달 열기
+// 수정 모달 오픈
 function onModifyClick() {
-  const selectedRows = gridApi.getSelectedRows()
-  if (selectedRows.length !== 1) {
-    alert('수정할 항목을 하나만 선택하세요.')  
-    return
+  const rows = gridApi.getSelectedRows()
+  if (rows.length !== 1) {
+    return showToast('하나만 선택하세요.')
   }
-  const item = selectedRows[0]
-  isEditMode.value = true
-  editingId.value = item.id
-  entryTitle.value = item.title
-  entryDefinition.value = item.definition
-  showEntryModal.value = true
+  isEditMode.value      = true
+  editingId.value       = rows[0].id
+  entryTitle.value      = rows[0].title
+  entryDefinition.value = rows[0].definition
+  showEntryModal.value  = true
 }
 
-// 등록/수정 모달 취소
+// 등록/수정 취소
 function cancelEntry() {
   showEntryModal.value = false
 }
 
-// 등록/수정 모달 완료
-function confirmEntry() {
+// 등록/수정 완료
+async function confirmEntry() {
   const title = entryTitle.value.trim()
-  const definition = entryDefinition.value.trim()
-  if (!title || !definition) {
-    alert('용어명과 내용을 모두 입력하세요.')
-    return
+  const def   = entryDefinition.value.trim()
+  if (!title || !def) {
+    return showToast('용어명과 내용을 모두 입력하세요.')
   }
-
-  if (isEditMode.value) {
-    // 수정 모드: 해당 항목 업데이트
-    const idx = rowData.value.findIndex(r => r.id === editingId.value)
-    if (idx !== -1) {
-      rowData.value[idx].title = title
-      rowData.value[idx].definition = definition
+  try {
+    if (isEditMode.value) {
+      await axios.put(
+        `${API_BASE}/${editingId.value}`,
+        { dictionaryName: title, dictionaryContent: def },
+        { headers: authHeaders() }
+      )
+    } else {
+      await axios.post(
+        API_BASE,
+        { dictionaryName: title, dictionaryContent: def },
+        { headers: authHeaders() }
+      )
     }
+    await fetchDictionary()
     showEntryModal.value = false
-    alert('수정이 완료되었습니다.')
-  } else {
-    // 등록 모드: 새로운 ID 생성 후 추가
-    const newId = Math.max(...rowData.value.map(r => r.id)) + 1
-    rowData.value.push({ id: newId, title, definition })
-    showEntryModal.value = false
-    alert('등록이 완료되었습니다.')
+  } catch (e) {
+    console.error(e)
+    showToast('저장에 실패했습니다.')
   }
-
-  // 선택 해제 및 새로고침
-  gridApi && gridApi.deselectAll()
 }
 
-// 행 높이 동적 조정
-function getRowHeight(params) {
-  return params.data && params.data.title.length > 20
-    ? 80
-    : defaultRowHeight
-}
-
-// // 초성/영문 이니셜 클릭 시
-// function onInitialClick(cho) {
-//   if (selectedInitial.value === cho) {
-//     selectedInitial.value = ''
-//   } else {
-//     selectedInitial.value = cho
-//   }
-// }
+onMounted(fetchDictionary)
 </script>
+
 
 <style scoped>
 .page-title {
   margin-left: 20px;
   margin-bottom: 30px;
-  color: #00a8e8;
+  color: var(--primary);
 }
 
 /* 헤더: desc와 수정 버튼을 같은 높이에 배치 */
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0 20px;
-  margin-bottom: 10px;
-}
 
 /* desc 위치는 그대로 유지 */
 .desc {
-  margin: 0;
-  font-size: 16px;
-  color: #333;
+    display: block;
+    margin-left: 20px;
+    margin-bottom: 10px;
+    font-size: 18px;
+}
+
+.card > .btn-modify {
+  position: absolute;
+  top: 20px;   /* 카드 padding-top 과 동일하게 */
+  right: 40px; /* 카드 padding-right 과 동일하게 */
 }
 
 /* 수정 버튼 */
 .btn-modify {
-  background-color: #00a8e8;
+  display: flex;
+  justify-content: flex-end;
+  background-color: var(--primary);
   color: white;
   font-weight: bold;
   border: 1px solid transparent;
@@ -428,20 +398,21 @@ function getRowHeight(params) {
   box-sizing: border-box;
 }
 .btn-modify:hover {
-  background-color: white;
-  color: #00a8e8;
-  border-color: #00a8e8;
+  background-color: var(--bg-main);
+  color: var(--primary);
+  border-color: var(--primary);
   box-shadow: inset 1px 1px 10px rgba(0, 0, 0, 0.25);
 }
 
 /* 카드 영역 */
 .card {
-  background: #fff;
+  background: var(--bg-box);
   border-radius: 12px;
-  box-shadow: 1px 1px 20px 1px rgba(0, 0, 0, 0.05);
-  margin: 0 20px 30px;
-  padding: 20px 40px 32px 40px;
-  box-sizing: border-box;
+  padding: 20px 32px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  margin-left: 20px;
+  max-width: 100%;
+  overflow-x: auto;
 }
 
 /* 검색창 */
@@ -462,17 +433,17 @@ function getRowHeight(params) {
   pointer-events: none;
 }
 .search-bar-in-card .search-input {
-  width: 100%;
-  border: 1px solid #d1d5db;
-  border-radius: 4px;
-  padding: 6px 8px;
+  width: 150%;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 7px 8px;
   font-size: 14px;
-  color: #1f2937;
+  background-color: var(--ag-background-color);
 }
-.search-bar-in-card .search-input:focus {
+/* .search-bar-in-card .search-input:focus {
   outline: none;
   border-color: #1f2937;
-}
+} */
 
 /* AG Grid + 사이드바 컨테이너 */
 .ag-grid-container {
@@ -501,7 +472,7 @@ function getRowHeight(params) {
 .initials-sidebar {
   width: 60px;
   height: 500px;              /* 그리드 높이(500px)의 중앙에 오도록 절반 이하로 설정 */
-  background: #fafafa;
+  background: var(--bg-box);
   border: 1px solid #d9d9d9;
   border-radius: 25px;
   overflow-y: auto;
@@ -567,14 +538,18 @@ function getRowHeight(params) {
   margin: 0 20px 20px;
 }
 .button-group {
+  justify-content: flex-end;
+  margin-top: 20px;   
   display: flex;
   gap: 10px;
+  z-index: 10;
 }
 
 .btn-save {
-  background-color: #00a8e8;
-  color: white;
+  font-size: 14px;
   font-weight: bold;
+  background-color: var(--primary);
+  color: white;
   border: 1px solid transparent;
   border-radius: 10px;
   padding: 10px 30px;
@@ -584,14 +559,16 @@ function getRowHeight(params) {
   box-sizing: border-box;
 }
 .btn-save:hover {
-  background-color: white;
-  color: #00a8e8;
-  border-color: #00a8e8;
+  background-color: var(--bg-main);
+  color: var(--primary);
+  border-color: var(--primary);
   box-shadow: inset 1px 1px 10px rgba(0, 0, 0, 0.25);
 }
 
 .btn-delete {
-  background-color: #d3d3d3;
+  font-size: 14px;
+  font-weight: bold;
+  background-color: #D3D3D3;
   color: #000;
   border: none;
   border-radius: 10px;
@@ -614,7 +591,7 @@ function getRowHeight(params) {
   left: 0;
   width: 100vw;
   height: 100vh;
-  background: rgba(0, 0, 0, 0.4);
+  background: rgba(0, 0, 0, 0.6);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -623,7 +600,7 @@ function getRowHeight(params) {
 
 /* 등록/수정/삭제 모달 (공통 디자인) */
 .entry-modal {
-  background: #fff;
+  background: var(--modal-bg2);
   width: 500px;
   border-radius: 12px;
   box-shadow: 1px 1px 20px 1px rgba(0, 0, 0, 0.05);
@@ -659,14 +636,54 @@ function getRowHeight(params) {
   box-sizing: border-box;
 }
 
+.entry-modal p {
+  text-align: center;
+}
+
 /* 모달 버튼 배치 */
 .entry-buttons {
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
+  gap:10px
 }
-.entry-buttons .btn-delete,
+
 .entry-buttons .btn-save {
-  width: 48%;
+  font-size: 14px;
+  font-weight: bold;
+  background-color: var(--primary);
+  color: white;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  padding: 10px 30px;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: background-color 0.2s, box-shadow 0.2s;
+  box-sizing: border-box;
+}
+.entry-buttons .btn-save:hover{
+  background-color: var(--bg-main);
+  color: var(--primary);
+  border-color: var(--primary);
+  box-shadow:
+  inset 1px 1px 10px rgba(0, 0, 0, 0.25);
+}
+.entry-buttons.btn-delete {
+  font-size: 14px;
+  font-weight: bold;
+  background-color: #D3D3D3;
+  color: #000;
+  border: none;
+  border-radius: 10px;
+  padding: 10px 30px;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: background-color 0.2s, box-shadow 0.2s;
+  box-sizing: border-box;
+}
+.entry-buttons.btn-delete:hover{
+  background-color: #000;
+  color: #fff;
 }
 
 

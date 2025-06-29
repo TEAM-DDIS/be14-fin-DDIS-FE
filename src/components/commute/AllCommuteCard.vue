@@ -101,18 +101,18 @@
         })
     })
     const columnDefs = [
-        { headerName: '번호', valueGetter: params => params.node.rowIndex + 1, sortable: false },
+        { headerName: '번호', valueGetter: params => params.node.rowIndex + 1, sortable: false, width: 100 },
         { headerName: '사번', field: 'employeeId' },
-        { headerName: '성명', field: 'employeeName' },
-        { headerName: '연차', field: 'annualCount' },
-        { headerName: '반차', field: 'halfCount' },
-        { headerName: '출장', field: 'businessTripCount' },
-        { headerName: '외근', field: 'outsideCount' },
-        { headerName: '초과근무', field: 'overtimeCount' },
-        { headerName: '지각', field: 'lateCount' },
-        { headerName: '결근', field: 'absentCount' },
-        { headerName: '출근일수', field: 'presentCount' },
-        { headerName: '총 근무시간', field: 'totalWorkTime', valueFormatter: p => convertMinutesToHours(p.value) }
+        { headerName: '성명', field: 'employeeName', width: 150 },
+        { headerName: '연차', field: 'annualCount', width: 150 },
+        { headerName: '반차', field: 'halfCount', width: 150 },
+        { headerName: '출장', field: 'businessTripCount', width: 150 },
+        { headerName: '외근', field: 'outsideCount', width: 150 },
+        { headerName: '초과근무', field: 'overtimeCount', width: 150 },
+        { headerName: '지각', field: 'lateCount', width: 150 },
+        { headerName: '결근', field: 'absentCount', width: 150 },
+        { headerName: '출근일수', field: 'presentCount', width: 150 },
+        { headerName: '총 근무시간', field: 'totalWorkTime', valueFormatter: p => convertMinutesToHours(p.value), width: 150 }
     ]
 
     const uniqueHeads = computed(() =>
@@ -217,13 +217,13 @@
         width: 150px;
         padding: 6px 8px;
         border: 1px solid #ccc;
-        border-radius: 4px;
+        border-radius: 8px;
     }
     .search-bar input,
     .filters select {
     background-color: var(--bg-main);
     color: var(--text-main);
-    border: 1px solid var(--border-color);
+    border: 1px solid #ccc;
     }
     .search {
         width: 20px;
@@ -239,7 +239,7 @@
     .filters select {
         padding: 6px 8px;
         border: 1px solid #ccc;
-        border-radius: 4px;
+        border-radius: 8px;
     }
 
     .fixed-select {
@@ -247,26 +247,26 @@
     }
 
     .download-btn {
-        font-size: 14px;
-        font-weight: bold;
-        background-color: #00a8e8;
-        color: white;
-        border: 1px solid transparent;
-        border-radius: 10px;
-        padding: 10px 30px;
-        margin-top: 20px;
-        cursor: pointer;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-        transition: background-color 0.2s, box-shadow 0.2s;
-        box-sizing: border-box;
-        white-space: nowrap;
-    }
+    font-size: 14px;
+    font-weight: bold;
+    background-color: var(--primary);
+    color: var(--text-on-primary);
+    border: 1px solid transparent;
+    border-radius: 10px;
+    padding: 10px 30px;
+    margin-top: 20px;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    transition: background-color 0.2s, box-shadow 0.2s;
+    box-sizing: border-box;
+    white-space: nowrap;
+  }
 
-    .download-btn:hover {
-        background-color: white;
-        color: #00a8e8;
-        border-color: #00a8e8;
-        box-shadow:
-        inset 1px 1px 10px rgba(0, 0, 0, 0.25);
-    }
+  .download-btn:hover {
+    background-color: var(--bg-main);
+color: var(--primary);
+    border-color: var(--primary);
+    box-shadow:
+    inset 1px 1px 10px rgba(0, 0, 0, 0.25);
+  }
 </style>

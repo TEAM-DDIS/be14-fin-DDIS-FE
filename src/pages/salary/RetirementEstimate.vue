@@ -329,6 +329,8 @@ function showToast(msg) {
 
 /* 전체 페이지 기본 레이아웃 */
 .main-page {
+  /* background-color: var(--bg-main); */
+  color: var(--text-main);
   display: flex;
   flex-direction: column;
   height: 100vh;
@@ -341,7 +343,7 @@ function showToast(msg) {
 .total-title {
   margin-left: 20px;
   margin-bottom: 30px;
-  color: #00a8e8;
+  color: var(--primary);
 }
 
 /* 좌우 제목 라벨 영역 */
@@ -369,7 +371,7 @@ function showToast(msg) {
   display: block;
 }
 .highlight{
-  color: #00a8e8;
+  color: var(--primary);
   font-weight: bold;
 }
 /* 좌우 패널 전체 영역 */
@@ -382,7 +384,7 @@ function showToast(msg) {
 
 /* 공통 패널 스타일 */
 .panel {
-  background: #fff;
+  background: var( --bg-box);
   border-radius: 8px;
   margin: 0 20px 24px;
   box-shadow: 1px 1px 20px 1px rgba(0, 0, 0, 0.05);
@@ -404,7 +406,7 @@ function showToast(msg) {
 .right-panel {
   margin-left: 0px;
   width: 55%;
-  background: #f3f3f3;
+  background: var(--calendar-border-color);
   position: relative;
   z-index: 1;
   overflow-y: auto;
@@ -415,6 +417,7 @@ function showToast(msg) {
   position: absolute;
   left: 43%;
   z-index: 2;
+  filter: var(--arrow-filter);
 }
 
 /* 입력 필드 라인 (label + input) */
@@ -440,14 +443,19 @@ input[type='text'] {
   border: 1px solid #ccc;
   border-radius: 6px;
   flex: 1;
-  min-width: 0;
+  min-width: 0;  
+  background-color: var(--bg-main);
+  color: var(--text-main);
 }
 
 /* label 스타일 */
 label {
   font-weight: bold;
 }
+.salary-hint {
+  color: var(--text-main);
 
+}
 /* 입력 후 표시되는 결과 안내 영역 */
 .result-area {
   flex: 1;
@@ -456,7 +464,7 @@ label {
 }
 .duration {
   font-weight: bold;
-  color: #00a8e8;
+  color: var(--primary);
   font-size: 30px;
 }
 .duration-info {
@@ -465,7 +473,7 @@ label {
   font-weight: bold;
 }
 .guide {
-  color: #00a8e8;
+  color: var(--primary);
   font-size: 1.2rem;
   font-weight: 600;
 }
@@ -484,7 +492,7 @@ label {
   margin-top: 20px;
 }
 .btn-primary {
-  background-color: #00a8e8;
+  background-color: var(--primary);
   color: white;
   font-weight: bold;
   border: 1px solid transparent;
@@ -496,9 +504,9 @@ label {
   box-sizing: border-box;
 }
 .btn-primary:hover {
-  background-color: white;
-  color: #00a8e8;
-  border-color: #00a8e8;
+  background-color: var(--bg-main);
+  color: var(--primary);
+  border-color: var(--primary);
   box-shadow: inset 1px 1px 10px rgba(0, 0, 0, 0.25);
 }
 
@@ -517,7 +525,7 @@ label {
 .month-info p {
   margin: 2px 0;
   font-size: 0.9rem;
-  color: #333;
+  color: var(--text-sub);
 }
 .month-title {
   font-weight: bold;
@@ -529,7 +537,7 @@ label {
 }
 .unit {
   margin-left: 4px;
-  color: #777;
+  color: var(--text-muted);
 }
 
 /* 요약 줄 스타일 */
@@ -537,36 +545,38 @@ label {
   display: flex;
   justify-content: space-between;
   font-size: 1rem;
-  color: #444;
+  color: var(--text-sub);
 }
 .total-days {
-  color: #00a8e8;
+  color: var(--primary);
   font-size: 0.9rem;
   margin-bottom: -30px;
   margin-top: -30px;
 }
 .final-label {
   font-weight: bold;
-  color: #00a8e8;
+  color: var(--primary);
   font-size: 1.2rem;
 }
 .final-amount {
-  color: #00a8e8;
+  color: var(--primary);
   font-weight: bold;
   font-size: 1.2rem;
 }
 
 /* 결과 설명 박스 */
 .note-box {
-  background: #f5fcff;
+  background: var(--bg-body);
+  color: #00A8E8;
+  border: 1px solid #00A8E8;;
   padding: 16px;
   margin-top: 20px;
   border-radius: 8px;
   font-size: 0.9rem;
-  color: #666;
-  border: 1px solid #00a8e8;
 }
-
+.form-row input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: var(--icon-filter);
+    }
 /* 기타 공통 섹션 */
 .section,
 .section .period {

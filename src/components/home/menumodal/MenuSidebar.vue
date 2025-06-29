@@ -64,7 +64,7 @@ defineEmits(['select'])
 
 /* 마우스 호버 시 스타일 */
 .menu-button:hover {
-  background-color: var(--bg-menu-btn-hover);
+background-color: var(--ag-primary-hover);
   box-shadow: inset 0px 0px 10px 10px var(--hover-shadow); 
 } 
 </style>

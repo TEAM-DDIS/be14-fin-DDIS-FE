@@ -15,6 +15,16 @@
             <div class="title-row">
               <img src="@/assets/icons/pizza-icon2.svg" alt="DDIS Logo" class="logo" />
               <span class="title">ERPIZZA</span>
+
+              <!-- 인사팀만 보이는 설정 버튼 -->
+              <button
+                v-if="isHR"
+                class="settings-btn"
+                @click="openSettings"
+                title="설정"
+              >
+                ⚙️
+              </button>
             </div>
             <button class="close-btn" @click="$emit('close')">✕</button>
           </div>
@@ -30,14 +40,14 @@
           <div class="input-area">
             <input
               v-model="input"
-              @keydown.enter="sendMessage"
+              @keydown.enter.prevent="sendMessage()"
               type="text"
               placeholder="메시지를 입력하세요"
             />
             <button
               class="send-btn"
               :class="{ active: input.trim().length > 0 }"
-              @click="sendMessage"
+              @click="sendMessage()"
             >
               전송
             </button>
@@ -46,29 +56,60 @@
       </transition>
     </div>
   </transition>
+    <UploadModal v-if="showUploadModal" @close="showUploadModal = false" />
+
 </template>
 
 <script setup>
-import { ref, nextTick } from 'vue'
+import { ref, nextTick, onMounted, computed } from 'vue'
 import MessageBubble from './MessageBubble.vue'
-
+import { useUserStore } from '@/stores/user'
+import UploadModal from './UploadModal.vue'
+const showUploadModal = ref(false)
 const chatBody = ref(null)
 const input = ref('')
-const messages = ref([
-  {
-    from: 'bot',
-    sender: 'ERPIZZA 비서',
-    text: '안녕하세요! 무엇을 도와드릴까요?',
-    time: new Date().toLocaleTimeString([], {
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: true
-    })
-  }
-])
+const messages = ref([])
 
 const sessionId = 'test_session_' + Date.now()
 const employeeId = 'test_employee_001'
+const token = useUserStore().accessToken
+const employeeStore = useUserStore()
+const employeeName  = employeeStore.name  // 실제 스토어에 맞게 변경
+const initPrompt = `현재 결재 대기 문서는 몇 건인가요? 오늘 모든 일정도 알려주세요. 오늘 일정이 없다면 없다고 해주세요`
+const userStore = useUserStore()
+// JWT 토큰 디코딩 유틸
+function parseJwtPayload(token) {
+  try {
+    const base64Url = token.split('.')[1]
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split('')
+        .map(c => `%${('00' + c.charCodeAt(0).toString(16)).slice(-2)}`)
+        .join('')
+    )
+    return JSON.parse(jsonPayload)
+  } catch {
+    return {}
+  }
+}
+const isHR = computed(() => {
+  const raw = userStore.accessToken?.startsWith('Bearer ')
+    ? userStore.accessToken.slice(7)
+    : userStore.accessToken
+  if (!raw) return false
+
+  const { auth } = parseJwtPayload(raw)
+  if (Array.isArray(auth)) return auth.includes('ROLE_HR')
+  if (typeof auth === 'string') return auth.includes('ROLE_HR')
+  return false
+})
+
+function openSettings() {
+    // console.log('설정 열기!') // 뜨면 정상 진입
+
+  showUploadModal.value = true
+}
 
 function scrollToBottom() {
   nextTick(() => {
@@ -78,8 +119,9 @@ function scrollToBottom() {
   })
 }
 
-async function sendMessage() {
-  const trimmed = input.value.trim()
+async function sendMessage(text) {
+  const msg = text ?? input.value
+  const trimmed = msg.trim()
   if (!trimmed) return
 
   const now = new Date()
@@ -118,7 +160,7 @@ async function sendMessage() {
   try {
     const response = await fetch('https://api.isddishr.site/query-stream', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json' ,  Authorization: `Bearer ${token}` },
       body: JSON.stringify(payload)
     })
 
@@ -131,6 +173,7 @@ async function sendMessage() {
         if (done) break
         const chunk = decoder.decode(value)
         botMsg.text += chunk
+        messages.value = [...messages.value] 
         scrollToBottom()
       }
     }
@@ -197,7 +240,7 @@ function onMouseUp() {
   display: flex;
   justify-content: flex-end;
   align-items: flex-end;
-  z-index: 2000;
+  z-index: 3000;
   padding: 24px;
   box-sizing: border-box;
 }
@@ -291,7 +334,7 @@ function onMouseUp() {
   border-radius: 8px;
   background: #fff;
   outline: none;
-  color: var(--text-main);
+  /* color: var(--text-main); */
   margin-right: 8px;
   transition: border-color 0.2s ease;
 }
@@ -348,5 +391,17 @@ function onMouseUp() {
 .chat-pop-leave-from {
   transform: scale(1);
   opacity: 1;
+}
+
+.settings-btn {
+  background: transparent;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+  margin-left: 8px;
+  color: white;
+}
+.settings-btn:hover {
+  color: var(--text-main);
 }
 </style>

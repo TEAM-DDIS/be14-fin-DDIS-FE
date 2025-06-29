@@ -104,7 +104,7 @@
 
       const saved = await res.json()
 
-      console.log('[등록 응답]', saved)
+      // console.log('[등록 응답]', saved)
 
       // 일정 등록 성공 시 캘린더에 추가
       calendarOptions.events.push({
@@ -181,7 +181,7 @@
       eventClick: function(info) {
         const props = info.event.extendedProps
 
-        console.log('[이벤트 클릭] extendedProps:', props)
+        // console.log('[이벤트 클릭] extendedProps:', props)
 
         if (props.type === 'personal') {
           selectedEvent.value = {
@@ -349,8 +349,8 @@
     font-size: 14px;
   }
   .register-btn:hover {
-    background-color: var(--text-on-primary);
-    color: var(--primary);
+    background-color: var(--bg-main) !important;
+    color: var(--primary) !important;
     border: 1px solid var(--primary);
     box-shadow: inset 1px 1px 6px rgba(0,0,0,0.1);
   }
@@ -362,13 +362,13 @@
 
   .overlay {
     position: fixed; top:0; left:0; right:0; bottom:0;
-    background: rgba(0,0,0,0.4);
+    background: rgba(0,0,0,0.6);
     display: flex; align-items: center; justify-content: center;
     z-index: 2000;
   }
 
   .modal {
-    background: var(--modal-bg);
+    background: var(--modal-bg2) !important;
     color: var(--modal-text);
     padding: 30px;
     border-radius: 12px;
@@ -410,7 +410,7 @@
   }
 
   :deep(.calendar--personal .fc-day-today) {
-    background-color: #ddf2ff !important;
+    background-color: var(--ch-today) !important;
   }
 
   /* 이벤트 색상 */
@@ -448,7 +448,7 @@
   :deep(.calendar--personal .event-personal) {
     background-color: #a988f7 !important;
     border: 2px solid #a988f7 !important;
-    opacity: 60% !important;
+    opacity: 80%;
   }
 
   /* 이벤트 공통 레이아웃 */
@@ -507,13 +507,13 @@
   /* 스케줄 타입은 white text */
   :deep(.calendar--personal .event-status-schedule),
   :deep(.calendar--personal .event-employee-schedule) {
-    color: var(--text-main);
+    color: var(--text-on-primary);
   }
 
   /* 버튼들 */
   :deep(.calendar--personal .fc-button) {
     background-color: var(--primary) !important;
-  color: var(--text-on-primary) !important;
+    color: var(--text-on-primary) !important;
     border: 1px solid transparent !important;
     padding: 4px 10px !important;
     border-radius: 6px !important;
@@ -534,16 +534,16 @@
   }
 
   :deep(.calendar--personal .fc-today-button.fc-button-primary:hover) {
-    background-color: var(--event-bg-default) !important;
-    color: #00A8E8 !important;
-    border: 1px solid #00A8E8 !important;
+    background-color: var(--bg-main) !important;
+    color: var(--primary) !important;
+    border: 1px solid var(--primary) !important;
     box-shadow: inset 1px 1px 10px rgba(0, 0, 0, 0.25) !important;
   }
 
   :deep(.calendar--personal .fc-button:hover) {
-    background-color: var(--event-bg-default) !important;
-    color: #00A8E8 !important;
-    border: 1px solid #00A8E8 !important;
+    background-color: var(--bg-main) !important;
+    color: var(--primary) !important;
+    border: 1px solid var(--primary) !important;
     box-shadow: inset 1px 1px 10px rgba(0, 0, 0, 0.25) !important;
   }
 

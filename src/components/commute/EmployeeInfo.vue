@@ -75,9 +75,9 @@
 
 <style scoped>
   .employee-info-card {
-    background: #ffffff;
+    background: var(--bg-box);;
     border-radius: 12px;
-    padding: 20px;
+    padding: 30px;
     box-shadow: 0 1px 6px rgba(0, 0, 0, 0.05);
     margin-bottom: 30px;
     overflow-x: auto;
@@ -87,26 +87,23 @@
     width: 100%;
     border-collapse: collapse;
     table-layout: fixed; /* ✅ 각 열 너비 균등 */
-    text-align: center;
-    font-size: 14px;
+    text-align: left;
+    /* font-size: 14px; */
   }
 
   .info-table th,
   .info-table td {
-    border: 1px solid #e0e0e0;
-    padding: 12px;
+    border: 1px solid  var(--ag-row-border-color);
+    padding: 10px;
+    /* height: 32px; */
     white-space: nowrap;        /* 줄바꿈 방지 */
     overflow: hidden;
     text-overflow: ellipsis;
   }
 
   .info-table th {
-    background-color: #f8f8f8;
+    background: var(--grid-head);
     font-weight: bold;
-    color: #333;
   }
 
-  .info-table td {
-    color: #555;
-  }
 </style>

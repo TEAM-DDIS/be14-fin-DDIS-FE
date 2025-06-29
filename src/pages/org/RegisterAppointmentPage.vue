@@ -1,11 +1,18 @@
+<!-- 조직 및 직무 > 인사발령 > 인사발령 등록 -->
+
 <template>
-  <h1 class="page-title">인사발령</h1>
+  <h1 class="page-title">
+    <img src="@/assets/icons/back_btn.svg"
+      alt="back"
+      class="back-btn"
+      @click="goBack" />
+      인사발령
+  </h1>
   <p class="desc">인사발령 등록</p>
 
   <div class="content-box">
     <div class="register-container">
       <div class="form-grid-container">
-        <!-- 1. 기본 정보 -->
         <div class="info-section">
           <div class="select-container">
             <button class="btn-select" @click="showApprovalModal = true">
@@ -41,7 +48,7 @@
                   <option value="전보">전보</option>
                   <option value="전직">전직</option>
                   <option value="직급조정">직급조정</option>
-                  <option value="직무">직무</option>
+                  <option value="퇴사">퇴사</option>
                 </select>
               </td>
             </tr>
@@ -51,6 +58,7 @@
                 <input
                   v-model="form.effectiveDate"
                   type="date"
+                  :min="today"
                   :disabled="!form.title"
                 />
               </td>
@@ -58,21 +66,21 @@
           </table>
         </div>
 
-        <!-- 2. 조직 변경: ag-Grid 사용 -->
         <div class="org-section">
-          <AgGridVue
+          <BaseGrid
             class="ag-theme-alpine custom-theme"
             :gridOptions="{ theme: 'legacy' }"
-            :rowData="rowData"
+            :width="'100%'"
+            :height="'280px'"
             :columnDefs="columnDefs"
+            :rowData="rowData"
             :defaultColDef="{ sortable: true, resizable: true }"
-            @grid-ready="onGridReady"
-            style="width: 100%; height: 340px;"
+            :pagination="false" 
+            @ready="onGridReady"
           />
         </div>
       </div>
 
-      <!-- 3. 버튼 그룹 -->
       <div class="button-group">
         <button class="btn-cancel" @click="cancel">취소</button>
         <button class="btn-save" @click="submit">저장</button>
@@ -100,6 +108,7 @@
   @close="showOrgSelectorModal = false"
   @rank-selected="handleOrgSelected"
   @job-selected="handleOrgSelected"
+  class="org-select"
 />
 
 <BaseToast ref="toastRef" />
@@ -111,7 +120,7 @@ import { useRouter } from 'vue-router'
 import axios from 'axios'
 import 'core-js/features/array/flat-map'
 import { useUserStore } from '@/stores/user'
-import { AgGridVue } from 'ag-grid-vue3'
+import BaseGrid from '@/components/grid/BaseGrid.vue'
 import { ModuleRegistry, AllCommunityModule } from 'ag-grid-community'
 ModuleRegistry.registerModules([AllCommunityModule])
 
@@ -127,16 +136,13 @@ const fullHierarchy = ref([])
 const router = useRouter()
 const gridApi = ref(null)
 
-const userStore = useUserStore()
-const token = localStorage.getItem('token')
-
 const toastRef = ref(null)
 
-  function showToast(msg) {
-    toastRef.value?.show(msg)
-  }
+function showToast(msg) {
+  toastRef.value?.show(msg)
+}
 
-// JWT payload 파싱 함수
+
 function parseJwtPayload(token) {
   try {
     const base64Url = token.split('.')[1]
@@ -152,15 +158,17 @@ function parseJwtPayload(token) {
     return null
   }
 }
-
-// 실제 권한 검사
-const payload = parseJwtPayload(userStore.accessToken || token)
+const token = useUserStore().accessToken
+const payload = parseJwtPayload(token)
 const isHR = payload?.role?.includes('ROLE_HR') || payload?.auth?.includes('ROLE_HR')
 
-// 접근 불가 시 리다이렉트
 if (!isHR) {
   showToast('접근 권한이 없습니다.')
   router.push('/error403')
+}
+
+function goBack() {
+  router.push('/org/appointment')
 }
 
 // 폼 상태
@@ -191,7 +199,6 @@ const form = reactive({
   }
 })
 
-// 데이터 저장소
 const dataStore = reactive({
   headquarters: [],
   department: [],
@@ -199,7 +206,6 @@ const dataStore = reactive({
   job: []
 })
 
-// form.org를 대체할 전역변수
 const pureOrg = {
   headId: null,
   departmentId: null,
@@ -217,7 +223,6 @@ const teamsCurrent       = ref([])
 const jobsCurrent = ref([])
 const positionsCurrent = ref([])
 const ranksCurrent = ref([])
-const orgHeads = ref([])
 const departmentsNew = ref([])
 const teamsNew = ref([])
 const jobsNew = ref([])
@@ -226,18 +231,15 @@ const ranksNew     = ref([])
 
 const employeeCache = reactive(new Map())
 
-
-// 초기 전체 계층 로드
 onMounted(async () => {
   try {
-    const resp = await axios.get('https://api.isddishr.site/structure/hierarchy')
+    const resp = await axios.get('https://api.isddishr.site/structure/hierarchy',
+      { headers: { Authorization: `Bearer ${token}` } }
+    )
     const full = Array.isArray(resp.data) ? resp.data : []
 
    fullHierarchy.value = full
-  //  fullHierarchy.value = resp.data
 
-
-    // 기존 dataStore 세팅
     dataStore.headquarters = full.map(h => ({ headId: h.headId, headName: h.headName, headCode: h.headCode }))
     dataStore.department = full.flatMap(head =>
       (head.departments || []).map(dept => ({
@@ -247,6 +249,7 @@ onMounted(async () => {
         headId:         head.headId
       }))
     )
+ 
     // 각 department 아래의 teams 를 평탄화
     dataStore.team = full.flatMap(head =>
       (head.departments || []).flatMap(dept =>
@@ -288,16 +291,17 @@ async function loadEmployeeInfo() {
 
   if (!emp) {
     try {
-      const res = await axios.get(`https://api.isddishr.site/introduction/employee/${id}`)
+      const res = await axios.get(`https://api.isddishr.site/introduction/employee/${id}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      )
       emp = res.data
-      employeeCache.set(id, emp)     // 캐시에 저장
+      employeeCache.set(id, emp)
     } catch {
       showToast('사원정보를 불러오는 중 오류가 발생했습니다.')
       return
     }
   }
 
-  // emp 가 확보됐으면, 기존 로직 수행
   form.currentOrg.headId       = emp.headId
   form.currentOrg.departmentId = emp.departmentId
   form.currentOrg.teamId       = emp.teamId
@@ -318,22 +322,18 @@ async function loadEmployeeInfo() {
   positionsCurrent.value = [{ positionCode: emp.positionCode, positionName: emp.positionName }]
   ranksCurrent.value     = [{ rankCode: emp.rankCode, rankName: emp.rankName }]
 
-  console.log('[✅ API 응답]', emp)
+  // console.log('[✅ API 응답]', emp)
 
   gridApi.value.refreshCells({ columns: ['current'], force: true })
 }
 
-
-// 모달에서 확인 버튼 눌렀을 때 호출되는 핸들러
 async function onApprovalSubmit(selectedList) {
   const stub = selectedList[0]
   if (!stub) return
 
-  // 1) 번호·이름
   form.currentOrg.employeeId   = stub.employeeId
   form.currentOrg.employeeName = stub.employeeName
 
-  // 2) 조직 정보 로드
   await loadEmployeeInfo()
   form.org.headId       = form.currentOrg.headId
   form.org.departmentId = form.currentOrg.departmentId
@@ -342,8 +342,6 @@ async function onApprovalSubmit(selectedList) {
   form.org.positionCode = form.currentOrg.positionCode
   form.org.rankCode     = form.currentOrg.rankCode
 
-
-  // 3) 모달 닫기
   showApprovalModal.value = false
 }
 
@@ -373,12 +371,9 @@ function fillCurrentOrgCells() {
     }
   })
 
-  // 그리드에 반영
   gridApi.value.refreshCells({ columns: ['current'], force: true })
 }
 
-
-// 삭제나 추가될 때마다 approverList 를 업데이트 합니다
 function onApprovalUpdate(newList) {
   employeeList.value = newList
 }
@@ -391,7 +386,9 @@ watch(() => form.org.headId, async headId => {
   departmentsNew.value = teamsNew.value = jobsNew.value = positionsNew.value = ranksNew.value = []
   if (!headId) return gridApi.value.refreshCells({ columns:['new'], force:true })
 
-  const r = await axios.get(`https://api.isddishr.site/structure/heads/${headId}/departments`)
+  const r = await axios.get(`https://api.isddishr.site/structure/heads/${headId}/departments`,
+    { headers: { Authorization: `Bearer ${token}` } }
+  )
   departmentsNew.value = r.data
   gridApi.value.refreshCells({ columns:['new'], force:true })
 })
@@ -402,7 +399,9 @@ watch(() => form.org.departmentId, async deptId => {
   teamsNew.value = jobsNew.value = positionsNew.value = ranksNew.value = []
   if (!deptId) return gridApi.value.refreshCells({ columns:['new'], force:true })
 
-  const r = await axios.get(`https://api.isddishr.site/structure/departments/${deptId}`)
+  const r = await axios.get(`https://api.isddishr.site/structure/departments/${deptId}`,
+    { headers: { Authorization: `Bearer ${token}` } }
+  )
   teamsNew.value = r.data.teams
   gridApi.value.refreshCells({ columns:['new'], force:true })
 })
@@ -413,7 +412,9 @@ watch(() => form.org.teamId, async teamId => {
   jobsNew.value = positionsNew.value = ranksNew.value = []
   if (!teamId) return gridApi.value.refreshCells({ columns:['new'], force:true })
 
-  const r = await axios.get(`https://api.isddishr.site/introduction/team/${teamId}/job`)
+  const r = await axios.get(`https://api.isddishr.site/introduction/team/${teamId}/job`,
+    { headers: { Authorization: `Bearer ${token}` } }
+  )
   jobsNew.value = r.data.map(j => ({
     jobId: j.jobId, jobName: j.jobName, jobCode: j.jobCode
   }))
@@ -426,8 +427,12 @@ watch(() => form.org.jobId, async jobId => {
   positionsNew.value = ranksNew.value = []
   if (jobId) {
     const [posRes, rankRes] = await Promise.all([
-      axios.get(`https://api.isddishr.site/introduction/job/${jobId}/positions`),
-      axios.get(`https://api.isddishr.site/introduction/job/${jobId}/ranks`)
+      axios.get(`https://api.isddishr.site/introduction/job/${jobId}/positions`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      ),
+      axios.get(`https://api.isddishr.site/introduction/job/${jobId}/ranks`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      )
     ])
     positionsNew.value = posRes.data
     ranksNew.value = rankRes.data
@@ -435,8 +440,6 @@ watch(() => form.org.jobId, async jobId => {
   gridApi.value?.refreshCells({ columns: ['new'], force: true })
 })
 
-
-// ag-Grid 설정: position, rank 칼럼 추가
 const orgFields = {
   head: '소속 본부',
   department: '소속 부서',
@@ -463,7 +466,7 @@ const columnDefs = [
           .btn-plus {
             background-color: #3f3f3f;
             border-radius: 8px;
-            border: 1px solid transparent;
+            border: 1px solid var(--btn-border);
             padding: 6px 10px;
             font-size: 12px;
             font-weight: bold;
@@ -474,11 +477,12 @@ const columnDefs = [
             box-sizing: border-box;
           }
           .btn-plus:hover {
-            background-color: white;
-            color: #3f3f3f;
+            background: var(--bg-main);
+            color: var(--modal-text);
             border-color: #3f3f3f;
             box-shadow: inset 1px 1px 10px rgba(0, 0, 0, 0.25);
           }
+
         </style>
       </div>
       `
@@ -486,25 +490,17 @@ const columnDefs = [
   }
 ]
 
-// 타입별로 보여줄 조직 단계 키(key) 목록
 const typeToKeys = {
-  승진:   ['head', 'department', 'team'],               // 승진 시: 본부, 부서
-  전보:   ['department', 'team'],               // 전보 시: 부서, 팀
-  전직:   ['department', 'team', 'job'],        // 전직 시: 부서, 팀, 직무
-  직급조정: ['department', 'team', 'position', 'rank'], // 직급조정: 부서, 팀, 직책
-  직무:   ['department', 'team', 'job']         // 직무 변경: 부서, 팀, 직무
+  // 승진:   ['head', 'department', 'team'],
+  승진:   ['head', 'department', 'team'],
+  전보:   ['department', 'team'],
+  전직:   ['department', 'team', 'job'],  
+  직급조정: ['department', 'team', 'position', 'rank'],
+  // 직무:   ['department', 'team', 'job']
+  퇴사:   []
 }
 
-const showRanks = computed(() => {
-  const keys = typeToKeys[form.type] || []
-  return keys.includes('rank')
-})
-const showJobs = computed(() => {
-  const keys = typeToKeys[form.type] || []
-  return keys.includes('job')
-})
 
-// form.type이 바뀔 때마다 rowData 초기화
 watch(() => form.type, newType => {
   rowData.length = 0
   const keys = typeToKeys[newType] || []
@@ -546,7 +542,6 @@ function syncOrgToGrid() {
         break
       case 'job': {
         const match = jobsNew.value.find(j => String(j.jobId) === String(pureOrg.jobId))
-        console.log('🧪 match for job:', match)
         r.new = match?.jobName || ''
         break
       }
@@ -554,8 +549,6 @@ function syncOrgToGrid() {
   })
   gridApi.value.refreshCells({ columns:['new'], force:true })
 }
-
-
 
 // 발령 조직 컬럼에 데이터 불러오기 위한 변수 설정
 function handleOrgSelected(selected) {
@@ -583,29 +576,16 @@ function handleOrgSelected(selected) {
     positionName: selected.positionName
   }] : []
 
-
-  // 선택한 조직명 grid 반영
   syncOrgToGrid()
 
-  console.log('[form.org 저장된 값]', JSON.stringify(form.org, null, 2))
+  // console.log('[form.org 저장된 값]', JSON.stringify(form.org, null, 2))
 
   showOrgSelectorModal.value = false
 }
 
-
-function handleRankSelected(rank) {
-  // rank = { rankId, rankName }
-  form.org.rankCode = rank.rankId
-  // 그리드 “new” 쪽에 반영
-  syncOrgToGrid()
-}
-
-
-
 function makeSelect(params, context) {
   const key = params.data.key
 
-  // 👉 발령 조직: readOnlyInput만
   if (context === 'org') {
     const inp = document.createElement('input')
     inp.type = 'text'
@@ -613,13 +593,13 @@ function makeSelect(params, context) {
     inp.value = params.data.new || ''
     inp.style.width = '95%'
     inp.style.height = '70%'
+    inp.style.color = 'var(--text-main)'
     inp.style.border = '2px solid #eee'
     inp.style.borderRadius = '8px'
-    inp.style.background = '#f9f9f9'
+    inp.style.background = 'var(--modal-box-bg)'
     return inp
   }
 
-  // 👉 현재 소속 조직: 그대로 유지
   if (context === 'currentOrg') {
     const readOnlyInput = value => {
       const input = document.createElement('input')
@@ -628,6 +608,7 @@ function makeSelect(params, context) {
       input.readOnly = true
       input.style.width = '95%'
       input.style.height = '70%'
+      input.style.color = 'var(--text-main)'
       input.style.border = '2px solid #c8c8c8'
       input.style.borderRadius = '8px'
       input.style.background = 'transparent'
@@ -654,8 +635,6 @@ function makeSelect(params, context) {
   return document.createTextNode('-')
 }
 
-
-
 function onGridReady(params) {
   gridApi.value = params.api
   rowData.length = 0
@@ -667,25 +646,35 @@ function onGridReady(params) {
 
   fillCurrentOrgCells()
 
-  // 헤더의 + 버튼에 클릭 이벤트 연결
+  watch(() => form.type, newType => {
   nextTick(() => {
     const btn = document.querySelector('#openOrgModal')
-    if (btn) btn.addEventListener('click', () => openOrgModalForKey('org'))
+    if (!btn) return
+
+    const shouldDisable = ['승진', '퇴사'].includes(newType)
+    btn.disabled = shouldDisable
+
+    btn.addEventListener('click', () => {
+      // 승진/퇴사면 토스트 출력
+      if (['승진', '퇴사'].includes(newType)) {
+        showToast('해당 유형은 조직 선택이 불가능합니다.')
+      } else {
+        openOrgModalForKey('org')
+      }
+    })
+
+    // 비활성화 시 스타일 반영 (선택)
+    if (shouldDisable) btn.classList.add('btn-plus--disabled')
+    else btn.classList.remove('btn-plus--disabled')
   })
+})
+
 }
 
-// 인사발령 등록
 async function submit() {
 
     await nextTick()
 
-    console.log('✅ departmentId in form.org:', form.org.departmentId)
-    console.log('✅ teamId in form.org:', form.org.teamId)
-    console.log('✅ dataStore.department:', dataStore.department)
-    console.log('✅ dataStore.team:', dataStore.team)
-
-
-    // form.org의 Proxy 문제를 회피하기 위해 얕은 복사
     const org = { ...form.org };
     const current = { ...form.currentOrg };
 
@@ -695,50 +684,62 @@ async function submit() {
       return found ? found[codeKey] : null;
     };
 
-  const payload = {
-  employeeId: Number(current.employeeId),
-  appointmentReason: form.title,
-  appointmentType: form.type,
-  appointmentEffectiveDate: form.effectiveDate,
+    const payload = {
+    employeeId: Number(current.employeeId),
+    appointmentReason: form.title,
+    appointmentType: form.type,
+    appointmentEffectiveDate: form.effectiveDate,
 
-  fromHeadCode:      getCode(dataStore.headquarters, 'headId', 'headCode', current.headId),
-  fromDepartmentCode:getCode(dataStore.department, 'departmentId', 'departmentCode', current.departmentId),
-  fromTeamCode:      getCode(dataStore.team, 'teamId', 'teamCode', current.teamId),
-  fromJobCode:       current.jobCode,
-  fromPositionCode:  current.positionCode,
-  fromRankCode:      current.rankCode,
+    fromHeadCode:      getCode(dataStore.headquarters, 'headId', 'headCode', current.headId),
+    fromDepartmentCode:getCode(dataStore.department, 'departmentId', 'departmentCode', current.departmentId),
+    fromTeamCode:      getCode(dataStore.team, 'teamId', 'teamCode', current.teamId),
+    fromJobCode:       current.jobCode,
+    fromPositionCode:  current.positionCode,
+    fromRankCode:      current.rankCode,
 
-  toHeadCode:        getCode(dataStore.headquarters, 'headId', 'headCode', pureOrg.headId || current.headId),
-  toDepartmentCode:  getCode(dataStore.department, 'departmentId', 'departmentCode', pureOrg.departmentId) || pureOrg.departmentId,
-  toTeamCode:        getCode(dataStore.team, 'teamId', 'teamCode', pureOrg.teamId) || pureOrg.teamId,
-  toJobCode:         pureOrg.jobCode || current.jobCode,
-  toPositionCode:    pureOrg.positionCode || current.positionCode,
-  toRankCode:        pureOrg.rankCode || current.rankCode,
+    toHeadCode:        getCode(dataStore.headquarters, 'headId', 'headCode', pureOrg.headId || current.headId),
+    toDepartmentCode:  getCode(dataStore.department, 'departmentId', 'departmentCode', pureOrg.departmentId) || pureOrg.departmentId,
+    toTeamCode:        getCode(dataStore.team, 'teamId', 'teamCode', pureOrg.teamId) || pureOrg.teamId,
+    toJobCode:         pureOrg.jobCode || current.jobCode,
+    toPositionCode:    pureOrg.positionCode || current.positionCode,
+    toRankCode:        pureOrg.rankCode || current.rankCode,
 
-  appointmentStatus: '대기',
-  isApplied: false
-}
+    appointmentStatus: '대기',
+    isApplied: false
+  }
 
-
-  console.log('▶ 전송 payload:', payload);
+  console.log('payload: ', payload)
 
   try {
-    await axios.post(
-      'https://api.isddishr.site/appointment/create',
-      payload,
-      { headers: { 'Content-Type': 'application/json' } }
-    );
+    await axios({
+      method: 'post', 
+      url: 'https://api.isddishr.site/appointment/create',
+        headers: { 
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json'
+       },
+       data: payload 
+      
+});
     showToast('등록 성공!');
     router.push('/org/appointment');
   } catch (err) {
     console.error('▶ AxiosError:', err);
     showToast(
-      `등록 중 오류가 발생했습니다.\n` +
-      `${err.response?.data?.message || err.message}`
+      `등록 중 오류가 발생했습니다.\n` 
+      // `${err.response?.data?.message || err.message}`
     );
   }
 }
 
+// 오늘 날짜 계산
+const today = computed(() => {
+  const d = new Date()
+  const yyyy = d.getFullYear()
+  const mm = String(d.getMonth() + 1).padStart(2, '0')
+  const dd = String(d.getDate()).padStart(2, '0')
+  return `${yyyy}-${mm}-${dd}`
+})
 
 function cancel() {
   router.back()
@@ -751,7 +752,7 @@ function cancel() {
 .page-title {
   margin-left: 20px;
   margin-bottom: 30px;
-  color: #00a8e8;
+  color: var(--primary); 
 }
 .desc {
   display: block;
@@ -759,18 +760,24 @@ function cancel() {
   margin-bottom: 10px;
   font-size: 18px;
 }
+.back-btn {
+  width: 24px;
+  height: 24px;
+  margin-right: -10px;
+  cursor: pointer;
+  color: var(--primary); 
+}
 
-/* 전체 컨테이너 */
 .content-box {
-  background: #fff;
+  background: var(--bg-box);
   border-radius: 12px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-  margin: 24px;
+  margin-left: 20px;
   position: relative;
   padding: 20px 32px 80px; 
 }
 .register-container {
-  /* width: 60%; */
+  width: 80%;
   margin: 0 auto;
   margin-top: 20px;
   margin-bottom: 20px;
@@ -780,24 +787,21 @@ function cancel() {
   display: flex;
   gap: 60px;
   align-items: flex-start;
-  margin-bottom: 20px;
+  margin-bottom: 60px;
   padding: 0 20px;
 }
 
-/* 왼쪽 테이블 영역 너비 */
 .info-section {
   flex: 1;
   min-width: 300px;
 }
 
-/* 오른쪽 ag-Grid 영역 너비 */
 .org-section {
-  flex: 1.5;               /* 왼쪽의 두 배 너비 */
+  flex: 1;
   min-width: 400px;
-  height: 350px;         /* 필요에 따라 조절 */
+  margin-top: 68px;
 }
 
-/* 정보 입력 섹션 */
 .info-section {
   width: 100%;
 }
@@ -808,12 +812,12 @@ function cancel() {
 }
 .info-table th,
 .info-table td {
-  border: 1px solid #c8c8c8;
+  border: 1px solid #ddd;
   padding: 12px 12px;
 }
 .info-table th {
   width: 120px;
-  background: #f8f9fa;
+  background-color: var(--bg-label-cell);
 }
 .info-section input[type="text"],
 .info-section input[type="date"],
@@ -822,41 +826,34 @@ function cancel() {
   box-sizing: border-box;
   padding: 8px 12px;
   font-size: 14px;
-  border: 2px solid #c8c8c8;
+  border: 2px solid #ddd;
+  color: var(--text-main);
   border-radius: 8px;
   outline: none;
   font-family: 'inter';
+  background-color: var(--modal-box-bg);
 }
-.info-section input[type="text"]:focus,
-.info-section input[type="date"]:focus,
-.info-section select:focus {
-  border: 1px solid black;
-}
+
 .info-section input[type="text"]::placeholder {
-  color: #555;
+  color: var(--text-main);
 }
 
-/* 조직 그리드 섹션 */
-.org-section {
-  width: 100%;
-  margin: 0 auto;
-  margin-top: 20px;
-  margin-bottom: 20px;
+input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: var(--icon-filter, brightness(0))
 }
 
-/* 버튼 그룹 */
 .button-group {
-   position: absolute;
-  bottom: 30px;
-  right: 50px;
+  position: absolute;
+  bottom: 50px;
+  right: 215px;
   display: flex;
   gap: 15px;
 }
 .btn-save {
   font-size: 14px;
   font-weight: bold;
-  background-color: #00a8e8;
-  color: white;
+  background-color: var(--primary);
+  color: var(--text-on-primary);
   border: 1px solid transparent;
   border-radius: 10px;
   padding: 10px 30px;
@@ -865,9 +862,9 @@ function cancel() {
   transition: background-color 0.2s, box-shadow 0.2s;
 }
 .btn-save:hover {
-  background-color: white;
-  color: #00a8e8;
-  border-color: #00a8e8;
+  background-color: var(--bg-main);
+  color: var(--primary);
+  border-color: var(--primary);
   box-shadow: inset 1px 1px 10px rgba(0, 0, 0, 0.25);
 }
 
@@ -894,16 +891,15 @@ function cancel() {
 .select-container {
   display: flex;
   justify-content: flex-start;
-  margin-bottom: 15px; /* 테이블과 버튼 사이 간격 */
+  margin-bottom: 15px; 
   margin-top: 15px;
 }
-
 
 .btn-select {
   font-size: 14px;
   font-weight: bold;
-  background-color: #00a8e8;
-  color: white;
+  background-color: var(--primary);
+  color: var(--text-on-primary);
   border: 1px solid transparent;
   border-radius: 10px;
   padding: 10px 16px;
@@ -913,9 +909,9 @@ function cancel() {
 }
 
 .btn-select:hover {
-  background-color: white;
-  color: #00a8e8;
-  border-color: #00a8e8;
+  background-color: var(--bg-main);
+  color: var(--primary);
+  border-color: var(--primary);
   box-shadow: inset 1px 1px 10px rgba(0, 0, 0, 0.25);
 }
 </style>

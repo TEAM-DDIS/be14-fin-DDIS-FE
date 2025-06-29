@@ -41,7 +41,7 @@
     </div>
 
     <!-- 기간 설정 -->
-    <p class="desc">기간 설정</p>
+    <p class="desc">기간 설정 (지급월 기준)</p>
     <div class="section period">
       <div class="inputs">
         <label><strong>조회기간</strong></label>
@@ -64,7 +64,7 @@
 
       <!-- 월별 급여 내역: ag-grid 사용 -->
       <div class="history-box">
-        <h3 class="detail-title">월별 급여 내역</h3>
+      
         <AgGrid
           class="ag-theme-alpine custom-theme"
           :gridOptions="{ theme: 'legacy' }"
@@ -81,7 +81,9 @@
       <div class="detail-box">
         <p class="detail-intro" v-if="!selectedSlip">급여명세서를 보려면 왼쪽 내역을 클릭하세요.</p>
         <div v-else>
-          <h3 class="detail-title">{{ employee.employeeName }}님 {{ selectedSlip.yearMonth.replace('-', '년 ') }}월 급여명세서</h3>
+          <h3 class="detail-title">
+            {{ employee.employeeName }}님 {{ getWorkMonth(selectedSlip.salaryDate) }} 급여명세서
+          </h3>          
           <div class="slip-tables">
             <table class="table">
               <thead>
@@ -148,24 +150,29 @@ function showToast(msg) {
   toastRef.value?.show(msg)
 }
 const salaryColumnDefs = [
-  { headerName: '지급일자', field: 'salaryDate' },
+  { headerName: '지급일자', field: 'salaryDate' , width: 150},
+  {
+    headerName: '근무월',
+    valueGetter: p => getWorkMonth(p.data.salaryDate),
+    cellClass: 'right-align', width: 150
+  },
   {
     headerName: '총지급',
     field: 'totalIncome',
     valueFormatter: params => formatCurrency(params.value),
-    cellClass: 'right-align'
+    cellClass: 'right-align',flex:1
   },
   {
     headerName: '총공제',
     field: 'totalDeductions',
     valueFormatter: params => formatCurrency(params.value),
-    cellClass: 'right-align'
+    cellClass: 'right-align',flex:1
   },
   {
     headerName: '실지급',
     field: 'netSalary',
     valueFormatter: params => formatCurrency(params.value),
-    cellClass: 'right-align'
+    cellClass: 'right-align',flex:1
   }
 ]
 function parseJwtPayload() {
@@ -209,6 +216,9 @@ async function fetchSalaryHistory() {
   const current = new Date(start)
 
   while (current <= end) {
+    // const payMonth = new Date(current.getFullYear(), current.getMonth() + 1); // +1개월
+    // const yyyymm = `${payMonth.getFullYear()}-${String(payMonth.getMonth() + 1).padStart(2, '0')}`;
+
     const yyyymm = `${current.getFullYear()}-${String(current.getMonth() + 1).padStart(2, '0')}`
     try {
       const { data } = await axios.get(`https://api.isddishr.site/payroll/me/salary`, {
@@ -282,6 +292,16 @@ function formatCurrency(val) {
 function openModal() {
   showModal.value = true
 }
+
+function getWorkMonth(salaryDate) {
+  if (!salaryDate) return ''
+  const date = new Date(salaryDate)
+  date.setMonth(date.getMonth() - 1)
+  const y = date.getFullYear()
+  const m = String(date.getMonth() + 1).padStart(2, '0')
+  return `${y}년 ${m}월`
+}
+
 </script>
 
 
@@ -299,11 +319,16 @@ input[type="month"] {
   height: 20px;
   padding: 6px 8px;
   border: 1px solid #ccc;
+
+  background-color: var(--bg-main);
+  color: var(--text-main);
 }
+
+
 
 /* ag-grid 헤더 색상 커스터마이징 */
 .custom-grid :deep(.ag-header) {
-  background-color: #f0f0f0 !important;
+  background-color: var(--grid-head) !important;
 }
 
 /* select 박스 고정 폭 */
@@ -314,14 +339,14 @@ input[type="month"] {
 /* 테이블 상단 제목 셀 스타일 */
 .main-head th,
 .table-head th {
-  background-color: #f8f9fa !important;
+  background-color: var(--grid-head) !important;
   font-weight: bold;
   
 }
 
 /* 서브 헤더 행 스타일 */
 .sub-head th {
-  background-color: #f8f9fa !important;
+  background-color: var(--grid-head) !important;
   font-weight: bold;
 }
 
@@ -339,7 +364,7 @@ input[type="month"] {
 .page-title {
   margin-left: 20px;
   margin-bottom: 30px;
-  color: #00a8e8;
+  color: var(--primary);
 }
 
 /* 소제목 설명 */
@@ -353,7 +378,7 @@ input[type="month"] {
 /* 박스형 섹션 공통 스타일 */
 .section,
 .section .period {
-  background: #fff;
+  background-color: var(--bg-box);
   padding: 30px;
   margin: 0 20px 24px;
   border-radius: 8px;
@@ -382,6 +407,9 @@ input[type="month"] {
   height: 18px;
 }
 
+.period input[type="month"]::-webkit-calendar-picker-indicator {
+    filter: var(--icon-filter);
+    }
 /* 필터 select 영역 배치 */
 .filters {
   display: flex;
@@ -403,7 +431,7 @@ input[type="month"] {
   align-items: center;
   flex-wrap: wrap;
   gap: 16px;
-  background: #fff;
+  background-color: var(--bg-box);
   box-shadow: 1px 1px 20px 1px rgba(0, 0, 0, 0.05);
 }
 
@@ -412,20 +440,25 @@ input[type="month"] {
   display: flex;
   align-items: center;
   gap: 13px;
+  background-color: var(--bg-box);
+  
 }
 
+.period label {
+  color: var(--text-main);
+}
 /* 조회 버튼 hover 효과 */
 .search-btn:hover {
-  background-color: white;
-  color: #00a8e8;
-  border-color: #00a8e8;
+  background-color: var(--bg-main);
+  color: var(--primary);
+  border: 1px solid var(--primary);
   box-shadow: inset 1px 1px 10px rgba(0, 0, 0, 0.25);
 }
 
 /* 조회 버튼 기본 스타일 */
 .search-btn {
-  background-color: #00a8e8;
-  color: white;
+  background-color: var(--primary);
+  color: var(--text-on-primary);
   font-weight: bold;
   border: 1px solid transparent;
   border-radius: 10px;
@@ -452,7 +485,7 @@ input[type="month"] {
 .history-box,
 .detail-box {
   flex: 1;
-  background: #fff;
+  background-color: var(--bg-box);
   padding: 25px;
   border-radius: 8px;
   box-shadow: 1px 1px 20px 1px rgba(0, 0, 0, 0.05);
@@ -470,7 +503,7 @@ input[type="month"] {
   border-collapse: collapse;
 }
 .info-table th{
-  background: #f8f9fa !important;
+  background: var(--grid-head);
   text-align: left;
   
 }
@@ -479,7 +512,7 @@ input[type="month"] {
 .table td {
   height: 32px;
   padding: 6px 8px;
-  border: 1px solid #e0e0e0;
+  border: 1px solid var(--ag-row-border-color);
 }
 
 /* 급여 상세 상단 설명 */
@@ -490,23 +523,27 @@ input[type="month"] {
 
 /* 상세 박스 헤더 */
 .detail-header {
-  background-color: #f8f9fa;
+  background-color: var(--bg-box);
   border-radius: 12px 12px 0 0;
   padding: 8px 16px;
 }
-
+/* AgGrid 헤더 커스터마이징 */
+.custom-theme :deep(.ag-header) {
+  background-color: var(--bg-label-cell);
+  color: var(--text-main);
+}
 /* 상세 타이틀 중앙 정렬 */
 .detail-title {
   text-align: center;
   font-weight: bold;
   margin: 0 0 12px;
+  
 }
 
 /* 강조 텍스트 */
 .highlight {
   font-weight: bold;
-  color: #00a8e8;
-}
+  color: var(--primary);}
 
 /* 숫자 등 우측 정렬 */
 .right-align {
@@ -528,7 +565,7 @@ input[type="month"] {
 /* 안내 문구 스타일 */
 .detail-intro {
   font-size: 15px;
-  color: #00a8e8;
+  color: var(--primary);
   padding-left: 4px;
   text-align: center;
   padding-top: 200px;

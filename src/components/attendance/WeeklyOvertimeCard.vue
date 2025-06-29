@@ -240,7 +240,7 @@
     box-sizing: border-box;
   }
   .apply-btn:hover {
-    background-color: var(--text-on-primary);
+    background-color: var(--bg-main);
     color: var(--primary);
     border: 1px solid var(--primary);
     box-shadow: inset 1px 1px 10px rgba(0, 0, 0, 0.25);
@@ -259,7 +259,7 @@
 
   /* 모달 내용 */
   .modal {
-    background: var(--modal-bg);
+    background: var(--modal-bg2);
     padding: 30px;
     border-radius: 12px;
     width: 420px;

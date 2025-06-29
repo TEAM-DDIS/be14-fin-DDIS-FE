@@ -118,7 +118,7 @@ function onClick(menu) {
 }
 
 .menu-button:hover {
-  background-color: var(--bg-menu-btn-hover);
+  background-color: var(--ag-primary-hover);
   box-shadow: inset 0px 0px 10px 10px var(--hover-shadow);
 }
 </style>

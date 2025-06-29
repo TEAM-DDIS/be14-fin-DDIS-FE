@@ -1,6 +1,5 @@
-<!-- src/components/EditJobModal.vue -->
 <template>
-  <div class="modal-overlay" @click.self="$emit('close')">
+  <div class="modal-overlay">
     <div class="modal scrollbar">
       <h3>직무 정보 편집</h3>
       <div class="modal-content">
@@ -10,16 +9,16 @@
         <label>직무명</label>
         <input v-model="local.job_name" type="text" />
 
-        <label>주요 역할 (줄바꿈 구분)</label>
+        <label>주요 역할</label>
         <textarea v-model="local.job_role_text" rows="4" />
 
-        <label>필요 역량 (줄바꿈 구분)</label>
+        <label>필요 역량</label>
         <textarea v-model="local.job_need_text" rows="4" />
 
-        <label>필수 조건 (줄바꿈 구분)</label>
+        <label>필수 조건</label>
         <textarea v-model="local.job_necessary_text" rows="4" />
 
-        <label>우대 사항 (줄바꿈 구분)</label>
+        <label>우대 사항</label>
         <textarea v-model="local.job_preference_text" rows="4" />
       </div>
       <div class="modal-actions">
@@ -41,35 +40,38 @@ const props = defineProps({
 })
 const emit = defineEmits(['close', 'save'])
 
-// 로컬 복사 + textarea 편집용 문자열으로 변환
 const local = reactive({
   job_id: props.initial.jobId,
   team_name: props.initial.teamName || '',
   job_name: props.initial.jobName || '',
+  job_code: props.initial.jobCode || '',
   job_role_text: (props.initial.jobRole || []).join('\n'),
   job_need_text: (props.initial.jobNeed || []).join('\n'),
   job_necessary_text: (props.initial.jobNecessary || []).join('\n'),
   job_preference_text: (props.initial.jobPreference || []).join('\n'),
+  team_id: props.initial.teamId || null,
 })
 
-// 부모 prop 바뀌면 동기화
 watch(
   () => props.initial,
   val => {
     local.job_id = val.jobId
     local.team_name = val.teamName || ''
     local.job_name = val.jobName || ''
+    local.job_code = val.jobCode || ''
     local.job_role_text = (val.jobRole || []).join('\n')
     local.job_need_text = (val.jobNeed || []).join('\n')
     local.job_necessary_text = (val.jobNecessary || []).join('\n')
     local.job_preference_text = (val.jobPreference || []).join('\n')
-  }
+    local.team_id = val.teamId || null
+  },
 )
 
 function onSave() {
   emit('save', {
     jobId: local.job_id,
     jobName: local.job_name,
+    jobCode: local.job_code,
     jobRole: local.job_role_text
       .split('\n')
       .map(l => l.trim())
@@ -86,6 +88,7 @@ function onSave() {
       .split('\n')
       .map(l => l.trim())
       .filter(l => l),
+    teamId: local.team_id
   })
 }
 </script>
@@ -104,9 +107,9 @@ function onSave() {
   z-index: 1000;
 }
 .modal {
-  background: #fff;
-  padding: 24px;
-  border-radius: 8px;
+  background: var(--modal-box-bg);
+  padding: 30px;
+  border-radius: 12px;
   width: 480px;
   max-width: 90%;
   height: 80%;
@@ -124,11 +127,13 @@ h3 {
   flex-direction: column;
   align-items: center;
   gap: 12px;
-  margin: 16px 0;
+  margin: 16px 10px;
+  
 }
 .modal-content label {
-  font-size: 14px;
-  color: #424242;
+  font-size: 15px;
+  font-weight: bold;
+  color: var(--modal-text);
   width: 100%;
   text-align: left;
 }
@@ -136,20 +141,24 @@ h3 {
 .modal-content textarea {
   width: 80%;
   padding: 8px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
   font-size: 14px;
   font-family: inherit;
+  background: var(--modal-box-bg);
+  color: var(--modal-text);
 }
-.modal-content input:focus,
+/* .modal-content input:focus,
 .modal-content textarea:focus {
   outline: none;
   border: 1px solid black;
-}
+} */
+
 .modal-actions {
   display: flex;
-  justify-content: flex-end;
-  gap: 8px;
+  justify-content: center;
+  gap: 20px;
+  margin-top: 30px;
 }
 
 .btn-save {
@@ -157,8 +166,8 @@ h3 {
   font-weight: bold;
   cursor: pointer;
   font-family: inherit;
-  background-color: #00a8e8;
-  color: white;
+  background-color: var(--primary);
+  color: var(--text-on-primary);
   border: 1px solid transparent;
   border-radius: 10px;
   padding: 10px 30px;
@@ -167,9 +176,9 @@ h3 {
   box-sizing: border-box;
 }
 .btn-save:hover {
-  background-color: white;
-  color: #00a8e8;
-  border-color: #00a8e8;
+  background-color: var(--bg-main);
+  color: var(--primary);
+  border-color: var(--primary);
   box-shadow: inset 1px 1px 10px rgba(0, 0, 0, 0.25);
 }
 
@@ -195,5 +204,6 @@ h3 {
   font-size: 20px;
   margin-bottom: 12px;
   letter-spacing: 0.5px;
+  color: var(--modal-text);
 }
 </style>

@@ -1,4 +1,4 @@
-<!-- AppointmentDetailPage.vue -->
+<!-- 조직 및 직무 > 인사발령 > 인사발령 상세 -->
 <template>
   <div class="detail-page">
     <h1 class="page-title">
@@ -11,7 +11,6 @@
     <p class="desc">이력 상세 조회</p>
         
     <div v-if="appointmentDetail" class="content-box">
-      <!-- 상단 기본 정보 -->
       <table class="header-table">
         <tr>
           <th>사원번호</th>
@@ -52,12 +51,14 @@ import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ModuleRegistry, AllCommunityModule } from 'ag-grid-community'
 import BaseGrid from '@/components/grid/BaseGrid.vue'
+import { useUserStore } from '@/stores/user'
 
 ModuleRegistry.registerModules([AllCommunityModule])
 
 const route  = useRoute()
 const router = useRouter()
 const appointmentHistoryId = Number(route.params.appointmentHistoryId)
+const token = useUserStore().accessToken
 
 const appointmentDetail = ref(null)
 const rowDataDetail    = ref([])
@@ -66,14 +67,18 @@ function goBack() {
   router.back()
 }
 
-const HISTORY_API = 'https://api.isddishr.site/appointment-history'
 
 async function loadDetail() {
+  const url = `https://api.isddishr.site/appointment-history/history/${appointmentHistoryId}`
   try {
-    const res = await fetch(`${HISTORY_API}/history/${appointmentHistoryId}`)
+    const res = await fetch(url, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    })
     if (!res.ok) throw new Error(res.statusText)
 
-    // API에서 employeeName 포함된 단일 DTO 받음
     const dto = await res.json()
     appointmentDetail.value = Array.isArray(dto) ? dto[0] : dto
     rowDataDetail.value     = Array.isArray(dto) ? dto : [dto]
@@ -84,7 +89,6 @@ async function loadDetail() {
 
 onMounted(loadDetail)
 
-// AG Grid 컬럼 정의: DTO 필드명(camelCase)에 맞춤
 const detailColumnDefs = [
   { headerName: '사원번호',     field: 'employeeId',               width:180 },
   { headerName: '사원명',       field: 'employeeName',             flex: 1 },
@@ -99,12 +103,14 @@ const detailColumnDefs = [
 .page-title {
   margin-left: 20px;
   margin-bottom: 30px;
-  color: #00a8e8;
+  color: var(--primary); 
 }
 .back-btn {
   width: 24px;
+  height: 24px;
   margin-right: -10px;
   cursor: pointer;
+  color: var(--primary); 
 }
 .desc {
   display: block;
@@ -113,14 +119,14 @@ const detailColumnDefs = [
   font-size: 18px;
 }
 .content-box {
-  background: #fff;
+  background: var(--bg-box);
   border-radius: 12px;
   padding: 20px 32px;
   box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-  margin: 24px;
+  margin-left: 20px;
 }
 .header-table {
-  width: 70%;
+  width: 60%;
   border-collapse: collapse;
   margin: 30px auto 40px;
 }
@@ -130,12 +136,12 @@ const detailColumnDefs = [
   padding: 8px 12px;
 }
 .header-table th {
-  background: #f8f9fa;
+  background-color: var(--bg-label-cell);
   width: 160px;
   text-align: left;
 }
 .grid-wrapper {
-  width: 80%;
+  width: 60%;
   margin: 40px auto;
 }
 .loading {

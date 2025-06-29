@@ -35,7 +35,7 @@ import BaseToast from '@/components/toast/BaseToast.vue'
 const userStore = useUserStore()
 const token = useUserStore().accessToken
 const toastRef = ref(null)
-
+const emit = defineEmits(['edit'])
 function showToast(msg) {
   toastRef.value?.show(msg)
 }
@@ -123,7 +123,6 @@ onMounted(fetchFavorites)
 
 .menu-item,
 .edit-button {
-
   width: 100%;
   min-height: 65px;
   max-width: 300px;
@@ -153,7 +152,7 @@ onMounted(fetchFavorites)
 }
 
 .edit-button {
-  background-color: var(--text-muted);
+  background-color: var(--edit-bt);
   font-weight: 600;
   border: none;
   cursor: pointer;
@@ -162,12 +161,12 @@ onMounted(fetchFavorites)
   color: var(--text-main);
 }
 .edit-button:hover {
-  background-color: var(--primary-dark);
-  color: var(--text-main);
+  background-color: var(--primary);
+  color: #fff;
 }
 .box {
   background: var(--bg-box);
-    color: var(--text-main);
+  color: var(--text-main);
   border-radius: 15px;
   padding: 20px;
   min-height: 200px;

@@ -11,16 +11,16 @@
             <div class="tab-wrapper">
                 <div class="tab-menu">
                     <button
-                    :class="{ active: activeTab === 'used' }"
-                    @click="activeTab = 'used'"
-                    >
-                    사용내역
-                    </button>
-                    <button
                     :class="{ active: activeTab === 'regist' }"
                     @click="activeTab = 'regist'"
                     >
                     신청내역
+                    </button>
+                    <button
+                    :class="{ active: activeTab === 'used' }"
+                    @click="activeTab = 'used'"
+                    >
+                    사용내역
                     </button>
                 </div>
             </div>
@@ -54,7 +54,7 @@
     const router = useRouter()
     const userStore = useUserStore()
 
-    const activeTab = ref('used')
+    const activeTab = ref('regist')
     const dateRange = ref({ start: '', end: '' })
 
     function parseJwt(token) {
@@ -85,7 +85,7 @@
 
     function handleSearch(range) {
         dateRange.value = range
-        console.log('조회기간:', range)
+        // console.log('조회기간:', range)
     }
 </script>
 
@@ -93,7 +93,7 @@
     .page-title {
         margin-left: 20px;
         margin-bottom: 30px;
-        color: #00a8e8;
+        color: var(--primary);
     }
 
     .desc {
@@ -103,7 +103,8 @@
     }
 
     .all-leave-page {
-        padding: 20px;
+        /* padding: 20px; */
+         margin: 0 20px 24px;
     }
 
     .date-filter {
@@ -130,7 +131,7 @@
         border: none;
         border-bottom: none;
         background-color: #C8C8C8;
-        color: white;
+        color: var(--bg-main);
         cursor: pointer;
         border-top-left-radius: 12px;
         border-top-right-radius: 12px;
@@ -142,8 +143,9 @@
 
     /* 선택된 탭 위로 */
     .tab-menu button.active {
-        background-color: #fff;
-        color: #000;
+        background: var(--bg-box);
+        color: var(--modal-text);
+        /* color: #000; */
         z-index: 3;
     }
 </style>

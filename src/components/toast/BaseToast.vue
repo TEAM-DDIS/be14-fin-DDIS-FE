@@ -32,9 +32,9 @@ defineExpose({ show })
   top: 20px;
   left: 50%;
   transform: translateX(-50%);
-  background: white;
-  border: 2px solid #00a8e8;
-  color: #00a8e8;
+  background: var(--bg-box);
+  border: 2px solid var(--primary);
+  color: var(--primary);
   padding: 20px 30px;
   border-radius: 12px;
   font-weight: bold;

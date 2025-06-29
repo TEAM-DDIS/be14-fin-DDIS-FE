@@ -203,7 +203,7 @@ onActivated(() => {
   height: 420px !important;
 }
 :deep(.calendar--home .fc-day-today) {
-  background-color: #ddf2ff !important;
+  background-color: var(--ch-today) !important;
 }
 :deep(.calendar--home .fc-daygrid-day-number) {
   font-size: 11px;
@@ -292,7 +292,7 @@ onActivated(() => {
 :deep(.calendar--home .event-personal) {
   background-color: #a988f7 !important;
   border: 2px solid #a988f7 !important;
-  opacity: 60% !important;
+  opacity: 80%;
 }
 :deep(.calendar--home .event-meeting) {
   background-color: #c1c1c1 !important;
@@ -345,7 +345,7 @@ onActivated(() => {
   width: 50px !important;
 }
 :deep(.calendar--home .fc-button:hover) {
-  background-color: white !important;
+  background-color: var(--bg-main) !important;
   color: #00A8E8 !important;
   border: 1px solid #00A8E8 !important;
   box-shadow: inset 1px 1px 10px rgba(0, 0, 0, 0.25) !important;
@@ -354,11 +354,11 @@ onActivated(() => {
   opacity: 1 !important;
 }
 :deep(.calendar--home .fc-today-button:disabled) {
-  background-color: #00A8E8 !important;
+  background-color: var(--primary) !important;
   color: white !important;
 }
 :deep(.calendar--home .fc-today-button.fc-button-primary:hover) {
-  background-color: white !important;
+  background-color: var(--bg-main) !important;
   color: #00A8E8 !important;
   border: 1px solid #00A8E8 !important;
   box-shadow: inset 1px 1px 10px rgba(0, 0, 0, 0.25) !important;
@@ -394,21 +394,20 @@ onActivated(() => {
 .tab-menu button {
   font-size: 15px;
   padding: 6px 14px;
-  background-color: var(--bg-menu-btn-hover); 
+  background-color: #C8C8C8; 
   border: none;
   border-radius: 10px 10px 0 0;
   margin-right: -8px;
   box-shadow: 1px 1px 20px rgba(0, 0, 0, 0.05);
   transition: all 0.2s ease;
-  color: var(--text-main);   
+  color: var(--bg-main); 
   cursor: pointer;
 }
 .tab-menu button.active {
-  background-color: var(--bg-box);
-  color: var(--text-main);       
+  background: var(--bg-box);
+  color: var(--modal-text);      
   font-weight: bold;
 }
-
 /* 캘린더 카드 */
 .calendar-card {
   background-color: var(--bg-box); 
