@@ -50,7 +50,7 @@
           </tbody>
 
         </table>
-        <div class="score-summary">
+        <div class="score-summary" v-if="selectedYear !== 'All'">
           총 평가 점수: <strong>{{ totalReviewScore }}</strong>
         </div>
       </div>
@@ -167,7 +167,7 @@ watch(() => props.performances, () => {
   text-align: center; color: #888;
 }
 .clickable-row { 
-    cursor: pointer; 
+    cursor: pointer;
 }
 .clickable-row:hover { 
     background:var(--ag-row-border-color); 
