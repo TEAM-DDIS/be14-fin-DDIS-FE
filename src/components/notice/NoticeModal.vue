@@ -174,7 +174,7 @@ async function onClick(item) {
   margin-top: 10px; 
 }
 .notification-link { 
-  color: #00aeef; 
+  color: var(--primary); 
   font-weight: bold; 
   text-decoration: none; 
 }
@@ -183,6 +183,8 @@ async function onClick(item) {
 }
 .notification-text { 
   color: var(--text-main); 
+  margin: 0;   
+  padding: 0;  
 }
 .notification-link,
 .notification-text {

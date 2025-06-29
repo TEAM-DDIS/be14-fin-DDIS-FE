@@ -48,7 +48,7 @@
                   <option value="전보">전보</option>
                   <option value="전직">전직</option>
                   <option value="직급조정">직급조정</option>
-                  <option value="직무">직무</option>
+                  <option value="퇴사">퇴사</option>
                 </select>
               </td>
             </tr>
@@ -71,7 +71,7 @@
             class="ag-theme-alpine custom-theme"
             :gridOptions="{ theme: 'legacy' }"
             :width="'100%'"
-            :height="'285px'"
+            :height="'280px'"
             :columnDefs="columnDefs"
             :rowData="rowData"
             :defaultColDef="{ sortable: true, resizable: true }"
@@ -158,8 +158,7 @@ function parseJwtPayload(token) {
     return null
   }
 }
-const userStore = useUserStore()
-const token = userStore.accessToken
+const token = useUserStore().accessToken
 const payload = parseJwtPayload(token)
 const isHR = payload?.role?.includes('ROLE_HR') || payload?.auth?.includes('ROLE_HR')
 
@@ -169,7 +168,7 @@ if (!isHR) {
 }
 
 function goBack() {
-  router.back()
+  router.push('/org/appointment')
 }
 
 // 폼 상태
@@ -235,7 +234,7 @@ const employeeCache = reactive(new Map())
 onMounted(async () => {
   try {
     const resp = await axios.get('https://api.isddishr.site/structure/hierarchy',
-      { headers: { Authorization: `Bearer ${userStore.accessToken}` } }
+      { headers: { Authorization: `Bearer ${token}` } }
     )
     const full = Array.isArray(resp.data) ? resp.data : []
 
@@ -293,7 +292,7 @@ async function loadEmployeeInfo() {
   if (!emp) {
     try {
       const res = await axios.get(`https://api.isddishr.site/introduction/employee/${id}`,
-        { headers: { Authorization: `Bearer ${userStore.accessToken}` } }
+        { headers: { Authorization: `Bearer ${token}` } }
       )
       emp = res.data
       employeeCache.set(id, emp)
@@ -388,7 +387,7 @@ watch(() => form.org.headId, async headId => {
   if (!headId) return gridApi.value.refreshCells({ columns:['new'], force:true })
 
   const r = await axios.get(`https://api.isddishr.site/structure/heads/${headId}/departments`,
-    { headers: { Authorization: `Bearer ${userStore.accessToken}` } }
+    { headers: { Authorization: `Bearer ${token}` } }
   )
   departmentsNew.value = r.data
   gridApi.value.refreshCells({ columns:['new'], force:true })
@@ -401,7 +400,7 @@ watch(() => form.org.departmentId, async deptId => {
   if (!deptId) return gridApi.value.refreshCells({ columns:['new'], force:true })
 
   const r = await axios.get(`https://api.isddishr.site/structure/departments/${deptId}`,
-    { headers: { Authorization: `Bearer ${userStore.accessToken}` } }
+    { headers: { Authorization: `Bearer ${token}` } }
   )
   teamsNew.value = r.data.teams
   gridApi.value.refreshCells({ columns:['new'], force:true })
@@ -414,7 +413,7 @@ watch(() => form.org.teamId, async teamId => {
   if (!teamId) return gridApi.value.refreshCells({ columns:['new'], force:true })
 
   const r = await axios.get(`https://api.isddishr.site/introduction/team/${teamId}/job`,
-    { headers: { Authorization: `Bearer ${userStore.accessToken}` } }
+    { headers: { Authorization: `Bearer ${token}` } }
   )
   jobsNew.value = r.data.map(j => ({
     jobId: j.jobId, jobName: j.jobName, jobCode: j.jobCode
@@ -429,10 +428,10 @@ watch(() => form.org.jobId, async jobId => {
   if (jobId) {
     const [posRes, rankRes] = await Promise.all([
       axios.get(`https://api.isddishr.site/introduction/job/${jobId}/positions`,
-        { headers: { Authorization: `Bearer ${userStore.accessToken}` } }
+        { headers: { Authorization: `Bearer ${token}` } }
       ),
       axios.get(`https://api.isddishr.site/introduction/job/${jobId}/ranks`,
-        { headers: { Authorization: `Bearer ${userStore.accessToken}` } }
+        { headers: { Authorization: `Bearer ${token}` } }
       )
     ])
     positionsNew.value = posRes.data
@@ -483,6 +482,7 @@ const columnDefs = [
             border-color: #3f3f3f;
             box-shadow: inset 1px 1px 10px rgba(0, 0, 0, 0.25);
           }
+
         </style>
       </div>
       `
@@ -491,11 +491,13 @@ const columnDefs = [
 ]
 
 const typeToKeys = {
+  // 승진:   ['head', 'department', 'team'],
   승진:   ['head', 'department', 'team'],
   전보:   ['department', 'team'],
   전직:   ['department', 'team', 'job'],  
   직급조정: ['department', 'team', 'position', 'rank'],
-  직무:   ['department', 'team', 'job']
+  // 직무:   ['department', 'team', 'job']
+  퇴사:   []
 }
 
 
@@ -644,10 +646,29 @@ function onGridReady(params) {
 
   fillCurrentOrgCells()
 
+  watch(() => form.type, newType => {
   nextTick(() => {
     const btn = document.querySelector('#openOrgModal')
-    if (btn) btn.addEventListener('click', () => openOrgModalForKey('org'))
+    if (!btn) return
+
+    const shouldDisable = ['승진', '퇴사'].includes(newType)
+    btn.disabled = shouldDisable
+
+    btn.addEventListener('click', () => {
+      // 승진/퇴사면 토스트 출력
+      if (['승진', '퇴사'].includes(newType)) {
+        showToast('해당 유형은 조직 선택이 불가능합니다.')
+      } else {
+        openOrgModalForKey('org')
+      }
+    })
+
+    // 비활성화 시 스타일 반영 (선택)
+    if (shouldDisable) btn.classList.add('btn-plus--disabled')
+    else btn.classList.remove('btn-plus--disabled')
   })
+})
+
 }
 
 async function submit() {
@@ -663,50 +684,50 @@ async function submit() {
       return found ? found[codeKey] : null;
     };
 
-  const payload = {
-  employeeId: Number(current.employeeId),
-  appointmentReason: form.title,
-  appointmentType: form.type,
-  appointmentEffectiveDate: form.effectiveDate,
+    const payload = {
+    employeeId: Number(current.employeeId),
+    appointmentReason: form.title,
+    appointmentType: form.type,
+    appointmentEffectiveDate: form.effectiveDate,
 
-  fromHeadCode:      getCode(dataStore.headquarters, 'headId', 'headCode', current.headId),
-  fromDepartmentCode:getCode(dataStore.department, 'departmentId', 'departmentCode', current.departmentId),
-  fromTeamCode:      getCode(dataStore.team, 'teamId', 'teamCode', current.teamId),
-  fromJobCode:       current.jobCode,
-  fromPositionCode:  current.positionCode,
-  fromRankCode:      current.rankCode,
+    fromHeadCode:      getCode(dataStore.headquarters, 'headId', 'headCode', current.headId),
+    fromDepartmentCode:getCode(dataStore.department, 'departmentId', 'departmentCode', current.departmentId),
+    fromTeamCode:      getCode(dataStore.team, 'teamId', 'teamCode', current.teamId),
+    fromJobCode:       current.jobCode,
+    fromPositionCode:  current.positionCode,
+    fromRankCode:      current.rankCode,
 
-  toHeadCode:        getCode(dataStore.headquarters, 'headId', 'headCode', pureOrg.headId || current.headId),
-  toDepartmentCode:  getCode(dataStore.department, 'departmentId', 'departmentCode', pureOrg.departmentId) || pureOrg.departmentId,
-  toTeamCode:        getCode(dataStore.team, 'teamId', 'teamCode', pureOrg.teamId) || pureOrg.teamId,
-  toJobCode:         pureOrg.jobCode || current.jobCode,
-  toPositionCode:    pureOrg.positionCode || current.positionCode,
-  toRankCode:        pureOrg.rankCode || current.rankCode,
+    toHeadCode:        getCode(dataStore.headquarters, 'headId', 'headCode', pureOrg.headId || current.headId),
+    toDepartmentCode:  getCode(dataStore.department, 'departmentId', 'departmentCode', pureOrg.departmentId) || pureOrg.departmentId,
+    toTeamCode:        getCode(dataStore.team, 'teamId', 'teamCode', pureOrg.teamId) || pureOrg.teamId,
+    toJobCode:         pureOrg.jobCode || current.jobCode,
+    toPositionCode:    pureOrg.positionCode || current.positionCode,
+    toRankCode:        pureOrg.rankCode || current.rankCode,
 
-  appointmentStatus: '대기',
-  isApplied: false
-}
+    appointmentStatus: '대기',
+    isApplied: false
+  }
 
-
-  // console.log('▶ 전송 payload:', payload);
+  console.log('payload: ', payload)
 
   try {
-    await axios.post(
-      'https://api.isddishr.site/appointment/create',
-      payload,
-      { headers: { 
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${userStore.accessToken}`
-       }
-      }
-    );
+    await axios({
+      method: 'post', 
+      url: 'https://api.isddishr.site/appointment/create',
+        headers: { 
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json'
+       },
+       data: payload 
+      
+});
     showToast('등록 성공!');
     router.push('/org/appointment');
   } catch (err) {
     console.error('▶ AxiosError:', err);
     showToast(
-      `등록 중 오류가 발생했습니다.\n` +
-      `${err.response?.data?.message || err.message}`
+      `등록 중 오류가 발생했습니다.\n` 
+      // `${err.response?.data?.message || err.message}`
     );
   }
 }
@@ -778,8 +799,7 @@ function cancel() {
 .org-section {
   flex: 1;
   min-width: 400px;
-  
-  margin-top: 65px;
+  margin-top: 68px;
 }
 
 .info-section {
@@ -792,7 +812,7 @@ function cancel() {
 }
 .info-table th,
 .info-table td {
-  border: 1px solid var(--border-color);
+  border: 1px solid #ddd;
   padding: 12px 12px;
 }
 .info-table th {
@@ -825,7 +845,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 .button-group {
   position: absolute;
   bottom: 50px;
-  right: 210px;
+  right: 215px;
   display: flex;
   gap: 15px;
 }
@@ -893,9 +913,5 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   color: var(--primary);
   border-color: var(--primary);
   box-shadow: inset 1px 1px 10px rgba(0, 0, 0, 0.25);
-}
-
-.org-select {
-  z-index: 10;
 }
 </style>

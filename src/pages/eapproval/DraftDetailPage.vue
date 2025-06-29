@@ -267,9 +267,10 @@ const isRetractable = computed(() => {
 // 새롭게 추가되는 computed 속성
 const isDrafterViewingMyDraftBox = computed(() => {
   if (!draftDetail.value || !myId.value) return false
+  const status = draftDetail.value.docStatus
   return String(draftDetail.value.drafterId) === myId.value &&
          boxKey === 'MyDraftBox' &&
-         draftDetail.value.docStatus !== '회수' // '회수' 상태일 때는 보이지 않음
+         !['회수', '반려'].includes(status) // '회수' 상태일 때는 보이지 않음
 })
 
 const isApproverViewingApprovalBox = computed(() => {
@@ -578,7 +579,6 @@ async function handleWithdraw() {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
   margin: 24px;
   max-width: 100%;
-  width: 100%;
   display: flex;
   flex-direction: column;
   min-height: fit-content; /* or: min-height: 800px; */
@@ -694,11 +694,11 @@ table {
 /* 하단 버튼 그룹 */
 .button-group {
   display: flex;
+  justify-content: flex-end; /* 버튼을 오른쪽으로 붙이기 */
   gap: 12px;
-  margin-bottom: 40px;
   margin-top: 30px;
-  margin-left: auto;
-  margin-right: 155px;
+  margin-bottom: 40px;
+  padding-right: 10px;  /* 필요 시 조정 */
 }
 
 /* 버튼 기본 */

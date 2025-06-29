@@ -228,7 +228,7 @@
     width: 150px;
     padding: 6px 8px;
     border: 1px solid #ccc;
-    border-radius: 4px;
+    border-radius: 8px;
     background: var(--modal-bg);
     color: var(--text-main);
   }
@@ -246,7 +246,7 @@
   .filters select {
     padding: 6px 8px;
     border: 1px solid #ccc;
-    border-radius: 4px;
+    border-radius: 8px;
     background: var(--modal-bg);
     color: var(--text-main);
   }

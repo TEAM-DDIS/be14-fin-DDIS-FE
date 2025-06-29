@@ -53,7 +53,7 @@ async function uploadFile() {
 .upload-modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.6);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -61,8 +61,8 @@ async function uploadFile() {
 }
 
 .upload-modal-box {
-  background: white;
-  padding: 24px;
+  background: var(--modal-bg2);
+  padding: 30px;
   border-radius: 12px;
   width: 400px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
@@ -76,6 +76,7 @@ async function uploadFile() {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  margin-top: -20px;
 }
 
 .close-btn {

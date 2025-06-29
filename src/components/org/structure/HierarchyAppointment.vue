@@ -79,16 +79,15 @@
 import { ref, reactive, onMounted, computed } from 'vue'
 import axios from 'axios'
 import { useUserStore } from '@/stores/user'
-const accessToken = useUserStore().accessToken
+const token = useUserStore().accessToken
 
-const emit = defineEmits(['dept-selected', 'team-selected', 'rank-selected'])
+const emit = defineEmits(['dept-selected', 'team-selected', 'rank-selected','job-selected',])
 
 const hierarchy = ref([])
 
 const expanded = reactive({})
 const teamRanks = reactive({})
 const teamJobs = reactive({})
-
 
 const props = defineProps({
   showRanks: {
@@ -101,17 +100,17 @@ const props = defineProps({
   }
 })
 
-
 onMounted(async () => {
   try {
-    const res = await fetch('https://api.isddishr.site/structure/hierarchy', {
-      headers: { 'Authorization': `Bearer ${accessToken}` }
+    const res = await axios.get('https://api.isddishr.site/structure/hierarchy', {
+      headers: {
+        Authorization: `Bearer ${token}`
+      },
+      withCredentials: true  // 필요 시 CORS 대응용
     })
-    if (!res.ok) throw new Error(`HTTP ${res.status}`)
-    const data = await res.json()
-    
-    // 이사회 상위로
-    hierarchy.value = data.sort((a, b) => {
+
+    // 이사회 상위로 정렬
+    hierarchy.value = res.data.sort((a, b) => {
       if (a.headId === 4) return -1
       if (b.headId === 4) return 1
       return a.headId - b.headId
@@ -148,7 +147,7 @@ async function fetchTeamJobs(team) {
   if (!teamJobs[team.teamId]) {
     try {
       const res = await axios.get(`https://api.isddishr.site/introduction/team/${team.teamId}/job`, {
-      headers: { 'Authorization': `Bearer ${accessToken}` }
+      headers: { 'Authorization': `Bearer ${token}` }
     })
       teamJobs[team.teamId] = res.data
     } catch (e) {
@@ -168,7 +167,7 @@ async function fetchTeamRanks(team) {
       // 1) 이 팀의 job 목록 조회
       const jobs = (await axios.get(
         `https://api.isddishr.site/introduction/team/${team.teamId}/job`, {
-          headers: { 'Authorization': `Bearer ${accessToken}` }
+          headers: { 'Authorization': `Bearer ${token}` }
         }
       )).data
 
@@ -177,10 +176,10 @@ async function fetchTeamRanks(team) {
         jobs.map(async (j) => {
           const [ranks, positions] = await Promise.all([
             axios.get(`https://api.isddishr.site/introduction/job/${j.jobId}/ranks`, {
-              headers: { 'Authorization': `Bearer ${accessToken}` }
+              headers: { 'Authorization': `Bearer ${token}` }
             }).then(r => r.data),
             axios.get(`https://api.isddishr.site/introduction/job/${j.jobId}/positions`, {
-              headers: { 'Authorization': `Bearer ${accessToken}` }
+              headers: { 'Authorization': `Bearer ${token}` }
             }).then(r => r.data)
           ])
 

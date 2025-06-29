@@ -1,10 +1,6 @@
 <template>
   <div class="goal-page">
     <h1 class="page-title">
-      <img src="@/assets/icons/back_btn.svg"
-      alt="back"
-      class="back-btn"
-      @click="goBack" />
       성과 관리
     </h1>
     <div class="labels-row">
@@ -181,7 +177,7 @@
                   <span class="file-name">{{ form.fileName }}</span>
                   <span class="file-size">{{ form.fileSize }}</span>
                 </template>
-                <button v-if="isCurrentYearGoal" class="btn-attach" @click="$refs.fileInput.click()">첨부파일 등록</button>
+                <button  class="btn-attach" @click="$refs.fileInput.click()">첨부파일 등록</button>
                 <input ref="fileInput" type="file" class="sr-only" @change="onFileChange" />
               </div>
             </div>
@@ -194,7 +190,7 @@
               <textarea v-model="form.comment" placeholder="자기 평가"></textarea>
             </div>
             <div class="btn-save-wrap">
-              <button v-if="isCurrentYearGoal" class="btn-save" @click="submitPerf">{{ hasPerformance ? '수정' : '등록' }}</button>
+              <button  class="btn-save" @click="submitPerf">{{ hasPerformance ? '수정' : '등록' }}</button>
             </div>
           </div>
         </div>
@@ -289,7 +285,7 @@ function goBack() {
 }
 
 const totalWeight = computed(() =>
-  goals.value.reduce((sum, g) => sum + (g.goalWeight || 0), 0)
+  currentYearGoals.value.reduce((sum, g) => sum + (g.goalWeight || 0), 0)
 )
 
 function openMyPerfModal() { showMyPerfModal.value = true }
@@ -330,6 +326,9 @@ const currentYearGoals = computed(() =>
     new Date(g.goalCreatedAt).getFullYear() === currentYear
   )
 )
+// const currentYearGoals = computed(() =>
+//   goals.value
+// )
 
 const pastPerformances = computed(() =>
   goals.value
@@ -571,6 +570,7 @@ async function addGoal() {
       progress: 0,
       performance: null
     })
+    showToast('목표가 등록되었습니다.')
     cancelGoal()
   } catch (err) {
     console.error(err)
@@ -618,6 +618,8 @@ async function deleteGoals(id) {
 async function submitPerf() {
   const g = selectedGoal.value
   if (!g) return showToast('먼저 목표를 선택해주세요.')
+
+  const isEdit = hasPerformance.value
 
   let attachmentUrlsToSend = [...form.existingAttachmentKeys]
   let fileNamesToSend = [...form.existingAttachmentFileNames]
@@ -710,7 +712,14 @@ if (form.file) {
     }
     const saved = await res.json()
     form.performanceId = saved.performanceId
-    showToast(hasPerformance.value ? '실적이 수정되었습니다.' : '실적이 등록되었습니다.')
+       showToast(
+     isEdit
+       ? '실적이 수정되었습니다.'   // 기존 데이터가 있을 때
+       : '실적이 등록되었습니다.'   // 새로 등록할 때
+   )
+
+   await fetchGoals()
+
   } catch (err) {
     console.error(err)
     showToast('실적 저장 중 오류가 발생했습니다.')
@@ -1227,7 +1236,7 @@ table.detail-table-vertical {
   background: var(--bg-main);
   box-sizing: border-box;
   resize: none;
-  height: 48px;
+  height: 120px;
 }
 .input-area input:focus,
 .input-area textarea:focus {

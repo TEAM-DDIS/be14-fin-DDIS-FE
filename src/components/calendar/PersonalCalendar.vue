@@ -507,7 +507,7 @@
   /* 스케줄 타입은 white text */
   :deep(.calendar--personal .event-status-schedule),
   :deep(.calendar--personal .event-employee-schedule) {
-    color: var(--text-main);
+    color: var(--text-on-primary);
   }
 
   /* 버튼들 */

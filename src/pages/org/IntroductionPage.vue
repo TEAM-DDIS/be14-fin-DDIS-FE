@@ -47,6 +47,7 @@
       @save="saveEdit"
     />
   </div>
+  <BaseToast ref="toastRef" />
 </template>
 
 <script setup>
@@ -54,6 +55,7 @@ import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import EditDeptModal from '@/components/org/introduction/EditDeptModal.vue'
+import BaseToast from '@/components/toast/BaseToast.vue'
 
 const userStore = useUserStore()
 const token = userStore.accessToken
@@ -75,6 +77,12 @@ function parseJwtPayload(token) {
   } catch (e) {
     return null
   }
+}
+
+const toastRef = ref(null)
+
+function showToast(msg) {
+  toastRef.value?.show(msg)
 }
 
 const orgData = ref({
@@ -142,16 +150,39 @@ function closeEditModal() {
 }
 
 function saveEdit(updated) {
-  const idx = orgData.value.introduction.findIndex(
-    d => d.departmentId === updated.departmentId
-  )
-  if (idx !== -1) {
-    orgData.value.introduction[idx].introductionContext =
-      updated.introductionContext
+  const payload = {
+    introductionContext: updated.introductionContext
   }
 
-  closeEditModal()
+  fetch(`http://localhost:5000/introduction/update/department/${updated.departmentId}`, {
+    method: 'PUT',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(payload)
+  })
+    .then(res => {
+      if (!res.ok) throw new Error(`HTTP ${res.status}`)
+      return res.json()
+    })
+    .then(data => {
+      // 로컬 배열에도 반영
+      const idx = orgData.value.introduction.findIndex(
+        d => d.departmentId === data.departmentId
+      )
+      if (idx !== -1) {
+        orgData.value.introduction[idx].introductionContext = data.introductionContext
+      }
+      closeEditModal()
+      showToast('부서 소개 수정이 완료되었습니다.')
+    })
+    .catch(err => {
+      console.error('❌ 부서 소개 수정 실패:', err)
+      alert('부서 소개 수정에 실패했습니다.')
+    })
 }
+
 
 onMounted(async () => {
   const BASE = 'https://api.isddishr.site/introduction'
@@ -190,6 +221,7 @@ onMounted(async () => {
   padding: 20px 32px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
   margin-left: 20px;
+  margin-right: 20px;
   max-width: 100%;
   overflow-x: auto;
 }
@@ -296,10 +328,7 @@ onMounted(async () => {
   box-sizing: border-box;
 
   display: block;
-  margin-left: auto;
-  margin-right: 40px;
-  margin-top: 30px;
-  margin-bottom: 20px;
+  margin: 30px 40px 20px auto;
 }
 
 .edit-button:hover {

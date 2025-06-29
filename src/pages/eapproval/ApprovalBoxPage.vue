@@ -84,34 +84,38 @@ function formatWriter(name, rank) {
 const columnDefsByTab = {
   '전체': [
     { headerName: '번호', field: 'no', width: 100 },
-    { headerName: '구분', field: 'type', width: 150 },
+    { headerName: '구분', field: 'type', width: 180 },
     { headerName: '제목', field: 'title', flex: 1 },
-    { headerName: '상신일시', field: 'submittedAt', width: 230, sort: 'desc' },
-    { headerName: '결재상태', field: 'docStatus', width: 230 },
-    { headerName: '기안자', field: 'writer', width: 150 }
+    { headerName: '결재유형', field: 'lineType', width: 180},
+    { headerName: '상신일시', field: 'submittedAt', width: 180, sort: 'desc' },
+    { headerName: '결재상태', field: 'docStatus', width: 180 },
+    { headerName: '기안자', field: 'writer', width: 180 }
   ],
   '결재': [
     { headerName: '번호', field: 'no', width: 100 },
-    { headerName: '구분', field: 'type', width: 150 },
+    { headerName: '구분', field: 'type', width: 180 },
     { headerName: '제목', field: 'title', flex: 1 },
-    { headerName: '상신일시', field: 'submittedAt', width: 230, sort: 'desc' },
-    { headerName: '결재상태', field: 'docStatus', width: 230 },
-    { headerName: '기안자', field: 'writer', width: 150 }
+    { headerName: '결재유형', field: 'lineType', width: 180},
+    { headerName: '상신일시', field: 'submittedAt', width: 180, sort: 'desc' },
+    { headerName: '결재상태', field: 'docStatus', width: 180 },
+    { headerName: '기안자', field: 'writer', width: 180 }
   ],
   '진행': [
     { headerName: '번호', field: 'no', width: 100 },
-    { headerName: '구분', field: 'type', width: 150 },
+    { headerName: '구분', field: 'type', width: 180 },
     { headerName: '제목', field: 'title', flex: 1 },
-    { headerName: '상신일시', field: 'submittedAt', width: 230, sort: 'desc' },
-    { headerName: '결재상태', field: 'docStatus', width: 230 },
-    { headerName: '기안자', field: 'writer', width: 150 }
+    { headerName: '결재유형', field: 'lineType', width: 180},
+    { headerName: '상신일시', field: 'submittedAt', width: 180, sort: 'desc' },
+    { headerName: '결재상태', field: 'docStatus', width: 180 },
+    { headerName: '기안자', field: 'writer', width: 180 }
   ],
   '완료': [
     { headerName: '번호', field: 'no', width: 100 },
-    { headerName: '구분', field: 'type', width: 150 },
+    { headerName: '구분', field: 'type', width: 180 },
     { headerName: '제목', field: 'title', flex: 1 },
-    { headerName: '완료일시', field: 'approvedAt', width: 230, sort: 'desc' },
-    { headerName: '기안자', field: 'writer', width: 150 }
+    { headerName: '결재유형', field: 'lineType', width: 180},
+    { headerName: '완료일시', field: 'approvedAt', width: 180, sort: 'desc' },
+    { headerName: '기안자', field: 'writer', width: 180 }
   ]
 }
 const currentColumnDefs = computed(() => columnDefsByTab[tab.value] || [])
@@ -148,6 +152,7 @@ async function fetchApprovals() {
       .filter(doc => doc && typeof doc === 'object') // 안전 필터링
     .map((doc, idx) => ({
       docId:       doc.docId,
+      lineType:    doc.lineType,
       title:       doc.title,
       submittedAt: formatDateTime(doc.submittedAt || doc.createdAt),
       approvedAt:  formatDateTime(doc.approvedAt),
@@ -236,11 +241,10 @@ function handleFormRowClick(params) {
   border-radius: 0px 12px 12px 12px;
   box-shadow: 1px 1px 20px 1px rgba(0,0,0,0.05);
   width: 100%;
-  height: 700px;
   min-width: 0;
   max-width: 100%;
   margin-bottom: 50px;
-  padding: 20px;
+  padding: 30px;
   box-sizing: border-box;
 }
 
@@ -248,7 +252,7 @@ function handleFormRowClick(params) {
 .page-title {
     margin-left: 20px;
     margin-bottom: 30px;
-    color: #00a8e8;
+    color: var(--primary)
 }
 
 .approval-box-page {
@@ -276,23 +280,22 @@ function handleFormRowClick(params) {
   border: none;
   border-bottom: none;
   background-color: #C8C8C8;
-  color: white;
+  color: var(--bg-main);
   text-decoration: none; /* ✅ 밑줄 제거 */
   cursor: pointer;
   border-top-left-radius: 12px;
   border-top-right-radius: 12px;
   position: relative;
   z-index: 1;
-  margin-right: -20px; /* ✅ 가로 겹치기 */
+  margin-right: -10px; /* ✅ 가로 겹치기 */
   transition: all 0.2s ease;
 }
 
 .tabs .active {
-  background-color: #fff;
-  color: #000;
   z-index: 3;
-  border-bottom: none;
   background: var(--bg-box);
+  color: var(--modal-text);
+  border-bottom: none;
 
 }
 
@@ -309,49 +312,39 @@ function handleFormRowClick(params) {
 }
 
 .search-item {
-    display: flex;                /* label, input을 한 줄에 배치 */
-    flex-direction: row;          /* 가로 정렬(한 줄) */
-    align-items: center;          /* 세로 중앙 정렬 */
-    gap: 8px;                     /* label과 input 사이 간격 */
-    min-width: 150px;             /* 최소 너비(인풋이 깨지지 않게) */
+  background-color: var(--modal-box-bg);
+  display: flex;                /* label, input을 한 줄에 배*/
+  flex-direction: row;          /* 가로 정렬(한 줄) */
+  align-items: center;          
+  gap: 5px;                     
+  min-width: 150px;             
+  background-color: transparent;         
 }
 
 .search-item label {
-    font-size: 16.5px;            /* label 폰트 크기 (1.04rem 기준) */
-    color: var(--text-main);      /* label 텍스트 색상 */
-    margin-bottom: 2px;           /* (행 아닌 열 정렬일 땐 의미 없음, row일 땐 영향 없음) */
-    font-weight: 500;             /* label 굵기 */
-    letter-spacing: -0.5px;       /* 자간 조정 */
+  margin-bottom: 2px;           
+  color: var(--text-main);
 }
 
 .search-item input[type="date"],
 .search-item input[type="text"] {
-    padding: 8px 12px;            
-    border: 1px solid var(--border-color); 
-    border-radius: 8px;          
-    font-size: 16px;             
-    width: 180px;                 
-    min-width: 180px;
-    max-width: 180px;            
-    box-sizing: border-box;      
-    transition: border 0.2s, box-shadow 0.2s;
-    background-color: var(--modal-box-bg);
-    color: var(--text-main);
+  padding: 6px 8px;          /* 인풋 내부 여백 */
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;           /* 둥근 테두리 */
+  width: 200px;
+  transition: border 0.2s, box-shadow 0.2s;
+  background-color: var(--modal-box-bg);
+  height: 18px;
+  color: var(--text-main);
+  font-family: 'inter';
 }
 
 /* 인풋 placeholder 색상 등 스타일 */
 .search-item input[type="text"]::placeholder {
     color: #bbb;
-    font-size: 16px;              /* placeholder도 16px로 고정 */
 }
 
-/* 입력란 클릭/포커스시 효과 */
-.search-item input[type="text"]:focus,
-.search-item input[type="date"]:focus {
-    outline: none;                /* 기본 파란 테두리 제거 */
-    border: 1px solid #1f2937;    /* 파란 테두리(폭은 2px, 색상 변경 가능) */
-/* width가 180px로 고정이기 때문에, 포커스되어도 절대 커지지 않음!! */
-}
+
 
 /* ------- 표 박스 ------- */
 .table-box {
@@ -366,18 +359,4 @@ function handleFormRowClick(params) {
 /* → 이 상태에서 내부 AgGridVue가 100% 채움 */
 }
 
-/* 스타일 커스터마이징 */
-/* .ag-custom .ag-header-row {
-    background-color: #f8f9fa !important;
-    border-color: #c8c8c8 !important;
-}
-.ag-custom .ag-row-hover {
-    background-color: #eeeeee !important;
-}
-.ag-custom .ag-row-selected {
-    background-color: #dddddd !important;
-}
-.ag-custom .ag-root-wrapper, .ag-custom .ag-cell, .ag-custom .ag-header-cell {
-    border-color: #c8c8c8 !important;
-} */
 </style>

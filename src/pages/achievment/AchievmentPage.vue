@@ -1,10 +1,6 @@
 <template>
   <div class="performance-page">
     <h1 class="page-title">
-      <img src="@/assets/icons/back_btn.svg"
-      alt="back"
-      class="back-btn"
-      @click="goBack" />
       전체 성과 이력
     </h1>
 

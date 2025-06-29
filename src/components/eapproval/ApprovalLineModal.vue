@@ -80,13 +80,20 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-if="mode==='결재선'" v-for="(item, idx) in approverList" :key="item.employeeId">
-                <td><input type="checkbox" :value="item.employeeId" v-model="selectedApprovers"/></td>
-
+              <tr v-if="mode === '결재선'" v-for="(item, idx) in approverList" :key="item.employeeId">
+                <td>
+                  <input
+                    type="checkbox"
+                    :value="item.employeeId"
+                    v-model="selectedApprovers"
+                    :disabled="idx === 0 || item.type === '기안'"
+                  />
+                </td>
                 <td>{{ idx + 1 }}</td>
                 <td>{{ item.type }}</td>
                 <td>{{ item.name }}</td>
               </tr>
+
               <tr v-else-if="mode==='수신자'"
                   v-for="(item, idx) in receiverList" :key="`수신자-${item.employeeId}`">
                 <td>    
@@ -304,15 +311,26 @@ function toggleAll(e) {
 
 // — 선택 항목 삭제
 function deleteSelected() {
-  const keep = currentList.value.filter(item =>
-    !selectedList.value.includes(item.employeeId)
-  )
+  const keep = currentList.value.filter((item, index) => {
+    // 기안자는 무조건 유지
+    if (props.mode === '결재선' && item.type === '기안') return true
+    // 나머지는 선택되지 않은 항목만 유지
+    return !selectedList.value.includes(item.employeeId)
+  })
 
-  if (props.mode === '수신자')      receiverList.value  = keep
-  else if (props.mode === '참조자')  referenceList.value = keep
-  else                              approverList.value  = keep
+  if (props.mode === '수신자') {
+    receiverList.value = keep
+  } else if (props.mode === '참조자') {
+    referenceList.value = keep
+  } else {
+    approverList.value = keep
+  }
 
-  selectedList.value = []
+  // 기안자만 selectedList에 남아있을 수 있으므로, selectedList도 정리
+  selectedList.value = selectedList.value.filter(id => {
+    const item = currentList.value.find(emp => emp.employeeId === id)
+    return item && item.type === '기안' // 기안자만 남긴다 (보수적으로 정리)
+  })
 }
 
 function addApprover(type) {
@@ -435,10 +453,10 @@ function selectFromSearch(emp) {
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
   background: rgba(0,0,0,0.15);
-  z-index: 1000;
   display: flex;
   align-items: center;
   justify-content: center;
+  z-index: 3000;
 }
 .modal-content {
   background: var(--bg-main);

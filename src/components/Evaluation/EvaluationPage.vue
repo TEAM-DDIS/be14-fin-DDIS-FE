@@ -3,10 +3,6 @@
     <main class="main-content">
       <!-- 헤더 -->
       <div class="header-bar page-title">
-      <img src="@/assets/icons/back_btn.svg"
-          alt="back"
-          class="back-btn"
-          @click="goBack" />
       <h1>평가</h1>
     </div>
 
@@ -85,29 +81,39 @@
               </div>
             </div>
 
-            <!-- 과거 평가 히스토리 -->
             <div v-else class="goals-list">
+              <!-- 과거 목표가 하나도 없으면 -->
+              <div v-if="pastGoals.length === 0" class="empty">
+                <p class="empty-text">아직 과거 목표가 없습니다.</p>
+              </div>
+              <!-- 과거 목표를 카드로 렌더링 -->
               <div
-                v-for="h in historyRecords"
-                :key="h.yearMonth + '_' + h.performanceDescription"
+                v-else
+                v-for="goal in pastGoals"
+                :key="goal.id"
                 class="goal-card"
-                @click="selectHistory(h)"
+                @click="selectGoal(goal)"
               >
                 <div class="card-top">
-                  <span class="date">{{ h.yearMonth }}</span>
-                  <span class="author">&nbsp;</span>
+                  <span class="date">{{ goal.date }}</span>
+                  <span class="author">{{ goal.owner }}</span>
                 </div>
-                <h4 class="card-title">{{ h.performanceDescription }}</h4>
+                <h4 class="card-title">{{ goal.title }}</h4>
                 <div class="score-info">
-                  <span>목표수치: {{ h.goalValue }}</span>
+                  <span>목표수치: {{ goal.target }}</span>
+                  <span>실적수치: {{ goal.performance }}</span>
                 </div>
                 <div class="card-bottom">
                   <div class="progress-group">
-
+                    <span class="label">달성률</span>
+                    <div class="progress-bar">
+                      <div class="progress-fill" :style="{ width: goal.progress + '%' }"></div>
+                    </div>
+                    <span class="progress-text">{{ goal.progress }}%</span>
                   </div>
                   <div class="pill-group">
-                    <span class="pill weight">실적수치: {{ h.performanceValue }}</span>
-                    <span class="pill target">상사평가 {{ h.reviewScore }}점</span>
+                    <span class="pill weight">가중치 {{ goal.weight }}%</span>
+                    <span class="pill target">목표치 {{ goal.target }}</span>
                   </div>
                 </div>
               </div>
@@ -225,40 +231,46 @@
 
             <!-- 과거 평가 탭 -->
             <div v-else>
-              <div v-if="!selectedHistory" class="empty">
-                <p class="empty-text">과거 평가를 선택하세요.</p>
-              </div>
-              <div v-else class="detail-info">
-                <table class="detail-table">
-                  <tbody>
-                    <tr>
-                      <th>평가 연월</th>
-                      <td>{{ selectedHistory.yearMonth }}</td>
-                    </tr>
-                    <tr>
-                      <th>목표 제목</th>
-                      <td>{{ selectedHistory.performanceDescription }}</td>
-                    </tr>
-                    <tr>
-                      <th>목표 수치</th>
-                      <td>{{ selectedHistory.goalValue }}</td>
-                    </tr>
-                    <tr>
-                      <th>실적 수치</th>
-                      <td>{{ selectedHistory.performanceValue }}</td>
-                    </tr>
-                    <tr>
-                      <th>자기평가 의견</th>
-                      <td>{{ selectedHistory.selfReviewContent }}</td>
-                    </tr>
-                    <tr>
-                      <th>상사평가 점수</th>
-                      <td>{{ selectedHistory.reviewScore }}점</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
+    <!-- 아직 골을 안 고르면 빈 상태 -->
+    <div v-if="!selectedGoal" class="empty">
+      <p class="empty-text">평가할 목표를 선택하세요.</p>
+    </div>
+    <!-- 골이 선택되면 current 탭과 똑같이 selectedGoal 보여주기 -->
+    <div v-else class="perf-content">
+      <div class="detail-info">
+        <table class="detail-table">
+          <tbody>
+            <tr><th>담당자</th>      <td>{{ selectedGoal.owner }} 대리</td></tr>
+            <tr><th>가중치</th>      <td>{{ selectedGoal.weight }}%</td></tr>
+            <tr><th>등록일</th>      <td>{{ selectedGoal.date }}</td></tr>
+            <tr><th>목표수치</th>    <td>{{ selectedGoal.target }}</td></tr>
+            <tr><th>실적수치</th>    <td>{{ selectedGoal.performance }}</td></tr>
+            <tr><th>달성률</th>      <td>{{ selectedGoal.progress }}%</td></tr>
+            <tr class="subheader"><td colspan="2">목표내용</td></tr>
+            <tr><td colspan="2" class="description">{{ selectedGoal.content }}</td></tr>
+            <tr class="subheader"><td colspan="2">첨부파일</td></tr>
+            <tr>
+              <td colspan="2">
+                <div v-if="selectedGoal.attachmentKeys?.length" class="existing-files">
+                  <ul>
+                    <li v-for="(key,idx) in selectedGoal.attachmentKeys" :key="idx">
+                      <a :href="presignedUrlMap[key]" target="_blank">{{ selectedGoal.attachmentFileNames[idx] }}</a>
+                      <span>({{ (selectedGoal.attachmentFileSizes[idx]/1024/1024).toFixed(1) }}MB)</span>
+                    </li>
+                  </ul>
+                </div>
+              </td>
+            </tr>
+            <tr><th>평가 점수</th><td>{{ selectedGoal.evaluation.score ?? '미작성' }}</td></tr>
+            <tr><th>평가 의견</th><td>{{ selectedGoal.evaluation.comment || '없음' }}</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+     <!-- (필요하다면 과거에도 수정/등록 폼을 여기에 추가) -->
+   </div>
+ </div>
+
           </section>
         </div>
       </div>
@@ -343,10 +355,11 @@ const filteredGoals = computed(() => {
   })
 })
 const currentYear      = new Date().getFullYear()
+// 변경
 const currentYearGoals = computed(() =>
-  filteredGoals.value
-    .filter(g => +g.date.split('-')[0] === currentYear)
+  filteredGoals.value.filter(g => +g.date.split('-')[0] === currentYear)
 )
+
 const pastGoals        = computed(() =>
   filteredGoals.value.filter(g => +g.date.split('-')[0] < currentYear)
 )
@@ -464,6 +477,7 @@ async function loadHistory() {
       selfReviewContent:     r.selfReviewContent,
       reviewScore:           r.reviewScore
     }))
+    console.log('📜 historyRecords', historyRecords.value)
   } catch (e) {
     console.error(e)
     showToast('과거 평가 불러오기 실패')
@@ -498,10 +512,19 @@ async function submitManagerEval(decision) {
     const updated = await res.json()
     selectedGoal.value.evaluation.score   = updated.reviewerScore
     selectedGoal.value.evaluation.comment = updated.reviewerContent
-    showToast('상사평가 저장 완료')
+    
+     if (decision === '승인') {
+     showToast('평가가 승인되었습니다.')
+   } else {
+     showToast('평가가 반려되었습니다.')
+   }
   } catch (e) {
     console.error(e)
-    showToast('상사평가 실패')
+     if (decision === '승인') {
+     showToast('승인 처리 중 오류가 발생했습니다.')
+   } else {
+     showToast('반려 처리 중 오류가 발생했습니다.')
+   }
   }
 }
 function showToast(msg) {
@@ -546,7 +569,6 @@ padding: 0;
   display: flex;
   overflow: hidden;
   /* margin-top: 3px; */
-  margin-left: 3px;
   gap: 0;
 }
 
@@ -737,6 +759,7 @@ padding: 0;
   flex: 1;
   background: var(--bg-box);
   border-radius: 12px;
+  border-top-left-radius: 0;
   padding: 16px;
   box-shadow: 1px 1px 20px 1px rgba(0, 0, 0, 0.05);
   display: flex;

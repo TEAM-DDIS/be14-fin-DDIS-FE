@@ -48,12 +48,14 @@
       </div>
     </div>
   </div>
+  <BaseToast ref="toastRef" />
 </template>
 
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import axios from 'axios'
 import { useRouter } from 'vue-router'
+import BaseToast from '@/components/toast/BaseToast.vue'
 import { useUserStore } from '@/stores/user'
 import {
   ModuleRegistry,
@@ -81,6 +83,11 @@ ModuleRegistry.registerModules([
 // — vue-router / pinia
 const router    = useRouter()
 const userStore = useUserStore()
+const toastRef = ref(null)
+
+function showToast(msg) {
+    toastRef.value?.show(msg)
+}
 
 // JWT 토큰 디코딩 유틸
 function parseJwtPayload(token) {
@@ -151,7 +158,7 @@ onMounted(async () => {
     rowData.value  = res.data
   } catch (e) {
     console.error('공지사항 목록 조회 실패:', e)
-    alert('공지사항을 불러오는 중 오류가 발생했습니다.')
+    showToast('공지사항을 불러오는 중 오류가 발생했습니다.')
   }
 })
 
@@ -176,7 +183,7 @@ function onGridReady(params) {
 // — 4) 삭제 모달 & 삭제 처리
 function onDeleteClick() {
   const sel = gridApi?.getSelectedRows() || []
-  if (!sel.length) return alert('삭제할 항목을 선택하세요.')
+  if (!sel.length) return showToast('삭제할 항목을 선택하세요.')
   showDeleteModal.value = true
 }
 function cancelDelete() {
@@ -196,10 +203,10 @@ async function confirmDelete() {
     rowData.value  = rowData.value.filter(r => !ids.includes(r.boardId))
     gridApi.deselectAll()
     showDeleteModal.value = false
-    alert('선택 항목이 삭제되었습니다.')
+    showToast('선택 항목이 삭제되었습니다.')
   } catch (err) {
     console.error('삭제 실패:', err)
-    alert('삭제 중 오류가 발생했습니다.')
+    showToast('삭제 중 오류가 발생했습니다.')
   }
 }
 
@@ -220,7 +227,7 @@ function onCellClick(e) {
 .page-title {
   margin-left: 20px;
   margin-bottom: 30px;
-  color: #00a8e8;
+  color: var(--primary);
 }
 
 .desc {
@@ -232,8 +239,7 @@ function onCellClick(e) {
 
 /* 카드 스타일 */
 .card {
-  background: #fff;
-  background: #fff;
+  background: var(--bg-box);
   border-radius: 12px;
   padding: 20px 32px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
@@ -251,26 +257,27 @@ function onCellClick(e) {
   margin-bottom: 10px;
   padding: 6px 8px;
   font-size: 14px;
-  color: #1F2937;
+  /* color: #1F2937; */
 }
 .search-bar-in-card .search-icon {
   width: 20px;
   height: 20px;
-  margin-right: 8px;
+  margin-right: 6px;
   pointer-events: none;
 }
 .search-bar-in-card .search-input {
-  width: 100%;
-  border: 1px solid #D1D5DB;
-  border-radius: 4px;
-  padding: 6px 8px;
+  background-color: var(--ag-background-color);
+  color: var(--text-main);
+  width: 150px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 7px 8px;
   font-size: 14px;
-  color: #1F2937;
 }
-.search-bar-in-card .search-input:focus {
+/* .search-bar-in-card .search-input:focus {
   outline: none;
   border-color: #1F2937;
-}
+} */
 
 /* 그리드 컨테이너 (높이 고정) */
 .ag-grid-box {
@@ -293,7 +300,7 @@ function onCellClick(e) {
 
 /* btn-save, btn-delete 스타일 */
 .btn-save {
-  background-color: #00a8e8;
+  background-color: var(--primary);
   color: white;
   font-weight: bold;
   border: 1px solid transparent;
@@ -305,9 +312,9 @@ function onCellClick(e) {
   box-sizing: border-box;
 }
 .btn-save:hover {
-  background-color: white;
-  color: #00a8e8;
-  border-color: #00a8e8;
+  background-color: var(--bg-main);
+  color: var(--primary);
+  border-color: var(--primary);
   box-shadow: inset 1px 1px 10px rgba(0, 0, 0, 0.25);
 }
 
@@ -342,7 +349,7 @@ function onCellClick(e) {
   z-index: 1000;
 }
 .modal-content {
-  background: #ffffff;
+  background: var(--bg-box);
   border-radius: 8px;
   padding: 20px 24px;
   width: 320px;
@@ -355,12 +362,48 @@ function onCellClick(e) {
 }
 .modal-buttons {
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
+  gap:10px
 }
 .modal-buttons .btn-delete {
-  width: 48%;
+  font-size: 14px;
+  font-weight: bold;
+  background-color: #D3D3D3;
+  color: #000;
+  border: none;
+  border-radius: 10px;
+  padding: 10px 30px;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: background-color 0.2s, box-shadow 0.2s;
+  box-sizing: border-box;
 }
 .modal-buttons .btn-save {
-  width: 48%;
+  font-size: 14px;
+  font-weight: bold;
+  background-color: var(--primary);
+  color: white;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  padding: 10px 30px;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: background-color 0.2s, box-shadow 0.2s;
+  box-sizing: border-box;
 }
+
+.modal-buttons .btn-delete:hover{
+  background-color: #000;
+  color: #fff;
+}
+
+.modal-buttons .btn-save:hover{
+  background-color: var(--bg-main);
+  color: var(--primary);
+  border-color: var(--primary);
+  box-shadow:
+  inset 1px 1px 10px rgba(0, 0, 0, 0.25);
+}
+
 </style>

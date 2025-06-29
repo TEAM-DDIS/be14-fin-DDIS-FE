@@ -53,7 +53,7 @@ import BaseToast from '@/components/toast/BaseToast.vue'
 const userStore = useUserStore()
 const token = useUserStore().accessToken
 const toastRef = ref(null)
-
+defineEmits(['close']) 
 function showToast(msg) {
   toastRef.value?.show(msg)
 }

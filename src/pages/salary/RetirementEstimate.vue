@@ -504,7 +504,7 @@ label {
   box-sizing: border-box;
 }
 .btn-primary:hover {
-  background-color: var(--primary-hover);
+  background-color: var(--bg-main);
   color: var(--primary);
   border-color: var(--primary);
   box-shadow: inset 1px 1px 10px rgba(0, 0, 0, 0.25);

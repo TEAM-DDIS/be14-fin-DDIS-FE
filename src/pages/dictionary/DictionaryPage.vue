@@ -114,12 +114,14 @@
       </div>
     </div>
   </div>
+  <BaseToast ref="toastRef" />
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
+import BaseToast from '@/components/toast/BaseToast.vue'
 import { useUserStore } from '@/stores/user'
 import {
   ModuleRegistry,
@@ -148,10 +150,15 @@ const router      = useRouter()
 const userStore   = useUserStore()
 const API_BASE    = 'https://api.isddishr.site/dictionary'
 
+const toastRef = ref(null)
+function showToast(msg) {
+    toastRef.value?.show(msg)
+}
+
 let gridApi       = null
 const columnDefs  = ref([
   { headerName: '', field: 'checkbox', checkboxSelection: true, headerCheckboxSelection: true, width: 50, pinned: 'left' },
-  { headerName: '번호', field: 'id', width: 100, cellClass: 'center-align' },
+  { headerName: '번호', valueGetter: params => params.api.getDisplayedRowCount() - params.node.rowIndex, sortable: false, flex: 0.3, cellClass:'center-align' },
   { headerName: '용어', field: 'title', flex: 0.5, autoHeight: true, cellStyle: { whiteSpace: 'normal' } },
   { headerName: '설명', field: 'definition', flex: 2, cellClass: 'center-align' }
 ])
@@ -264,14 +271,14 @@ async function fetchDictionary() {
     }))
   } catch (e) {
     console.error(e)
-    alert('용어사전 로드에 실패했습니다.')
+    showToast('용어사전 로드에 실패했습니다.')
   }
 }
 
 // 삭제 모달 오픈
 function onDeleteClick() {
   if (!gridApi.getSelectedRows().length) {
-    return alert('삭제할 항목을 선택하세요.')
+    return showToast('삭제할 항목을 선택하세요.')
   }
   showDeleteModal.value = true
 }
@@ -287,7 +294,7 @@ async function confirmDelete() {
     await fetchDictionary()
   } catch (e) {
     console.error(e)
-    alert('삭제에 실패했습니다.')
+    showToast('삭제에 실패했습니다.')
   } finally {
     showDeleteModal.value = false
   }
@@ -305,7 +312,7 @@ function onRegisterClick() {
 function onModifyClick() {
   const rows = gridApi.getSelectedRows()
   if (rows.length !== 1) {
-    return alert('하나만 선택하세요.')
+    return showToast('하나만 선택하세요.')
   }
   isEditMode.value      = true
   editingId.value       = rows[0].id
@@ -324,7 +331,7 @@ async function confirmEntry() {
   const title = entryTitle.value.trim()
   const def   = entryDefinition.value.trim()
   if (!title || !def) {
-    return alert('용어명과 내용을 모두 입력하세요.')
+    return showToast('용어명과 내용을 모두 입력하세요.')
   }
   try {
     if (isEditMode.value) {
@@ -344,7 +351,7 @@ async function confirmEntry() {
     showEntryModal.value = false
   } catch (e) {
     console.error(e)
-    alert('저장에 실패했습니다.')
+    showToast('저장에 실패했습니다.')
   }
 }
 
@@ -356,7 +363,7 @@ onMounted(fetchDictionary)
 .page-title {
   margin-left: 20px;
   margin-bottom: 30px;
-  color: #00a8e8;
+  color: var(--primary);
 }
 
 /* 헤더: desc와 수정 버튼을 같은 높이에 배치 */
@@ -379,7 +386,7 @@ onMounted(fetchDictionary)
 .btn-modify {
   display: flex;
   justify-content: flex-end;
-  background-color: #00a8e8;
+  background-color: var(--primary);
   color: white;
   font-weight: bold;
   border: 1px solid transparent;
@@ -391,15 +398,15 @@ onMounted(fetchDictionary)
   box-sizing: border-box;
 }
 .btn-modify:hover {
-  background-color: white;
-  color: #00a8e8;
-  border-color: #00a8e8;
+  background-color: var(--bg-main);
+  color: var(--primary);
+  border-color: var(--primary);
   box-shadow: inset 1px 1px 10px rgba(0, 0, 0, 0.25);
 }
 
 /* 카드 영역 */
 .card {
-  background: #fff;
+  background: var(--bg-box);
   border-radius: 12px;
   padding: 20px 32px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
@@ -426,17 +433,17 @@ onMounted(fetchDictionary)
   pointer-events: none;
 }
 .search-bar-in-card .search-input {
-  width: 100%;
-  border: 1px solid #d1d5db;
-  border-radius: 4px;
-  padding: 6px 8px;
+  width: 150%;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 7px 8px;
   font-size: 14px;
-  color: #1f2937;
+  background-color: var(--ag-background-color);
 }
-.search-bar-in-card .search-input:focus {
+/* .search-bar-in-card .search-input:focus {
   outline: none;
   border-color: #1f2937;
-}
+} */
 
 /* AG Grid + 사이드바 컨테이너 */
 .ag-grid-container {
@@ -465,7 +472,7 @@ onMounted(fetchDictionary)
 .initials-sidebar {
   width: 60px;
   height: 500px;              /* 그리드 높이(500px)의 중앙에 오도록 절반 이하로 설정 */
-  background: #fafafa;
+  background: var(--bg-box);
   border: 1px solid #d9d9d9;
   border-radius: 25px;
   overflow-y: auto;
@@ -541,7 +548,7 @@ onMounted(fetchDictionary)
 .btn-save {
   font-size: 14px;
   font-weight: bold;
-  background-color: #00a8e8;
+  background-color: var(--primary);
   color: white;
   border: 1px solid transparent;
   border-radius: 10px;
@@ -552,9 +559,9 @@ onMounted(fetchDictionary)
   box-sizing: border-box;
 }
 .btn-save:hover {
-  background-color: white;
-  color: #00a8e8;
-  border-color: #00a8e8;
+  background-color: var(--bg-main);
+  color: var(--primary);
+  border-color: var(--primary);
   box-shadow: inset 1px 1px 10px rgba(0, 0, 0, 0.25);
 }
 
@@ -584,7 +591,7 @@ onMounted(fetchDictionary)
   left: 0;
   width: 100vw;
   height: 100vh;
-  background: rgba(0, 0, 0, 0.4);
+  background: rgba(0, 0, 0, 0.6);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -593,7 +600,7 @@ onMounted(fetchDictionary)
 
 /* 등록/수정/삭제 모달 (공통 디자인) */
 .entry-modal {
-  background: #fff;
+  background: var(--modal-bg2);
   width: 500px;
   border-radius: 12px;
   box-shadow: 1px 1px 20px 1px rgba(0, 0, 0, 0.05);
@@ -629,6 +636,10 @@ onMounted(fetchDictionary)
   box-sizing: border-box;
 }
 
+.entry-modal p {
+  text-align: center;
+}
+
 /* 모달 버튼 배치 */
 .entry-buttons {
   display: flex;
@@ -639,7 +650,7 @@ onMounted(fetchDictionary)
 .entry-buttons .btn-save {
   font-size: 14px;
   font-weight: bold;
-  background-color: #00a8e8;
+  background-color: var(--primary);
   color: white;
   border: 1px solid transparent;
   border-radius: 10px;
@@ -650,9 +661,9 @@ onMounted(fetchDictionary)
   box-sizing: border-box;
 }
 .entry-buttons .btn-save:hover{
-  background-color: white;
-  color: #00a8e8;
-  border-color: #00a8e8;
+  background-color: var(--bg-main);
+  color: var(--primary);
+  border-color: var(--primary);
   box-shadow:
   inset 1px 1px 10px rgba(0, 0, 0, 0.25);
 }

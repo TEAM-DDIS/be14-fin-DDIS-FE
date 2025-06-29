@@ -94,7 +94,7 @@
           <div class="info-item">
             <label class="label-bold">연락처</label>
             <input
-              class="same-size-input"
+              class="same-size-input editable"
               v-model="form.employeeContact"
               :readonly="!isEditing"
             />
@@ -109,7 +109,7 @@
             <label class="label-bold">이메일</label>
             <input
               type="email"
-              class="same-size-input"
+              class="same-size-input editable"
               v-model="form.employeeEmail"
               :readonly="!isEditing"
             />
@@ -146,7 +146,7 @@
               <div class="info-item">
                 <label class="label-bold">거래 은행</label>
                 <input
-                  class="same-size-input"
+                  class="same-size-input editable"
                   v-model="form.bankName"
                   :readonly="!isEditing"
                 />
@@ -159,7 +159,7 @@
                 <label class="label-bold">생년월일</label>
                 <input
                   type="date"
-                  class="same-size-input"
+                  class="same-size-input editable"
                   v-model="form.employeeBirth"
                   :readonly="!isEditing"
                 />
@@ -167,7 +167,7 @@
               <div class="info-item">
                 <label class="label-bold">계좌 번호</label>
                 <input
-                  class="same-size-input"
+                  class="same-size-input editable"
                   v-model="form.bankAccount"
                   :readonly="!isEditing"
                 />
@@ -181,7 +181,7 @@
               <div class="info-item">
                 <label class="label-bold">예금주</label>
                 <input
-                  class="same-size-input"
+                  class="same-size-input editable"
                   v-model="form.bankDepositor"
                   :readonly="!isEditing"
                 />
@@ -207,7 +207,7 @@
               <div class="info-item">
                 <label class="label-bold">주소</label>
                 <input
-                  class="same-size-input"
+                  class="same-size-input editable"
                   v-model="form.employeeAddress"
                   :readonly="!isEditing"
                 />
@@ -386,7 +386,7 @@ const appointmentColumnDefs = ref([
     {
       headerName: '번호',
       width: 90,
-      valueGetter: params => params.node.rowIndex + 1,
+      valueGetter: params => params.api.getDisplayedRowCount() - params.node.rowIndex, sortable: false, flex: 0.3, cellClass:'center-align',
       sortable: false,
       suppressMenu: true
     },
@@ -416,7 +416,7 @@ const disciplineColumnDefs = ref([
     width: 50,
     pinned: 'left'
   },
-  { headerName: '번호',            field: 'disciplinaryId',          width: 80,  cellClass: 'center-align' },
+  { headerName: '번호',           valueGetter: params => params.api.getDisplayedRowCount() - params.node.rowIndex, sortable: false, flex: 0.3, cellClass:'center-align' },
   { headerName: '사원명',          field: 'employeeName',            flex: 1.2 },
 // disciplineColumnDefs 예시
 {
@@ -464,7 +464,7 @@ const contractColumnDefs = ref([
     width: 50,
     pinned: 'left'
   },
-  { headerName: 'ID',               field: 'contractId',          width: 80, cellClass: 'center-align' },
+  { headerName: '번호',               valueGetter: params => params.api.getDisplayedRowCount() - params.node.rowIndex, sortable: false, flex: 0.3, cellClass:'center-align' },
   { headerName: '사원명',           field: 'employeeName',        flex: 1.2 },
   { headerName: '계약 설명',        field: 'contractDescription', flex: 2 },
 {
@@ -1221,5 +1221,16 @@ input[readonly] {
   .bottom-card {
     padding-bottom: 70px;
   }
+}
+
+.readonly {
+  background: #f5f5f5;
+  color: #555;
+  border-color: #ddd;
+}
+
+.editable {
+  background: white;
+  border-color: var(--primary);
 }
 </style>

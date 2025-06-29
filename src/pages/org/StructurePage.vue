@@ -32,7 +32,7 @@
               <div class="member-info">
                 <strong>{{ emp.employeeName }}</strong>
                 <span>{{ emp.positionName }}</span>
-                <small>/ {{ emp.rankName }}</small>
+                <small> / {{ emp.rankName }}</small>
               </div>
             </li>
           </ul>
@@ -276,6 +276,7 @@ function findDeptName(deptId) {
   padding: 20px 32px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
   margin-left: 20px;
+  margin-right: 20px;
   max-width: 100%;
   overflow-x: auto;
 }
@@ -284,6 +285,9 @@ function findDeptName(deptId) {
   display: grid;
   grid-template-columns: 0.7fr 0.6fr 1fr;
   gap: 16px;
+  height: 60vh;
+  margin-top: 15px;
+  margin-bottom: 15px;
 }
 
 .left,
@@ -291,12 +295,18 @@ function findDeptName(deptId) {
 .profile-panel {
   overflow-y: auto;
   scrollbar-gutter: stable;
+  scrollbar-width: none; 
 }
 
-.left,
+.left {
+  padding: 16px;
+  border-right: 1px solid #ddd;
+}
+
 .team-panel {
   padding: 16px;
   border-right: 1px solid #ddd;
+  overflow-y: auto;
 }
 
 .profile-panel {
@@ -413,10 +423,9 @@ function findDeptName(deptId) {
   box-sizing: border-box;
 
   display: block;
-  margin-left: auto;
-  margin-right: 20px;
-  margin-bottom: 20px;
+  margin: 0 20px 10px auto;
 }
+
 .edit-button:hover {
   background-color: var(--bg-main);
   color: var(--primary);

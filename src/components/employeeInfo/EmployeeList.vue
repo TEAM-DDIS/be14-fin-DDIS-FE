@@ -36,7 +36,7 @@
         width="100%"
         height="500px"
         :pagination="true"
-        :pageSize="10"
+        :pageSize="20"
         @grid-ready="onGridReady"
         @cell-click="onCellClick"
         @row-click="onRowClick"
@@ -304,22 +304,27 @@ function onRegister() {
 /* 검색창 */
 .search-bar-in-card {
   display: flex;
-  width: 350px;
-  margin-bottom: 10px;
-  padding: 6px 8px;
+  width: 300px;
+  height: 30px;
   align-items: center;
-  border-radius: 8px;
+  padding: 6px 8px;
+  font-size: 14px;
+  color: #1f2937;
 }
-.search-icon { width:20px;height:20px;margin-right:8px; }
+.search-icon { 
+  width: 20px;
+  height: 20px;
+  margin-right: 8px;
+  pointer-events: none; 
+}
+
 .search-input {
-  flex: 1;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  height: 26px;
-  outline: none;
-  font-size:14px;
-  background-color: var(--modal-box-bg);
-  color: var(--text-main);
+  width: 100%;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  padding: 6px 8px;
+  font-size: 14px;
+  color: #1f2937;
 }
 /* 그리드 박스 */
 .ag-grid-box {

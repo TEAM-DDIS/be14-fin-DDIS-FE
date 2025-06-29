@@ -92,11 +92,13 @@
 
     <EditJobModal
       v-if="showEditModal"
+      :key="currentJob.jobId"
       :initial="currentJob"
       @close="closeEditModal"
       @save="saveEdit"
     />
   </div>
+  <BaseToast ref="toastRef" />
 </template>
 
 <script setup>
@@ -104,6 +106,7 @@ import { ref, computed, onMounted, reactive } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import EditJobModal from '@/components/org/introduction/EditJobModal.vue'
+import BaseToast from '@/components/toast/BaseToast.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -135,6 +138,10 @@ function parseJwtPayload(token) {
   }
 }
 
+//API
+const BASE = 'http://localhost:5000/introduction'
+const JOB_BASE = 'http://localhost:5000/org'
+
 // 전 페이지에서 선택된 팀 ID
 const teamId = Number(route.params.teamId)
 
@@ -142,14 +149,22 @@ function goBack() {
   router.back()
 }
 
+const toastRef = ref(null)
+
+function showToast(msg) {
+  toastRef.value?.show(msg)
+}
+
 const currentJob = reactive({
   jobId: null,
   teamName: '',
   jobName: '',
+  jobCode: '',
   jobRole: [],
   jobNeed: [],
   jobNecessary: [],
-  jobPreference: []
+  jobPreference: [],
+  teamId: null
 })
 
 // 팀의 직무
@@ -161,7 +176,7 @@ const selectedJobs = computed(() => {
 })
 
 onMounted(async () => {
-  const BASE = 'https://api.isddishr.site/introduction'
+  
   try {
     const teamRes = await fetch(`${BASE}/team/${teamId}`, {
       headers: {
@@ -202,11 +217,13 @@ onMounted(async () => {
       return {
         jobId: job.jobId,
         teamName: teamData.teamName,
+        teamId:  job.teamId,
         jobName: job.jobName,
+        jobCode: job.jobCode,
         jobRole: parsedRole,
         jobNeed: parsedNeed,
         jobNecessary: parsedNecessary,
-        jobPreference: parsedPreference
+        jobPreference: parsedPreference,
       }
     })
 
@@ -227,10 +244,12 @@ function openEditModal() {
   currentJob.jobId = job.jobId
   currentJob.teamName = job.teamName
   currentJob.jobName = job.jobName
+  currentJob.jobCode = job.jobCode
   currentJob.jobRole = [...job.jobRole]
   currentJob.jobNeed = [...job.jobNeed]
   currentJob.jobNecessary = [...job.jobNecessary]
   currentJob.jobPreference = [...job.jobPreference]
+  currentJob.teamId        = job.teamId
 
   showEditModal.value = true
 }
@@ -240,15 +259,47 @@ function closeEditModal() {
 }
 
 function saveEdit(updated) {
-  const idx = jobs.value.findIndex(j => j.jobId === updated.jobId)
-  if (idx !== -1) {
-    jobs.value[idx].jobName = updated.jobName
-    jobs.value[idx].jobRole = [...updated.jobRole]
-    jobs.value[idx].jobNeed = [...updated.jobNeed]
-    jobs.value[idx].jobNecessary = [...updated.jobNecessary]
-    jobs.value[idx].jobPreference = [...updated.jobPreference]
-  }
-  closeEditModal()
+
+   fetch(`${JOB_BASE}/update/job/${updated.jobId}`, {
+     method: 'PUT',
+     headers: {
+       'Authorization': `Bearer ${token}`,
+       'Content-Type': 'application/json'
+     },
+     body: JSON.stringify({
+        jobName:       updated.jobName,
+        jobCode:       updated.jobCode,
+        jobRole:       updated.jobRole,
+        jobNeed:       updated.jobNeed,
+        jobNecessary:  updated.jobNecessary,
+        jobPreference: updated.jobPreference,
+        teamId:        updated.teamId
+      })
+   })
+     .then(res => {
+       if (!res.ok) throw new Error(`HTTP ${res.status}`)
+       return res.json()
+     })
+     .then(data => {
+       // 2) 로컬상태에도 덮어쓰기
+       const idx = jobs.value.findIndex(j => j.jobId === data.id)
+
+       if (idx !== -1) {
+         jobs.value[idx].jobName       = data.jobName
+          jobs.value[idx].jobCode       = data.jobCode
+          jobs.value[idx].jobRole       = data.jobRole
+          jobs.value[idx].jobNeed       = data.jobNeed
+          jobs.value[idx].jobNecessary  = data.jobNecessary
+          jobs.value[idx].jobPreference = data.jobPreference
+          jobs.value[idx].teamId        = data.teamId
+       }
+       closeEditModal()
+       showToast('직무 소개 수정이 완료되었습니다.')
+     })
+     .catch(err => {
+       console.error('❌ 직무 소개 수정 실패:', err)
+       showToast('직무 소개 수정에 실패했습니다.')
+     })
 }
 </script>
 
@@ -390,9 +441,7 @@ function saveEdit(updated) {
   box-sizing: border-box;
 
   display: block;
-  margin-left: auto;
-  margin-right: 20px;
-  margin-bottom: 20px;
+  margin: 0 80px 20px auto;
 }
 .edit-button:disabled {
   background-color: #aaa;
