@@ -299,14 +299,6 @@ const router = createRouter({
             meta: { requiresAuth: true }
         },
 
-         // 내가 쓴 평가
-        {
-            path: '/org/myevaluation',
-            name: 'MyEvaluations',
-            component: () => import('@/components/Evaluation/MyEvalsPage.vue'),
-            meta: { requiresAuth: true }
-        },
-
         // 목표 설정
         {
             path: '/org/goals',
