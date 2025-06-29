@@ -230,6 +230,7 @@ function handleConfirm() {
   display: flex;
   align-items: center;
   justify-content: center;
+  z-index: 4000;
 }
 .modal-title {
   font-size: 24px;
