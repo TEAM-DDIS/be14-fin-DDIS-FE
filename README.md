@@ -22,13 +22,13 @@
 
 <table align="center">
   <tr>
-    <td align="center"><img src="https://avatars.githubusercontent.com/u/44444444?s=100" width="400" heght="400"/><br/>이채현 멘토<br/><a href="https://github.com/1214alex">@1214alex</a></td>
-    <td align="center"><img src="https://github.com/user-attachments/assets/c878ec33-a47f-4407-a037-2589a0fa5785" width="400" heght="400"/><br/>이성준<br/><a href="https://github.com/1214alex">@1214alex</a></td>
-    <td align="center"><img src="https://github.com/user-attachments/assets/a55578f2-36c3-4e87-a4a6-63f602d43eed" width="400" heght="400"/><br/>강이도은<br/><a href="https://github.com/RKDLDE">@1214alex</a></td>
-    <td align="center"><img src="https://img.notionusercontent.com/ext/https%3A%2F%2Fs3-us-west-2.amazonaws.com%2Fpublic.notion-static.com%2F6522e26f-14a0-45fe-bab3-029569c94784%2Fmy-notion-face-portrait.png/size/w=120?exp=1746671453&sig=741p0qT6LRzzAeJ423A4Jnva1XN-jYB2sFXEEhNEXkc&userId=7b5499e7-5c8e-42df-8eee-5549258f8692" width="400" heght="400"/><br/>고도연<br/><a href="https://github.com/ddxyxxn">@1214alex</a></td>
-    <td align="center"><img src="https://avatars.githubusercontent.com/u/33333333?s=100" width="400" heght="400"/><br/>김기종<br/><a href="https://github.com/github-id3">@1214alex</a></td>
-    <td align="center"><img src="https://avatars.githubusercontent.com/u/44444444?s=100" width="400" heght="400"/><br/>주아현<br/><a href="https://github.com/github-id4">@1214alex</a></td>
-    <td align="center"><img src="https://github.com/user-attachments/assets/1419fdd5-7407-4ca9-bb5c-e475ab487286" width="400" heght="400"/><br/>한윤상<br/><a href="https://github.com/tommy8969">@1214alex</a></td>
+    <td align="center"><img src="https://avatars.githubusercontent.com/u/44444444?s=100" width="100" height="100" style="object-fit:cover;/><br/>이채현 멘토<br/><a href="https://github.com/1214alex">@1214alex</a></td>
+    <td align="center"><img src="https://github.com/user-attachments/assets/c878ec33-a47f-4407-a037-2589a0fa5785" width="100" height="100" style="object-fit:cover;/><br/>이성준<br/><a href="https://github.com/1214alex">@1214alex</a></td>
+    <td align="center"><img src="https://github.com/user-attachments/assets/a55578f2-36c3-4e87-a4a6-63f602d43eed" width="100" height="100" style="object-fit:cover;/><br/>강이도은<br/><a href="https://github.com/RKDLDE">@RKDLDE</a></td>
+    <td align="center"><img src="https://img.notionusercontent.com/ext/https%3A%2F%2Fs3-us-west-2.amazonaws.com%2Fpublic.notion-static.com%2F6522e26f-14a0-45fe-bab3-029569c94784%2Fmy-notion-face-portrait.png/size/w=120?exp=1746671453&sig=741p0qT6LRzzAeJ423A4Jnva1XN-jYB2sFXEEhNEXkc&userId=7b5499e7-5c8e-42df-8eee-5549258f8692" width="100" height="100" style="object-fit:cover;/><br/>고도연<br/><a href="https://github.com/ddxyxxn">@ddxyxxn</a></td>
+    <td align="center"><img src="https://avatars.githubusercontent.com/u/163290743?v=4" width="100" height="100" style="object-fit:cover;/><br/>김기종<br/><a href="https://github.com/rrangeess">@rrangeess</a></td>
+    <td align="center"><img src="https://avatars.githubusercontent.com/u/191222252?v=4" width="100" height="100" style="object-fit:cover;/><br/>주아현<br/><a href="https://github.com/Jooahyeon">@Jooahyeon</a></td>
+    <td align="center"><img src="https://github.com/user-attachments/assets/1419fdd5-7407-4ca9-bb5c-e475ab487286"width="100" height="100"style="object-fit:cover; /><br/>한윤상<br/><a href="https://github.com/tommy8969">@tommy8969</a></td>
   </tr>
 </table>
 
@@ -122,7 +122,7 @@ ERP 시스템이라고 해서 무거울 필요는 없습니다.
 
 ## 시스템 아키텍처
 
-- [시스템 아키텍처처 바로가기](https://github.com/TEAM-DDIS/be14-fin-DDIS-FE/wiki/⛓️-시스템-아키텍처)
+- [시스템 아키텍처 바로가기](https://github.com/TEAM-DDIS/be14-fin-DDIS-FE/wiki/⛓️-시스템-아키텍처)
 
 ---
 
