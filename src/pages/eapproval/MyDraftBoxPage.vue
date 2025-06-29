@@ -291,7 +291,7 @@ input[type="month"] {
   align-items: flex-end;
   gap: 0;
   position: relative;
-  margin-right: -20px;  /* 👈 main-box 와 맞춤 */
+  margin-right: -20px;  
 }
 
 .tabs span {
@@ -301,18 +301,17 @@ input[type="month"] {
   border-bottom: none;
   background-color: #C8C8C8;
   color: var(--bg-main);
-  text-decoration: none; /* ✅ 밑줄 제거 */
+  text-decoration: none;
   cursor: pointer;
   border-top-left-radius: 12px;
   border-top-right-radius: 12px;
   position: relative;
   z-index: 1;
-  margin-right: -10px; /* ✅ 가로 겹치기 */
+  margin-right: -10px;
   transition: all 0.2s ease;
 }
 
 .tabs .active {
-  /* color: var(--primary); */
   z-index: 3;
   background: var(--bg-box);
   color: var(--modal-text);
@@ -342,8 +341,7 @@ input[type="month"] {
 }
 
 .search-item label {
-  font-size: 16.5px;            /* label 폰트 크기 (1.04rem 기준) */
-  margin-bottom: 2px;           /* (행 아닌 열 정렬일 땐 의미 없음, row일 땐 영향 없음) */
+  margin-bottom: 2px;           
   color: var(--text-main);
 }
 
@@ -354,9 +352,9 @@ input[type="month"] {
   border-radius: 6px;           /* 둥근 테두리 */
   width: 200px;
   transition: border 0.2s, box-shadow 0.2s;
+  background-color: var(--modal-box-bg);
   height: 18px;
   color: var(--text-main);
-  background-color: var(--modal-box-bg);
   font-family: 'inter';
 }
 
@@ -364,17 +362,6 @@ input[type="month"] {
 .search-item input[type="text"]::placeholder {
   color: #bbb;
   height: 18px;
-}
-
-/* 입력란 클릭/포커스시 효과 */
-.search-item input[type="text"]:focus,
-.search-item input[type="date"]:focus {
-  outline: none;
-  border: 1px solid #e0e0e0;         /* 포커스 시도 2px */
-  box-shadow: 0 0 0 1.5px #111; 
-  background-color: var(--bg-main);
-  color: red;
-  padding: 6px 8px;
 }
 
 /* ------- 표 박스 ------- */
@@ -389,18 +376,4 @@ input[type="month"] {
   box-sizing: border-box;
 }
 
-/* 스타일 커스터마이징 */
-.ag-custom .ag-header-row {
-  background-color: #f8f9fa !important;
-  border-color: #c8c8c8 !important;
-}
-.ag-custom .ag-row-hover {
-  background-color: #eeeeee !important;
-}
-.ag-custom .ag-row-selected {
-  background-color: #dddddd !important;
-}
-.ag-custom .ag-root-wrapper, .ag-custom .ag-cell, .ag-custom .ag-header-cell {
-  border-color: #c8c8c8 !important;
-}
 </style>

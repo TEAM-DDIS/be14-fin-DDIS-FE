@@ -73,7 +73,6 @@ function onAddForm() {
 
 <style scoped>
 .box-title{
-  
   margin-bottom: 10px;
   font-size: 18px;
 }
@@ -132,44 +131,34 @@ function onAddForm() {
   padding: 32px 32px 40px 32px;
   box-shadow: 1px 1px 20px 1px rgba(0,0,0,0.05);
   margin-bottom: 20px;
-  /* overflow: hidden; */
   transition: background 0.2s;
   box-sizing: border-box; /* 추가 */
-  padding-left: 20px;
-}
-.storage-box.fixed-height {
-  height: 700px;
-  display: flex;
-  flex-direction: column;
+  padding: 30px;
 }
 .search-area {
-  width: 400px;
-  height: auto;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 20px;
-  justify-content: flex-start;
+  margin-bottom: 15px;
+  background-color: var(--modal-box-bg);
+  display: flex;                /* label, input을 한 줄에 배*/
+  flex-direction: row;          /* 가로 정렬(한 줄) */
+  align-items: center;          /* 세로 중앙 정렬 */
+  gap: 5px;                     /* label과 input 사이 간격 */
+  min-width: 150px;             /* 최소 너비(인풋이 깨지지 않게) */
+  background-color: transparent;
 }
 .search-logo {
-  width: 28px;
-  height: auto;
+  width: 20px;
   margin-right: 4px;
 }
 .search-input {
-  max-width: 900px;
-  padding: 8px;
+  padding: 6px 8px;         
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;           
+  width: 200px;
+  transition: border 0.2s, box-shadow 0.2s;
   background-color: var(--modal-box-bg);
+  height: 18px;
   color: var(--text-main);
-  border: 2px solid #ddd;     /* 기본 2px */
-  border-radius: 8px;
-  font-size: 1.05em;
   font-family: 'inter';
-  flex: 1 1 0;
 }
-.search-input:focus {
-  outline: none;
-  border: 1px solid #111;          /* 포커스 시도 2px */
-  box-shadow: 0 0 0 1.5px #111;    /* 옵션: 강조 효과 */
-}
+
 </style>
