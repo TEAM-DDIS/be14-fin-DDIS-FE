@@ -18,7 +18,7 @@
                 :class="{ selected: selectedEmployee === p.id }"
                 @click="selectEmployee(p)"
               >
-                <img :src="p.avatar || '/avatars/default.jpg'" alt="avatar" class="avatar" />
+                
                 <div class="info">
                   <strong class="name">{{ p.name }}</strong>
                   <span class="role">{{ p.role }}</span>
