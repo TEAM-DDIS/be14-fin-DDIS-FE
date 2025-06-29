@@ -132,10 +132,10 @@ watch(() => props.performances, () => {
   background: var(--modal-bg2) !important;
   color: var(--modal-text);
   border-radius: 8px;
-  padding: 24px;
-  width: 90%;
-  max-width: 600px;
-  max-height: 80vh;
+  width: 95%;           /* 전체 너비 비율을 키웁니다 */
+  max-width: 900px;     /* 최대 너비를 늘립니다 */
+  max-height: 90vh;     /* 최대 높이를 늘립니다 */
+  padding: 32px;        /* 안쪽 여백도 약간 더 키울 수 있어요 */
   overflow-y: auto;
   position: relative;
 }
@@ -155,13 +155,17 @@ watch(() => props.performances, () => {
   color: var(--primary);
 }
 .my-perf-table {
-  width: 100%; border-collapse: collapse;
+  width: 110%; border-collapse: collapse;
   margin-top: 16px;
+  table-layout: auto;
 }
 .my-perf-table th,
 .my-perf-table td {
   border: 1px solid #e0e0e0;
   padding: 8px; text-align: left;
+}
+.my-perf-table th{
+  white-space: nowrap;
 }
 .empty-row {
   text-align: center; color: #888;
@@ -170,7 +174,7 @@ watch(() => props.performances, () => {
     cursor: pointer; 
 }
 .clickable-row:hover { 
-    background:var(--ag-row-border-color); 
+    background: #f0f8ff; 
 }
 .filter-row select {
     padding: 6px 8px;
