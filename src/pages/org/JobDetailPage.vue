@@ -139,8 +139,8 @@ function parseJwtPayload(token) {
 }
 
 //API
-const BASE = 'http://localhost:5000/introduction'
-const JOB_BASE = 'http://localhost:5000/org'
+const BASE = 'https://api.isddishr.site/introduction'
+const JOB_BASE = 'https://api.isddishr.site/org'
 
 // 전 페이지에서 선택된 팀 ID
 const teamId = Number(route.params.teamId)

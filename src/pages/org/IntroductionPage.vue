@@ -154,7 +154,7 @@ function saveEdit(updated) {
     introductionContext: updated.introductionContext
   }
 
-  fetch(`http://localhost:5000/introduction/update/department/${updated.departmentId}`, {
+  fetch(`https://api.isddishr.site/introduction/update/department/${updated.departmentId}`, {
     method: 'PUT',
     headers: {
       'Authorization': `Bearer ${token}`,
