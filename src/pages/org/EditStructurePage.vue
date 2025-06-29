@@ -535,6 +535,7 @@ async function handleAddOrg({ type, name, parentId }) {
     // showToast("등록 성공!")
     showAddModal.value = false
     window.location.reload()
+    showToast('조직 등록이 완료되었습니다.')
   } catch (e) {
     showToast('조직 추가 중 오류가 발생했습니다.')
   }
@@ -549,26 +550,29 @@ function closeDeleteModal() {
 }
 async function handleDeleteOrg({ type, ids }) {
   try {
-    const endpointMap = {
-      head: 'head',
-      department: 'department',
-      team: 'team'
-    }
-    const endpoint = endpointMap[type]
-    const headers = { Authorization: `Bearer ${token}` }
 
-    await Promise.all(
-      ids.map(id =>
-       axios.delete(
-         `http://localhost:5000/org/delete/${endpoint}/${id}`,
-         { headers }
-       )
-      )
-    )
+    showToast('해당 조직 삭제 예정입니다.')
+    // const endpointMap = {
+    //   head: 'head',
+    //   department: 'department',
+    //   team: 'team'
+    // }
+    // const endpoint = endpointMap[type]
+    // const headers = { Authorization: `Bearer ${token}` }
+
+    // await Promise.all(
+    //   ids.map(id =>
+    //    axios.delete(
+    //      `http://localhost:5000/org/delete/${endpoint}/${id}`,
+    //      { headers }
+    //    )
+    //   )
+    // )
     showDeleteModal.value = false
-    window.location.reload()
+
+    // window.location.reload()
     // showToast('삭제 성공!')
-    await loadHierarchy()
+    // await loadHierarchy()
   } catch (err) {
     console.error('삭제 실패', err)
     showToast('삭제 중 오류가 발생했습니다.')
@@ -666,9 +670,8 @@ function handleReload() {
   padding: 8px 16px;
   height: 70px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-  margin-bottom: 30px;
   gap: 20px;
-  margin-left: 20px;
+  margin: 0 20px 30px;
 }
 .toolbar-label {
   font-weight: bold;
@@ -740,14 +743,14 @@ function handleReload() {
   height: 25px;
 }
 .toolbar-search {
-  padding: 6px 12px;
+  padding: 6px 10px;
   border: 1px solid #ddd;
   color: var(--text-main);
   border-radius: 8px;
   font-size: 16px;
   width: 200px;
-  height: 40%;
-  background: var(--modal-box-bg);
+  height: 38%;
+  background: var(--bg-main);
 }
 
 .content-grid {
@@ -756,7 +759,7 @@ function handleReload() {
   gap: 24px;
   align-items: stretch;
   margin-left: 20px;
-
+  margin-right: 20px;
 }
 .section {
   display: flex;
@@ -864,7 +867,7 @@ function handleReload() {
   background-color: var(--bg-label-cell);
 }
 .member-table tr.active {
-  background: #ececec;
+  background: var(--modal-box-bg);
 }
 .no-data {
   text-align: center;
