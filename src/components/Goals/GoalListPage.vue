@@ -285,7 +285,7 @@ function goBack() {
 }
 
 const totalWeight = computed(() =>
-  goals.value.reduce((sum, g) => sum + (g.goalWeight || 0), 0)
+  currentYearGoals.value.reduce((sum, g) => sum + (g.goalWeight || 0), 0)
 )
 
 function openMyPerfModal() { showMyPerfModal.value = true }

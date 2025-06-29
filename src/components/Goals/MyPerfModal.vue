@@ -50,7 +50,7 @@
           </tbody>
 
         </table>
-        <div class="score-summary">
+        <div class="score-summary" v-if="selectedYear !== 'All'">
           총 평가 점수: <strong>{{ totalReviewScore }}</strong>
         </div>
       </div>
