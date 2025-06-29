@@ -355,9 +355,11 @@ const filteredGoals = computed(() => {
   })
 })
 const currentYear      = new Date().getFullYear()
+// 변경
 const currentYearGoals = computed(() =>
-  filteredGoals.value
+  filteredGoals.value.filter(g => +g.date.split('-')[0] === currentYear)
 )
+
 const pastGoals        = computed(() =>
   filteredGoals.value.filter(g => +g.date.split('-')[0] < currentYear)
 )
