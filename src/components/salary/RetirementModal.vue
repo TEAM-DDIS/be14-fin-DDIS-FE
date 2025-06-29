@@ -95,15 +95,17 @@
         </tbody>
       </table>
 
-<div class="footer">
+      <div class="footer">
         <p class="today">{{ formatDate(slip.provisionDate, true) }}</p>
-        <button class="btn left no-print" @click="sendMail">
+        <button 
+          v-if="slip && slip.provisionDate !== null"
+          class="btn left no-print" 
+          @click="sendMail">
           메일 전송
         </button>
         <button class="btn right no-print" @click="downloadPDF">PDF 다운로드</button>
       </div>
     </div>
-
     <!-- Toast 알림 -->
     <BaseToast ref="toastRef" />
   </div>
