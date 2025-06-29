@@ -290,13 +290,11 @@ async function onSubmit() {
   display: block;
   margin-bottom: 8px;
   font-weight: 500;
-  color: #333;
 }
 
 /* 레이블 공통 */
 .form-label {
   font-weight: 500;
-  color: #333;
 }
 .required {
   color: #e74c3c;
@@ -304,6 +302,7 @@ async function onSubmit() {
 
 /* 입력칸 공통 */
 .form-input {
+  color: var(--text-main);
   background-color: var(--ag-background-color);
   flex: 1; /* label 옆 공간 채우기 */
   position: relative;
@@ -315,7 +314,6 @@ async function onSubmit() {
   padding: 12px 16px;
   box-sizing: border-box;
   cursor: pointer;
-  transition: border-color 0.2s, background-color 0.2s;
 }
 
 /* 제목 입력칸 호버 시에도 테두리 색을 어둡게 */
@@ -329,6 +327,7 @@ async function onSubmit() {
 
 /* 파일 첨부 드롭존 */
 .file-dropzone {
+  color: var(--text-main);
   background-color: var(--ag-background-color);
   flex: 1; /* label 옆 공간 채우기 */
   position: relative;
@@ -341,14 +340,14 @@ async function onSubmit() {
   padding: 10px 12px;
   box-sizing: border-box;
   cursor: pointer;
-  transition: border-color 0.2s, background-color 0.2s;
+  transition:  background-color 0.2s;
 }
 .file-dropzone:hover {
   border-color: #1f2937;
 }
 .file-dropzone p {
+  color: var(--text-main);
   margin: 0;
-  color: #888;
   font-size: 14px;
   background-color: var(--ag-background-color);
 }
@@ -389,7 +388,7 @@ async function onSubmit() {
   border-radius: 6px;
   margin-bottom: 8px;
   font-size: 14px;
-  color: #444;
+  color: var(--text-main);
   background-color: var(--ag-background-color);
 }
 .file-item .file-name {
@@ -407,7 +406,6 @@ async function onSubmit() {
 .instructions {
   margin-top: 10px;
   font-size: 12px;
-  color: #666;
   line-height: 1.4;
   margin-left: 115px; /* 레이블 영역만큼 들여쓰기 */
 }
@@ -441,7 +439,6 @@ async function onSubmit() {
   position: absolute;
   top: 12px;
   left: 16px;
-  color: #aaa;
   pointer-events: none;
   font-size: 14px;
 }
