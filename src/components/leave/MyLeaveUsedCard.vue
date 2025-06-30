@@ -22,13 +22,13 @@
   const leaveUsedData = ref([])
 
   const columnDefs = [
-    { headerName: '번호', valueGetter: (params) => leaveUsedData.value.length - params.node.rowIndex, sortable: false, filter: false },
-    { headerName: '구분', field: 'type' },
-    { headerName: '처리상태', field: 'status' },
+    { headerName: '번호', valueGetter: (params) => leaveUsedData.value.length - params.node.rowIndex, sortable: false, filter: false, width: 100 },
+    { headerName: '구분', field: 'type', width: 150 },
+    { headerName: '처리상태', field: 'status', width: 150 },
     { headerName: '신청일', field: 'request_date' },
     { headerName: '시작일', field: 'start_date' },
     { headerName: '종료일', field: 'end_date' },
-    { headerName: '사용일수', field: 'days' },
+    { headerName: '사용일수', field: 'days', width: 150 },
     { headerName: '사유', field: 'reason' },
     { headerName: '반려사유', field: 'rejection_reason' }
   ]
@@ -78,7 +78,7 @@
   .leave-used-wrapper {
     display: flex;
     justify-content: space-between;
-    background: #fff;
+    background: var(--bg-box);
     padding: 30px;
     border-radius: 0px 12px 12px 12px;
     box-shadow: 1px 1px 20px 1px rgba(0, 0, 0, 0.05);

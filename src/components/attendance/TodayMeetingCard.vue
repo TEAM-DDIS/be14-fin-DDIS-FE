@@ -106,7 +106,8 @@
   }
 
   .meeting-table thead {
-    background-color: var(--bg-menu-btn-hover);
+    background-color: var(--bg-menu-btn-hover2);
+
   }
 
   .meeting-table th,

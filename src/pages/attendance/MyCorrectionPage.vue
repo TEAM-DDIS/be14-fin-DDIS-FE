@@ -5,16 +5,16 @@
         <div class="tab-wrapper">
             <div class="tab-menu">
                 <button
-                :class="{ active: activeTab === 'used' }"
-                @click="activeTab = 'used'"
-                >
-                정정내역
-                </button>
-                <button
                 :class="{ active: activeTab === 'regist' }"
                 @click="activeTab = 'regist'"
                 >
                 신청내역
+                </button>
+                <button
+                :class="{ active: activeTab === 'used' }"
+                @click="activeTab = 'used'"
+                >
+                정정내역
                 </button>
             </div>
         </div>
@@ -31,14 +31,14 @@
     import MyCorrectionRegistCard from '@/components/correction/MyCorrectionRegistCard.vue';
     import MyCorrectionUsedCard from '@/components/correction/MyCorrectionUsedCard.vue';
 
-    const activeTab = ref('used')
+    const activeTab = ref('regist')
 </script>
 
 <style scoped>
     .page-title {
         margin-left: 20px;
         margin-bottom: 30px;
-        color: #00a8e8;
+        color: var(--primary);
     }
 
     .desc {
@@ -66,6 +66,7 @@
         align-items: flex-end;
         gap: 0;
         position: relative;
+        
     }
 
     /* 기본 탭 버튼 */
@@ -75,7 +76,7 @@
         border: none;
         border-bottom: none;
         background-color: #C8C8C8;
-        color: white;
+        color: var(--bg-main);
         cursor: pointer;
         border-top-left-radius: 12px;
         border-top-right-radius: 12px;
@@ -87,8 +88,8 @@
 
     /* 선택된 탭 위로 */
     .tab-menu button.active {
-        background-color: #fff;
-        color: #000;
+        background: var(--bg-box);
+        color: var(--modal-text);
         z-index: 3;
     }
 </style>

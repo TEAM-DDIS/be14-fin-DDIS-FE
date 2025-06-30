@@ -63,7 +63,7 @@
     background-color: var(--bg-box);
     border-radius: 20px;
     box-shadow: 1px 1px 20px 1px rgba(0, 0, 0, 0.05);
-    padding: 20px;
+    padding: 1px 20px 20px 20px;
     min-height: 300px;
   }
 
@@ -72,7 +72,7 @@
     font-weight: bold;
     padding-bottom: 10px;
     margin-bottom: 16px;
-    color: var(--primary);
+    color: #00A8E8;
     border-bottom: 0.5px solid #C6C6C6;
   }
 

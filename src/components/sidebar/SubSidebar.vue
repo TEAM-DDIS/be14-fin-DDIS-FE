@@ -51,9 +51,32 @@
         )
     } catch { return false }
     })
-    function filteredItems(items) {
-        return items.filter(it => !(it.hrOnly && !isHrTeam.value))
-    }
+ 
+
+
+    const isTeamLeader   = computed(() => {
+    // 액세스 토큰이 'deptName' 혹은 'roles'에 HR이 있으면 true
+    try {
+        const payload = JSON.parse(
+        atob(userStore.accessToken.split('.')[1].replace(/-/g,'+').replace(/_/g,'/'))
+        )
+        return (
+        payload.auth?.includes('ROLE_TEAMLEADER')                // 롤로 체크
+        )
+    } catch { return false }
+    })
+      function filteredItems(items) {
+        return items.filter(it => {
+            const isHR = isHrTeam.value
+            const isLeader = isTeamLeader.value
+
+            // 조건이 없는 메뉴는 항상 표시
+            if (!it.hrOnly && !it.TeamLeaderOnly) return true
+
+            // 둘 중 하나라도 통과하면 OK
+            return (it.hrOnly && isHR) || (it.TeamLeaderOnly && isLeader)
+        })
+        }
 
 
     const props = defineProps({
@@ -84,11 +107,13 @@
                     },
                     {
                         name: '계약서/법정서류 관리',
-                        path: '/employeeInfo/Contract'
+                        path: '/employeeInfo/Contract',
+                        hrOnly: true 
                     },
                     {
                         name: '징계 관리',
-                        path: '/employeeInfo/disciplinary'
+                        path: '/employeeInfo/disciplinary',
+                        hrOnly: true 
                     },
                         
                 ]
@@ -184,10 +209,6 @@
                         name: '기안양식함', 
                         path: '/eapproval/temp'
                     },
-                    {
-                        name: '임시저장함', 
-                        path: '/eapproval/temporarydoc'
-                    },
                 ]
             },
             '문서함': {
@@ -246,11 +267,8 @@
                 items: [
                     { 
                         name: '평가', 
-                        path: '/org/evaluation'
-                    },
-                    {
-                        name: '내가 쓴 평가',
-                        path: '/org/myevaluation'
+                        path: '/org/evaluation',
+                        TeamLeaderOnly:true
                     }
                 ]
             },

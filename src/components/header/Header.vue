@@ -12,7 +12,9 @@
       <!-- 알림 -->
       <div class="notice" @click="toggleNotification()">
         <img src="@/assets/icons/bell.svg" alt="notice" class="notice-img" />
-        <span v-if="unreadCount > 0" class="badge">{{ unreadCount }}</span>
+        <span v-if="store.unreadCount > 0" class="badge">
+          {{ store.unreadCount }}
+        </span>
       </div>
 
       <!-- 다크모드 텍스트 + 파란 토글 스위치 -->
@@ -26,7 +28,12 @@
 
       <template v-if="user">
         <div class="profile-wrapper">
-          <img src="/images/erpizza_profile.svg" alt="profile" class="profile-img" />
+          <img
+            :src="profileUrl"
+            alt="프로필"
+            class="profile"
+            @error="onImageError"
+          />
           <span class="user-name">{{ user.employeeName }}님</span>
         </div>
         <button class="btn-logout" @click="logout">로그아웃</button>
@@ -38,7 +45,6 @@
 
     <NoticeModal
       v-if="showNotification"
-      :notifications="notifications"
       @close="closeNotification"
       @notificationClick="handleNotificationClick"
     />
@@ -51,6 +57,8 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import NoticeModal from '@/components/notice/NoticeModal.vue'
+import { useNotificationStore } from '@/stores/notice'
+const store = useNotificationStore()
 
 defineProps({
   isDarkMode: Boolean
@@ -60,52 +68,36 @@ const router = useRouter()
 const userStore = useUserStore()
 
 const showNotification = ref(false)
-const notifications = ref([])
+
+const profileUrl = computed(() => userStore.profileUrl)
+
+function onImageError(e) {
+  e.target.src = '/images/erpizza_profile.svg'
+}
 
 onMounted(async () => {
-  try {
-    await fetchNotifications()
-  } catch (e) {
-    console.error('초기 알림 불러오기 실패:', e)
-  }
-})
+  await userStore.fetchAllEmployees()
+  store.fetch()
 
-const unreadCount = computed(() =>
-  notifications.value.filter(n => n.unread).length
-)
+  // console.log('HEADER ▶ profileUrl =', userStore.profileUrl)
+
+})
 
 const user = computed(() => userStore.user)
 
 function logout() {
   userStore.logout()
   router.push({ name: 'Login' })
+  localStorage.clear()
 }
 
 async function toggleNotification() {
   showNotification.value = !showNotification.value
 }
 
-async function fetchNotifications() {
-  const token = localStorage.getItem('token')
-  const res = await fetch('https://api.isddishr.site/notice/me', {
-    headers: {
-      Authorization: `Bearer ${token}`
-    }
-  })
-  if (!res.ok) throw new Error(`알림 불러오기 실패: ${res.status}`)
-  const data = await res.json()
-  notifications.value = data.map(item => ({
-    id: item.noticeId,
-    type: item.noticeType,
-    content: item.noticeContent,
-    createdAt: item.createdAt,
-    unread: !item.isRead,
-    relatedId: item.relatedId
-  }))
-}
 
 async function handleNotificationClick(item) {
-  const token = localStorage.getItem('token')
+  const token = userStore.accessToken
   try {
     const res = await fetch(`https://api.isddishr.site/notice/${item.id}/read`, {
       method: 'PATCH',
@@ -124,7 +116,7 @@ async function handleNotificationClick(item) {
       router.push({ path: '/attendance/myLeave' })
       break
     case '결재':
-      router.push({ path: '/draftdoc/approve' })
+      router.push({ path: '/eapproval/approve' })
       break
     case '인사발령':
       router.push({ path: '/org/appointment' })
@@ -147,7 +139,7 @@ function closeNotification() {
   justify-content: space-between;
   align-items: center;
   padding: 0 16px;
-  background-color: var(--bg-main);
+  background-color: var( --bg-sidebar);
   border-bottom: 1px solid var(--border-color);
   box-sizing: border-box;
   overflow: hidden;
@@ -193,7 +185,7 @@ function closeNotification() {
   align-items: center;
   gap: 8px;
 }
-.profile-img {
+.profile {
   width: 28px;
   height: 28px;
   border-radius: 50%;
@@ -222,7 +214,7 @@ function closeNotification() {
 
 .btn-login-header:hover,
 .btn-logout:hover {
-  background-color: white;
+  background-color: var(--bg-body);
   color: var(--primary);
   box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.15);
   border: 1px solid var(--primary);

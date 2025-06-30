@@ -46,7 +46,7 @@
   const loading = ref(false)
 
   async function handleSubmit(data) {
-    console.log('제출된 데이터:', data)
+    // console.log('제출된 데이터:', data)
     const userStore = useUserStore()
     const token = userStore.accessToken
 
@@ -86,8 +86,8 @@
   }
 
   const columnDefs = [
-    { headerName: '번호', valueGetter: params => params.api.getDisplayedRowCount() - params.node.rowIndex, sortable: false },
-    { headerName: '처리상태', field: 'approvalStatus' },
+    { headerName: '번호', valueGetter: params => params.api.getDisplayedRowCount() - params.node.rowIndex, sortable: false, width: 100 },
+    { headerName: '처리상태', field: 'approvalStatus', width: 150 },
     { headerName: '신청일', field: 'requestTime' },
     { headerName: '정정요청일', field: 'workDate'},
     { headerName: '출근시각', field: 'beforeCheckInTime', valueFormatter: ({ value }) => value ? value.split('.')[0] : '' },
@@ -134,7 +134,7 @@
 
 <style scoped>
   .section {
-    background: #fff;
+    background: var(--bg-box);
     padding: 30px;
     border-radius: 0px 12px 12px 12px;
     box-shadow: 1px 1px 20px 1px rgba(0, 0, 0, 0.05);
@@ -149,8 +149,8 @@
   }
 
   .apply-btn {
-    background-color: #00a8e8;
-    color: white;
+    background-color: var(--primary);
+    color: var(--text-on-primary);
     font-weight: bold;
     border: 1px solid transparent;
     border-radius: 10px;
@@ -162,9 +162,9 @@
   }
 
   .apply-btn:hover {
-    background-color: white;
-    color: #00a8e8;
-    border-color: #00a8e8;
+    background-color: var(--bg-main);
+    color: var(--primary);
+    border-color: var(--primary);
     box-shadow:
     inset 1px 1px 10px rgba(0, 0, 0, 0.25);
   }
@@ -177,7 +177,7 @@
   }
 
   .modal {
-    background: white;
+    background: var(--modal-bg2);
     padding: 30px;
     border-radius: 20px;
     width: 420px;

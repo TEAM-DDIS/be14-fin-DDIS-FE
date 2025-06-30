@@ -1,10 +1,9 @@
-<!-- 조직 및 직무 > 인사발령 -->
+<!-- 조직 및 직무 > 인사발령 이력 -->
 <template>
   <h1 class="page-title">인사발령</h1>
   <p class="desc">인사발령 이력 조회</p>
 
   <div class="content-box">
-    <!-- 필터 & 액션 바 -->
     <div class="filter-box">
       <div class="filters">
         <label for="type-select">발령유형</label>
@@ -38,17 +37,12 @@
         @cell-click="onCellClick"
       />
     </div>
-    <div v-if="isHR" class="actions">
-      <!-- selectedCount가 0이면 등록, 아니면 삭제 -->
-      <button
-        :class="['action-btn', selectedCount > 0 ? 'delete' : 'register']"
-        @click="selectedCount > 0 ? onDelete() : goToRegister()"
-      >
-        <i :class="selectedCount > 0 ? 'fa fa-trash' : 'fa fa-plus'"></i>
-        {{ selectedCount > 0 ? '삭제' : '등록' }}
-      </button>
+    <div class="buttons">
+      <button @click="onDelete()" class="btn-delete">삭제</button>
+      <button @click="goToRegister()" class="btn-register">등록</button>
     </div>
   </div>
+
   <ConfirmModal
     v-if="showConfirm"
     :message="confirmMessage"
@@ -70,7 +64,7 @@ import ConfirmModal from '@/components/org/appointment/ConfirmModal.vue'
 
 ModuleRegistry.registerModules([AllCommunityModule])
 
-const API_BASE        = 'https://api.isddishr.site/appointment-history'
+const userStore = useUserStore()
 const selectedType    = ref('')
 const filterEmployee  = ref('')
 const rowData         = ref([])
@@ -80,37 +74,15 @@ const router          = useRouter()
 const showConfirm = ref(false)
 const confirmMessage = ref('')
 let confirmCallback = null
+const token = useUserStore().accessToken
 
-// 인사팀에서만 등록, 삭제버튼 
-const userStore = useUserStore()
-const token = localStorage.getItem('token')
-const payload = parseJwtPayload(userStore.accessToken || token)
-const isHR = payload?.role?.includes('ROLE_HR') || payload?.auth?.includes('ROLE_HR')
+const toastRef = ref(null)
 
-function parseJwtPayload(token) {
-  try {
-    const base64Url = token.split('.')[1]
-    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
-    const jsonPayload = decodeURIComponent(
-      atob(base64)
-        .split('')
-        .map(c => `%${('00' + c.charCodeAt(0).toString(16)).slice(-2)}`)
-        .join('')
-    )
-    return JSON.parse(jsonPayload)
-  } catch (e) {
-    return null
-  }
+function showToast(msg) {
+  toastRef.value?.show(msg)
 }
 
-
-  const toastRef = ref(null)
-
-  function showToast(msg) {
-    toastRef.value?.show(msg)
-  }
-
-  function openConfirmModal(message, onConfirm) {
+function openConfirmModal(message, onConfirm) {
   confirmMessage.value = message
   confirmCallback = onConfirm
   showConfirm.value = true
@@ -124,7 +96,6 @@ function handleCancel() {
   showConfirm.value = false
 }
 
-// 그리드 옵션 (checkbox 포함)
 const gridOptions = {
   theme: 'legacy',
   rowSelection: 'multiple',
@@ -139,7 +110,7 @@ const columnDefs = [
   { headerName: '사원번호', field: 'employeeId',             flex: 1 },
   { headerName: '발령사유', field: 'appointmentReason',      flex: 1 },
   { headerName: '발령유형', field: 'appointmentType',        flex: 1 },
-  { headerName: '발령일자', field: 'appointmentEffectiveDate', flex: 1 },
+  { headerName: '발령일자', field: 'appointmentEffectiveDate', flex: 1, sort: 'desc' },
   {
     headerName: '상세',
     field: 'detail',
@@ -148,9 +119,15 @@ const columnDefs = [
   }
 ]
 
-async function loadData(endpoint = 'approved') {
+async function loadData() {
+  const url = 'https://api.isddishr.site/appointment-history/approved'
   try {
-    const res = await fetch(`${API_BASE}/${endpoint}`)
+    const res = await fetch(url, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    })
     if (!res.ok) throw new Error(res.statusText)
     rowData.value = await res.json()
   } catch (err) {
@@ -160,7 +137,6 @@ async function loadData(endpoint = 'approved') {
 
 onMounted(loadData)
 
-// 필터링
 const filteredData = computed(() =>
   rowData.value.filter(item =>
     (!selectedType.value || item.appointmentType === selectedType.value) &&
@@ -168,7 +144,6 @@ const filteredData = computed(() =>
   )
 )
 
-// 그리드 준비 시 API 저장 및 selectionChanged 이벤트 등록
 function onGridReady(params) {
   gridApi = params.api
   gridApi.addEventListener('selectionChanged', () => {
@@ -176,7 +151,6 @@ function onGridReady(params) {
   })
 }
 
-// 삭제
 async function onDelete() {
   const selectedRows = gridApi.getSelectedRows()
   const idsToDelete = selectedRows.map(row => row.appointmentHistoryId)
@@ -186,34 +160,31 @@ async function onDelete() {
     return
   }
 
-  // 삭제 확인
   openConfirmModal(`${idsToDelete.length}건을 삭제하시겠습니까?`, async () => {
-  try {
-    for (const id of idsToDelete) {
-      const res = await fetch(`https://api.isddishr.site/appointment/delete/${id}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      })
-      if (!res.ok) throw new Error(`ID ${id} 삭제 실패`)
-    }
+    const token = userStore.accessToken
+    try {
+      for (const id of idsToDelete) {
+        const res = await fetch(`https://api.isddishr.site/appointment/delete/${id}`, {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        })
+        if (!res.ok) throw new Error(`ID ${id} 삭제 실패`)
+      }
 
-    showToast(`${idsToDelete.length}건 삭제 완료`)
-    await loadData()  // 삭제 후 목록 갱신
-  } catch (err) {
-    console.error('삭제 오류:', err)
-    showToast('삭제 중 오류가 발생했습니다.')
-  }
+      showToast(`${idsToDelete.length}건 삭제 완료`)
+      await loadData()
+    } catch (err) {
+      console.error('삭제 오류:', err)
+      showToast('삭제 중 오류가 발생했습니다.')
+    }
   })
 }
 
-// 등록 페이지로 이동
 function goToRegister() {
   router.push('/org/appointment/register')
 }
-
-// 상세 버튼 클릭
 function onCellClick(e) {
   if (e.colDef.field === 'detail') {
     router.push(`/org/appointment/${e.data.appointmentHistoryId}`)
@@ -225,7 +196,7 @@ function onCellClick(e) {
   .page-title {
     margin-left: 20px;
     margin-bottom: 30px;
-    color: #00a8e8;
+    color: var(--primary); 
   }
   .desc {
     display: block;
@@ -234,11 +205,11 @@ function onCellClick(e) {
     font-size: 18px;
   }
   .content-box {
-    background: #fff;
+    background: var(--bg-box);
     border-radius: 12px;
     padding: 20px 32px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-    margin: 24px;
+    margin-left: 20px;
     position: relative;
     padding-bottom: 100px;
   }
@@ -248,7 +219,6 @@ function onCellClick(e) {
     align-items: flex-end;
     gap: 12px;
     margin-bottom: 16px;
-    padding: 16px 24px;
   }
   .filters {
     display: flex;
@@ -256,24 +226,18 @@ function onCellClick(e) {
     align-items: center;
     gap: 20px;
   }
-.actions {
-  position: absolute;
-  bottom: 30px;
-  right: 32px;
-  display: flex;
-  gap: 8px;
-}
   .filters label {
     font-weight: 500;
-    color: #513737;
+    color: var(--text-main);
   }
   .filters select,
   .filters input {
-    border: 1px solid #c8c8c8;
+    border: 1px solid #ddd;
     border-radius: 8px;
     padding: 6px 8px;
     font-size: 14px;
-    color: #000000;
+    color: var(--text-main);
+    background: var(--bg-main);
   }
   .filters input {
     width: 250px;
@@ -282,19 +246,25 @@ function onCellClick(e) {
     width: 160px;
   }
 
-  .filters select:focus,
-  .filters input:focus {
-    outline: none;
-    border: 1px solid black;
+  .grid-wrapper {
+    margin-bottom: 30px;
   }
 
-  .action-btn.register {
+  .buttons {
+  position: absolute;
+  bottom: 50px;
+  right: 32px;
+  display: flex;
+  gap: 15px;
+}
+
+  .btn-register {
   font-size: 14px;
   font-weight: bold;
   cursor: pointer;
   font-family: inherit;
-  background-color: #00a8e8;
-  color: white;
+  background-color: var(--primary);
+  color: var(--text-on-primary);
   border: 1px solid transparent;
   border-radius: 10px;
   padding: 10px 30px;
@@ -304,14 +274,13 @@ function onCellClick(e) {
   box-sizing: border-box;
 }
 
-  .action-btn.register:hover {
-  background-color: white;
-  color: #00a8e8;
-  border-color: #00a8e8;
-  box-shadow:
-  inset 1px 1px 10px rgba(0, 0, 0, 0.25);
+.btn-register:hover {
+  background-color: var(--bg-main);
+  color: var(--primary);
+  border-color: var(--primary);
+  box-shadow: inset 1px 1px 10px rgba(0, 0, 0, 0.25);
 }
-  .action-btn.delete {
+  .btn-delete {
     background-color: #D3D3D3;
     color: #000;
     font-size: 14px;
@@ -325,7 +294,7 @@ function onCellClick(e) {
     transition: background-color 0.2s, box-shadow 0.2s;
     box-sizing: border-box;
   }
-  .action-btn.delete:hover {
+  .btn-delete:hover {
     background-color: #000;
     color: #fff;
   }

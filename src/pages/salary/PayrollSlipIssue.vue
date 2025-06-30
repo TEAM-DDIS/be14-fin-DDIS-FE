@@ -57,7 +57,7 @@
     </div>
 
     <!-- 기간 설정 영역 -->
-    <p class="desc">기간 설정</p>
+    <p class="desc">기간 설정 (지급월 기준)</p>
     <div class="section period">
       <div class="inputs">
         <label><strong>조회기간</strong></label>
@@ -102,7 +102,10 @@
           급여명세서를 확인하려면 왼쪽에서 확인하고자 하는 행을 클릭해주세요.
         </p>
         <div v-if="selectedSlip.yearMonth" class="detail-content">
-          <h3 class="detail-title">{{ selectedSlip.employeeName }}님 {{ selectedSlip.yearMonth.replace('-', '년 ') }}월 급여명세서</h3>
+
+          <h3 class="detail-title">
+             {{ selectedSlip.employeeName }}님 {{ getWorkMonth(selectedSlip.salaryDate) }} 급여명세서
+          </h3>
           <div class="slip-tables">
             <!-- 지급 항목 테이블 -->
             <table class="table">
@@ -241,40 +244,44 @@ const filters = reactive({
 
 const columnDefs = [
   { headerName: '사번', field: 'employeeId' },
-  { headerName: '성명', field: 'employeeName' },
+  { headerName: '성명', field: 'employeeName' , width: 130},
   { headerName: '본부', field: 'headName' },
   { headerName: '부서', field: 'departmentName' },
   { headerName: '팀', field: 'teamName' },
-  { headerName: '직급', field: 'rankName' },
+  { headerName: '직급', field: 'rankName', width: 130 },
   { headerName: '거래은행', field: 'bankName' },
-  { headerName: '계좌번호', field: 'bankAccount' },
-  { headerName: '예금주', field: 'bankDepositor' }
+  { headerName: '계좌번호', field: 'bankAccount' ,flex:1},
+  { headerName: '예금주', field: 'bankDepositor', width: 130 }
 ]
 
 const salaryColumnDefs = [
   { headerName: '사원번호', field: 'employeeId' },
-  { headerName: '성명', field: 'employeeName' },
-  { headerName: '지급일자', field: 'salaryDate' },
+  { headerName: '성명', field: 'employeeName' , width: 100},
+  { headerName: '지급일자', field: 'salaryDate' , width: 130},
+  {
+    headerName: '근무월',
+    valueGetter: p => getWorkMonth(p.data.salaryDate),
+    cellClass: 'right-align', width: 130
+  },
   {
     headerName: '총지급',
     field: 'totalIncome',
     valueFormatter: params => formatCurrency(params.value),
-    cellClass: 'right-align'
+    cellClass: 'right-align', width: 150
   },
   {
     headerName: '총공제',
     field: 'totalDeductions',
     valueFormatter: params => formatCurrency(params.value),
-    cellClass: 'right-align'
+    cellClass: 'right-align', width: 150
   },
   {
     headerName: '실지급',
     field: 'netSalary',
     valueFormatter: params => formatCurrency(params.value),
-    cellClass: 'right-align'
-  }
+    cellClass: 'right-align', width: 150
+  },
 
-  
 ]
 
 const uniqueHeads = computed(() => [...new Set(employees.value.map(e => e.headName).filter(Boolean))])
@@ -340,9 +347,11 @@ async function fetchSalaryHistory() {
       filteredEmployees.value.some(emp => emp.employeeId === item.employeeId)
     )
 
-    salaryHistory.value = filtered.map(s => ({
+    salaryHistory.value = filtered
+    .sort((a, b) => new Date(a.salaryDate) - new Date(b.salaryDate)) // 과거순 정렬
+    .map(s => ({
       ...s,
-      yearMonth: s.salaryDate.slice(0, 7)
+      yearMonth: getWorkMonth(s.salaryDate)
     }))
 
     scrollToSalarySection()
@@ -355,7 +364,7 @@ async function selectSlip(e) {
   const row = e.data
   try {
     const { data: salary } = await axios.get(`https://api.isddishr.site/payroll/salaries/${row.employeeId}`, {
-      params: { month: row.yearMonth },
+      params: { month: row.salaryDate.slice(0, 7) },
       headers: { Authorization: `Bearer ${token}` }
     })
 
@@ -421,6 +430,16 @@ onMounted(async () => {
 function openModal() {
   showModal.value = true
 }
+
+function getWorkMonth(salaryDate) {
+  if (!salaryDate) return ''
+  const date = new Date(salaryDate)
+  date.setMonth(date.getMonth() - 1)
+  const y = date.getFullYear()
+  const m = String(date.getMonth() + 1).padStart(2, '0')
+  return `${y}년 ${m}월`
+}
+
 </script>
 
 
@@ -438,11 +457,13 @@ input[type="month"] {
   height: 20px;
   padding: 6px 8px;
   border: 1px solid #ccc;
+    background-color: var(--bg-main);
+  color: var(--text-main);
 }
 
 /* ag-grid 헤더 색상 커스터마이징 */
 .custom-grid :deep(.ag-header) {
-  background-color: #f8f9fa !important;
+  background-color: var(--grid-head) !important;
 }
 
 /* select 박스 고정 폭 */
@@ -453,13 +474,13 @@ input[type="month"] {
 /* 테이블 상단 제목 셀 스타일 */
 .main-head th,
 .table-head th {
-  background-color: #f8f9fa !important;
+  background-color: var(--grid-head) !important;
   font-weight: bold;
 }
 
 /* 서브 헤더 행 스타일 */
 .sub-head th {
-  background-color: #f8f9fa !important;
+  background-color: var(--grid-head) !important;
   font-weight: bold;
 }
 
@@ -477,7 +498,7 @@ input[type="month"] {
 .page-title {
   margin-left: 20px;
   margin-bottom: 30px;
-  color: #00a8e8;
+  color: var(--primary);
 }
 
 /* 소제목 설명 */
@@ -486,12 +507,13 @@ input[type="month"] {
   margin-left: 20px;
   margin-bottom: 10px;
   font-size: 18px;
+    color: var(--text-main);
 }
 
 /* 박스형 섹션 공통 스타일 */
 .section,
 .section .period {
-  background: #fff;
+  background-color: var(--bg-box);
   padding: 30px;
   margin: 0 20px 24px;
   border-radius: 8px;
@@ -509,6 +531,7 @@ input[type="month"] {
 .search {
   width: 20px;
   padding-bottom: 1px;
+    filter: var(--arrow-filter);
 }
 
 /* 검색 input 박스 스타일 */
@@ -518,6 +541,8 @@ input[type="month"] {
   border: 1px solid #ccc;
   border-radius: 4px;
   height: 18px;
+    background-color: var(--bg-main);
+  color: var(--text-main);
 }
 
 /* 필터 select 영역 배치 */
@@ -532,8 +557,14 @@ input[type="month"] {
   padding: 6px 8px;
   border: 1px solid #ccc;
   border-radius: 4px;
+    background-color: var(--bg-main);
+  color: var(--text-main);
 }
-
+/* AgGrid 헤더 커스터마이징 */
+.custom-theme :deep(.ag-header) {
+  background-color: var(--bg-label-cell);
+  color: var(--text-main);
+}
 /* 기간 섹션 배치 스타일 */
 .period {
   display: flex;
@@ -541,7 +572,7 @@ input[type="month"] {
   align-items: center;
   flex-wrap: wrap;
   gap: 16px;
-  background: #fff;
+  background-color: var(--bg-box);
   box-shadow: 1px 1px 20px 1px rgba(0, 0, 0, 0.05);
 }
 
@@ -550,20 +581,21 @@ input[type="month"] {
   display: flex;
   align-items: center;
   gap: 13px;
+  background-color: var(--bg-box);
 }
 
 /* 조회 버튼 hover 효과 */
 .search-btn:hover {
-  background-color: white;
-  color: #00a8e8;
-  border-color: #00a8e8;
+  background-color: var(--bg-main);
+  color: var(--primary);
+  border-color: var(--primary);
   box-shadow: inset 1px 1px 10px rgba(0, 0, 0, 0.25);
 }
 
 /* 조회 버튼 기본 스타일 */
 .search-btn {
-  background-color: #00a8e8;
-  color: white;
+  background-color: var(--primary);
+  color: var(--text-on-primary);
   font-weight: bold;
   border: 1px solid transparent;
   border-radius: 10px;
@@ -590,7 +622,7 @@ input[type="month"] {
 .history-box,
 .detail-box {
   flex: 1;
-  background: #fff;
+  background-color: var(--bg-box);
   padding: 25px;
   border-radius: 8px;
   box-shadow: 1px 1px 20px 1px rgba(0, 0, 0, 0.05);
@@ -613,7 +645,7 @@ input[type="month"] {
 .table td {
   height: 32px;
   padding: 6px 8px;
-  border: 1px solid #e0e0e0;
+  border: 1px solid var(--ag-row-border-color);
 }
 
 /* 급여 상세 상단 설명 */
@@ -621,10 +653,12 @@ input[type="month"] {
   display: flex;
   justify-content: space-between;
 }
-
+.period input[type="month"]::-webkit-calendar-picker-indicator {
+    filter: var(--icon-filter);
+    }
 /* 상세 박스 헤더 */
 .detail-header {
-  background-color: #f0f0f0;
+  background-color: var(--bg-box);
   border-radius: 12px 12px 0 0;
   padding: 8px 16px;
 }
@@ -633,13 +667,13 @@ input[type="month"] {
 .detail-title {
   text-align: center;
   font-weight: bold;
-  margin: 0 0 12px;
+  margin: 0 0 19px;
 }
 
 /* 강조 텍스트 */
 .highlight {
   font-weight: bold;
-  color: #00a8e8;
+  color: var(--primary);
 }
 
 /* 숫자 등 우측 정렬 */
@@ -662,7 +696,7 @@ input[type="month"] {
 /* 안내 문구 스타일 */
 .detail-intro {
   font-size: 15px;
-  color: #00a8e8;
+  color: var(--primary);
   padding-left: 4px;
   text-align: center;
   padding-top: 200px;

@@ -14,6 +14,16 @@
           <div class="node head" @click="toggle('h'+head.headId)">
             <i :class="expanded['h'+head.headId] ? 'fa fa-chevron-down' : 'fa fa-chevron-right'" />
             {{ head.headName }}
+            <button
+              v-if="!expanded['h' + head.headId]"
+              @click.stop="expandHead(head)"
+              class="sub-btn"
+            >+</button>
+            <button
+              v-else
+              @click.stop="collapseHead(head)"
+              class="sub-btn"
+            >-</button>
           </div>
 
           <ul v-if="expanded['h'+head.headId]" class="org-list">
@@ -21,6 +31,16 @@
               <div class="node dept" @click.stop="toggle('d'+dept.departmentId)">
                 <i :class="expanded['d'+dept.departmentId] ? 'fa fa-chevron-down' : 'fa fa-chevron-right'" />
                 {{ dept.departmentName }}
+                <button
+                  v-if="!expanded['d' + dept.departmentId]"
+                  @click.stop="expandDept(dept)"
+                  class="sub-btn"
+                >+</button>
+                <button
+                  v-else
+                  @click.stop="collapseDept(dept)"
+                  class="sub-btn"
+                >-</button>
               </div>
 
               <ul v-if="expanded['d'+dept.departmentId]" class="team-list">
@@ -30,11 +50,10 @@
                     {{ team.teamName }}
                   </div>
 
-                  <!-- API로 받아온 ranks만 보여주기 -->
                   <ul v-if="props.showRanks && expanded['t' + team.teamId]" class="rank-list">
                     <li v-for="rank in teamRanks[team.teamId] || []" :key="rank.rankCode">
                           <div class="node emp rank-option" @click.stop="onRankClick(rank)">
-                            {{ rank.rankName }}  <!-- 👈 positionName은 안 보이게 -->
+                            {{ rank.rankName }}
                           </div>
                     </li>
                   </ul>
@@ -59,19 +78,16 @@
 <script setup>
 import { ref, reactive, onMounted, computed } from 'vue'
 import axios from 'axios'
+import { useUserStore } from '@/stores/user'
+const token = useUserStore().accessToken
 
+const emit = defineEmits(['dept-selected', 'team-selected', 'rank-selected','job-selected',])
 
-// 상위로 이벤트 발송
-const emit = defineEmits(['dept-selected', 'team-selected', 'rank-selected'])
-
-// 전체 계층 데이터
 const hierarchy = ref([])
 
-// 펼침/접힘 상태
 const expanded = reactive({})
 const teamRanks = reactive({})
 const teamJobs = reactive({})
-
 
 const props = defineProps({
   showRanks: {
@@ -84,12 +100,21 @@ const props = defineProps({
   }
 })
 
-
 onMounted(async () => {
   try {
-    const res = await fetch('https://api.isddishr.site/structure/hierarchy')
-    if (!res.ok) throw new Error(`HTTP ${res.status}`)
-    hierarchy.value = await res.json()
+    const res = await axios.get('https://api.isddishr.site/structure/hierarchy', {
+      headers: {
+        Authorization: `Bearer ${token}`
+      },
+      withCredentials: true  // 필요 시 CORS 대응용
+    })
+
+    // 이사회 상위로 정렬
+    hierarchy.value = res.data.sort((a, b) => {
+      if (a.headId === 4) return -1
+      if (b.headId === 4) return 1
+      return a.headId - b.headId
+    })
   } catch (err) {
     console.error('❌ 조직 계층 로드 실패:', err)
     hierarchy.value = []
@@ -98,11 +123,6 @@ onMounted(async () => {
 
 function toggle(key) {
   expanded[key] = !expanded[key]
-}
-
-function onDepartmentClick(dept) {
-  toggle('d' + dept.departmentId)
-  emit('dept-selected', dept)
 }
 
 function onRankClick(rank) {
@@ -114,40 +134,21 @@ function onRankClick(rank) {
   })
 }
 
-
 function onJobClick(job) {
   emit('job-selected', {
     jobId: job.jobId,
-    jobName: job.jobName ?? '(이름 없음)',   // 이 줄 중요!
+    jobName: job.jobName ?? '(이름 없음)',
     jobCode: job.jobCode
   })
 }
 
-
-const allRanks = computed(() => {
-  const map = new Map()
-  hierarchy.value.forEach(head =>
-    head.departments?.forEach(dept =>
-      dept.teams?.forEach(team =>
-        team.members?.forEach(emp => {
-          const id   = emp.rankCode
-          const name = emp.rankName
-          if (id != null && !map.has(id)) {
-            map.set(id, { rankId: id, rankName: name })
-          }
-        })
-      )
-    )
-  )
-  return Array.from(map.values())
-})
-
 async function fetchTeamJobs(team) {
-  // if (!props.showJobs) return
 
   if (!teamJobs[team.teamId]) {
     try {
-      const res = await axios.get(`https://api.isddishr.site/introduction/team/${team.teamId}/job`)
+      const res = await axios.get(`https://api.isddishr.site/introduction/team/${team.teamId}/job`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    })
       teamJobs[team.teamId] = res.data
     } catch (e) {
       console.error('Job fetch error ▶', e)
@@ -165,15 +166,21 @@ async function fetchTeamRanks(team) {
     try {
       // 1) 이 팀의 job 목록 조회
       const jobs = (await axios.get(
-        `https://api.isddishr.site/introduction/team/${team.teamId}/job`
+        `https://api.isddishr.site/introduction/team/${team.teamId}/job`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        }
       )).data
 
       // 2) 각 jobId로 rank, position 동시 조회
       const ranksList = await Promise.all(
         jobs.map(async (j) => {
           const [ranks, positions] = await Promise.all([
-            axios.get(`https://api.isddishr.site/introduction/job/${j.jobId}/ranks`).then(r => r.data),
-            axios.get(`https://api.isddishr.site/introduction/job/${j.jobId}/positions`).then(r => r.data)
+            axios.get(`https://api.isddishr.site/introduction/job/${j.jobId}/ranks`, {
+              headers: { 'Authorization': `Bearer ${token}` }
+            }).then(r => r.data),
+            axios.get(`https://api.isddishr.site/introduction/job/${j.jobId}/positions`, {
+              headers: { 'Authorization': `Bearer ${token}` }
+            }).then(r => r.data)
           ])
 
          const rankToPosition = {
@@ -195,7 +202,6 @@ async function fetchTeamRanks(team) {
         })
       )
 
-      // 3) 중복 제거 및 병합
       const map = new Map()
       ranksList.flat().forEach(rk => {
         if (rk.rankCode != null && !map.has(rk.rankCode)) {
@@ -210,35 +216,11 @@ async function fetchTeamRanks(team) {
     }
   }
 
-  // 직무 목록은 별도 조건
   if (props.showJobs) {
-    console.log('🧪 showJobs가 true이므로 fetchTeamJobs 호출됨')
     await fetchTeamJobs(team)
   }
 }
 
-
-// 회사 대표 찾기 (positionCode === 'P005')
-function getCompanyRep() {
-  for (const head of hierarchy.value) {
-    if (head.headManager?.positionCode === 'P005') {
-      return head.headManager.employeeName
-    }
-  }
-  return ''
-}
-
-// 부서장 필터링 헬퍼
-function isDeptManager(emp) {
-  return emp.rankName === '부장' && emp.positionName === '부서장'
-}
-
-// 팀원 리스트에서 부서장만 제외
-function filteredTeamMembers(team) {
-  return team.members.filter(emp => !isDeptManager(emp))
-}
-
-// 전체 열기
 function expandAll() {
   hierarchy.value.forEach(head => {
     expanded['h' + head.headId] = true
@@ -251,7 +233,6 @@ function expandAll() {
   })
 }
 
-// 전체 닫기
 function collapseAll() {
   hierarchy.value.forEach(head => {
     expanded['h' + head.headId] = false
@@ -263,12 +244,46 @@ function collapseAll() {
     })
   })
 }
+
+function expandHead(head) {
+  expanded['h' + head.headId] = true
+  head.departments.forEach(dept => {
+    expanded['d' + dept.departmentId] = true
+    dept.teams.forEach(team => {
+      expanded['t' + team.teamId] = true
+    })
+  })
+}
+
+function collapseHead(head) {
+  expanded['h' + head.headId] = false
+  head.departments.forEach(dept => {
+    expanded['d' + dept.departmentId] = false
+    dept.teams.forEach(team => {
+      expanded['t' + team.teamId] = false
+    })
+  })
+}
+
+function expandDept(dept) {
+  expanded['d' + dept.departmentId] = true
+  dept.teams.forEach(team => {
+    expanded['t' + team.teamId] = true
+  })
+}
+
+function collapseDept(dept) {
+  expanded['d' + dept.departmentId] = false
+  dept.teams.forEach(team => {
+    expanded['t' + team.teamId] = false
+  })
+}
 </script>
 
 <style scoped>
 .org-container {
   font-size: 14px;
-  color: #333;
+  color: var(--text-main);
   padding: 0 12px;
   margin-bottom: 20px;
 }
@@ -292,7 +307,7 @@ function collapseAll() {
 .control-btn {
   background-color: #3f3f3f;
   border-radius: 8px;
-  border: 1px solid transparent;
+  border: 1px solid var(--btn-border);
   padding: 6px 10px;
   font-size: 12px;
   font-weight: bold;
@@ -303,10 +318,24 @@ function collapseAll() {
   box-sizing: border-box;
 }
 .control-btn:hover {
-  background-color: white;
-  color: #3f3f3f;
+  background: var(--bg-main);
+  color: var(--modal-text);
   border-color: #3f3f3f;
   box-shadow: inset 1px 1px 10px rgba(0, 0, 0, 0.25);
+}
+
+.sub-btn {
+  margin-left: 8px;
+  font-size: 12px;
+  font-weight: bold;
+  padding: 2px 6px;
+  border: none;
+  border-radius: 4px;
+  background: #ddd;
+  cursor: pointer;
+}
+.sub-btn:hover {
+  background: #aaa;
 }
 
 .org-list,
@@ -318,13 +347,10 @@ function collapseAll() {
 .org-box {
   height: 400px;
   overflow-y: auto;
-
-  /* Firefox */
   scrollbar-width: thin;
   scrollbar-color: rgba(0,0,0,0.2) rgba(0,0,0,0.05);
 }
 
-/* WebKit 기반 스크롤바 전체 너비/트랙/슬라이더 */
 .org-box::-webkit-scrollbar {
   width: 6px;
 }
@@ -341,7 +367,6 @@ function collapseAll() {
   background-color: rgba(0,0,0,0.3);
 }
 
-/* (선택) 모서리 코너 부분도 투명 처리 */
 .org-box::-webkit-scrollbar-corner {
   background: transparent;
 }
@@ -413,8 +438,13 @@ function collapseAll() {
 .node.head:hover,
 .node.dept:hover,
 .node.team:hover {
-  background-color: #f0f0f0;
+  color: #00a8e8;
   border-radius: 4px;
+  cursor: pointer;
+}
+.node.emp.job-option:hover {
+  color: #00a8e8;
+  cursor: pointer;
 }
 
 .dept-children {

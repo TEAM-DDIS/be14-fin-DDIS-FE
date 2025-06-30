@@ -1,5 +1,5 @@
 <template>
-  <div class="modal-overlay" @click.self="$emit('close')">
+  <div class="modal-overlay">
     <div class="modal-content">
       <!-- 헤더 -->
       <div class="modal-header">
@@ -89,11 +89,12 @@ function submitApproval() {
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 1000;
+  z-index: 3000;
 }
 .modal-content {
   width: 480px;
-  background: #fff;
+  background: var(--modal-box-bg);
+  color: var(--text-main, #222);
   border-radius: 12px;
   box-shadow: 0 4px 16px rgba(0,0,0,0.2);
   padding: 24px;
@@ -124,6 +125,7 @@ function submitApproval() {
   font-size: 20px;
   font-weight: bold;
   margin-left: 50px;
+  color: var(--text-main, #222);
 }
 
 hr {
@@ -138,6 +140,7 @@ hr {
   grid-template-columns: 100px 1fr;
   align-items: start;
   margin-bottom: 16px;
+  color: var(--text-main, #222);
 }
 .label-cell {
   font-weight: bold;
@@ -154,12 +157,14 @@ hr {
   width: 100%;
   min-height: 100px;
   padding: 10px;
-  border: 1px solid #ccc;     /* 기본 테두리 두께를 1px 로 설정 */
+  border: 1px solid var(--ag-row-border-color, #ccc);
   border-radius: 6px;
   font-size: 14px;
   resize: none;
   outline: none;              /* 브라우저 기본 focus outline 제거 */
   box-sizing: border-box;
+  background: var(--bg-box, #fff);
+  color: var(--text-main, #222);
 }
 .approval-count {
   position: absolute;
@@ -171,18 +176,12 @@ hr {
 
 .modal-footer {
   display: flex;
-  justify-content: flex-end;
   gap: 12px;
-  margin-top: 16px;
+  align-items: center;
+  justify-content: center; 
+
 }
-.btn-cancel,
-.btn-submit {
-  padding: 8px 24px;
-  font-size: 14px;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-}
+
 .btn-cancel {
   font-size: 14px;
   font-weight: bold;
@@ -191,8 +190,6 @@ hr {
   border: none;
   border-radius: 10px;
   padding: 10px 30px;
-  font-weight: bold;
-  cursor: pointer;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   transition: background-color 0.2s, box-shadow 0.2s;
   box-sizing: border-box;
@@ -200,8 +197,8 @@ hr {
 .btn-submit {
   font-size: 14px;
   font-weight: bold;
-  background-color: #00a8e8;
-  color: white;
+  background-color: var(--primary, );
+  color: var(--text-on-primary);
   border: 1px solid transparent;
   border-radius: 10px;
   padding: 10px 30px;
@@ -215,9 +212,9 @@ hr {
   color: #fff;
 }
 .btn-submit:hover {
-  background-color: white;
-  color: #00a8e8;
-  border-color: #00a8e8;
+  background-color: var(--bg-main, #fff);
+  color: var(--primary);
+  border-color: var(--primary);
   box-shadow:
   inset 1px 1px 10px rgba(0, 0, 0, 0.25);
 }

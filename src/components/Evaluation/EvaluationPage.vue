@@ -2,9 +2,9 @@
   <div class="evaluation-page">
     <main class="main-content">
       <!-- 헤더 -->
-      <div class="header-bar">
-        <h1 class="page-title">평가</h1>
-      </div>
+      <div class="header-bar page-title">
+      <h1>평가</h1>
+    </div>
 
       <div class="content-panels">
         <!-- 1) 평가 대상자 리스트 -->
@@ -18,7 +18,7 @@
                 :class="{ selected: selectedEmployee === p.id }"
                 @click="selectEmployee(p)"
               >
-                <img :src="p.avatar || '/avatars/default.jpg'" alt="avatar" class="avatar" />
+                
                 <div class="info">
                   <strong class="name">{{ p.name }}</strong>
                   <span class="role">{{ p.role }}</span>
@@ -81,29 +81,39 @@
               </div>
             </div>
 
-            <!-- 과거 평가 히스토리 -->
             <div v-else class="goals-list">
+              <!-- 과거 목표가 하나도 없으면 -->
+              <div v-if="pastGoals.length === 0" class="empty">
+                <p class="empty-text">아직 과거 목표가 없습니다.</p>
+              </div>
+              <!-- 과거 목표를 카드로 렌더링 -->
               <div
-                v-for="h in historyRecords"
-                :key="h.yearMonth + '_' + h.performanceDescription"
+                v-else
+                v-for="goal in pastGoals"
+                :key="goal.id"
                 class="goal-card"
-                @click="selectHistory(h)"
+                @click="selectGoal(goal)"
               >
                 <div class="card-top">
-                  <span class="date">{{ h.yearMonth }}</span>
-                  <span class="author">&nbsp;</span>
+                  <span class="date">{{ goal.date }}</span>
+                  <span class="author">{{ goal.owner }}</span>
                 </div>
-                <h4 class="card-title">{{ h.performanceDescription }}</h4>
+                <h4 class="card-title">{{ goal.title }}</h4>
                 <div class="score-info">
-                  <span>목표수치: {{ h.goalValue }}</span>
+                  <span>목표수치: {{ goal.target }}</span>
+                  <span>실적수치: {{ goal.performance }}</span>
                 </div>
                 <div class="card-bottom">
                   <div class="progress-group">
-
+                    <span class="label">달성률</span>
+                    <div class="progress-bar">
+                      <div class="progress-fill" :style="{ width: goal.progress + '%' }"></div>
+                    </div>
+                    <span class="progress-text">{{ goal.progress }}%</span>
                   </div>
                   <div class="pill-group">
-                    <span class="pill weight">실적수치: {{ h.performanceValue }}</span>
-                    <span class="pill target">상사평가 {{ h.reviewScore }}점</span>
+                    <span class="pill weight">가중치 {{ goal.weight }}%</span>
+                    <span class="pill target">목표치 {{ goal.target }}</span>
                   </div>
                 </div>
               </div>
@@ -152,7 +162,31 @@
                     </tr>
                     <tr>
                       <td colspan="2" class="description">
-                        {{ selectedGoal.description }}
+                        {{ selectedGoal.content }}
+                      </td>
+                    </tr>
+                    <tr class="subheader">
+                      <td colspan="2">첨부파일</td>
+                    </tr>
+                    <tr>
+                      <td colspan="2" class="description">
+                        <div v-if="selectedGoal.attachmentKeys && selectedGoal.attachmentKeys.length" class="existing-files">
+                          <ul>
+                            <li v-for="(key, idx) in selectedGoal.attachmentKeys" :key="idx" class="existing-file-item">
+                              <a
+                                :href="presignedUrlMap[key]"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                class="link-preview"
+                              >
+                                {{ selectedGoal.attachmentFileNames[idx] }}
+                              </a>
+                              <span class="file-size-text">
+                                ({{ (selectedGoal.attachmentFileSizes[idx] / 1024 / 1024).toFixed(1) }}MB)
+                              </span>
+                            </li>
+                          </ul>
+                        </div>
                       </td>
                     </tr>
                     <tr>
@@ -197,61 +231,72 @@
 
             <!-- 과거 평가 탭 -->
             <div v-else>
-              <div v-if="!selectedHistory" class="empty">
-                <p class="empty-text">과거 평가를 선택하세요.</p>
-              </div>
-              <div v-else class="detail-info">
-                <table class="detail-table">
-                  <tbody>
-                    <tr>
-                      <th>평가 연월</th>
-                      <td>{{ selectedHistory.yearMonth }}</td>
-                    </tr>
-                    <tr>
-                      <th>목표 제목</th>
-                      <td>{{ selectedHistory.performanceDescription }}</td>
-                    </tr>
-                    <tr>
-                      <th>목표 수치</th>
-                      <td>{{ selectedHistory.goalValue }}</td>
-                    </tr>
-                    <tr>
-                      <th>실적 수치</th>
-                      <td>{{ selectedHistory.performanceValue }}</td>
-                    </tr>
-                    <tr>
-                      <th>자기평가 의견</th>
-                      <td>{{ selectedHistory.selfReviewContent }}</td>
-                    </tr>
-                    <tr>
-                      <th>상사평가 점수</th>
-                      <td>{{ selectedHistory.reviewScore }}점</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
+    <!-- 아직 골을 안 고르면 빈 상태 -->
+    <div v-if="!selectedGoal" class="empty">
+      <p class="empty-text">평가할 목표를 선택하세요.</p>
+    </div>
+    <!-- 골이 선택되면 current 탭과 똑같이 selectedGoal 보여주기 -->
+    <div v-else class="perf-content">
+      <div class="detail-info">
+        <table class="detail-table">
+          <tbody>
+            <tr><th>담당자</th>      <td>{{ selectedGoal.owner }} 대리</td></tr>
+            <tr><th>가중치</th>      <td>{{ selectedGoal.weight }}%</td></tr>
+            <tr><th>등록일</th>      <td>{{ selectedGoal.date }}</td></tr>
+            <tr><th>목표수치</th>    <td>{{ selectedGoal.target }}</td></tr>
+            <tr><th>실적수치</th>    <td>{{ selectedGoal.performance }}</td></tr>
+            <tr><th>달성률</th>      <td>{{ selectedGoal.progress }}%</td></tr>
+            <tr class="subheader"><td colspan="2">목표내용</td></tr>
+            <tr><td colspan="2" class="description">{{ selectedGoal.content }}</td></tr>
+            <tr class="subheader"><td colspan="2">첨부파일</td></tr>
+            <tr>
+              <td colspan="2">
+                <div v-if="selectedGoal.attachmentKeys?.length" class="existing-files">
+                  <ul>
+                    <li v-for="(key,idx) in selectedGoal.attachmentKeys" :key="idx">
+                      <a :href="presignedUrlMap[key]" target="_blank">{{ selectedGoal.attachmentFileNames[idx] }}</a>
+                      <span>({{ (selectedGoal.attachmentFileSizes[idx]/1024/1024).toFixed(1) }}MB)</span>
+                    </li>
+                  </ul>
+                </div>
+              </td>
+            </tr>
+            <tr><th>평가 점수</th><td>{{ selectedGoal.evaluation.score ?? '미작성' }}</td></tr>
+            <tr><th>평가 의견</th><td>{{ selectedGoal.evaluation.comment || '없음' }}</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+     <!-- (필요하다면 과거에도 수정/등록 폼을 여기에 추가) -->
+   </div>
+ </div>
+
           </section>
         </div>
       </div>
     </main>
   </div>
+  <BaseToast ref="toastRef" />
 </template>
 
 <script setup>
 import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { useUserStore } from '@/stores/user'
+import { useRouter } from 'vue-router'
+import BaseToast from '@/components/toast/BaseToast.vue'
 
+const toastRef = ref(null)
 // 인증과 사용자 상태
 const userStore      = useUserStore()
-const accessToken    = computed(() => userStore.accessToken)
+const token    = useUserStore().accessToken
 const currentUser    = computed(() => userStore.user)
 const selectedHistory = ref(null)
+const router = useRouter()
 
 
 function getPayload() {
   try {
-    const raw = accessToken.value.split('.')[1].replace(/-/g,'+').replace(/_/g,'/')
+    const raw = token.split('.')[1].replace(/-/g,'+').replace(/_/g,'/')
     return JSON.parse(atob(raw))
   } catch {
     return {}
@@ -266,14 +311,15 @@ const showCurrent      = ref(true)
 const historyRecords   = ref([])
 const selectedGoal     = ref(null)
 const evalForm         = reactive({ score: '', comment: '' })
+const presignedUrlMap = ref({})
 
 // 직원 목록 매핑
 const people = computed(() =>
   employees.value.map(emp => ({
-    id:     emp.employeeId,
-    name:   emp.employeeName,
-    role:   emp.positionName,
-    dept:   emp.teamName,
+    id: emp.employeeId,
+    name: emp.employeeName,
+    role: emp.positionName,
+    dept: emp.teamName,
     avatar: emp.avatarUrl || ''
   }))
 )
@@ -300,14 +346,20 @@ const filteredGoals = computed(() => {
         score:   perf.reviewerScore ?? null,
         comment: perf.reviewerContent ?? ''
       },
-      performanceObj: perf
+      performanceObj: perf,
+      content: g.goalContent,
+      attachmentKeys: perf.attachmentKeys || [],
+      attachmentFileNames: perf.attachmentFileNames || [],
+      attachmentFileSizes: perf.attachmentFileSizes || []
     }
   })
 })
 const currentYear      = new Date().getFullYear()
+// 변경
 const currentYearGoals = computed(() =>
   filteredGoals.value.filter(g => +g.date.split('-')[0] === currentYear)
 )
+
 const pastGoals        = computed(() =>
   filteredGoals.value.filter(g => +g.date.split('-')[0] < currentYear)
 )
@@ -320,7 +372,9 @@ function switchTab(val) {
   if (!val && selectedEmployee.value) loadHistory()
 }
 
-
+function goBack() {
+  router.back()
+}
 
 // 직원 선택
 function selectEmployee(p) {
@@ -330,12 +384,43 @@ function selectEmployee(p) {
   evalForm.comment       = ''
   if (!showCurrent.value) loadHistory()
 }
+async function fetchPresignedDownloadUrl(key) {
+  const qs = new URLSearchParams({
+    filename: key,
+    contentType: selectedGoal.value.attachmentFileTypes[
+      selectedGoal.value.attachmentKeys.indexOf(key)
+    ]
+  }).toString()
+
+  const res = await fetch(
+    `https://api.isddishr.site/s3/download-url?${qs}`,
+    { headers: { Authorization: `Bearer ${token}` } }
+  )
+  if (!res.ok) throw new Error('프리사인드 URL 생성 실패')
+  return await res.text()
+}
 
 // 목표 선택
-function selectGoal(g) {
-  selectedGoal.value = g
-  evalForm.score     = g.evaluation.score || ''
-  evalForm.comment   = g.evaluation.comment
+async function selectGoal(g) {
+  selectedGoal.value = g;
+  evalForm.score     = g.evaluation.score || '';
+  evalForm.comment   = g.evaluation.comment;
+
+  // presignedUrlMap 초기화
+  presignedUrlMap.value = {};
+
+  // attachmentKeys가 있을 때만 URL 생성
+  if (Array.isArray(g.attachmentKeys) && g.attachmentKeys.length) {
+    for (const key of g.attachmentKeys) {
+      try {
+        const url = await fetchPresignedDownloadUrl(key);
+        presignedUrlMap.value[key] = url;
+      } catch (e) {
+        console.error(`Presign URL fetch failed for ${key}:`, e);
+        presignedUrlMap.value[key] = '';
+      }
+    }
+  }
 }
 
 function selectHistory(h) {
@@ -350,13 +435,29 @@ function selectHistory(h) {
 async function fetchTeam() {
   if (!teamId.value) return
   const res = await fetch(`https://api.isddishr.site/review/${teamId.value}`, {
-    headers: { Authorization: `Bearer ${accessToken.value}` }
+    headers: { Authorization: `Bearer ${token}` }
   })
   if (!res.ok) throw new Error('팀원 불러오기 실패')
-  employees.value = await res.json()
-  if (people.value.length) selectEmployee(people.value[0])
+
+  const rawEmployees = await res.json()
+  // console.log('현재 사용자:', currentUser.value)
+  const myId = String(currentUser.value?.employeeId)
+  employees.value = rawEmployees.filter(emp => String(emp.employeeId) !== myId)
+  // console.log('불러온 팀원:', rawEmployees.map(e => e.employeeId))
+
+
+  // 선택할 사람이 있을 때만 초기 선택
+  if (employees.value.length > 0) {
+    selectEmployee({ id: employees.value[0].employeeId })
+  }
 }
-onMounted(fetchTeam)
+onMounted(async () => {
+  // 유저 정보 로딩 기다리기
+  while (!currentUser.value?.employeeId) {
+    await new Promise(resolve => setTimeout(resolve, 50))
+  }
+  await fetchTeam()
+})
 
 // 과거 평가 이력 API
 async function loadHistory() {
@@ -364,7 +465,7 @@ async function loadHistory() {
   try {
     const res = await fetch(
       `https://api.isddishr.site/review/history/${selectedEmployee.value}`,
-      { headers: { Authorization: `Bearer ${accessToken.value}` }}
+      { headers: { Authorization: `Bearer ${token}` }}
     )
     if (!res.ok) throw new Error(await res.text())
     const raw = await res.json()
@@ -376,16 +477,17 @@ async function loadHistory() {
       selfReviewContent:     r.selfReviewContent,
       reviewScore:           r.reviewScore
     }))
+    console.log('📜 historyRecords', historyRecords.value)
   } catch (e) {
     console.error(e)
-    alert('과거 평가 불러오기 실패')
+    showToast('과거 평가 불러오기 실패')
   }
 }
 
 // 상사평가 저장
 async function submitManagerEval(decision) {
   if (!selectedGoal.value || !evalForm.score) {
-    return alert('목표 선택 및 점수 입력 필요')
+    return showToast('목표 선택 및 점수 입력 필요')
   }
   const perfId = selectedGoal.value.performanceObj.performanceId
   const payload = {
@@ -401,7 +503,7 @@ async function submitManagerEval(decision) {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization:   `Bearer ${accessToken.value}`
+          Authorization:   `Bearer ${token}`
         },
         body: JSON.stringify(payload)
       }
@@ -410,87 +512,108 @@ async function submitManagerEval(decision) {
     const updated = await res.json()
     selectedGoal.value.evaluation.score   = updated.reviewerScore
     selectedGoal.value.evaluation.comment = updated.reviewerContent
-    alert('상사평가 저장 완료')
+    
+     if (decision === '승인') {
+     showToast('평가가 승인되었습니다.')
+   } else {
+     showToast('평가가 반려되었습니다.')
+   }
   } catch (e) {
     console.error(e)
-    alert('상사평가 실패')
+     if (decision === '승인') {
+     showToast('승인 처리 중 오류가 발생했습니다.')
+   } else {
+     showToast('반려 처리 중 오류가 발생했습니다.')
+   }
   }
 }
-onMounted(fetchTeam)
+function showToast(msg) {
+  toastRef.value?.show(msg)
+}
 </script>
 
 <style scoped>
 /* 전체 레이아웃 */
- .page-title {
-    margin-left: 20px;
-    margin-bottom: 30px;
-    color: #00a8e8;
-  }
-  .desc {
-    display: block;
-    /* margin-left: 20px; */
-    margin-bottom: 10px;
-    font-size: 18px;
-  }
-  .block {
-    padding: 20px;
-    display: flex;
-    flex-direction: column;
-  }
-  .header-bar {
-    display: flex;
-    align-items: center;
-    margin: 0 20px 10px;
-  }
-  /* 탭 버튼 스타일 */
+.page-title {
+  /* margin-left: 20px;
+  margin-bottom: 30px; */
+  color: var(--primary);
+}
+.desc {
+  margin-top:9px;
+  display: block;
+  /* margin-left: 20px; */
+  margin-bottom: 10px;
+  font-size: 18px;
+  color: var(--text-main);
+}
+.block {
+  /* padding: 20px; */
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+.header-bar {
+  display: flex;
+  align-items: center;
+  margin-top: -20px;
+}
+.header-bar.page-title {
+display: flex;
+align-items: center;
+gap: 8px;
+padding: 0;
+}
+/* 탭 버튼 스타일 */
 .tab-bar {
   display: flex;
   overflow: hidden;
-  margin-top: 16px;
+  /* margin-top: 3px; */
+  gap: 0;
 }
 
 /* 각 탭 버튼 */
 .tab {
-  font-size: 15px;
-  padding: 6px 14px;
-  background-color: #c8c8c8;
+  font-size: 18px;
+  padding: 10px 20px;
   border: none;
-  border-radius: 10px 10px 0 0;
-  margin-right: -8px;
-  box-shadow: 1px 1px 20px rgba(0, 0, 0, 0.05);
-  transition: all 0.2s ease;
+  border-bottom: none;
+  background-color: #C8C8C8;
   color: white;
   cursor: pointer;
+  border-top-left-radius: 12px;
+  border-top-right-radius: 12px;
+  position: relative;
+  z-index: 1;
+  margin-right: -10px; /* ✅ 가로 겹치기 */
+  transition: all 0.2s ease;
 }
 
- .tab:not(:last-child) {
-  border-right: 1px solid #e0e0e0;
-}
 
 /* 활성 탭 */
 .tab.active {
-  background-color: white;
-  color: black;
-  font-weight: bold;
+    background: var(--bg-box);
+    color: var(--modal-text);
+    z-index: 3;
 }
 
 /* goals-panel border-top 지우면 탭 아래 딱 붙습니다 */
 .goals-panel {
   border-top: none;
 }
-  .btn-my-reviews {
-    margin-left: auto;
-    font-size: 14px;
-    font-weight: bold;
-    background-color: #00a8e8;
-    color: white;
-    border: 1px solid transparent;
-    border-radius: 10px;
-    padding: 10px 30px;
-    cursor: pointer;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-    transition: background-color 0.2s, box-shadow 0.2s;
-    box-sizing: border-box;
+.btn-my-reviews {
+  margin-left: auto;
+  font-size: 14px;
+  font-weight: bold;
+  background-color: #00a8e8;
+  color: white;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  padding: 10px 30px;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: background-color 0.2s, box-shadow 0.2s;
+  box-sizing: border-box;
 }
 .btn-my-reviews:hover {
   background-color: white;
@@ -499,28 +622,52 @@ onMounted(fetchTeam)
   box-shadow:
   inset 1px 1px 10px rgba(0, 0, 0, 0.25);
 }
-  .perf-block {
-    /* padding: -20px; */
-    margin-left: -40px;
-    flex: 1;
-    min-height: 0;
-  }
-  
-  .hide-scrollbar {
-    overflow: auto;
-    scrollbar-width: none;
-  }
+.perf-block {
+  /* padding: -20px; */
+  margin-left: -40px;
+  flex: 1;
+  min-height: 0;
+}
+
+.hide-scrollbar {
+  overflow: auto;
+  scrollbar-width: none;
+}
 
 .evaluation-page {
-  height: 100vh;
+  height: 90vh;
   display: flex;
-  font-family: 'Noto Sans KR', sans-serif;
+  justify-content: center; 
+  /* font-family: 'Noto Sans KR', sans-serif; */
+  /* padding-right: 10px; */
 }
 .main-content {
   flex: 1;
   display: flex;
   flex-direction: column;
-  
+  /* padding-right: 30px; */
+}
+.existing-files ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.existing-files ul li {
+  /* 필요시 개별 li에도 스타일 초기화 */
+  list-style: none;
+}
+.existing-files .link-preview {
+  color: inherit;            /* 부모 텍스트 색상 그대로 */
+  text-decoration: none;     /* 밑줄 제거 */
+  transition: color 0.2s;    /* 부드러운 색 변화 */
+  cursor: pointer;
+}
+
+/* 호버 시 색깔·밑줄 표시 */
+.existing-files .link-preview:hover {
+  color: #00a8e8;            /* 원하시는 강조 색으로 변경 */
+  text-decoration: underline;/* 밑줄 표시 */
 }
 .content-panels {
   display: flex;
@@ -528,53 +675,64 @@ onMounted(fetchTeam)
   overflow: hidden;
   position: relative;
 }
+.back-btn {
+  width: 25px;
+  height: 25px;
+  margin-right: -10px;
+  cursor: pointer;
+}
 .arrows {
   position:absolute;
-  top: 25%;              /* 패널 높이 중간(필요 시 조정) */
-  left: 990px;
+  top: 15%;              /* 패널 높이 중간(필요 시 조정) */
+  left: 88.5%;
   transform: translateY(-50%);
+  filter: var(--arrow-filter);
+  z-index: 5;
 }
 
 /* 1) 평가 대상자 리스트 */
 .people-panel {
   position: relative;
-  width: 400px;
+  width: 450px;
   min-height: 360px;
   flex: 1;
-  background: #fff;
+  background: var(--bg-box);
   border-radius: 12px;
   padding: 16px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  box-shadow: 0px 0px 5px 4px var(--menu-btn-shadow);
   display: flex;
   flex-direction: column;
   overflow-y: auto;
   z-index: 3;
+  margin-right: 10px;
 }
 .people-list {
   list-style: none;
-  padding: 0;
+  padding: 10px;
   margin: 0;
 }
 .people-list li {
+  background: var(--bg-box);
+  box-shadow: 0px 0px 5px 4px var(--menu-btn-shadow);
   display: flex;
   align-items: center;
-  padding: 8px;
-  margin-bottom: 8px;
-  border-radius: 8px;
+  padding: 15px;
+  margin-bottom: 15px;
+  border-radius: 12px;
   cursor: pointer;
   transition: background 0.2s;
 }
-.people-list li.selected
- {
-    box-shadow:
+.people-list li.selected{
+  box-shadow:
     inset 0 4px 8px rgba(0, 0, 0, 0.15),
     0 2px 8px rgba(0, 0, 0, 0.1);
   transform: translateY(0);
-  background-color: #f7f7f7;
+  background-color: var(--ag-primary-hover);
 }
 .people-list li:hover{
-  transform: translateY(-2px);
-  opacity: 1;
+  box-shadow: inset 0px 0px 5px 4px var(--menu-btn-shadow);
+  transition: background-color 0.3s, box-shadow 0.3s;
+  background-color: var(--ag-primary-hover);
 }
 .desc-tabs {
   display: flex;
@@ -585,28 +743,30 @@ onMounted(fetchTeam)
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  margin-right: 8px;
+  margin-right: 13px;
   object-fit: cover;
 }
 .info { flex: 1; }
-.name { font-weight: 600; color: #333; }
-.role { font-size: 0.85rem; color: #666; }
-.dept { font-size: 0.75rem; color: #888; }
+.name { font-weight: 600; margin-right: 5px;}
+.role { font-size: 13px; color: var(--text-main); }
+.dept { font-size: 15px; color: #00A8E8;}
 
 /* 2) 목표 카드 리스트 */
 .goals-panel {
   position: relative;
-  width: 500px;
+  width: 530px;
   min-height: 360px;
   flex: 1;
-  background: #fff;
+  background: var(--bg-box);
   border-radius: 12px;
+  border-top-left-radius: 0;
   padding: 16px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  box-shadow: 1px 1px 20px 1px rgba(0, 0, 0, 0.05);
   display: flex;
   flex-direction: column;
   overflow-y: auto;
   z-index: 3;
+  margin-right: 50px;
 }
 .goals-list {
   flex: 1;
@@ -614,33 +774,40 @@ onMounted(fetchTeam)
   display: flex;
   flex-direction: column;
   gap: 12px;
+  padding: 10px;
 }
 .goal-card {
-  background: #fff;
+  background: var(--bg-box);
   border-radius: 12px;
-  padding: 16px;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  padding: 20px;
+  box-shadow: 0px 0px 5px 4px var(--menu-btn-shadow);
   cursor: pointer;
   transition: transform 0.2s, box-shadow 0.2s;
 }
 .goal-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+  /* transform: translateY(-2px); */
+  box-shadow: inset 0px 0px 5px 4px var(--menu-btn-shadow);
+  transition: background-color 0.3s, box-shadow 0.3s;
+  background-color: var(--ag-primary-hover);
 }
 .goal-card.selected {
-  background: #eef3f8;
+  box-shadow:
+    inset 0 4px 8px rgba(0, 0, 0, 0.15),
+    0 2px 8px rgba(0, 0, 0, 0.1);
+  transform: translateY(0);
+  background-color: var(--ag-primary-hover);
 }
 .card-top {
   display: flex;
   justify-content: space-between;
-  color: #888;
+  /* color: #888; */
   font-size: 0.85rem;
   margin-bottom: 8px;
 }
 .card-title {
   margin: 0 0 12px;
   font-weight: 600;
-  color: #333;
+  /* color: #333; */
 }
 .card-bottom {
   display: flex;
@@ -658,16 +825,25 @@ onMounted(fetchTeam)
 
 /* 과거 평가 카드 스타일 */
 .history-card {
-  background: #fff;
+  background: var(--bg-box);
   border-radius: 12px;
   padding: 16px;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+  box-shadow: 0px 0px 5px 4px var(--menu-btn-shadow);
   cursor: pointer;
   transition: transform 0.2s, box-shadow 0.2s;
 }
 .history-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  /* transform: translateY(-2px); */
+  box-shadow: inset 0px 0px 5px 4px var(--menu-btn-shadow);
+  transition: background-color 0.3s, box-shadow 0.3s;
+  background-color: var(--ag-primary-hover);
+}
+.history-card.selected {
+  box-shadow:
+    inset 0 4px 8px rgba(0, 0, 0, 0.15),
+    0 2px 8px rgba(0, 0, 0, 0.1);
+  transform: translateY(0);
+  background-color: var(--ag-primary-hover);
 }
 .progress-group {
   flex: 1;
@@ -689,7 +865,7 @@ onMounted(fetchTeam)
 }
 .progress-text {
   font-size: 0.85rem;
-  color: #444;
+  /* color: #444; */
   min-width: 32px;
   text-align: right;
 }
@@ -708,13 +884,13 @@ onMounted(fetchTeam)
 
 /* 3) 평가 입력 패널 */
 .perf-panel {
-  width: 450px;
+  width: 500px;
   min-height: 330px;
   flex: 1;
-  background: #F8F9FA;
+  background: var(--calendar-border-color);
   border-radius: 12px;
   padding: 30px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  box-shadow: 0px 0px 5px 4px var(--menu-btn-shadow);
   display: flex;
   flex-direction: column;
   overflow-y: auto;
@@ -726,13 +902,13 @@ onMounted(fetchTeam)
 }
 .detail-header .label {
   font-size: 0.85rem;
-  color: #666;
+  /* color: #666; */
   margin-bottom: 4px;
 }
 .detail-header .title {
   font-size: 1.5rem;
   font-weight: 600;
-  color: #00a8e8;
+  color: var(--primary);
   line-height: 1.2;
 }
 
@@ -740,14 +916,13 @@ onMounted(fetchTeam)
 .detail-subheader {
   font-size: 0.95rem;
   font-weight: 600;
-  color: #333;
   margin: 16px 0 8px;
 }
 
 /* 상세 정보 테이블 */
 .detail-info {
-  background: #fff;
-  border: 1px solid #e0e0e0;
+  background: var(--bg-label-cell);
+  border: 1px solid  var(--border-color);
   border-radius: 8px;
   overflow: hidden;
 }
@@ -758,25 +933,34 @@ onMounted(fetchTeam)
 .detail-table th,
 .detail-table td {
   padding: 10px;
-  text-align: center;
-  border-bottom: 1px solid #e0e0e0;
-  border-right: 1px solid #e0e0e0;
+  text-align: left;
+  border-bottom: 1px solid  var(--border-color);
+  border-right: 1px solid var(--border-color);
   font-size: 0.95rem;
+  background: var(--bg-main);
+  color: var(--text-main);
+}
+.empty-text{
+  color: var(--primary);
+  margin-top: 20px;
+  font-size: 20px;
+  font-weight: bold;
+  text-align: center;
 }
 .detail-table th {
   width: 30%;
-  background: #fafafa;
+  background-color: var(--bg-label-cell);
   font-weight: 600;
-  color: #333;
 }
 .detail-table td {
-  background: #fff;
-  color: #444;
+  background-color: var(--bg-main);
+  color: var(--text-main);
 }
 .detail-table .subheader td {
-  background: #f7f7f7;
+  background-color: var(--bg-label-cell);
   font-weight: 600;
-  
+  text-align: center;
+
 }
 .detail-table .description {
   white-space: pre-wrap;
@@ -804,9 +988,10 @@ onMounted(fetchTeam)
   width: 100%;
   padding: 12px;
   font-size: 1rem;
-  border: 1px solid #ddd;
+  border: 1px solid var(--border-input);
   border-radius: 8px;
-  background: #fff;
+  background-color: var(--bg-main); 
+  color: var(--text-main); 
   box-shadow: 0 1px 4px rgba(0,0,0,0.05);
   box-sizing: border-box;
   resize: none;
@@ -831,8 +1016,8 @@ onMounted(fetchTeam)
 .btn-save {
   font-size: 14px;
   font-weight: bold;
-  background-color: #00a8e8;
-  color: white;
+  background-color: var(--primary);
+  color: var(--text-on-primary);  
   border: 1px solid transparent;
   border-radius: 10px;
   padding: 10px 30px;
@@ -843,9 +1028,9 @@ onMounted(fetchTeam)
 }
 
 .btn-save:hover {
-  background-color: white;
-  color: #00a8e8;
-  border-color: #00a8e8;
+  background-color: var(--bg-main);
+  color: var(--primary);
+  border-color: var(--primary);
   box-shadow:
   inset 1px 1px 10px rgba(0, 0, 0, 0.25);
 }

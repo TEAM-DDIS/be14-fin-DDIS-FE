@@ -67,7 +67,7 @@
   .page-title {
     margin-left: 20px;
     margin-bottom: 30px;
-    color: #00a8e8;
+    color: var(--primary);
   }
 
   .desc {
@@ -77,11 +77,12 @@
   }
 
   .all-leave-page {
-    padding: 20px;
+    /* padding: 20px; */
+     margin: 0 20px 24px;
   }
 
   .date-filter {
-    margin-bottom: 50px;
+    margin-bottom: 30px;
   }
 
   /* 🔷 겹쳐지는 탭 스타일 */
@@ -116,8 +117,8 @@
 
   /* 선택된 탭 위로 */
   .tab-menu button.active {
-    background-color: #fff;
-    color: #000;
+    background: var(--bg-box);
+    color: var(--modal-text);
     z-index: 3;
   }
 </style>

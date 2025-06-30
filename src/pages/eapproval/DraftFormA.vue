@@ -1,9 +1,16 @@
 <!-- 전자결재 > 기안작성 > (일반기안양식) -->
 <template>
   <!-- ◆ 페이지 제목 -->
-  <h1 class="page-title">기안작성</h1>
+  <h1 class="page-title">
+    <img
+        src="@/assets/icons/back_btn.svg"
+        alt="back"
+        class="back-btn"
+        @click="goBack"
+      />
+      기안작성
+    </h1>
   <p class="desc">업무 기안 작성</p>
-
   <!-- ◆ 전체 레이아웃 박스 -->
   <div class="main-box">
     <!-- ◆ 폼 컨테이너 -->
@@ -14,15 +21,15 @@
       <table>
         <tbody>
           <tr>
-            <td>기안부서</td>
+            <th scope="row">기안부서</th>
             <td><input v-model="form.departmentName" type="text" readonly /></td>
-            <td>직급</td>
+            <th scope="row">직급</th>
             <td><input v-model="form.rankName" type="text" readonly /></td>
           </tr>
           <tr>
-            <td>기안자</td>
+            <th scope="row">기안자</th>
             <td><input v-model="form.drafter" type="text" readonly /></td>
-            <td>기안일자</td>
+            <th scope="row">기안일자</th>
             <!-- 화면에는 날짜만 표시 -->
             <td>
               <input
@@ -41,9 +48,9 @@
             </td>
           </tr>
           <tr>
-            <td>문서번호</td>
+            <th scope="row">문서번호</th>
             <td>-</td>
-            <td>보존연한</td>
+            <th scope="row">보존연한</th>
             <td>
               <select v-model.number="form.retentionPeriod">
                 <option :value="1">1년</option>
@@ -54,7 +61,7 @@
           </tr>
           <!-- 🔷 수신자 및 참조자 설정 -->
           <tr>
-            <td>수신자</td>
+            <th scope="row">수신자</th>
             <td class="flex-row">
               <input v-model="form.receiver" type="text" />
               <button class="button icon-button" @click="openReceiverModal">
@@ -69,7 +76,7 @@
                 @close="showReceiverModal = false"
               />
             </td>
-            <td>참조자</td>
+            <th scope="row">참조자</th>
             <td class="flex-row">
               <input v-model="form.reference" type="text" />
               <button class="button icon-button" @click="openReferenceModal">
@@ -139,13 +146,13 @@
       <table class="file-table">
         <tbody>
           <tr>
-            <td class="label-cell"><strong>제&nbsp;&nbsp;&nbsp;목</strong></td>
+          <th scope="row">제목</th>
             <td colspan="2">
               <input type="text" v-model="form.title" class="full-width-input" />
             </td>
           </tr>
           <tr>
-            <td class="label-cell"><strong>첨부파일</strong></td>
+          <th scope="row">첨부파일</th>
             <td colspan="2">
               <!-- 🔷 첨부파일 등록 영역 -->
               <div class="file-input-row">
@@ -183,7 +190,6 @@
             v-model:content="form.body"
             contentType="html"
             theme="snow"
-            :modules="quillModules"
             class="quill-editor-area"
           />
         </div>
@@ -209,423 +215,258 @@
     @close="showSubmitModal = false"
     @submit="confirmSubmit"
   />
+
+<BaseToast ref="toastRef" />
+
 </template>
 
 
-<script>
+<script setup>
 import { QuillEditor } from '@vueup/vue-quill';
-import { ref, reactive, watch, onBeforeMount } from 'vue'
-import debounce from 'lodash-es/debounce'
+import { ref, reactive, onMounted } from 'vue';
 import axios from "axios";
 import SelectionModal from '@/components/eapproval/ApprovalLineModal.vue';
 import SubmitModal from '@/components/eapproval/SubmitModal.vue';
 import DraftSaveModal from '@/components/eapproval/DraftSaveModal.vue';
+import BaseToast from '@/components/toast/BaseToast.vue';
 import { useUserStore } from '@/stores/user';
-const userStore = useUserStore()
+import { useRouter } from 'vue-router'  // 상단에 추가
+
+
+const router = useRouter()              // setup() 안에서 선언
+const userStore = useUserStore();
+const toastRef = ref(null);
+const showSubmitModal = ref(false);
+const showReceiverModal = ref(false);
+const showReferenceModal = ref(false);
+const showApprovalModal = ref(false);
+const showDraftSaveModal = ref(false);
+const uploadedFiles = ref([]);
+const fileInput = ref(null);
+const fileError = ref('');
+const approvalLines = ref([]);
+const receiverList = ref([]);
+const referenceList = ref([]);
+const maxFileSize = 20 * 1024 * 1024;
+
+const allowedTypes = [
+  'application/pdf', 'image/png', 'image/jpeg', 'application/msword',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  'application/x-hwp', 'application/vnd.hancom.hwp', 'application/vnd.hancom.hwpx'
+];
+
+const form = reactive({
+  departmentName: '',
+  drafter: '',
+  rankName: '',
+  draftDate: '',
+  retentionPeriod: '',
+  receiver: '',
+  reference: '',
+  title: '',
+  body: ''
+});
+
+function goBack() {
+  router.back()
+}
+
+function showToast(msg) {
+  toastRef.value?.show(msg);
+}
+
+function updateDraftDate(val) {
+  form.draftDate = val;
+}
+
+async function loadDrafterInfo() {
+  try {
+    const res = await fetch("https://api.isddishr.site/drafter/me", {
+    headers: { Authorization: `Bearer ${userStore.accessToken}`
+      }
+    });
+    console.log("✅ 현재 accessToken:", userStore.accessToken);
+    if (!res.ok) throw new Error("기안자 정보 조회 실패");
+    const data = await res.json();
+    form.departmentName = data.departmentName;
+    form.drafter = data.name;
+    form.rankName = data.rankName;
+    await fetchAutoApprovalLine(data.empId);
+  } catch (e) {
+    console.error(e);
+    alert(e.message);
+  }
+}
+
+async function fetchAutoApprovalLine(empId) {
+  try {
+    const { data } = await axios.get("https://api.isddishr.site/approval-line", {
+      params: { employeeId: empId },
+      headers: { Authorization: `Bearer ${userStore.accessToken}` }
+    });
+    approvalLines.value = data.map((item, index) => ({
+      step: index + 1,
+      name: item.employeeName,
+      employeeId: item.employeeId,
+      rankName: item.rankName || '',
+      role: item.role || '',
+      team: item.teamName || '',
+      status: '대기중',
+      type: item.type,
+      lineTypeLabel: item.lineTypeLabel || (item.lineType === 'ACTURE' ? '실제 결재선' : '양식 결재선'),
+      approvedAt: null,
+      comment: ''
+    }));
+  } catch (e) {
+    console.error("자동 결재선 조회 실패", e);
+  }
+}
+
+function openApprovalModal() { showApprovalModal.value = true; }
+function openReceiverModal() { showReceiverModal.value = true; }
+function openReferenceModal() { showReferenceModal.value = true; }
+
+function onApprovalLineSubmit(lines) {
+  approvalLines.value = lines;
+  showApprovalModal.value = false;
+}
+
+function onReceiverSubmit(list) {
+  receiverList.value = list;
+  form.receiver = list.map(u => u.name || u.employeeName).join(', ');
+  showReceiverModal.value = false;
+}
+
+function onReferenceSubmit(list) {
+  referenceList.value = list;
+  form.reference = list.map(u => u.name || u.employeeName).join(', ');
+  showReferenceModal.value = false;
+}
+
+function handleFileUpload(e) {
+  fileError.value = '';
+  const file = e.target.files[0];
+  if (!file) return;
+  if (file.size > maxFileSize) return fileError.value = '10MB 이하만 가능';
+  if (!allowedTypes.includes(file.type)) return fileError.value = '허용되지 않는 형식';
+  fileInput.value = file;
+}
 
 async function getUploadInfo(file) {
-  const token = localStorage.getItem('token')
-  const qs = new URLSearchParams({ filename: file.name, contentType: file.type }).toString()
+  const token = localStorage.getItem('token');
+  const qs = new URLSearchParams({ filename: file.name, contentType: file.type }).toString();
   const res = await fetch(`https://api.isddishr.site/s3/upload-url?${qs}`, {
-    headers: { Authorization: `Bearer ${token}` }
-  })
-  if (!res.ok) throw new Error('Presign URL 요청 실패')
-  return res.json()
+    headers: { Authorization: `Bearer ${userStore.accessToken}` }
+  });
+  if (!res.ok) throw new Error('Presign URL 요청 실패');
+  return res.json();
 }
+
 async function uploadToS3(uploadUrl, file) {
   const res = await fetch(uploadUrl, {
     method: 'PUT', headers: { 'Content-Type': file.type }, body: file
-  })
-  if (!res.ok) throw new Error('S3 업로드 실패')
+  });
+  if (!res.ok) throw new Error('S3 업로드 실패');
 }
 
-export default {
-  name: "CreateDraftPreview",
-  components: {
-    SelectionModal,
-    QuillEditor,
-    SubmitModal,
-    DraftSaveModal
-  },
-  data() {
-    return {
-      form: {
-        departmentName: "",
-        approvalLine_rankName:"",
-        drafter: "",
-        draftDate: "",
-        retentionPeriod: "",
-        receiver: "",
-        reference: "",
-        title: "",
-        body: "",
-      },
-      approvalLines: [],
-      receiverList: [],
-      referenceList: [],
-      uploadedFiles: [],
-      fileInput: null,
-      fileError: "",
-      maxFileSize: 10 * 1024 * 1024,
-      allowedTypes: [
-        "application/pdf",
-        "application/msword",
-        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-        "image/png",
-        "image/jpeg",
-        "image/jpg",
-      ],
-      showApprovalModal: false,
-      showReceiverModal: false,
-      showReferenceModal: false,
-      showSubmitModal: false,
-      showDraftSaveModal: false
-    };
-  },
-  // created() {
-  //   //  🔷 컴포넌트 생성 시, 자동 저장 메서드를 디바운싱하여 설정 (5초 간격)
-  //   this.autoSave = debounce(this.saveDraftAuto, 5000)
-  // },
-  mounted() {
-    //  🔷  컴포넌트 마운트 시 기안자 정보 불러오고, 날짜 초기화 및 임시저장 데이터 복원
-
-    this.loadDrafterInfo();
-    const now = new Date();
-    const yyyy = now.getFullYear();
-    const mm = String(now.getMonth() + 1).padStart(2, '0');
-    const dd = String(now.getDate()).padStart(2, '0');
-    const hh = String(now.getHours()).padStart(2, '0');
-    const min = String(now.getMinutes()).padStart(2, '0');
-    this.form.draftDate = `${yyyy}-${mm}-${dd}`; // datetime-local 초기값
-       /* ③ 로컬 캐시가 있으면 복원 ─────────────── */
-    // const cached = localStorage.getItem('draft-auto-cache')  // ★ NEW
-    // if (cached) {
-    //   try {
-    //     const {
-    //       form, approvalLines,
-    //       receiverList, referenceList, uploadedFiles
-    //     } = JSON.parse(cached)
-    //     Object.assign(this.form, form)
-    //     this.approvalLines = approvalLines
-    //     this.receiverList  = receiverList
-    //     this.referenceList = referenceList
-    //     this.uploadedFiles = uploadedFiles
-    //     console.log('🟢 임시저장본 복원 완료')              // ★ NEW
-    //   } catch { console.warn('⚠️ 캐시 파싱 실패') }        // ★ NEW
-    // }
-    },
-    formattedDraftDate() {
-    return this.form.draftDate?.slice(0, 10) || '';
-  },
-  //   beforeUnmount() {                                           // ★ NEW
-  // // 🔷 임시 저장 로직: 서버 저장 + 로컬 캐시
-  //   this.saveDraftAuto()
-  // },
-  //   watch: {                                                    // ★ NEW
-  //   form:          { deep:true, handler() { this.autoSave() } },
-  //   approvalLines: { deep:true, handler() { this.autoSave() } },
-  //   receiverList:  { deep:true, handler() { this.autoSave() } },
-  //   referenceList: { deep:true, handler() { this.autoSave() } },
-  //   uploadedFiles: { deep:true, handler() { this.autoSave() } }
-  // },
-  methods: {
-    async saveDraftAuto() {                                   // ★ NEW
-      const payload = {
-        employeeId:   userStore.user.employeeId,
-        form:         { ...this.form },
-        approvalLines:[ ...this.approvalLines ],
-        receiverList: [ ...this.receiverList ],
-        referenceList:[ ...this.referenceList ],
-        uploadedFiles:[ ...this.uploadedFiles ],
-        savedAt:      new Date().toISOString()
-      }
-
-    //   /* /1) 서버에 temp 저장 */
-    //   try {
-    //     await axios.post('https://api.isddishr.site/drafts/temp', payload, {
-    //       headers:{ Authorization:`Bearer ${userStore.getItem('token')}` }
-    //     })
-    //     console.log('💾 [auto] 서버 임시저장 성공')
-    //   } catch(e){
-    //     console.warn('⚠️ [auto] 서버 임시저장 실패:', e.message)
-    //   }
-
-    //   /* 2) 로컬 캐시 */
-    //   localStorage.setItem('draft-auto-cache', JSON.stringify(payload))
-    },
-    // ① 기안자 정보 불러오기 -  서버에서 현재 로그인한 기안자 정보 조회 후 기본 폼 채움
-    async loadDrafterInfo() {
-      try {
-        const res = await fetch("https://api.isddishr.site/drafter/me", {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`
-          }
-        });
-        if (!res.ok) {
-          console.error("\u274C 서버 응답 상태:", res.status);
-          throw new Error("기안자 정보 조회 실패");
-        }
-        const data = await res.json();
-        console.log("\u2705 기안자 정보:", data);
-        this.form.departmentName = data.departmentName;
-        this.form.drafter = data.name;
-        this.form.rankName = data.rankName;
-        await this.fetchAutoApprovalLine(data.empId);
-      } catch (e) {
-        console.error("\u274C loadDrafterInfo 오류:", e);
-        alert(e.message);
-      }
-    },
-    updateDraftDate(val) {
-      this.form.draftDate = val;
-    },
-     // ② 자동 결재선 조회 - 기안자의 사번(empId)로 자동 결재라인 조회하여 approvalLines에 세팅
-     async fetchAutoApprovalLine(empId) {
-
-  console.log("▶ fetchAutoApprovalLine 호출, empId =", empId);
-  try {
-    // response 객체에서 바로 data만 꺼내오기
-    const { data } = await axios.get(
-      "https://api.isddishr.site/approval-line",
-      {
-        params:     { employeeId: empId },
-        headers:    { Authorization: `Bearer ${localStorage.getItem("token")}` }
-      }
-    );
-    // 꺼낸 data를 바로 map
-    this.approvalLines = data.map(item => ({
-      step:          item.step,
-      name:          item.employeeName,
-      employeeId:    item.employeeId,
-      rankName:      item.rankName || "",
-      role:          item.role || "",
-      team:          item.teamName     || "",
-      status:        "대기중",
-      type:          item.type,
-      lineTypeLabel: item.lineTypeLabel
-                  || (item.lineType === "ACTURE"
-                      ? "실제 결재선"
-                      : "양식 결재선"),
-      viewedAt:      null,
-      approvedAt:    null,
-      comment:       ""
-    }));
-    console.log("📋 화면에 출력될 결재선:", this.approvalLines);
-
-  } catch (error) {
-    console.error("❌ 자동 결재선 조회 실패:", error);
+async function addFile() {
+  const file = fileInput.value;
+  if (!file) return;
+  if (uploadedFiles.value.length >= 5) return showToast('최대 5개까지 업로드할 수 있습니다.');
+  if (uploadedFiles.value.some(f => f.name === file.name && f.size === file.size)) {
+    return showToast('이미 추가된 파일입니다.');
   }
-    },
-    // ③ 임시저장 모달 열기/닫기
-    openApprovalModal() { this.showApprovalModal = true; },
-    openReceiverModal() { this.showReceiverModal = true; },
-    openReferenceModal() { this.showReferenceModal = true; },
-    // ④ 사용자 선택 모달 결과 처리
-    onApprovalLineSubmit(lines) {
-      console.log('🟢 수신된 커스텀 결재선:', lines);
-      this.approvalLines = lines;
-      this.showApprovalModal = false;
-    },
-    onReceiverSubmit(list) {
-      this.receiverList = list;
-      this.form.receiver = list.map(u => u.name || u.employeeName).join(', ');
-      this.showReceiverModal = false;
-    },
-    onReferenceSubmit(list) {
-      this.referenceList = list;
-      this.showReferenceModal = false;
-      this.form.reference = list.map(u => u.name || u.employeeName).join(', ');
-    },
-          handleFileUpload(e) {
-      this.fileError = ''
-      const file = e.target.files[0]
-      if (!file) return
-      if (file.size > this.maxFileSize) { this.fileError='10MB 이하만 가능'; return }
-      if (!this.allowedTypes.includes(file.type)) { this.fileError='허용되지 않는 형식'; return }
-      this.fileInput = file
-    },
-    async addFile() {
-      if (!this.fileInput) return;
-      const file = this.fileInput;
-      if (this.uploadedFiles.some(f => f.name === file.name && f.size === file.size)) {
-        this.fileError = '이미 추가됨';
-        return;
-      }
-      try {
-        const { key, url } = await getUploadInfo(file);
-        await uploadToS3(url, file);
-        this.uploadedFiles.push({
-          name: file.name,
-          size: file.size,
-          type: file.type,
-          key,
-          selected: false
-        });
-        console.log('업로드 후 uploadedFiles:', this.uploadedFiles);
-        this.fileInput = null;
-      } catch(e) {
-        console.error(e);
-        this.fileError = '업로드 실패';
-      }
-    },
-    removeSelectedFiles(){ 
-      this.uploadedFiles=this.uploadedFiles.filter(f=>!f.selected) 
-    },
-
-async confirmDraftSave() {
   try {
-    // 1) 디바운스 기다리지 말고 즉시 저장
-    await this.saveDraftAuto()                       // ← 자동저장 메서드 재사용
-
-    // 2) 사용자 안내
-    // alert('임시저장 완료! ‟임시저장함"에서 확인하세요.')
-        alert('기안 양식 화면으로 이동합니다.')
-    this.showDraftSaveModal = false
-  } catch (err) {
-    alert('임시저장 실패: ' + (err.response?.data?.message || err.message))
+    const { key, url } = await getUploadInfo(file);
+    await uploadToS3(url, file);
+    uploadedFiles.value.push({ name: file.name, size: file.size, type: file.type, key, selected: false });
+    fileInput.value = null;
+  } catch (e) {
+    console.error(e);
+    showToast('업로드 실패');
   }
-},
+}
 
-    // ⑥ 최종 상신하기: rankName·role 포함  -  상신 버튼 클릭 시 실행되는 최종 제출 로직
-    //   1. 입력 데이터 정리
-    //   2. 서버에 POST 요청으로 상신 처리
-    //   3. 성공 시 사용자 안내 및 페이지 이동
-    async confirmSubmit() {
-      // 보존연한 미입력 시 경고
-      if (!this.form.retentionPeriod) {
-        alert('보존연한을 선택해주세요.');
-        return;
-      }
-      // 제목 미입력 시 경고
-      if (!this.form.title || this.form.title.trim() === '') {
-        alert('제목을 입력해주세요.');
-        return;
-      }
-      // 본문 미입력 시 경고
-      if (!this.form.body || this.form.body.trim() === '' || this.form.body === '<p><br></p>') {
-        alert('본문 내용을 입력해주세요.');
-        return;
-      }
-      const now = new Date();
-      const attachmentKeys = this.uploadedFiles.map(f => f.key);
-      const originalFileNames = this.uploadedFiles.map(f => f.name);
-      const fileTypes = this.uploadedFiles.map(f => f.type);
-      const fileSizes = this.uploadedFiles.map(f => f.size);
+function removeSelectedFiles() {
+  uploadedFiles.value = uploadedFiles.value.filter(f => !f.selected);
+}
 
-      const submitData = {
-        title: this.form.title,
-        docContent: this.form.body,
-        retentionPeriod: this.form.retentionPeriod,
-        receivers: this.receiverList.map(u => u.employeeId),
-        reference: this.referenceList.map(u => u.employeeId),
-        formId: 1,
-        approvalLines: this.approvalLines.map((line, index) => ({
-          step: index + 1,
-          employeeId: line.employeeId,
-          position: line.position,
-          rankName: line.rankName,
-          type: line.type,
-        })),
-        attachmentKeys,
-        originalFileNames,
-        fileTypes,
-        fileSizes,
-        contentDto: {
-          receiver: this.receiverList.map(u => u.name),
-          reference: this.referenceList.map(u => u.name),
-        }
-      };
+async function confirmSubmit() {
+  if (!form.retentionPeriod) return showToast('보존연한을 선택해주세요.');
+  if (!form.title?.trim()) return showToast('제목을 입력해주세요.');
+  if (!form.body?.trim() || form.body === '<p><br></p>') return showToast('본문 내용을 입력해주세요.');
 
-      console.log("상신 데이터", JSON.stringify(submitData, null, 2));
-      
-      // (b) 서버에 POST 요청
-       try {
-        const res = await axios.post(
-          "https://api.isddishr.site/drafts/creation", submitData, {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`
-          }
-        });
-        const { docId } = res.data;
-
-        // (c) 성공 시 알림 및 이동
-        // alert(`상신 완료! 문서번호: ${docId}`);
-        alert(`기안문이 상신되었습니다.`);
-        this.showSubmitModal = false;
-        this.$router.push({name: 'MyDraftBox'});
-      } catch (error) {
-        console.error("상신 실패", error);
-        alert("상신 실패: " + (error.response?.data?.message || error.message));
-      }
-    },
-
-    // 취소 버튼 동작: 모달 대신 DraftTempListPage로 이동
-    handleCancel() {
-      this.$router.push({ name: 'DraftTempList' });
-    },
-
-    // ⑦ 파일 업로드 처리
-    handleFileUpload(event) {
-      this.fileError = "";
-      const file = event.target.files[0];
-      if (!file) return;
-      if (file.size > this.maxFileSize) {
-        this.fileError = "첨부파일은 10MB 이하만 가능합니다.";
-        return;
-      }
-      if (!this.allowedTypes.includes(file.type)) {
-        this.fileError = "허용되지 않는 파일 형식입니다.";
-        return;
-      }
-      this.fileInput = file;
-    },
-     async addFile() {
-      if (!this.fileInput) return;
-      const file = this.fileInput;
-      // 중복 체크
-      if (this.uploadedFiles.some(f => f.name === file.name && f.size === file.size)) {
-        this.fileError = '이미 추가됨';
-        return;
-      }
-      try {
-        // presign URL + key 가져오기
-        const { key, url } = await getUploadInfo(file);
-        // S3에 업로드
-        await uploadToS3(url, file);
-      this.uploadedFiles.push({
-        name: file.name,
-        size: file.size,
-        type: file.type,
-         key,             // ← 나중에 백엔드로 보낼 key
-        selected: false
-      });
-        this.fileInput = null;
-      } catch(e) {
-        console.error(e);
-        this.fileError = '업로드 실패';
-      }
-    } 
-      },
-    removeSelectedFiles() {
-      this.uploadedFiles = this.uploadedFiles.filter(file => !file.selected);
-    },
+  const submitData = {
+    title: form.title,
+    docContent: form.body,
+    retentionPeriod: form.retentionPeriod,
+    receivers: receiverList.value.map(u => u.employeeId),
+    reference: referenceList.value.map(u => u.employeeId),
+    formId: 1,
+    approvalLines: approvalLines.value.map((line, index) => ({
+      step: index + 1,
+      employeeId: line.employeeId,
+      position: line.position,
+      rankName: line.rankName,
+      type: line.type
+    })),
+    attachmentKeys: uploadedFiles.value.map(f => f.key),
+    originalFileNames: uploadedFiles.value.map(f => f.name),
+    fileTypes: uploadedFiles.value.map(f => f.type),
+    fileSizes: uploadedFiles.value.map(f => f.size),
+    contentDto: {
+      receiver: receiverList.value.map(u => u.name),
+      reference: referenceList.value.map(u => u.name)
+    }
   };
 
-</script>
+  try {
+    const res = await axios.post("https://api.isddishr.site/drafts/creation", submitData, {
+      headers: { Authorization: `Bearer ${userStore.accessToken}` }
+    });
+    showToast('기안문이 상신되었습니다.');
+    showSubmitModal.value = false;
 
+    setTimeout(() => {
+      router.push({ name: 'MyDraftBox' });
+    }, 1000); // 1초 후 이동
+
+} catch (e) {
+    console.error("상신 실패", e);
+    showToast("상신 실패: " + (e.response?.data?.message || e.message));
+  }
+}
+
+function handleCancel() {
+  window.history.back();
+}
+
+onMounted(() => {
+  loadDrafterInfo();
+  const now = new Date();
+  form.draftDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+});
+</script>
 
 <style scoped>
 /* ✅ 페이지 상단 제목 */
 .page-title {
   margin-left: 20px;
   margin-bottom: 30px;
-  color: #00a8e8;
+  color: var(--primary);
+}
+
+.back-btn {
+  width: 24px;
+  height: 24px;
+  margin-right: -10px;
+  cursor: pointer;
 }
 
 .desc {
     display: block;
-    margin-left: 20px;
     margin-bottom: 10px;
+    margin-left: 20px;
     font-size: 18px;
   }
 
@@ -640,6 +481,20 @@ body, html {
   padding: 0;
 }
 
+/* 🔷 헤더(th)는 회색 배경 */
+table thead th {
+  background-color: var(--grid-head) !important;
+  font-weight: bold;
+  color: var(--text-main);
+}
+
+/* 🔷 본문(td)는 흰 배경 */
+table tbody td {
+  background-color: var(--bg-box) !important;
+  font-weight: normal;
+  color: var(--text-main);
+}
+
 /* ✅전체 화면 스크롤 영역 (사용하지 않음) */
 .full-scroll {
   height: 100vh;
@@ -649,30 +504,45 @@ body, html {
 
 /* ✅ 메인 박스: 전체 레이아웃 래퍼 */
 .main-box {
-  background: #ffffff;
+  background-color: var(--bg-box);
   border-radius: 12px;
   padding: 20px 32px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  box-shadow: 1px 1px 20px 1px rgba(0,0,0,0.05);
   margin: 24px;
-  max-width: 100%;
+  width: 100%;
+  max-width: 1475px;
   display: flex;
   flex-direction: column;
   min-height: fit-content;
+  overflow: visible;
+  color: var(--text-main);
 }
 
 /* ✅ 내부 컨텐츠 컨테이너 */
 .container {
-  font-family: Arial, sans-serif;
   min-width: 850px;
-  max-width: 1600px;
-  max-height: 1500px;
+  max-width: 1200px;
   margin: 20px auto;
+  table-layout: fixed;
+}
+
+.container th[scope="row"] {
+  background-color: var(--grid-head);
+  font-weight: 600;
+  text-align: left;
+  padding: 10px;
+  width: 120px;
+  white-space: nowrap;
+  color: var(--text-main);
 }
 
 /* ✅ 에디터 전체 영역 정렬 */
 .editor-wrapper {
-  display: flex;
-  flex-direction: column;
+  background: #f8f9fa;
+  border: 1px solid #e3e6ea;
+  padding: 0;
+  margin-top: 12px;
+  min-height: 400px;
 }
 
 /* ✅ 에디터 상단 툴바 정렬 (라벨 + 툴바) */
@@ -683,7 +553,6 @@ body, html {
   margin: 0;
   border: none;
   gap: 0;
-
 }
 
 /* ✅ 에디터 라벨 (본문) */
@@ -691,47 +560,44 @@ body, html {
   font-size: 14px;
   font-weight: bold;
   white-space: nowrap;
+  background-color: var(--bg-box);
+  border: 1px solid #ccc;
+  color: var(--text-main);
 }
-
 /* ✅ 툴바 영역 (커스텀 툴바 오른쪽 정렬) */
 #custom-toolbar {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+  
 }
-
  /* ✅ Quill 에디터 입력창 스타일 */
 ::v-deep(.quill-editor-area .ql-container.ql-snow) {
   min-height: 300px;
   border: 1px solid #ccc;
   border-radius: 8px;
   padding: 8px;
-  background: #0070e0;
+  background: #fff;
   font-size: 14px;
   line-height: 1.6;
   text-align: left;
 } 
-
 /* Quill 에디터 외곽 회색 선 제거 */
 ::v-deep(.quill-editor-area .ql-container.ql-snow) {
   border-bottom: none !important;
   margin-bottom: 0 !important;
   padding-bottom: 0 !important;
 }
-
-
 /* 에디터 내부 여백 제거 */
 ::v-deep(.quill-editor-area .ql-editor) {
   margin-bottom: 0 !important;
   padding-bottom: 0 !important;
 }
-
 /* ✅ Quill 테이블 스타일 커스터마이징 */
 ::v-deep(.quill-editor-area .ql-editor table) {
   width: 100%;
   border-collapse: collapse;
 }
-
 ::v-deep(.quill-editor-area .ql-editor table td),
 ::v-deep(.quill-editor-area .ql-editor table th) {
   border: 1px solid #ccc;
@@ -739,7 +605,6 @@ body, html {
   text-align: center;
   background-color: #fff;
 }
-
 ::v-deep(.quill-editor-area .ql-editor table th) {
   background-color: #f0f0f0;
   font-weight: bold;
@@ -801,8 +666,8 @@ body, html {
 .approval-button {
   font-size: 14px;
   font-weight: bold;
-  background-color: #00a8e8;
-  color: white;
+  background-color: var(--primary);
+  color: var(--text-on-primary, #fff);
   border: 1px solid transparent;
   border-radius: 10px;
   padding: 10px 15px;
@@ -815,9 +680,9 @@ body, html {
 }
 
 .approval-button:hover {
-  background-color: white;
-  color: #00a8e8;
-  border-color: #00a8e8;
+  background-color: var(--bg-main);
+  color: var(--primary);
+  border-color: var(--primary);
   box-shadow:
   inset 1px 1px 10px rgba(0, 0, 0, 0.25);
 }
@@ -841,24 +706,14 @@ th {
 }
 
 table {
-  width: 100%;
+  table-layout: fixed;
   border-collapse: collapse;
-  margin-bottom: 24px;
+  margin-bottom: 16px;
 }
 
-th,
-td {
-  border: 1px solid #ccc;
-  padding: 8px;
-  text-align: center;
-
-  font-size: 14px;
-  font-weight: bold;
-}
 
 table td:nth-child(odd) {
   background-color: #f8f9fa;
-  border-radius: 8px;
 }
 
 table td:nth-child(even) {
@@ -885,20 +740,22 @@ textarea {
   width: 100%;
   padding: 6px;
   box-sizing: border-box;
-  border: 1px solid #ccc;
   border-radius: 8px;
   transition: border 0.2s ease;
   height: 36px; /* ✅ 추가된 높이 조정 */
   font-size: 14px; /* ✅ 추가된 글자 크기 조정 */
+  font-family : 'inherit';
   line-height: 1.5; /* ✅ 라인 정렬 */
+  background: var(--bg-box);
+  color: var(--text-main);
 }
 
-input:focus,
+/* input:focus,
 select:focus,
 textarea:focus {
   outline: none;
-  border: 1px solid #000;
-}
+  border: 1px solid #e0e0e0;
+} */
 
 textarea {
   height: 200px;
@@ -908,8 +765,8 @@ textarea {
   font-size: 14px;
   white-space: nowrap;
   font-weight: bold;
-  background-color: #00a8e8;
-  color: white;
+  background-color: var(--primary);
+  color: var(--text-on-primary, #fff);
   border: 1px solid transparent;
   border-radius: 10px;
   padding: 10px 30px;
@@ -935,9 +792,9 @@ textarea {
 }
 
 .button:hover {
-  background-color: white;
-  color: #00a8e8;
-  border-color: #00a8e8;
+  background-color: var(--bg-main);
+  color: var(--primary);
+  border-color: var(--primary);
   box-shadow: inset 1px 1px 10px rgba(0, 0, 0, 0.25);
 }
 
@@ -947,7 +804,7 @@ textarea {
 }
 
 .icon-button {
-  background-color: #00a8e8;
+  background-color: var(--primary);
   padding: 6px 10px;
   border-radius: 4px;
   cursor: pointer;
@@ -964,7 +821,7 @@ textarea {
 }
 
 .icon-button:hover {
-  background-color: #ffffff;
+  background-color: var(--bg-main);
 }
 
 .icon-button:hover .icon-img {
@@ -986,26 +843,25 @@ textarea {
   align-items: center;
   gap: 6px;
 }
-
+.file-info-text li {
+  margin-bottom: 2px;
+}
 .file-info-text {
-  color: #555; /* 어두운 회색 */
+  color: var(--modal-text);/* 어두운 회색 */
   font-size: 14px;
   line-height: 1.6;
   padding-left: 20px;
   margin-bottom: 30px;
 }
 
-.file-info-text li {
-  margin-bottom: 2px;
-
-}
-
 .button-group {
   display: flex;
-  justify-content: flex-end; /* 🔧 오른쪽 정렬 */
+  justify-content: center;
   gap: 12px;
-  margin-top: 24px;
-  margin-bottom: 70px;
+  margin-bottom: 40px;
+  margin-top: 30px;
+  margin-left: auto;
+  margin-right: 100px;
 }
 
 .approval-header {
@@ -1027,8 +883,8 @@ textarea {
 
 /* 에디터 전체 박스 */
 .editor-wrapper {
-  border: 1px solid #ccc;
-  background: #ffffff;
+  border: 1px solid var(--ag-row-border-color);
+  background: var(--bg-box);
   padding: 0;
   margin-top: 12px;
   min-height: 400px;
@@ -1038,26 +894,30 @@ textarea {
 ::v-deep(.quill-editor-area .ql-container.ql-snow) {
   border: none;
   min-height: 350px;
-  background: #ffffff;
+  background: var(--bg-box);
   font-size: 15px;
   line-height: 1.7;
   padding: 0 8px 8px 8px;
+  font-family: inherit;
+  color: var(--text-main);
 }
 
 /* 에디터 내부 텍스트 여백 */
 ::v-deep(.quill-editor-area .ql-editor) {
   padding: 12px 8px;
   min-height: 320px;
-  font-family: 'Arial', sans-serif;
+  font-family: inherit;
   font-size: 15px;
   line-height: 1.7;
+  color: var(--text-main);
+  background: var(--bg-box);
 }
 
 .editor-label {
   font-size: 15px;               /* 글자 크기 */
   font-weight: bold;             /* 글자 굵게 */
   white-space: nowrap;           /* 줄바꿈 없이 한 줄로 표시 */
-  background-color: #f8f9fa;     /* 파란 배경 색 */
+  background-color: var(--bg-box);     /* 파란 배경 색 */
   text-align: center;            /* 텍스트 가운데 정렬 */
   display: flex;                 /* Flexbox 사용 */
   align-items: center;           /* 수직 가운데 정렬 */
@@ -1080,36 +940,45 @@ textarea {
   height: 55px; /* 고정 높이 설정 */
   vertical-align: middle; /* 내용 수직 가운데 정렬 */
   padding: 8px; /* 기존 패딩 유지 */
-}
+  border-radius: 0;              /* 둥근 모서리 제거 */
 
+}
 .info-table .flex-row {
   height: 100%;
   display: flex;
   align-items: center; /* 내부 요소 수직 가운데 정렬 */
+  border-radius: 0;              /* 둥근 모서리 제거 */
 }
 
 .info-table input[type="text"],
 .info-table select {
   height: 38px; /* input과 select의 높이를 td 높이에 맞게 조정 */
   box-sizing: border-box;
+  border-radius: 0;              /* 둥근 모서리 제거 */
+  font-family: inherit;
 }
 
 /* 기존 테이블 스타일 */
 th {
   font-weight: 600;
-  background: #f8f9fa;
-  border: 1px solid #e3e6ea;
+  background: var(--grid-head);
+  border: 1px solid var(--ag-row-border-color);
   padding: 8px;
   text-align: left;
+  color: var(--text-main);
 }
 
 td {
   font-weight: normal;
-  border: 1px solid #e3e6ea;
+  border: 1px solid var(--ag-row-border-color);
   padding: 8px;
   text-align: left;
   white-space: normal;    /* ✅ 줄바꿈 허용 */
   word-break: break-word; /* ✅ 단어 중간이라도 줄바꿈 */
+  color: var(--text-main);
+  background: var(--bg-box);
+  border-radius: 0;              /* 둥근 모서리 제거 */
+
 }
 
 /* 테이블 공통 */
@@ -1148,4 +1017,198 @@ table {
   border-bottom: none; /* 툴바 하단 테두리는 컨테이너와 겹치지 않도록 제거 */
 }
 
+body[data-theme='dark'] ::v-deep(td),
+body[data-theme='dark'] ::v-deep(th) {
+  border-radius: 0 !important;
+}
+
+/* ===================== 공통 테이블 스타일 ===================== */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 16px;
+  table-layout: fixed;
+}
+th, td {
+  border: 1px solid var(--ag-row-border-color, #e3e6ea);
+  padding: 8px;
+  font-size: 14px;
+  text-align: left;
+  word-break: break-word;
+}
+th {
+  font-weight: 600;
+  background: var(--grid-head, #f8f9fa);
+  color: var(--text-main, #222);
+}
+td {
+  font-weight: normal;
+  color: var(--text-main, #222);
+  background: var(--bg-box, #fff);
+  white-space: normal;
+}
+.container th[scope="row"] {
+  width: 120px;
+  white-space: nowrap;
+  padding: 10px;
+}
+
+body[data-theme='dark'] ::v-deep(td),
+body[data-theme='dark'] ::v-deep(th) {
+  border-radius: 0 !important;
+}
+
+/* ===================== 버튼 스타일 ===================== */
+.button, .approval-button {
+  font-size: 14px;
+  font-weight: bold;
+  white-space: nowrap;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: background-color 0.2s, box-shadow 0.2s, color 0.2s, border-color 0.2s;
+  cursor: pointer;
+  padding: 10px 30px;
+  background-color: var(--primary);
+  color: var(--text-on-primary, #fff);
+}
+.button.gray {
+  background-color: #D3D3D3;
+  color: #000;
+  border: none;
+}
+.button:hover, .approval-button:hover {
+  background-color: var(--bg-main, #fff);
+  color: var(--primary);
+  border-color: var(--primary);
+  box-shadow: inset 1px 1px 10px rgba(0, 0, 0, 0.25);
+}
+.button.gray:hover {
+  background-color: #000;
+  color: #fff;
+}
+
+.icon-button {
+  background-color: var(--primary);
+  padding: 6px 10px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.3s ease;
+}
+.icon-button:hover {
+  background-color: var(--bg-main, #fff);
+}
+.icon-button .icon-img {
+  width: 30px;
+  height: 15px;
+  transition: filter 0.3s ease;
+}
+.icon-button:hover .icon-img {
+  filter: invert(39%) sepia(99%) saturate(746%) hue-rotate(165deg) brightness(91%) contrast(101%);
+}
+
+/* ===================== 입력란 스타일 ===================== */
+input[type="text"],
+input[type="date"],
+input[type="file"],
+select,
+textarea {
+  width: 100%;
+  padding: 6px;
+  box-sizing: border-box;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  height: 36px;
+  font-size: 14px;
+  line-height: 1.5;
+  background: var(--bg-box, #fff);
+  color: var(--text-main, #222);
+  transition: border 0.2s ease;
+}
+
+
+/* ===================== 에디터/본문 ===================== */
+.editor-wrapper {
+  background: #f8f9fa;
+  border: 1px solid #e3e6ea;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  margin-top: 12px;
+  min-height: 400px;
+}
+body[data-theme='dark'] ::v-deep(.editor-wrapper) {
+  border: 2px solid #fff !important;
+}
+
+::v-deep(.quill-editor-area .ql-container.ql-snow) {
+  min-height: 300px;
+  border: none;
+  border-radius: 0;
+  padding: 8px;
+  background: var(--bg-box, #fff);
+  font-size: 14px;
+  line-height: 1.6;
+  text-align: left;
+  color: var(--text-main, #222);
+}
+::v-deep(.quill-editor-area .ql-editor) {
+  margin-bottom: 0 !important;
+  padding-bottom: 0 !important;
+  padding: 12px 8px;
+  min-height: 320px;
+  font-family: 'Arial', sans-serif;
+  font-size: 15px;
+  line-height: 1.7;
+  color: var(--text-main, #222);
+  background: var(--bg-box, #fff);
+}
+
+body[data-theme='dark'] ::v-deep(.quill-editor-area .ql-toolbar.ql-snow button),
+body[data-theme='dark'] ::v-deep(.quill-editor-area .ql-toolbar.ql-snow .ql-picker-label),
+body[data-theme='dark'] ::v-deep(.quill-editor-area .ql-toolbar.ql-snow .ql-picker-item),
+body[data-theme='dark'] ::v-deep(.quill-editor-area .ql-toolbar.ql-snow .ql-stroke),
+body[data-theme='dark'] ::v-deep(.quill-editor-area .ql-toolbar.ql-snow .ql-fill),
+body[data-theme='dark'] ::v-deep(.quill-editor-area .ql-toolbar.ql-snow .ql-picker),
+body[data-theme='dark'] ::v-deep(.quill-editor-area .ql-toolbar.ql-snow .ql-picker-options) {
+  color: #fff !important;
+  stroke: #fff !important;
+  fill: #fff !important;
+  border-color: #fff !important;
+}
+
+/* ===================== 기타/섹션 구분 ===================== */
+.section-header {
+  margin-top: 50px;
+}
+.bold-divider {
+  height: 2px;
+  background-color: #dddddd;
+  border: none;
+  margin: 16px 0;
+}
+.section-divider {
+  width: 100%;
+  margin: 12px 0 24px 0;
+  box-sizing: border-box;
+  border: none;
+  border-top: 2px solid #ccc;
+}
+
+/* ... 나머지 스타일(레이아웃, 파일, flex 등)은 기존대로 유지 ... */
+/* 에디터 툴바/본문 배경 반전 */
+::v-deep(.quill-editor-area .ql-toolbar.ql-snow) {
+  background: #f8f9fa;
+}
+::v-deep(.quill-editor-area .ql-container.ql-snow) {
+  background: #fff;
+}
+body[data-theme='dark'] ::v-deep(.quill-editor-area .ql-toolbar.ql-snow) {
+  background: var(--bg-main);
+}
+body[data-theme='dark'] ::v-deep(.quill-editor-area .ql-container.ql-snow) {
+  background: var(--bg-box);
+}
 </style>

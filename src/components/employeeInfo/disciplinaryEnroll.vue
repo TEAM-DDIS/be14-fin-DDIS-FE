@@ -160,7 +160,6 @@ function onFileChange(e) {
 // 4) 사원 자동 완성 & 번호 매핑
 // ————————————————————————————————————————————————————————————————
 const employeeOptions = ref([])
-
 const form = reactive({
   employeeName: '',
   employeeNumber: '',
@@ -177,7 +176,7 @@ watch(() => form.employeeName, async name => {
   try {
     const { data } = await axios.get(
       '/employees/search',
-      { params: { name } }
+      { params: { name }, headers: authHeaders() }
     )
     employeeOptions.value = data
     const match = data.find(e => e.employeeName === name)
@@ -206,8 +205,8 @@ function authHeaders() {
 // ————————————————————————————————————————————————————————————————
 async function onSave() {
   // 1) 토큰 로그 (디버깅용)
-  console.log('▶ accessToken =', userStore.accessToken)
-  console.log('▶ auth header =', `Bearer ${userStore.accessToken}`)
+  // console.log('▶ accessToken =', userStore.accessToken)
+  // console.log('▶ auth header =', `Bearer ${userStore.accessToken}`)
 
   // 2) 필수 입력 체크
   if (
@@ -273,12 +272,13 @@ function onCancel() {
 .page-title {
   margin-left: 20px;
   margin-bottom: 30px;
-  color: #00a8e8;
+  color: var(--primary);
 }
 .desc {
   display: block;
   margin-left: 20px;
   margin-bottom: 10px;
+  font-size: 18px;
 }
 
 .back-btn {
@@ -289,14 +289,13 @@ function onCancel() {
 
 /* 카드 영역 */
 .card {
-  background: #fff;
+  background: var(--bg-box);
   border-radius: 12px;
   box-shadow: 1px 1px 20px 1px rgba(0, 0, 0, 0.05);
-  width: 100%;
-  margin: 20px 0 0 10px;
+  width: 98%;
+  margin: 0 20px 30px 20px;
   padding: 20px 40px 32px 40px;
   box-sizing: border-box;
-  margin-bottom: 30px;
   min-height: 700px;
 }
 
@@ -305,14 +304,16 @@ function onCancel() {
   display: flex;
   gap: 20px;
   height: 100%;
+  padding: 20px 12px;
+  margin-top: 30px;
 }
 
 /* 왼쪽 업로드 영역 */
 .upload-area {
   flex: 0.7;
-  background-color: #f5f6f7;
-  border-radius: 8px;
-  height: 600px;
+  background-color: var(--modal-box-bg);
+  border-radius: 12px;
+  height: 400px;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -321,7 +322,7 @@ function onCancel() {
   margin-left: 20px;
 }
 .placeholder-text {
-  color: #999;
+  color: var(--text-sub);
   font-size: 1rem;
 }
 .preview-img {
@@ -345,24 +346,33 @@ function onCancel() {
 }
 .info-table th,
 .info-table td {
-  border: 1px solid #d1d5db;
+  border: 1px solid #ddd;
   padding: 20px 12px;
   font-size: 0.95rem;
 }
 .info-table th {
-  background-color: #fafafa;
+  background-color: var(--bg-label-cell);
   text-align: left;
   width: 120px;
-  color: #374151;
+  color: var(--text-main);
 }
 .info-table td input[type='text'],
 .info-table td input[type='date'] {
   width: 100%;
-  border: 1px solid #ccc;
-  border-radius: 4px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
   padding: 10px 8px;
   font-size: 0.9rem;
+  font-family: 'inherit';
   box-sizing: border-box;
+  background-color: var(--modal-box-bg);
+  color: var(--text-main);
+}
+.info-table td input[type='text']::placeholder {
+  color: var(--text-main);
+}
+input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: var(--icon-filter, brightness(0))
 }
 .info-table td input::placeholder {
   color: #bbb;
@@ -374,6 +384,7 @@ function onCancel() {
   justify-content: flex-end;
   gap: 12px;
   margin-top: 30px;
+  margin-right: 18px;
 }
 
 .btn-cancel {
@@ -393,8 +404,8 @@ function onCancel() {
   color: #fff;
 }
 .btn-save {
-  background-color: #00a8e8;
-  color: white;
+  background-color: var(--primary);
+  color: var(--text-on-primary);
   font-weight: bold;
   border: 1px solid transparent;
   border-radius: 10px;
@@ -405,9 +416,9 @@ function onCancel() {
   box-sizing: border-box;
 }
 .btn-save:hover {
-  background-color: white;
-  color: #00a8e8;
-  border-color: #00a8e8;
+  background-color: var(--bg-main);
+  color: var(--primary);
+  border-color: var(--primary);
   box-shadow: inset 1px 1px 10px rgba(0, 0, 0, 0.25);
 }
 

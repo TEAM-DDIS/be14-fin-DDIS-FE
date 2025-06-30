@@ -1,7 +1,7 @@
-<!-- components/common/ConfirmModal.vue -->
 <template>
-  <div class="modal-overlay" @click.self="$emit('cancel')">
+  <div class="modal-overlay">
     <div class="modal-content">
+      <p class="modal-title">인사발령 이력 삭제</p>
       <p class="modal-message">{{ message }}</p>
       <div class="modal-actions">
           <button class="btn cancel" @click="$emit('cancel')">취소</button>
@@ -32,23 +32,29 @@ defineProps({
 }
 
 .modal-content {
-  background: white;
-  padding: 24px 32px;
-  border-radius: 10px;
-  min-width: 300px;
+  background: var(--modal-box-bg);
+  padding: 20px;
+  border-radius: 12px;
+  width: 300px;
   text-align: center;
+}
+
+.modal-title {
+  font-size: 20px;
+  font-weight: bold;
+  margin-bottom: 30px;
 }
 
 .modal-message {
   font-size: 18px;
-  font-weight: bold;
-  margin-bottom: 50px;
+  margin-bottom: 40px;
 }
 
 .modal-actions {
   display: flex;
   justify-content: center;
   gap: 20px;
+  margin-bottom: 10px;
 }
 
 .btn {
@@ -62,8 +68,8 @@ defineProps({
 .btn.confirm {
   font-size: 14px;
   font-weight: bold;
-  background-color: #00a8e8;
-  color: white;
+  background-color: var(--primary);
+  color: var(--text-on-primary);
   border: 1px solid transparent;
   border-radius: 10px;
   padding: 10px 30px;
@@ -72,9 +78,9 @@ defineProps({
   transition: background-color 0.2s, box-shadow 0.2s;
 }
 .btn.confirm:hover {
-  background-color: white;
-  color: #00a8e8;
-  border-color: #00a8e8;
+  background-color: var(--bg-main);
+  color: var(--primary);
+  border-color: var(--primary);
   box-shadow: inset 1px 1px 10px rgba(0, 0, 0, 0.25);
 }
 

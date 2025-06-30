@@ -1,4 +1,4 @@
-<!-- src/views/JobDetailPage.vue -->
+<!-- 조직 및 직무 > 조직 소개 > 부서 소개 > 팀 및 직무 소개 -->
 <template>
   <div class="job-detail-page">
     <h1 class="page-title">
@@ -19,7 +19,6 @@
         {{ teamIntro.introductionContext }}
       </p>
 
-      <!-- 직무 선택 탭 -->
       <div class="job-tabs">
         <button
           v-for="job in filteredJobs"
@@ -31,12 +30,10 @@
         </button>
       </div>
 
-      <!-- 직무가 없으면 메시지 -->
       <div v-if="filteredJobs.length === 0" class="no-jobs">
         해당 팀의 직무 정보가 없습니다.
       </div>
 
-      <!-- 선택된 직무만 보여주기 -->
       <div v-else class="job-cards-container">
         <div
           v-for="job in selectedJobs"
@@ -93,17 +90,15 @@
       </button>
     </div>
 
-    <!-- 편집 버튼 -->
-
-
-    <!-- EditJobModal -->
     <EditJobModal
       v-if="showEditModal"
+      :key="currentJob.jobId"
       :initial="currentJob"
       @close="closeEditModal"
       @save="saveEdit"
     />
   </div>
+  <BaseToast ref="toastRef" />
 </template>
 
 <script setup>
@@ -111,14 +106,20 @@ import { ref, computed, onMounted, reactive } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import EditJobModal from '@/components/org/introduction/EditJobModal.vue'
+import BaseToast from '@/components/toast/BaseToast.vue'
 
 const route = useRoute()
 const router = useRouter()
 
-// 인사팀에서만 편집버튼 
+const teamName = ref('알 수 없는 팀')
+const teamIntro = ref(null)
+const jobs = ref([])
+const selectedJobId = ref(null)
+const showEditModal = ref(false)
+
 const userStore = useUserStore()
-const token = localStorage.getItem('token')
-const payload = parseJwtPayload(userStore.accessToken || token)
+const token = userStore.accessToken
+const payload = parseJwtPayload(token)
 const isHR = payload?.role?.includes('ROLE_HR') || payload?.auth?.includes('ROLE_HR')
 
 function parseJwtPayload(token) {
@@ -137,32 +138,36 @@ function parseJwtPayload(token) {
   }
 }
 
-// 선택한 팀의 teamId 가져오기
+//API
+const BASE = 'https://api.isddishr.site/introduction'
+const JOB_BASE = 'https://api.isddishr.site/org'
+
+// 전 페이지에서 선택된 팀 ID
 const teamId = Number(route.params.teamId)
 
 function goBack() {
   router.back()
 }
 
-// 리액티브 상태 선언
-const teamName = ref('알 수 없는 팀')
-const teamIntro = ref(null)    // { teamId, teamName, introductionContext }
-const jobs = ref([])           // JobIntroductionQueryDTO[]
-const selectedJobId = ref(null)
+const toastRef = ref(null)
 
-// 모달 제어용
-const showEditModal = ref(false)
+function showToast(msg) {
+  toastRef.value?.show(msg)
+}
+
 const currentJob = reactive({
   jobId: null,
   teamName: '',
   jobName: '',
+  jobCode: '',
   jobRole: [],
   jobNeed: [],
   jobNecessary: [],
-  jobPreference: []
+  jobPreference: [],
+  teamId: null
 })
 
-// 계산 속성: 필터된 직무, 선택된 직무
+// 팀의 직무
 const filteredJobs = computed(() => jobs.value)
 
 const selectedJobs = computed(() => {
@@ -170,20 +175,27 @@ const selectedJobs = computed(() => {
   return filteredJobs.value.filter(j => j.jobId === selectedJobId.value)
 })
 
-// 컴포넌트 마운트 시 데이터 로드
 onMounted(async () => {
+  
   try {
-    const BASE = 'https://api.isddishr.site/introduction'
-
-    // 1) 팀 상세 정보 조회
-    const teamRes = await fetch(`${BASE}/team/${teamId}`)
+    const teamRes = await fetch(`${BASE}/team/${teamId}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    })
     if (!teamRes.ok) throw new Error(`HTTP ${teamRes.status}`)
     const teamData = await teamRes.json()
     teamName.value = teamData.teamName
     teamIntro.value = teamData
 
-    // 2) 해당 팀의 직무 목록 조회
-    const jobsRes = await fetch(`${BASE}/team/${teamId}/job`)
+    // 해당 팀의 직무 목록 조회
+    const jobsRes = await fetch(`${BASE}/team/${teamId}/job`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    })
     if (!jobsRes.ok) throw new Error(`HTTP ${jobsRes.status}`)
     let jobsData = await jobsRes.json()
 
@@ -205,17 +217,18 @@ onMounted(async () => {
       return {
         jobId: job.jobId,
         teamName: teamData.teamName,
+        teamId:  job.teamId,
         jobName: job.jobName,
+        jobCode: job.jobCode,
         jobRole: parsedRole,
         jobNeed: parsedNeed,
         jobNecessary: parsedNecessary,
-        jobPreference: parsedPreference
+        jobPreference: parsedPreference,
       }
     })
 
     jobs.value = jobsData
 
-    // 기본으로 첫 번째 직무 선택
     if (jobsData.length > 0) {
       selectedJobId.value = jobsData[0].jobId
     }
@@ -224,7 +237,6 @@ onMounted(async () => {
   }
 })
 
-// 모달 열기 / 닫기 / 저장 로직
 function openEditModal() {
   const job = selectedJobs.value[0]
   if (!job) return
@@ -232,10 +244,12 @@ function openEditModal() {
   currentJob.jobId = job.jobId
   currentJob.teamName = job.teamName
   currentJob.jobName = job.jobName
+  currentJob.jobCode = job.jobCode
   currentJob.jobRole = [...job.jobRole]
   currentJob.jobNeed = [...job.jobNeed]
   currentJob.jobNecessary = [...job.jobNecessary]
   currentJob.jobPreference = [...job.jobPreference]
+  currentJob.teamId        = job.teamId
 
   showEditModal.value = true
 }
@@ -245,18 +259,47 @@ function closeEditModal() {
 }
 
 function saveEdit(updated) {
-  // 로컬 상태 jobs에서 해당 jobId를 찾아 덮어쓰기
-  const idx = jobs.value.findIndex(j => j.jobId === updated.jobId)
-  if (idx !== -1) {
-    jobs.value[idx].jobName = updated.jobName
-    jobs.value[idx].jobRole = [...updated.jobRole]
-    jobs.value[idx].jobNeed = [...updated.jobNeed]
-    jobs.value[idx].jobNecessary = [...updated.jobNecessary]
-    jobs.value[idx].jobPreference = [...updated.jobPreference]
-  }
-  // (선택) 서버에 PUT/POST 요청으로 저장할 수 있음
 
-  closeEditModal()
+   fetch(`${JOB_BASE}/update/job/${updated.jobId}`, {
+     method: 'PUT',
+     headers: {
+       'Authorization': `Bearer ${token}`,
+       'Content-Type': 'application/json'
+     },
+     body: JSON.stringify({
+        jobName:       updated.jobName,
+        jobCode:       updated.jobCode,
+        jobRole:       updated.jobRole,
+        jobNeed:       updated.jobNeed,
+        jobNecessary:  updated.jobNecessary,
+        jobPreference: updated.jobPreference,
+        teamId:        updated.teamId
+      })
+   })
+     .then(res => {
+       if (!res.ok) throw new Error(`HTTP ${res.status}`)
+       return res.json()
+     })
+     .then(data => {
+       // 2) 로컬상태에도 덮어쓰기
+       const idx = jobs.value.findIndex(j => j.jobId === data.id)
+
+       if (idx !== -1) {
+         jobs.value[idx].jobName       = data.jobName
+          jobs.value[idx].jobCode       = data.jobCode
+          jobs.value[idx].jobRole       = data.jobRole
+          jobs.value[idx].jobNeed       = data.jobNeed
+          jobs.value[idx].jobNecessary  = data.jobNecessary
+          jobs.value[idx].jobPreference = data.jobPreference
+          jobs.value[idx].teamId        = data.teamId
+       }
+       closeEditModal()
+       showToast('직무 소개 수정이 완료되었습니다.')
+     })
+     .catch(err => {
+       console.error('❌ 직무 소개 수정 실패:', err)
+       showToast('직무 소개 수정에 실패했습니다.')
+     })
 }
 </script>
 
@@ -264,12 +307,14 @@ function saveEdit(updated) {
 .page-title {
   margin-left: 20px;
   margin-bottom: 30px;
-  color: #00a8e8;
+  color: var(--primary); 
 }
 .back-btn {
   width: 24px;
+  height: 24px;
   margin-right: -10px;
   cursor: pointer;
+  color: var(--primary); 
 }
 .desc {
   display: block;
@@ -279,11 +324,11 @@ function saveEdit(updated) {
 }
 
 .content-box {
-  background: #ffffff;
+  background: var(--bg-box); 
   border-radius: 12px;
   padding: 20px 32px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-  margin: 24px;
+  margin-left: 20px;
 }
 
 .title {
@@ -296,7 +341,7 @@ function saveEdit(updated) {
 .team-intro {
   text-align: center;
   font-size: 16px;
-  color: #555;
+  color: var(--text-main);
   width: 600px;
   margin: 30px auto 50px auto;
 }
@@ -340,7 +385,7 @@ function saveEdit(updated) {
 }
 
 .job-card {
-  background: #ffffff;
+  background: var(--modal-bg); 
   max-width: 800px;
   width: 80%;
   border-radius: 12px;
@@ -367,13 +412,13 @@ function saveEdit(updated) {
   font-size: 18px;
   font-weight: 600;
   margin-bottom: 10px;
-  color: #000000;
+  color: var(--text-main);
 }
 
 .job-section ul {
   list-style-type: disc;
   padding-left: 20px;
-  color: #444;
+  color: var(--text-main);
   display: inline-block;
   text-align: left;
 }
@@ -386,8 +431,8 @@ function saveEdit(updated) {
   font-weight: bold;
   cursor: pointer;
   font-family: inherit;
-  background-color: #00a8e8;
-  color: white;
+  background-color: var(--primary);
+  color: var(--text-on-primary);
   border: 1px solid transparent;
   border-radius: 10px;
   padding: 10px 30px;
@@ -396,9 +441,7 @@ function saveEdit(updated) {
   box-sizing: border-box;
 
   display: block;
-  margin-left: auto;
-  margin-right: 20px;
-  margin-bottom: 20px;
+  margin: 0 80px 20px auto;
 }
 .edit-button:disabled {
   background-color: #aaa;
@@ -406,9 +449,9 @@ function saveEdit(updated) {
 }
 
 .edit-button:hover:not(:disabled) {
-  background-color: white;
-  color: #00a8e8;
-  border-color: #00a8e8;
+  background-color: var(--bg-main);
+  color: var(--primary);
+  border-color: var(--primary);
   box-shadow: inset 1px 1px 10px rgba(0, 0, 0, 0.25);
 }
 

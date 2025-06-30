@@ -1,6 +1,8 @@
 <template>
   <div class="goal-page">
-    <h1 class="page-title">성과 관리</h1>
+    <h1 class="page-title">
+      성과 관리
+    </h1>
     <div class="labels-row">
       <p class="section-title">목표 관리</p>
       <div class="label-spacer"></div>
@@ -121,7 +123,7 @@
       <!-- 2) 실적 입력/수정 패널 -->
       <section class="panel perf-panel">
         <div class="perf-header">
-          <button v-if="hasPerformance" class="btn-delete" @click="deletePerf">삭제</button>
+          <button v-if="hasPerformance" class="btn-delete" @click="confirmDeletePerf">삭제</button>
         </div>
         <div v-if="!selectedGoal" class="empty">
           <p class="empty-text">목표를 클릭해서 실적을 등록해보세요!</p>
@@ -140,41 +142,42 @@
                 <th>가중치</th><td>{{ selectedGoal.goalWeight }}%</td>
                 <th>목표수치</th><td>{{ selectedGoal.goalValue }}</td>
               </tr>
-              <tr><th colspan="4">목표내용</th></tr>
-              <tr><td colspan="4">{{ selectedGoal.goalContent }}</td></tr>
+              <tr class="center"><th colspan="4">목표내용</th></tr>
+              <tr class="center"><td colspan="4">{{ selectedGoal.goalContent }}</td></tr>
+              <tr class="center"><th colspan="4">첨부파일</th></tr>
+              <tr class="center"><td colspan="4"><div v-if="form.existingAttachmentKeys.length" class="existing-files">
+             <ul>
+              <li
+                v-for="(url, idx) in presignedUrls"
+                :key="idx"
+                class="existing-file-item"
+              >
+                <a :href="url" target="_blank" rel="noopener noreferrer" class="link-preview">
+                  {{ form.existingAttachmentFileNames[idx] }}
+                </a>
+            
+                <span class="file-size-text">
+                  ({{ (form.existingAttachmentFileSizes[idx] / 1024 / 1024).toFixed(1) }}MB)
+                </span>
+              </li>
+            </ul>
+          </div></td></tr>
             </tbody>
           </table>
 
           <!-- 3) 이미 등록된 첨부파일이 있으면 목록으로 보여줌 -->
-          <div v-if="form.existingAttachmentKeys.length" class="existing-files">
-            <p class="section-title">기존 첨부파일</p>
-             <ul>
-    <li
-      v-for="(url, idx) in presignedUrls"
-      :key="idx"
-      class="existing-file-item"
-    >
-      <a :href="url" target="_blank" rel="noopener noreferrer" class="link-preview">
-        🔍 {{ form.existingAttachmentFileNames[idx] }}
-      </a>
-  
-      <span class="file-size-text">
-        ({{ (form.existingAttachmentFileSizes[idx] / 1024 / 1024).toFixed(1) }}MB)
-      </span>
-    </li>
-  </ul>
-          </div>
+          
 
           <!-- 실적 입력/수정 폼 -->
           <div class="perf-form">
             <div class="attach-area">
               <label>첨부 파일</label>
               <div class="file-box">
-                <template v-if="form.fileName">
+                <template v-if="form.file">
                   <span class="file-name">{{ form.fileName }}</span>
                   <span class="file-size">{{ form.fileSize }}</span>
                 </template>
-                <button v-if="isCurrentYearGoal" class="btn-attach" @click="$refs.fileInput.click()">첨부파일 등록</button>
+                <button  class="btn-attach" @click="$refs.fileInput.click()">첨부파일 등록</button>
                 <input ref="fileInput" type="file" class="sr-only" @change="onFileChange" />
               </div>
             </div>
@@ -187,7 +190,7 @@
               <textarea v-model="form.comment" placeholder="자기 평가"></textarea>
             </div>
             <div class="btn-save-wrap">
-              <button v-if="isCurrentYearGoal" class="btn-save" @click="submitPerf">{{ hasPerformance ? '수정' : '등록' }}</button>
+              <button  class="btn-save" @click="submitPerf">{{ hasPerformance ? '수정' : '등록' }}</button>
             </div>
           </div>
         </div>
@@ -202,6 +205,22 @@
     @close="closeMyPerfModal"
     @select="handleModalSelect" 
   />
+
+  <BaseToast ref="toastRef" />
+
+  <GoalConfirmModal
+    :show="showConfirm"
+    message="정말 삭제하시겠습니까?"
+    @confirm="onModalConfirm"
+    @cancel="onModalCancel"
+  />
+
+  <GoalConfirmModal
+  :show="showPerfConfirm"
+  message="정말 실적을 삭제하시겠습니까?"
+  @confirm="onPerfModalConfirm"
+  @cancel="onPerfModalCancel"
+  />
 </template>
 
 <script setup>
@@ -209,7 +228,12 @@ import { ref, reactive, computed, watch, onMounted } from 'vue'
 import { useUserStore } from '@/stores/user'
 import { v4 as uuidv4 } from 'uuid'
 import MyPerfModal from '@/components/Goals/MyPerfModal.vue'
+import { useRouter } from 'vue-router'
+import BaseToast from '@/components/toast/BaseToast.vue'
+import GoalConfirmModal from './GoalConfirmModal.vue'
 
+const showConfirm    = ref(false)
+const toDeleteGoalId = ref(null)
 const goals = ref([])
 const selected = ref(null)
 const showGoalForm = ref(false)
@@ -217,6 +241,10 @@ const userStore = useUserStore()
 const showMyPerfModal = ref(false)
 // presigned URL 저장
 const presignedUrls = ref([])
+const token = useUserStore().accessToken
+const router = useRouter()
+const toastRef = ref(null)
+const showPerfConfirm    = ref(false)
 
 // 신규 목표 등록용 reactive 객체
 const newGoal = reactive({
@@ -227,9 +255,37 @@ const newGoal = reactive({
   goalCreatedAt: getKoreaLocalDateTimeString(),
   employeeName: userStore.name
 })
+// 삭제 버튼 클릭 시 → 모달 오픈
+function confirmDelete(goalId) {
+  toDeleteGoalId.value = goalId
+  showConfirm.value    = true
+}
+
+// 모달 “확인” 클릭 시 실제 삭제
+async function onModalConfirm() {
+  await deleteGoals(toDeleteGoalId.value)
+  showConfirm.value = false
+}
+function confirmDeletePerf() {
+  showPerfConfirm.value = true
+}
+async function onPerfModalConfirm() {
+  await deletePerf()             // 기존 deletePerf 함수
+  showPerfConfirm.value = false
+}
+function onPerfModalCancel() {
+  showPerfConfirm.value = false
+}
+// 모달 “취소” 클릭 시 닫기
+function onModalCancel() {
+  showConfirm.value = false
+}
+function goBack() {
+  router.back()
+}
 
 const totalWeight = computed(() =>
-  goals.value.reduce((sum, g) => sum + (g.goalWeight || 0), 0)
+  currentYearGoals.value.reduce((sum, g) => sum + (g.goalWeight || 0), 0)
 )
 
 function openMyPerfModal() { showMyPerfModal.value = true }
@@ -270,22 +326,32 @@ const currentYearGoals = computed(() =>
     new Date(g.goalCreatedAt).getFullYear() === currentYear
   )
 )
+// const currentYearGoals = computed(() =>
+//   goals.value
+// )
 
-// 2) 과거 실적만 (작년 이하) & 내 실적만
 const pastPerformances = computed(() =>
   goals.value
     .filter(g =>
+      // 1) 실적이 있고
       g.performance &&
-      new Date(g.goalCreatedAt).getFullYear() < currentYear &&
+      // 2) 매니저 평가가 완료된 것만 (reviewerScore가 null이 아니어야)
+      g.performance.reviewerScore != null &&
+      // 3) 과거 연도 것만
+      new Date(g.goalCreatedAt).getFullYear() <= currentYear &&
+      // 4) 내 실적인 것만
       g.performance.employeeIdSelfreviewer === userStore.employeeId
     )
     .map(g => ({
       performanceId: g.performance.performanceId,
-      goalId: g.goalId, 
-      goalTitle: g.goalTitle,
-      actual: g.performance.performanceValue,
-      comment: g.performance.selfreviewContent,
-      year: new Date(g.goalCreatedAt).getFullYear()
+      goalId:        g.goalId,
+      goalTitle:     g.goalTitle,
+      actual:        g.performance.performanceValue,
+      comment:       g.performance.selfreviewContent,
+      year:          new Date(g.goalCreatedAt).getFullYear(),
+      // 매니저 평가 점수도 보여 주고 싶으면
+      reviewrScore:   g.performance.reviewerScore,
+      reviewScore:  g.reviewScore
     }))
 )
 
@@ -298,7 +364,6 @@ function getKoreaLocalDateTimeString() {
 
 // 목표 목록을 백엔드에서 가져오기
 function fetchGoals() {
-  const token = localStorage.getItem('token')
   fetch('https://api.isddishr.site/goals', {
     headers: { Authorization: `Bearer ${token}` }
   })
@@ -377,7 +442,6 @@ function openGoalForm() {
 //  프리사인드 URL 미리 가져오기
 // -----------------------------
 async function fetchPresignedUrls() {
-  const token = localStorage.getItem('token')
   presignedUrls.value = []
 
   for (let i = 0; i < form.existingAttachmentKeys.length; i++) {
@@ -431,7 +495,6 @@ function getDownloadUrlWithDisposition(presignedUrl, filename) {
 // -----------------------------
 async function downloadAttachment(fileKey, fileType) {
   try {
-    const token = localStorage.getItem('token');
     // 쿼리스트링 생성
     const qs = new URLSearchParams({
       filename: fileKey,
@@ -454,7 +517,7 @@ async function downloadAttachment(fileKey, fileType) {
     window.open(downloadUrl, '_blank');
   } catch (err) {
     console.error(err);
-    alert('파일 다운로드 중 오류가 발생했습니다.');
+    showToast('파일 다운로드 중 오류가 발생했습니다.');
   }
 }
 function handleModalSelect(goalId) {
@@ -473,15 +536,14 @@ function onFileChange(e) {
 // 1) 목표 등록
 async function addGoal() {
   if (newGoal.goalWeight <= 0) {
-    return alert('가중치는 0보다 커야 합니다.')
+    return showToast('가중치는 0보다 커야 합니다.')
   }
   if (totalWeight.value + newGoal.goalWeight > 100) {
-    return alert(`가중치 합이 100%를 초과합니다. 현재 합: ${totalWeight.value}%`)
+    return showToast(`가중치 합이 100%를 초과합니다. 현재 합: ${totalWeight.value}%`)
   }
 
   if (!newGoal.goalTitle) return
 
-  const token = localStorage.getItem('token')
   const payload = {
     goalTitle: newGoal.goalTitle,
     goalValue: newGoal.goalValue,
@@ -508,10 +570,11 @@ async function addGoal() {
       progress: 0,
       performance: null
     })
+    showToast('목표가 등록되었습니다.')
     cancelGoal()
   } catch (err) {
     console.error(err)
-    alert('목표 등록 중 오류가 발생했습니다.')
+    showToast('목표 등록 중 오류가 발생했습니다.')
   }
 }
 
@@ -526,14 +589,11 @@ function cancelGoal() {
 }
 
 // 목표 삭제 전 확인
-function confirmDelete(id) {
-  if (confirm('정말 삭제하시겠습니까?')) deleteGoals(id)
-}
+
 
 // 2) 목표 삭제
 async function deleteGoals(id) {
   try {
-    const token = localStorage.getItem('token')
     const res = await fetch(`https://api.isddishr.site/goals/${id}`, {
       method: 'DELETE',
       headers: {
@@ -550,16 +610,17 @@ async function deleteGoals(id) {
     }
   } catch (err) {
     console.error(err)
-    alert('삭제 중 오류가 발생했습니다.')
+    showToast('삭제 중 오류가 발생했습니다.')
   }
 }
 
 // 3) 실적 등록/수정
 async function submitPerf() {
   const g = selectedGoal.value
-  if (!g) return alert('먼저 목표를 선택해주세요.')
+  if (!g) return showToast('먼저 목표를 선택해주세요.')
 
-  const token = localStorage.getItem('token')
+  const isEdit = hasPerformance.value
+
   let attachmentUrlsToSend = [...form.existingAttachmentKeys]
   let fileNamesToSend = [...form.existingAttachmentFileNames]
   let fileTypesToSend = [...form.existingAttachmentFileTypes]
@@ -603,7 +664,7 @@ if (form.file) {
     fileSizesToSend      = [form.file.size];
   } catch (err) {
     console.error(err);
-    return alert('파일 업로드 중 오류가 발생했습니다.');
+    return showToast('파일 업로드 중 오류가 발생했습니다.');
   }
 }
 
@@ -647,14 +708,21 @@ if (form.file) {
     }
     if (!res.ok) {
       console.error(await res.text())
-      return alert(hasPerformance.value ? '실적 수정에 실패했습니다.' : '실적 등록에 실패했습니다.')
+      return showToast(hasPerformance.value ? '실적 수정에 실패했습니다.' : '실적 등록에 실패했습니다.')
     }
     const saved = await res.json()
     form.performanceId = saved.performanceId
-    alert(hasPerformance.value ? '실적이 수정되었습니다.' : '실적이 등록되었습니다.')
+       showToast(
+     isEdit
+       ? '실적이 수정되었습니다.'   // 기존 데이터가 있을 때
+       : '실적이 등록되었습니다.'   // 새로 등록할 때
+   )
+
+   await fetchGoals()
+
   } catch (err) {
     console.error(err)
-    alert('실적 저장 중 오류가 발생했습니다.')
+    showToast('실적 저장 중 오류가 발생했습니다.')
   }
 }
 
@@ -662,9 +730,7 @@ if (form.file) {
 async function deletePerf() {
   const g = selectedGoal.value
   if (!g || !hasPerformance.value) return
-  if (!confirm('정말 실적을 삭제하시겠습니까?')) return
 
-  const token = localStorage.getItem('token')
   try {
     const res = await fetch(
       `https://api.isddishr.site/goalsperf/${g.goalId}/performance/${form.performanceId}`,
@@ -675,11 +741,14 @@ async function deletePerf() {
     )
     if (!res.ok) throw new Error('실적 삭제 실패')
     resetForm()
-    alert('실적이 삭제되었습니다.')
+    showToast('실적이 삭제되었습니다.')
   } catch (e) {
     console.error(e)
-    alert('실적 삭제 중 오류가 발생했습니다.')
+    showToast('실적 삭제 중 오류가 발생했습니다.')
   }
+}
+function showToast(msg) {
+  toastRef.value?.show(msg)
 }
 
 </script>
@@ -688,7 +757,7 @@ async function deletePerf() {
   .page-title {
     margin-left: 20px;
     margin-bottom: 30px;
-    color: #00a8e8;
+    color: var(--primary);
   }
   .desc {
     display: block;
@@ -696,15 +765,16 @@ async function deletePerf() {
     margin-bottom: 10px;
     font-size: 18px;
   }
-.total-title {
+/* .total-title {
   margin-left: 20px;
   margin-bottom: 50px;
-  color: #00a8e8;
-}
+  color: var(--primary);
+} */
 
 /* .section-title {margin-left: 20px;} */
 .goal-page {
   /* padding: 24px; */
+  color: var(--text-main);
   display: flex;
   flex-direction: column;
   height: 100vh;
@@ -737,6 +807,12 @@ input#weight.input-complete {
   font-size: 18px;
   display: block;
 }
+.back-btn {
+  width: 25px;
+  height: 25px;
+  margin-right: -10px;
+  cursor: pointer;
+}
 .label-spacer {
   width: 20px;
 }
@@ -748,24 +824,28 @@ input#weight.input-complete {
   display: block;
 }
 .panels {
+  box-shadow: 1px 1px 20px 1px rgba(0, 0, 0, 0.05);
   flex: 1;
   display: flex;
   overflow: hidden;
   position: relative;
-  margin-left: 20px;
+    margin: 0 20px 24px;
+
+  /* margin-left: 20px; */
 }
 .panel {
-  background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  background: var( --bg-box);
+  border-radius: 8px;
+  box-shadow:1px 1px 20px 1px rgba(0, 0, 0, 0.05); 
   display: flex;
   flex-direction: column;
-  padding: 24px;
+  padding: 30px;
 }
 .panel::-webkit-scrollbar {
   display: none;
 }
 .goals-panel {
+  margin-right: 0px;
   width: 45%;
   position: relative;
   z-index: 3;
@@ -775,24 +855,30 @@ input#weight.input-complete {
 .perf-content {
   flex: 1;
 }
+.existing-file-item{
+  list-style: none;
+}
 .goals-panel::-webkit-scrollbar {
   display: none;
 }
 .placeholder {
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: center;       
   flex: 1;
 }
+tr{
+  text-align: left;
+}
 .placeholder-text {
-  color: #00a8e8;
+  color: var(--primary);
   font-size: 1.2rem;
   font-weight: 600;
 }
 .goal-form {
-  background: #fff;
+  background: var(--modal-bg2);
   border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  box-shadow: 1px 1px 20px 1px rgba(0, 0, 0, 0.05);
   padding: 24px;
   display: flex;
   flex-direction: column;
@@ -821,9 +907,10 @@ input#weight.input-complete {
   box-sizing: border-box;
   width: 100%;
   padding: 8px 12px;
-  border: 1px solid #d9d9d9;
+  border: 1px solid var(--border-input);
   border-radius: 6px;
-  background: #fafafa;
+  background-color: var(--bg-main); 
+  color: var(--text-main); 
   font-size: 0.95rem;
   transition: border-color 0.2s, background 0.2s;
 }
@@ -838,17 +925,19 @@ input#weight.input-complete {
 .form-row input:focus,
 .form-row textarea:focus {
   outline: none;
-  border-color: black;
-  background: #fff;
+  border-color: var(--text-main) !important;
+  background-color: var(--bg-main) !important; 
+  color: var(--text-main); 
 }
 .form-row textarea {
   font-family: inherit;
   font-size: 0.95rem;
   line-height: 1.4;
   padding: 8px 12px;
-  border: 1px solid #d9d9d9;
+  /* border: 1px solid var(--border-input); */
   border-radius: 6px;
-  background: #fafafa;
+  background-color: var(--bg-main);  
+  color: var(--text-main);
   box-sizing: border-box;
   resize: none;
   height: 48px;
@@ -861,7 +950,7 @@ input#weight.input-complete {
 .btn-primary {
     font-size: 14px;
   font-weight: bold;
-  background-color: #00a8e8;
+  background-color: var(--primary);
   color: white;
   border: 1px solid transparent;
   border-radius: 10px;
@@ -872,9 +961,9 @@ input#weight.input-complete {
   box-sizing: border-box;
 }
 .btn-primary:hover {
-    background-color: white;
-  color: #00a8e8;
-  border-color: #00a8e8;
+  background-color: var(--bg-main);
+  color: var(--primary);
+  border-color: var(--primary);
   box-shadow:
   inset 1px 1px 10px rgba(0, 0, 0, 0.25);
 }
@@ -892,26 +981,26 @@ input#weight.input-complete {
   box-sizing: border-box;
 }
 .btn-secondary:hover {
-    background-color: white;
-  color: #c8c8c8;
-  border-color: #00a8e8;
+  background-color: var(--bg-main);
+  color: var(--primary);
+  border-color: var(--primary);
   box-shadow:
   inset 1px 1px 10px rgba(0, 0, 0, 0.25);
 }
 .goals-list {
   flex: 1;
   overflow-y: auto;
-  padding-right: 4px;
+  /* padding-right: 4px; */
+  padding: 3px;
   margin-bottom: 16px;
 }
 /* .goal-card{position:relative;background:#fff;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,0.1);padding:16px;margin-bottom:12px;cursor:pointer;transition:transform .2s} */
 /* 기본 상태 */
 .goal-card {
   position: relative;
-  background: #fff;
+  background: var(--bg-box);
   border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  padding: 16px;
+  box-shadow: 0px 0px 5px 4px var(--menu-btn-shadow);  padding: 16px;
   padding-bottom: 20px;
   margin-bottom: 12px;
   cursor: pointer;
@@ -931,11 +1020,14 @@ input#weight.input-complete {
     inset 0 4px 8px rgba(0, 0, 0, 0.15),
     0 2px 8px rgba(0, 0, 0, 0.1);
   transform: translateY(0);
-  background-color: #f7f7f7;
+  background-color: var(--ag-primary-hover);
 }
 
 .goal-card:hover {
-  transform: translateY(-2px);
+  /* transform: translateY(-2px); */
+  box-shadow: inset 0px 0px 5px 4px var(--menu-btn-shadow);
+  transition: background-color 0.3s, box-shadow 0.3s;
+  background-color: var(--ag-primary-hover);
 }
 .btn-card-delete {
   position: absolute;
@@ -950,13 +1042,16 @@ input#weight.input-complete {
   opacity: 0;
   transition: opacity 0.2s;
 }
+.btn-card-delete:hover{
+color: var(--primary);
+}
 .goal-card:hover .btn-card-delete {
   opacity: 1;
 }
 .card-top {
   display: flex;
   justify-content: space-between;
-  color: #888;
+  /* color: #888; */
   font-size: 0.85rem;
   margin-bottom: 10px;
   margin-top: 10px;
@@ -990,7 +1085,7 @@ input#weight.input-complete {
 }
 .progress-fill {
   height: 100%;
-  background: #00a8e8;
+  background: var(--primary);
   transition: width 0.3s;
 }
 .progress-text {
@@ -1022,7 +1117,7 @@ input#weight.input-complete {
   gap: 8px;
 }
 .perf-title {
-  color: #00a8e8;
+  color: var(--primary);
   font-size: 1.5rem;
   font-weight: 600;
   margin: 0;
@@ -1030,10 +1125,11 @@ input#weight.input-complete {
 .perf-panel {
   width: 55%;
   display: flex;
+  margin-left: 0px;
   flex-direction: column;
   overflow-y: auto;
   padding-bottom: 24px;
-  background: #f5f5f5;
+  background: var(--calendar-border-color);
   position: relative;
   z-index: 1;
 }
@@ -1048,6 +1144,7 @@ input#weight.input-complete {
   position: absolute;
   left: 43%;
   z-index: 2;
+  filter: var(--arrow-filter);
 }
 .perf-form {
   display: grid;
@@ -1059,17 +1156,18 @@ input#weight.input-complete {
   align-items: start;
 }
 .btn-delete {
-  background: #c8c8c8;
+  background-color: #000;
   border: none;
   padding: 6px 12px;
   border-radius: 6px;
   color: #fff;
   cursor: pointer;
+  border: 1px solid transparent;
 }
 .btn-delete:hover {
-  background-color: white;
-  color: #c8c8c8;;
-  border-color: #00a8e8;
+  background-color: var(--bg-main);
+  color: var(--text-main);
+  border-color: var(--text-main);
   box-shadow:
   inset 1px 1px 10px rgba(0, 0, 0, 0.25);
 }
@@ -1080,28 +1178,36 @@ input#weight.input-complete {
   flex: 1;
 }
 .empty-text {
-  color: #00a8e8;
+  color: var(--primary);
   font-size: 1.2rem;
   font-weight: 600;
 }
 .detail-table-vertical {
   width: 100%;
   border-collapse: collapse;
+
   margin-bottom: 20px;
+}
+table.detail-table-vertical {
+  background: none;
+  color: inherit;
+  border-collapse: collapse;
 }
 .detail-table-vertical th,
 .detail-table-vertical td {
-  border: 1px solid #e0e0e0;
+  background: var(--bg-label-cell);
+  color: var(--text-main);
+  border: 1px solid var(--border-color);
   padding: 12px;
-  text-align: center;
   font-size: 0.9rem;
 }
 .detail-table-vertical th {
-  background: #fafafa;
+  background: var(--bg-label-cell);
+  color: var(--text-main);
   font-weight: 600;
 }
 .detail-table-vertical td {
-  background: #ffffff;
+  background: var(--bg-main);
 }
 .attach-area,
 .input-area {
@@ -1113,9 +1219,10 @@ input#weight.input-complete {
 .input-area input,
 .input-area textarea {
   padding: 8px;
-  border: 1px solid #d9d9d9;
+  border: 1px solid var(--border-input);
   border-radius: 6px;
-  background: #fafafa;
+  background: var(--bg-main);
+  color: var(--text-main);
   resize: none;
 }
 .input-area textarea {
@@ -1123,18 +1230,24 @@ input#weight.input-complete {
   font-size: 0.95rem;
   line-height: 1.4;
   padding: 8px 12px;
-  border: 1px solid #d9d9d9;
+  border: 1px solid var(--border-input);
+  color: var(--text-main);
   border-radius: 6px;
-  background: #fafafa;
+  background: var(--bg-main);
   box-sizing: border-box;
   resize: none;
-  height: 48px;
+  height: 120px;
+}
+.input-area input:focus,
+.input-area textarea:focus {
+  outline: none;
+  border-color: var(--text-main);
 }
 .form-row textarea:focus,
 .input-area textarea:focus {
   outline: none;
-  border-color: black;
-  background: #fff;
+  border-color: var(--text-main);
+  /* background: var(--bg-main); */
 }
 .attach-area label {
   width: 80px;
@@ -1143,16 +1256,19 @@ input#weight.input-complete {
 .file-box {
   display: flex;
   align-items: center;
-  background: #fafafa;
-  border-radius: 6px;
+  background: var(--bg-main);
+  border-radius: 4px;
   padding: 6px 12px;
   gap: 8px;
+}
+.center{
+  text-align: center;
 }
 .btn-attach {
   font-size: 14px;
   font-weight: bold;
-  background-color: #00a8e8;
-  color: white;
+  background-color: var(--primary);
+  color: var(--text-on-primary);  
   border: 1px solid transparent;
   border-radius: 10px;
   padding: 10px 30px;
@@ -1162,9 +1278,9 @@ input#weight.input-complete {
   box-sizing: border-box;
 }
 .btn-attach:hover {
-  background-color: white;
-  color: #00a8e8;
-  border-color: #00a8e8;
+  background-color: var(--bg-main);
+  color: var(--primary);
+  border-color: var(--primary);
   box-shadow:
   inset 1px 1px 10px rgba(0, 0, 0, 0.25);
 }
@@ -1185,8 +1301,8 @@ input#weight.input-complete {
 .btn-save {
   font-size: 14px;
   font-weight: bold;
-  background-color: #00a8e8;
-  color: white;
+  background-color: var(--primary);
+  color: var(--text-on-primary);  
   border: 1px solid transparent;
   border-radius: 10px;
   padding: 10px 30px;
@@ -1196,9 +1312,9 @@ input#weight.input-complete {
   box-sizing: border-box;
 }
 .btn-save:hover {
-  background-color: white;
-  color: #00a8e8;
-  border-color: #00a8e8;
+  background-color: var(--bg-main);
+  color: var(--primary);
+  border-color: var(--primary);
   box-shadow:
   inset 1px 1px 10px rgba(0, 0, 0, 0.25);
 }
@@ -1227,18 +1343,19 @@ input#weight.input-complete {
 .detail-label {
   font-size: 1rem;
   font-weight: 600;
-  color: #333;
+  color: var(--modal-text);
 }
 .detail-table-vertical tr:nth-child(odd) td {
-  background: #ffffff;
+  background: var(--bg-main);
 }
 .detail-table-vertical tr:nth-child(even) td {
-  background: #fff;
+  background: var(--bg-main);
 }
 .link-preview {
-  margin-right: 8px;
-  color: #007bff;
-  text-decoration: none;
+  color: inherit;            /* 부모 텍스트 색상 그대로 */
+  text-decoration: none;     /* 밑줄 제거 */
+  transition: color 0.2s;    /* 부드러운 색 변화 */
+  cursor: pointer;
 }
 .link-preview:hover {
   text-decoration: underline;

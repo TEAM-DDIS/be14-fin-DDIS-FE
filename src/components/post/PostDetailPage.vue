@@ -5,9 +5,11 @@
         alt="back"
         class="back-btn"
         @click="goBack"
-       />공지사항
+    />공지사항
     </h1>
-  <p class="desc">공지사항 상세조회</p>
+    <div class="desc-row">
+    <p class="desc">공지사항 상세조회</p>
+    </div>
 
   <!-- 로딩 / 에러 -->
   <div v-if="loading" class="status-text">로딩 중...</div>
@@ -60,8 +62,8 @@
     </div>
 
     <div class="button-group">
-      <button v-if="isHR" class="btn-save" @click="onEdit">수정</button>
       <button v-if="isHR" class="btn-delete" @click="onDelete">삭제</button>
+      <button v-if="isHR" class="btn-save" @click="onEdit">수정</button>
     </div>
   </div>
 
@@ -141,10 +143,11 @@
     </div>
 
     <div class="action-footer">
-      <button class="btn-save" @click="onCancelEdit">취소</button>
+      <button class="btn-cancel" @click="onCancelEdit">취소</button>
       <button class="btn-save" @click="onSaveEdit">저장</button>
     </div>
   </div>
+  <BaseToast ref="toastRef" />
 </template>
 
 <script setup>
@@ -152,12 +155,19 @@ import { ref, computed, onMounted, nextTick } from 'vue'
 import axios from 'axios'
 import { useRoute, useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
+import BaseToast from '@/components/toast/BaseToast.vue'
 
 axios.defaults.baseURL = 'https://api.isddishr.site'
 
 const route     = useRoute()
 const router    = useRouter()
 const userStore = useUserStore()
+
+
+const toastRef = ref(null)
+function showToast(msg) {
+    toastRef.value?.show(msg)
+}
 
 // JWT 토큰 디코딩 유틸
 function parseJwtPayload(token) {
@@ -265,7 +275,7 @@ async function downloadFile(key, name) {
     URL.revokeObjectURL(url)
   } catch (err) {
     console.error('다운로드 실패', err)
-    alert('파일 다운로드 중 오류가 발생했습니다.')
+    showToast('파일 다운로드 중 오류가 발생했습니다.')
   }
 }
 
@@ -273,10 +283,10 @@ async function onDelete() {
   if (!confirm('정말 삭제하시겠습니까?')) return
   try {
     await axios.delete(`/boards/${notice.value.id}`,{ headers:authHeaders() })
-    alert('삭제되었습니다.')
+    showToast('삭제되었습니다.')
     router.push('/post')
   } catch {
-    alert('삭제 중 오류가 발생했습니다.')
+    showToast('삭제 중 오류가 발생했습니다.')
   }
 }
 
@@ -313,8 +323,8 @@ function onEditorInput(e) {
 }
 
 async function onSaveEdit() {
-  if (!editableNotice.value.title.trim()) return alert('제목을 입력해주세요.')
-  if (!editorRef.value.innerText.trim()) return alert('내용을 입력해주세요.')
+  if (!editableNotice.value.title.trim()) return showToast('제목을 입력해주세요.')
+  if (!editorRef.value.innerText.trim()) return showToast('내용을 입력해주세요.')
 
   const uploaded = []
   for (const f of files.value) {
@@ -347,11 +357,11 @@ async function onSaveEdit() {
     await axios.put(`/boards/${notice.value.id}`,payload,{
       headers:{ ...authHeaders(), 'Content-Type':'application/json' }
     })
-    alert('수정되었습니다.')
+    showToast('수정되었습니다.')
     isEditing.value=false
     await fetchNotice()
   } catch {
-    alert('수정 중 오류가 발생했습니다.')
+    showToast('수정 중 오류가 발생했습니다.')
   }
 }
 
@@ -364,18 +374,25 @@ onMounted(fetchNotice)
 /* page-title, desc */
 .page-title {
   margin-left: 20px;
-  margin-bottom: 50px;
-  color: #00a8e8;
+  margin-bottom: 30px;
+  color: var(--primary);
 }
+
+.desc-row {
+  display: flex;
+  align-items: center;   /* 텍스트와 버튼을 수직 가운데 정렬 */
+  margin-left: 20px;     /* 기존 .desc 의 margin-left */
+}
+
 .desc {
-  display: block;
-  margin-left: 20px;
-  margin-bottom: 10px;
+  margin: 0;
+  font-size: 18px;
 }
 
 .back-btn {
-  width: 24px;
-  margin-right: -2px;
+  width: 25px;
+  height: 25px;
+  /* margin-right: -10px; */
   cursor: pointer;
 }
 
@@ -392,15 +409,14 @@ onMounted(fetchNotice)
 
 /* ================= 읽기 모드 스타일 ================= */
 .detail-card {
-  background: #fff;
+  background: var(--bg-box);
   border-radius: 12px;
-  box-shadow: 1px 1px 20px 1px rgba(0, 0, 0, 0.05);
-  width: 100%;
+  padding: 20px 32px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  margin-left: 20px;
+  margin-top: 10px;
   max-width: 100%;
-  margin: 20px 0 0 10px;
-  padding: 20px 40px 32px 40px;
-  box-sizing: border-box;
-  margin-bottom: 30px;
+  overflow-x: auto;
 }
 .detail-field {
   display: flex;
@@ -410,21 +426,20 @@ onMounted(fetchNotice)
 .detail-field .label {
   width: 100px;
   font-weight: 500;
-  color: #333;
   flex-shrink: 0;
 }
 .detail-field .value {
   flex: 1;
   padding: 8px 12px;
-  border: 1px solid #e0e0e0;
+  border: 1px solid var(--border-color);
   border-radius: 8px;
-  background: #fafafa;
-  color: #333;
+  background-color: var(--bg-main);
+  color: var(--text-main);
   word-break: break-word;
   box-sizing: border-box;
 }
 .file-link {
-  color: #00a8e8;
+  color: var(--primary);
   text-decoration: none;
 }
 .file-link:hover {
@@ -451,8 +466,8 @@ onMounted(fetchNotice)
   margin: 0 20px 20px;
 }
 .btn-save {
-  background-color: #00a8e8;
-  color: white;
+  background-color: var(--primary);
+  color: var(--text-on-primary);  
   font-weight: bold;
   border: 1px solid transparent;
   border-radius: 10px;
@@ -463,9 +478,9 @@ onMounted(fetchNotice)
   box-sizing: border-box;
 }
 .btn-save:hover {
-  background-color: #fff;
-  color: #00a8e8;
-  border-color: #00a8e8;
+  background-color: var(--bg-main);
+  color: var(--primary);
+  border-color: var(--primary);
   box-shadow: inset 1px 1px 6px rgba(0, 0, 0, 0.15);
 }
 .btn-delete {
@@ -484,6 +499,22 @@ onMounted(fetchNotice)
   background-color: #000;
   color: #fff;
 }
+.btn-cancel {
+  background-color: #d3d3d3;
+  color: #000;
+  border: none;
+  border-radius: 10px;
+  padding: 10px 30px;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: background-color 0.2s, box-shadow 0.2s;
+  box-sizing: border-box;
+}
+.btn-cancel:hover{
+  background-color: #000;
+  color: #fff;
+}
 /* 읽기 모드 첨부파일 목록 (inline 형태) */
 .attached-list-inline {
   display: flex;
@@ -498,7 +529,7 @@ onMounted(fetchNotice)
   background: #eef6ff;
   border-radius: 6px;
   font-size: 14px;
-  color: #00a8e8;
+  color: var(--primary);
   text-decoration: none;
 }
 .file-item-inline a:hover {
@@ -507,24 +538,24 @@ onMounted(fetchNotice)
 
 /* ================= 수정 모드 스타일 ================= */
 .post-enroll-wrapper {
-  background: #fff;
+  background: var(--bg-box);
   border-radius: 12px;
   padding: 20px 32px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-  margin: 24px 10px;
+    margin-left: 20px;
+  margin-top: 10px;
 }
 
 /* form-row 공통 */
 .form-row {
   display: flex;
   align-items: center;
-  margin-bottom: 24px;
+  margin-bottom: 20px;
 }
 .form-label {
   width: 100px;
-  margin-right: 12px;
+  /* margin-right: 12px; */
   font-weight: 500;
-  color: #333;
 }
 .required {
   color: #e74c3c;
@@ -534,19 +565,21 @@ onMounted(fetchNotice)
 .form-input {
   flex: 1;
   padding: 12px 16px;
-  border: 1px solid #ccc;
+  border: 1px solid var(--border-color);
   border-radius: 8px;
   font-size: 15px;
   box-sizing: border-box;
+  background-color: var(--bg-main);
 }
-.form-input:hover {
-  border-color: #1f2937;
+.form-input:disabled {
+  color: var(--text-sub); /* 원하는 색으로 */
+  opacity: 1; /* 회색 흐림 방지 */
 }
-.form-input:focus {
-  outline: none;
-  border-color: #1f2937;
+.form-input:enabled {
+  background: var(--bg-label-cell);
+  color: var(--text-main);
+  opacity: 1; /* 회색 흐림 방지 */
 }
-
 /* 파일 첨부 드롭존 */
 .file-row {
   margin-bottom: 8px;
@@ -555,23 +588,23 @@ onMounted(fetchNotice)
   flex: 1;
   position: relative;
   height: 50px;
-  border: 1px solid #c8c8c8;
+  border: 1px solid var(--border-color);
   border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 12px 16px;
   box-sizing: border-box;
+  background-color: var(--bg-main);
+
   cursor: pointer;
-  transition: border-color 0.2s, background-color 0.2s;
 }
-.file-dropzone:hover {
-  border-color: #1f2937;
-  background-color: #f9fcff;
+.file-dropzone:hover{
+  color: var(--primary);
 }
 .file-dropzone p {
   margin: 0;
-  color: #888;
+  /* color: #888; */
   font-size: 14px;
 }
 .file-buttons {
@@ -591,9 +624,9 @@ onMounted(fetchNotice)
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
 }
 .btn-save.small:hover {
-  background-color: #fff;
-  color: #00a8e8;
-  border-color: #00a8e8;
+  /* background-color: #fff; */
+  color: var(--primary);
+  border-color: var(--primary);
   box-shadow: inset 1px 1px 6px rgba(0, 0, 0, 0.15);
 }
 .btn-delete.small:hover {
@@ -604,8 +637,9 @@ onMounted(fetchNotice)
 
 /* 첨부된 파일 목록 */
 .attached-list {
+  background-color: var(--bg-main);
   list-style: none;
-  margin: 10px 0 0 112px; /* 레이블 100px + 간격 12px */
+  margin: 10px 0 0 100px; /* 레이블 100px + 간격 12px */
   padding: 0;
 }
 .file-item {
@@ -613,11 +647,11 @@ onMounted(fetchNotice)
   align-items: center;
   justify-content: space-between;
   padding: 6px 12px;
-  border: 1px solid #eee;
-  border-radius: 6px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
   margin-bottom: 8px;
   font-size: 14px;
-  color: #444;
+  /* color: #444; */
 }
 .file-name {
   overflow: hidden;
@@ -630,7 +664,7 @@ onMounted(fetchNotice)
 .instructions {
   margin-top: 10px;
   font-size: 12px;
-  color: #666;
+  color: var(--text-sub);
   line-height: 1.4;
   margin-left: 112px; /* 레이블 100px + 간격 12px */
 }
@@ -643,11 +677,11 @@ onMounted(fetchNotice)
   display: block;
   margin-bottom: 8px;
   font-weight: 500;
-  color: #333;
 }
 .editor {
   min-height: 300px;
-  border: 1px solid #ccc;
+  background: var(--bg-main);
+  border: 1px solid var(--border-color);
   border-radius: 8px;
   padding: 12px 16px;
   font-size: 15px;
@@ -655,12 +689,10 @@ onMounted(fetchNotice)
   box-sizing: border-box;
   position: relative;
 }
-.editor:hover {
-  border-color: #1f2937;
-}
+
 .editor:focus {
   outline: none;
-  border: 1px solid #1f2937;
+  border: 1px solid var(--text-main);
 }
 .editor.empty:before {
   content: attr(placeholder);

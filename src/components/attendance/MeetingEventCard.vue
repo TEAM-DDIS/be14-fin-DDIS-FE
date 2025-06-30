@@ -82,6 +82,7 @@
             title: form.title,
             time:  form.time
         })
+        window.location.reload()
         // 폼 초기화
         form.date = ''
         form.title = ''
@@ -100,7 +101,7 @@
 
     .btn-area {
         display: flex;
-        justify-content: flex-end;
+        justify-content: center;
         margin-top: 30px;
     }
 
@@ -121,8 +122,8 @@
     }
 
     .submit-btn:hover {
-        background-color: var(--text-on-primary);
-        color: var(--primary);
+background-color: var(--bg-main);
+color: var(--primary);
         border-color: var(--primary);
         box-shadow:
         inset 1px 1px 10px rgba(0, 0, 0, 0.25);
@@ -145,21 +146,42 @@
         box-sizing: border-box;
     }
     .cancle-btn:hover {
-        background-color: var(--text-main);
-        color: var(--text-on-primary);
+  background-color: #000;
+  color: #fff;
     }
 
     .meeting-event-card {
         --el-color-primary: var(--primary) !important;
-        background-color: var(--bg-box);
+        /* background-color: var(--bg-box); */
         padding: 20px;
         border-radius: 12px;
-        box-shadow: 1px 1px 20px var(--hover-shadow);
+        /* box-shadow: 1px 1px 20px var(--hover-shadow); */
         color: var(--text-main);
     }
 
-    :deep(.el-form-item__label) {
-        color: var(--text-main);
-        font-size: 18px;
-    }
+    /* 라벨 폰트 */
+:deep(.el-form-item__label) {
+  color: var(--text-main);
+  font-size: 16px;
+  font-weight: 500;
+}
+:deep(.el-input__wrapper.is-focus),
+:deep(.el-input__wrapper:hover) {
+  border-color: var(--border-color) !important;
+  box-shadow: none !important;
+}
+:deep(.el-input__inner) {
+  color: var(--text-main);
+  font-size: 14px;
+  padding: 5px;
+}
+:deep(.el-input__wrapper),
+:deep(.el-date-editor.el-input__wrapper),
+:deep(.el-time-editor.el-input__wrapper) {
+  background-color: var(--bg-main);       /* 입력 배경 */
+  border: 1px solid var(--border-color);  /* 테두리 */
+  border-radius: 8px;
+  color: var(--text-main);                /* 텍스트 색 */
+  transition: border 0.3s, box-shadow 0.3s;
+}
 </style>

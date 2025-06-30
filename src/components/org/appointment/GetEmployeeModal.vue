@@ -1,33 +1,20 @@
 <template>
-  <div class="modal-overlay" @click.self="$emit('close')">
+  <div class="modal-overlay">
     <div class="modal-content">
-      <!-- 모달 제목 -->
       <div class="model-text">
         <h2 class="modal-title">사원 선택</h2>
       </div>
-
-      <!-- 상단: 탭/정렬/검색/삭제 -->
       <div class="modal-header">
-        
-        <div class="search-bar">
-          <select v-model="searchType">
-            <option value="name">사원명</option>
-            <option value="id">사원번호</option>
-            <option value="position">직책</option>
-            <option value="rank">직급</option>
-          </select>
-          <input v-model="search" type="text" placeholder="검색어 입력" />
-        </div>
-        <button class="delete-btn btn-delete" @click="deleteSelectedEmployees">
-          삭제
-        </button>
-      </div>
-
-      <!-- 본문 -->
-      <div class="modal-body">
-        <!-- 좌측: 조직도 트리 + 직원 리스트 -->
-        <div class="org-tree-area">
-          <!-- 검색 결과 리스트 -->
+        <div class="search-wrapper">
+          <div class="search-bar">
+            <select v-model="searchType">
+              <option value="name">사원명</option>
+              <option value="id">사원번호</option>
+              <option value="position">직책</option>
+              <option value="rank">직급</option>
+            </select>
+            <input v-model="search" type="text" placeholder="검색어 입력" />
+          </div>
           <ul class="employee-search-result scrollbar" v-if="search.trim() && filteredAndSortedNodes.length">
             <li
               v-for="emp in filteredAndSortedNodes"
@@ -38,29 +25,38 @@
               {{ emp.employeeName }} ({{ emp.positionName }}, {{ emp.rankName }})
             </li>
           </ul>
-          <!-- 검색 결과 없을 때 -->
           <div v-else-if="search.trim() && filteredAndSortedNodes.length === 0" class="no-result">
             검색 결과가 없습니다.
           </div>
+          </div>
+        <button class="delete-btn btn-delete" @click="deleteSelectedEmployees">
+          삭제
+        </button>
+      </div>
 
-          <!-- 조직도 트리 -->
-          <EHierarchy
+      <div class="modal-body">
+        <div class="org-tree-area">
+          
+          <Hierarchy
             @loaded-hierarchy="onHierarchyLoaded"
             @employees-selected="onEmployeesSelected"
           />
         </div>
 
-        <!-- 중앙: 선택 버튼 -->
         <div class="action-btns">
           <button class="action-btn btn-save" @click="addEmployee()" :disabled="!selectedNode?.employeeId">
             선택
           </button>
-        
         </div>
 
-        <!-- 우측: 결재선 테이블 -->
         <div class="approver-table-area">
           <table class="approver-table">
+            <colgroup>
+              <col style="width: 45px;" />
+              <col style="width: 50px;" />
+              <col style="width: 120px;" />
+              <col style="width: 90px;" />
+            </colgroup>
             <thead>
               <tr>
                 <th><input type="checkbox" @change="toggleAllEmployees" :checked="allSelected"/></th>
@@ -71,7 +67,14 @@
             </thead>
             <tbody>
               <tr v-for="(item, idx) in employeeList" :key="item.employeeId">
-                <td><input type="checkbox" :value="item.employeeId" v-model="selectedEmployees"/></td>
+                <td>
+                  <input
+                    type="checkbox"
+                    :checked="selectedEmployees.includes(item.employeeId)"
+                    :disabled="disabledEmployees.includes(item.employeeId)"
+                    @change="onCheckboxChange(item.employeeId)"
+                  />
+                </td>
                 <td>{{ idx + 1 }}</td>
                 <td>{{ item.employeeId }}</td>
                 <td>{{ item.employeeName }}</td>
@@ -81,10 +84,11 @@
         </div>
       </div>
 
-      <!-- 하단: 취소/등록 -->
       <div class="modal-footer">
-        <button class="footer-btn cancel btn-delete" @click="$emit('close')">취소</button>
-        <button class="footer-btn submit btn-save" @click="submitSelection">확인</button>
+        <div class="footer-btn">
+          <button class="btn-delete" @click="$emit('close')">취소</button>
+          <button class="btn-save" @click="submitSelection">확인</button>
+        </div>
       </div>
     </div>
   </div>
@@ -92,7 +96,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import EHierarchy from '@/components/eapproval/EHierarchy.vue'
+import Hierarchy from '@/components/org/appointment/GetHierarchy.vue'
 
 const props = defineProps({
   hierarchy: { type: Array, default: () => [] },
@@ -100,19 +104,16 @@ const props = defineProps({
 })
 const emit = defineEmits(['submit', 'close', 'update'])
 
-// 정렬 및 검색 상태
 const searchType = ref('name')
 const search = ref('')
 
-// 결재선 리스트 및 선택 상태
 const employeeList = ref([])
 const selectedEmployees = ref([])
+const disabledEmployees = ref([])
 const hierarchy = ref([])
-// 현재 직원 목록 & 선택된 사원
 const selectedNodes = ref([])
 const selectedNode = ref(null)
 
-// 초기 부모 결재선 복사 & 전체 직원 세팅
 onMounted(() => {
   employeeList.value = props.initialEmployees.map((e, i) => ({
 
@@ -126,12 +127,9 @@ onMounted(() => {
     rankName:       e.rankName
   }))
 
-  // 기존과 같이, 트리로부터 전체 사원 리스트 플래트닝
   selectedNodes.value = flattenAllEmployees(props.hierarchy)
 })
 
-
-// flatten helper
 function flattenAllEmployees(tree) {
   const list = []
   tree.forEach(head => {
@@ -139,9 +137,7 @@ function flattenAllEmployees(tree) {
       dept.teams?.forEach(team => {
         team.members?.forEach(emp => {
           list.push({
-            // 기존 emp 필드 그대로 복사
             ...emp,
-            // 부모 노드 정보 추가
             headId:       head.headId,
             headName:     head.headName,
             headCode:     head.headCode,
@@ -171,23 +167,17 @@ function flattenAllEmployees(tree) {
   return list
 }
 
-
-// EHierarchy 선택 이벤트 수신
 function onEmployeesSelected(ids, emp) {
-  console.log('선택된 ID:', ids)
-  console.log('선택된 객체:', emp)
+  // console.log('선택된 ID:', ids)
+  // console.log('선택된 객체:', emp)
 
   selectedNodes.value = flattenAllEmployees(hierarchy.value).filter(emp =>
     ids.includes(Number(emp.employeeId))
   )
-
-  // 수동으로 선택된 객체가 있을 경우 우선 사용
   selectedNode.value = emp || (selectedNodes.value.length > 0 ? selectedNodes.value[0] : null)
-
-  console.log('선택된 사원 객체:', selectedNode.value)
+  // console.log('선택된 사원 객체:', selectedNode.value)
 }
 
-// 검색 + 필터
 const filteredNodes = computed(() => {
  const q = search.value.trim().toLowerCase()
   const type = searchType.value
@@ -215,17 +205,14 @@ const filteredAndSortedNodes = computed(() => {
     : arr.sort((a, b) => (a.departmentName || '').localeCompare(b.departmentName))
 })
 
-
-// 사원 정보 load
 function onHierarchyLoaded(loaded) {
   hierarchy.value = loaded
   selectedNodes.value = flattenAllEmployees(loaded)
 }
-// 결재/협조 버튼
+
 function addEmployee() {
   if (!selectedNode.value) return
 
-  // 중복 방지
   if (employeeList.value.some(e => e.employeeId === selectedNode.value.employeeId)) {
     return
   }
@@ -249,21 +236,24 @@ function addEmployee() {
    emit('update', employeeList.value)
 }
 
+function onCheckboxChange(id) {
+  if (disabledEmployees.value.includes(id)) return
+  selectedEmployees.value = [id]
+}
 
-// 전체선택, 삭제, 등록
-const allSelected = computed(() =>
-  employeeList.value.length && selectedEmployees.value.length === employeeList.value.length
-)
-function toggleAllEmployees(e) { 
-  selectedEmployees.value = e.target.checked ? employeeList.value.map(a => a.employeeId) : [] }
+function submitSelection() {
+  disabledEmployees.value.push(...selectedEmployees.value)
 
-function submitSelection() {   
-  const employees = employeeList.value.map(item => ({
+  selectedEmployees.value = []
+  const payload = employeeList.value.map(item => ({
     ...item,
-    employeeId: Number(item.employeeId) // ← string → number (Long)
+    employeeId: Number(item.employeeId)
   }))
-  emit('submit', employees)
- }
+  emit('submit', payload)
+}
+
+  disabledEmployees.value.push(...selectedEmployees.value)
+  selectedEmployees.value = []
 
   function deleteSelectedEmployees() {
   employeeList.value = employeeList.value.filter(
@@ -272,10 +262,7 @@ function submitSelection() {
   selectedEmployees.value = [];
    emit('update', employeeList.value)
 }
-
 </script>
-
-
   
 <style scoped>
 .employee-list {
@@ -295,8 +282,10 @@ function submitSelection() {
   background-color: #e0f4ff;
 }
 .no-result {
-  color: #888;
+  color: var(--text-sub);
   text-align: center;
+  margin-top: -10px;
+  font-size: 10px;
 }
 
 .modal-overlay {
@@ -309,12 +298,12 @@ function submitSelection() {
   justify-content: center;
 }
 .modal-content {
-  background: #fff;
-  border-radius: 18px;
-  width: 900px;           /* 모달 가로 크기 넉넉히 */
+  background: var(--modal-bg2);
+  border-radius: 12px;
+  width: 900px;
   min-width: 700px;
   max-width: 98vw;
-  min-height: 600px;      /* 모달 세로 최소 크기 넉넉히 */
+  min-height: 600px;
   box-shadow: 0 2px 24px rgba(0,0,0,0.13);
   display: flex;
   flex-direction: column;
@@ -322,72 +311,25 @@ function submitSelection() {
   padding: 0 0 0 0;
 }
 
-/* =========================
-    상단 제목/탭/정렬/검색/삭제
-========================= */
 .model-text {
-  padding: 24px 0 0 0;    /* 상단 여백 */
+  padding: 24px 0 0 0;
   text-align: center;
+  color: var(--text-main);
 }
 .modal-title {
   margin-bottom: 30px;
   margin-left: 0;
+  color: var(--text-main);
 }
 .modal-header {
   display: flex;
   align-items: center;
-  justify-content: flex-start;
+  justify-content: center;
   gap: 12px;
   padding: 0 18px 0 18px;
-  border-bottom: 1.5px solid #e0e0e0;
+  border-bottom: 1.5px solid var(--border-color);
   position: relative;
-  flex-wrap: nowrap; /* 한 줄 유지 */
-}
-.tab-group {
-  display: flex;
-  gap: 4px;
-}
-.tab-group button {
-  background: #f8f9fa;
-  border: 1px solid #e0e0e0;
-  border-bottom: none;
-  border-radius: 8px 8px 0 0;
-  padding: 6px 18px;
-  font-weight: 500;
-  font-size: 15px;
-  color: #333;
-  cursor: pointer;
-}
-.tab-group .active {
-  background: #fff;
-  color: #00a8e8;
-  border-bottom: 2px solid #fff;
-  font-weight: bold;
-}
-.sort-search-group {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-left: 12px;
-  flex-shrink: 0;
-}
-.sort-search-group select {
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  padding: 4px 8px;
-  font-size: 14px;
-  width: 90px;
-  min-width: 70px;
-  max-width: 120px;
-}
-.sort-search-group input {
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  padding: 4px 8px;
-  font-size: 14px;
-  width: 120px;
-  min-width: 80px;
-  max-width: 180px;
+  flex-wrap: nowrap;
 }
 
 .delete-btn {
@@ -396,28 +338,24 @@ function submitSelection() {
   flex-shrink: 0;
 }
 
-/* =========================
-    조직도/결재선 본문 영역
-========================= */
 .modal-body {
   display: flex;
   flex: 1;
   min-height: 400px;
-  padding: 0 32px 0 32px; /* 좌우 여백 넉넉히 */
-  gap: 24px;              /* 좌우 영역 간격 */
+  padding: 0 32px 0 32px; 
+  gap: 24px;
   margin-top: 8px;
-  align-items: stretch;   /* 세로로 모두 같은 높이 */
+  align-items: stretch;
   justify-content: center;
 }
 .org-tree-area, .approver-table-area {
-  /* 조직도/결재자 영역 동일하게 */
   flex: 1 1 0;
   min-width: 320px;
   max-width: 420px;
   height: 410px;
   background: #fff;
   border: none;
-  border-radius: 18px;
+  border-radius: 12px;
   padding: 24px 16px 24px 16px;
   overflow-y: auto;
   box-sizing: border-box;
@@ -426,64 +364,69 @@ function submitSelection() {
   flex-direction: column;
   align-items: flex-start;
   justify-content: flex-start;
+  background: var(--modal-box-bg);
 }
 
+.search-wrapper {
+  position: relative;
+  display: inline-block; 
+  height: 50px;
+}
 .search-bar {
+  position: relative; 
   display: flex;
   align-items: center;
   gap: 8px;
-  margin: 12px 0;
   margin-left: 12px;
   flex-shrink: 0;
 }
 
 .search-bar select {
-  border: 1px solid #ccc;
+  border: 1px solid #ddd;
   border-radius: 6px;
   padding: 6px 10px;
   font-size: 14px;
   min-width: 90px;
-  background-color: #fff;
+  background: var(--bg-main);
   box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+  color: var(--text-main);
 }
 
 .search-bar input {
-  border: 1px solid #ccc;
-  border-radius: 6px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
   padding: 6px 12px;
   font-size: 14px;
-  width: 180px;
-  background-color: #fff;
+  width: 170px;
+  background: var(--bg-main);
+  color: var(--text-main);
   box-shadow: 0 1px 4px rgba(0,0,0,0.05);
 }
 
-.search-bar input:focus,
-.search-bar select:focus {
-  border: 1px solid black;
-  outline: none;
-  box-shadow: none;
-}
-
 .employee-search-result {
-  list-style: none;
+  position: absolute;
+  top: 100%;
+  right: 0;
+  max-height: 200px;
+  width: 61%; 
+  margin: 0.5px 0 0;
   padding: 0;
-  margin: 0 0 12px 0;
-  width: 100%;
-  font-size: 14px;
-  max-height: 180px;
-  overflow-y: auto;
-  background: #ffffff;
-  border: 1px solid #d0d0d0;
+  list-style: none;
+  background: var(--modal-box-bg);
+  border: 1px solid #ddd;
   border-radius: 8px;
-  box-shadow: 0 1px 6px rgba(0,0,0,0.1);
+  overflow-y: auto;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  z-index: 1000;
+  font-size: 14px;
+  top: 30px;
+  
 }
 
 .employee-search-result li {
-  padding: 8px 12px;
+  padding: 6px 12px;
   cursor: pointer;
-  border-bottom: 1px solid #f0f0f0;
-  transition: background 0.2s;
-  overflow-y: auto;
+  border-bottom: 1px solid #ddd;
 }
 
 .employee-search-result.scrollbar {
@@ -495,11 +438,11 @@ function submitSelection() {
 }
 
 .employee-search-result li:hover {
-  background-color: #d8d8d8;
+  background-color: var(--ag-primary-hover);
 }
 
 .employee-search-result li.selected {
-  background-color: #d8d8d8;
+  background-color: var(--ag-primary);;
   font-weight: bold;
 }
 
@@ -509,8 +452,6 @@ function submitSelection() {
   font-size: 14px;
   text-align: center;
 }
-
-
 
 .action-btns {
   display: flex;
@@ -524,50 +465,51 @@ function submitSelection() {
 }
 .approver-table {
   width: 100%;
+  table-layout: fixed;
   border-collapse: collapse;
 }
+
+
+
 .approver-table th, .approver-table td {
-  border: 1px solid #e0e0e0;
-  padding: 8px 10px;
+  border: 1px solid var(--border-color);
+  padding: 4px 6px;
   font-size: 15px;
-  text-align: center;
+  text-align: left; 
+  overflow: hidden;
 }
 .approver-table th {
-  background: #f8f9fa;
-  color: #222;
+  background-color: var(--bg-label-cell);
+  color: var(--text-main);
   font-weight: 600;
 }
+.approver-table td {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 14px;
+}
 
-/* =========================
-    하단 버튼 영역
-========================= */
 .modal-footer {
   display: flex;
-  justify-content: flex-end;
+  justify-content: center;
   gap: 12px;
   padding: 24px 32px 24px 0;
-  border-top: 1.5px solid #e0e0e0;
-  background: #fff;
+  border-top: 1.5px solid var(--border-color);
+  background: var(--modal-bg);
   border-radius: 0 0 12px 12px;
 }
 .footer-btn {
-  font-size: 15px;
-  font-weight: 500;
-  border: none;
-  border-radius: 6px;
-  padding: 8px 32px;
-  cursor: pointer;
+  display: flex;
+  gap: 24px;
+  margin-bottom: 12px;
 }
 
-/* =========================
-    버튼 스타일(공통)
-========================= */
-/* 저장(등록/결재/협조) 버튼 스타일 */
 .btn-save {
   font-size: 14px;
   font-weight: bold;
-  background-color: #00a8e8;
-  color: white;
+  background-color: var(--primary);
+  color: var(--text-on-primary);
   border: 1px solid transparent;
   border-radius: 10px;
   padding: 10px 30px;
@@ -577,18 +519,17 @@ function submitSelection() {
   box-sizing: border-box;
 }
 .btn-save:hover {
-  background-color: white;
-  color: #00a8e8;
-  border-color: #00a8e8;
+  background-color: var(--bg-main);
+  color: var(--primary);
+  border-color: var(--primary);
   box-shadow: inset 1px 1px 10px rgba(0, 0, 0, 0.25);
 }
 .btn-save:disabled {
-  background: #b3e3f7;
-  color: #fff;
+  background: var(--bg-body);
+  color: #727272b8;
   cursor: not-allowed;
-  border-color: #b3e3f7;
+  border-color: #ddd;
 }
-/* 삭제/취소 버튼 스타일 */
 .btn-delete {
   font-size: 14px;
   font-weight: bold;

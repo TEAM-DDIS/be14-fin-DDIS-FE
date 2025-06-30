@@ -85,7 +85,6 @@ async function onLogin() {
 
     // 3) 토큰 저장
     userStore.setAccessToken(token)
-    localStorage.setItem('token', token)
 
     // 4) 내 정보 요청
     const userRes = await fetch('https://api.isddishr.site/users/me', {
@@ -253,7 +252,7 @@ async function onLogin() {
   content: "";
   position: absolute;
   top: 0; left: 0;
-  width: 100%; height: 90%;
+  width: 100%; height: 100%;
   background: url("@/assets/icons/loginbackground.svg") no-repeat center/cover;
   opacity: 1;
 }

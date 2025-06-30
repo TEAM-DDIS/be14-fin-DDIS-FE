@@ -56,11 +56,11 @@
     { headerName: '근무상태', field: 'workStatus' },
     { headerName: '출근시간', field: 'checkInTime', valueFormatter: p => formatTime(p.value) },
     { headerName: '퇴근시간', field: 'checkOutTime', valueFormatter: p => formatTime(p.value) },
-    { headerName: '근무시간', field: 'workDuration', valueFormatter: p => convertMinutesToHours(p.value) },
-    { headerName: '시간외근무시간', field: 'overtimeExtra', valueFormatter: p => convertMinutesToHours(p.value) },
-    { headerName: '야간근무시간', field: 'overtimeNight', valueFormatter: p => convertMinutesToHours(p.value) },
-    { headerName: '휴일근무시간', field: 'overtimeHoliday', valueFormatter: p => convertMinutesToHours(p.value) },
-    { headerName: '총 근무시간', field: 'totalWorkTime', valueFormatter: p => convertMinutesToHours(p.value) }
+    { headerName: '근무시간', field: 'workDuration', valueFormatter: p => convertMinutesToHours(p.value), width: 160 },
+    { headerName: '시간외근무시간', field: 'overtimeExtra', valueFormatter: p => convertMinutesToHours(p.value), width: 160 },
+    { headerName: '야간근무시간', field: 'overtimeNight', valueFormatter: p => convertMinutesToHours(p.value), width: 160 },
+    { headerName: '휴일근무시간', field: 'overtimeHoliday', valueFormatter: p => convertMinutesToHours(p.value), width: 160 },
+    { headerName: '총 근무시간', field: 'totalWorkTime', valueFormatter: p => convertMinutesToHours(p.value), width: 160 }
   ]
 
   function downloadCSV() {
@@ -109,7 +109,7 @@
   .leave-used-wrapper {
     display: flex;
     justify-content: space-between;
-    background: #fff;
+    background: var(--bg-box);;
     padding: 30px;
     border-radius: 12px;
     box-shadow: 1px 1px 20px 1px rgba(0, 0, 0, 0.05);
@@ -123,8 +123,8 @@
   .download-btn {
     font-size: 14px;
     font-weight: bold;
-    background-color: #00a8e8;
-    color: white;
+    background-color: var(--primary);
+    color: var(--text-on-primary);
     border: 1px solid transparent;
     border-radius: 10px;
     padding: 10px 30px;
@@ -137,9 +137,9 @@
   }
 
   .download-btn:hover {
-    background-color: white;
-    color: #00a8e8;
-    border-color: #00a8e8;
+    background-color: var(--bg-main);
+    color: var(--primary);
+    border-color: var(--primary);
     box-shadow:
     inset 1px 1px 10px rgba(0, 0, 0, 0.25);
   }

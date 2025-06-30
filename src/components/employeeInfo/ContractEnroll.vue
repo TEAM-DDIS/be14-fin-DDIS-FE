@@ -273,25 +273,25 @@ function onCancel() {
 .page-title {
   margin-left: 20px;
   margin-bottom: 30px;
-  color: #00a8e8;
+  color: var(--primary);  
 }
 .desc {
   display: block;
   margin-left: 20px;
   margin-bottom: 10px;
+  font-size: 18px;
 }
 
 /* 카드 영역: 높이를 늘려서 min-height 적용 */
 .card {
   position: relative; 
-  background: #fff;
+  background: var(--bg-box);
   border-radius: 12px;
   box-shadow: 1px 1px 20px 1px rgba(0, 0, 0, 0.05);
-  width: 100%;
-  margin: 20px 0 0 10px;
+  width: 98%;
+  margin: 0 0 30px 20px;
   padding: 20px 40px 32px 40px;
   box-sizing: border-box;
-  margin-bottom: 30px;
   /* 높이를 아래로 늘립니다 */
   min-height: 700px;
 }
@@ -301,15 +301,16 @@ function onCancel() {
   display: flex;
   gap: 20px;
   height: 100%;
+  padding: 20px 12px;
 }
 
 /* 왼쪽 업로드 영역: flex 비율을 줄여 너비가 좁아지게 함 */
 .upload-area {
   flex: 0.7;
-  background-color: #f5f6f7;
-  border-radius: 8px;
+  background-color: var(--modal-box-bg);
+  border-radius: 12px;
   /* 카드가 min-height 700px이므로, 이보다 약간 작은 600px로 설정 */
-  height: 600px;
+  height: 500px;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -319,7 +320,7 @@ function onCancel() {
   margin-left: 20px;
 }
 .placeholder-text {
-  color: #999;
+  color: var(--text-sub);
   font-size: 1rem;
 }
 .preview-img {
@@ -345,27 +346,33 @@ function onCancel() {
 .info-table th,
 .info-table td {
   /* 세로 패딩을 넉넉히 둡니다 */
-  border: 1px solid #d1d5db;
+  border: 1px solid #ddd;
   padding: 20px 12px;
   font-size: 0.95rem;
 }
 .info-table th {
-  background-color: #fafafa;
+  background-color: var(--bg-label-cell);
   text-align: left;
   width: 120px;
-  color: #374151;
+  color: var(--text-main);
 }
 .info-table td input[type='text'],
 .info-table td input[type='date'] {
   width: 100%;
-  border: 1px solid #ccc;
-  border-radius: 4px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
   padding: 10px 8px;
   font-size: 0.9rem;
+  font-family: 'inherit';
   box-sizing: border-box;
+  background-color: var(--modal-box-bg);
+  color: var(--text-main);
 }
 .info-table td input[type='text']::placeholder {
-  color: #bbb;
+  color: var(--text-main);
+}
+input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: var(--icon-filter, brightness(0))
 }
 
 /* 경고문 */
@@ -373,7 +380,7 @@ function onCancel() {
   display: flex;
   margin-top: 16px;
   font-size: 0.85rem;
-  color: #6b7280;
+  color: var(--text-sub);
   line-height: 1.4;
   justify-content: flex-end;
 }
@@ -381,7 +388,7 @@ function onCancel() {
 /* 하단 버튼 행 */
 .button-row {
   position: absolute;
-  bottom: 20px;            /* 카드 padding-bottom(32px)보다 살짝 위로 */
+  bottom: 40px;            /* 카드 padding-bottom(32px)보다 살짝 위로 */
   right: 40px;             /* 카드 padding-right 값과 동일 */
   display: flex;
   gap: 12px;
@@ -403,8 +410,8 @@ function onCancel() {
   color: #fff;
 }
 .btn-save {
-  background-color: #00a8e8;
-  color: white;
+  background-color: var(--primary);
+  color: var(--text-on-primary);
   font-weight: bold;
   border: 1px solid transparent;
   border-radius: 10px;
@@ -415,9 +422,9 @@ function onCancel() {
   box-sizing: border-box;
 }
 .btn-save:hover {
-  background-color: white;
-  color: #00a8e8;
-  border-color: #00a8e8;
+  background-color: var(--bg-main);
+  color: var(--primary);
+  border-color: var(--primary);
   box-shadow: inset 1px 1px 10px rgba(0, 0, 0, 0.25);
 }
 
