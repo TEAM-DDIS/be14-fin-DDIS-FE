@@ -47,6 +47,14 @@
 
 ---
 
+## 프로젝트 링크
+| Frontend | Backend | AI
+|------------|------------|------------|
+| [FE Github](https://github.com/TEAM-DDIS/be14-fin-DDIS-FE) | [BE Github](https://github.com/TEAM-DDIS/be14-fin-DDIS-BE) | [AI Github](https://github.com/TEAM-DDIS/be14-fin-DDIS-AI)
+
+
+---
+
 ## 📍 프로젝트 개요
 
 기존의 복잡하고 딱딱한 인사 시스템에서 벗어나,  
